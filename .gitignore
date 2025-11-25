@@ -31,6 +31,14 @@ Thumbs.db
 .next/
 .vercel/
 
+# Database
+*.db
+*.sqlite
+drizzle/
+
+# Scripts output
+build_log.txt
+
 # Python
 __pycache__/
 *.py[cod]

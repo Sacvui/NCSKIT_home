@@ -3,9 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import { LanguageToggle } from "./LanguageToggle";
 import { useLanguageContext } from "./LanguageProvider";
 import { useScrollSpy } from "./ScrollSpy";
+import { UserMenu } from "./UserMenu";
 import type { NavItem } from "@/lib/content";
 
 type HeaderProps = {
@@ -22,7 +24,9 @@ type HeaderProps = {
 export function Header({ nav, headerCtas, variant = "default", backHref, backLabel }: HeaderProps) {
   const { copy } = useLanguageContext();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
+  const { data: session, status } = useSession();
+  const isAuthenticated = status === "authenticated" && session?.user;
+
   const navigation = nav ?? copy.nav;
   const ctas = headerCtas ?? copy.headerCtas;
   const isBlog = variant === "blog" || variant === "article";
@@ -66,7 +70,7 @@ export function Header({ nav, headerCtas, variant = "default", backHref, backLab
       const href = item.href;
       const sectionId = href.startsWith("#") ? href.substring(1) : "";
       const isActive = !isMobile && variant === "default" && activeSectionId === sectionId;
-      
+
       // Convert relative anchor links to absolute paths for blog pages
       const getLinkHref = (linkHref: string) => {
         if (linkHref.startsWith("#") && isBlog) {
@@ -74,7 +78,7 @@ export function Header({ nav, headerCtas, variant = "default", backHref, backLab
         }
         return linkHref;
       };
-      
+
       return (
         <div
           key={item.href}
@@ -93,33 +97,33 @@ export function Header({ nav, headerCtas, variant = "default", backHref, backLab
           >
             {item.label}
           </a>
-        {item.children && (
-          <div className="nav-dropdown">
-            <div className="nav-dropdown-grid">
-              {item.children.map((child, index) => {
-                const midPoint = Math.ceil(item.children!.length / 2);
-                const column = index < midPoint ? "left" : "right";
-                return (
-                  <a
-                    key={`${item.href}-${child.href}`}
-                    href={getLinkHref(child.href)}
-                    className={`nav-dropdown-item ${column}`}
-                    onClick={(e) => {
-                      if (onClick) onClick();
-                      if (isBlog && child.href.startsWith("#")) {
-                        e.preventDefault();
-                        window.location.href = `/${child.href}`;
-                      }
-                    }}
-                  >
-                    {child.label}
-                  </a>
-                );
-              })}
+          {item.children && (
+            <div className="nav-dropdown">
+              <div className="nav-dropdown-grid">
+                {item.children.map((child, index) => {
+                  const midPoint = Math.ceil(item.children!.length / 2);
+                  const column = index < midPoint ? "left" : "right";
+                  return (
+                    <a
+                      key={`${item.href}-${child.href}`}
+                      href={getLinkHref(child.href)}
+                      className={`nav-dropdown-item ${column}`}
+                      onClick={(e) => {
+                        if (onClick) onClick();
+                        if (isBlog && child.href.startsWith("#")) {
+                          e.preventDefault();
+                          window.location.href = `/${child.href}`;
+                        }
+                      }}
+                    >
+                      {child.label}
+                    </a>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
       );
     });
 
@@ -135,7 +139,7 @@ export function Header({ nav, headerCtas, variant = "default", backHref, backLab
             priority
           />
         </Link>
-        
+
         <nav className="nav" aria-label="Primary">
           {renderNavItems(undefined, false)}
         </nav>
@@ -153,20 +157,26 @@ export function Header({ nav, headerCtas, variant = "default", backHref, backLab
 
         <div className={`header-actions${mobileMenuOpen ? " mobile-visible" : ""} ${isBlog ? "gap-2" : ""}`}>
           <LanguageToggle />
-          {variant === "default" && (
-            <a className="primary-btn" href="/login">
-              {ctas.release}
-            </a>
-          )}
-          {variant === "blog" && (
-            <Link className="ghost-btn" href="/" onClick={() => setMobileMenuOpen(false)}>
-              Home
-            </Link>
-          )}
-          {variant === "article" && backHref && (
-            <Link className="ghost-btn" href={backHref}>
-              ← {backLabel ?? copy.blog.ctaLabel}
-            </Link>
+          {isAuthenticated ? (
+            <UserMenu />
+          ) : (
+            <>
+              {variant === "default" && (
+                <a className="primary-btn" href="/login">
+                  {ctas.release}
+                </a>
+              )}
+              {variant === "blog" && (
+                <a className="primary-btn" href="/login">
+                  {ctas.release}
+                </a>
+              )}
+              {variant === "article" && backHref && (
+                <Link className="ghost-btn" href={backHref}>
+                  ← {backLabel ?? copy.blog.ctaLabel}
+                </Link>
+              )}
+            </>
           )}
         </div>
 

@@ -20,6 +20,8 @@ export const metadata: Metadata = {
     "NCSKIT IDE blends a custom VS Code OSS fork, FastAPI, and LangChain so researchers can turn ideas into publish-ready papers without writing code.",
 };
 
+import { AuthProvider } from "./components/AuthProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,8 +30,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${spaceGrotesk.variable}`}>
-        <div className="glow-bg" aria-hidden="true" />
-        {children}
+        <AuthProvider>
+          <div className="glow-bg" aria-hidden="true" />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

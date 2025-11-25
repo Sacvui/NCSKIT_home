@@ -1,0 +1,74 @@
+---
+title: "How to Contribute: Writing for NCSKIT Blog"
+date: "2025-11-26"
+summary: "A complete guide to adding new articles, managing categories, and using MDX components in the NCSKIT knowledge base."
+category: "blog-writing"
+tags: ["Guide", "MDX", "Contribution"]
+readingTime: "5 min read"
+---
+
+# Writing for NCSKIT
+
+The NCSKIT blog is built on **MDX**, allowing us to write content in Markdown while embedding React components. This guide explains how to add new posts and manage the content structure.
+
+## 1. Adding a New Post
+
+To create a new article, simply add a `.mdx` file to the `content/blog` directory. The filename will become the URL slug (e.g., `my-new-post.mdx` becomes `/blog/my-new-post`).
+
+### Frontmatter
+
+Every post must start with a YAML frontmatter block:
+
+```yaml
+---
+title: "Your Article Title"
+date: "2025-11-26"
+summary: "A short description that appears in the blog index and SEO meta tags."
+category: "blog-writing"
+tags: ["Tag1", "Tag2"]
+readingTime: "5 min read"
+---
+```
+
+### Categories
+
+The `category` field must match one of the `anchor` IDs defined in `lib/content.ts`. Common categories include:
+
+- `blog-marketing`: Marketing & Những Cú Lừa
+- `blog-management`: Quản Trị & Drama Công Sở
+- `blog-economics`: Kinh Tế Vỉa Hè
+- `blog-lab`: Phòng Lab "Chạy Số"
+- `blog-writing`: Bút Chiến Học Thuật
+- `blog-vault`: Kho "Đồ Chơi" nghiên cứu
+
+## 2. Using MDX Components
+
+You can use standard Markdown syntax for headers, lists, and links. Additionally, you can use React components if they are imported or globally available.
+
+### Math Equations
+
+We support LaTeX math equations using `remark-math` and `rehype-katex`.
+
+Inline math: $E = mc^2$
+
+Block math:
+
+$$
+\frac{-b \pm \sqrt{b^2 - 4ac}}{2a}
+$$
+
+## 3. Images
+
+Place images in the `public/images/blog` directory and reference them using standard Markdown image syntax or the Next.js `<Image />` component.
+
+```markdown
+![Alt text](/images/blog/my-image.png)
+```
+
+## 4. Best Practices
+
+- **Bilingual Support**: Currently, posts are written primarily in Vietnamese or English. Ensure the tone matches the target audience (e.g., "Street Economics" uses a more casual, witty tone).
+- **SEO**: Always include a compelling `summary` and relevant `tags`.
+- **Structure**: Use H2 (`##`) and H3 (`###`) for clear hierarchy.
+
+Happy writing!

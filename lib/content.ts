@@ -1005,7 +1005,7 @@ export const translations: Record<Locale, SiteCopy> = {
     ],
     headerCtas: {
       readme: "Tải README",
-      release: "Phát hành ncskit.org",
+      release: "Đăng nhập",
     },
     hero: {
       eyebrow: "Whitepaper · ncskit.org",
