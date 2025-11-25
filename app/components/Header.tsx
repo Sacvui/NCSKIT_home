@@ -84,13 +84,11 @@ export function Header({ nav, headerCtas, variant = "default", backHref, backLab
             href={getLinkHref(href)}
             onClick={(e) => {
               if (onClick) onClick();
-              if (variant === "default" && href.startsWith("#")) {
+              // Only handle anchor links for smooth scroll on homepage
+              if (variant === "default" && href.startsWith("#") && !href.startsWith("/")) {
                 handleNavClick(e, href);
-              } else if (isBlog && href.startsWith("#")) {
-                // On blog pages, navigate to homepage section
-                e.preventDefault();
-                window.location.href = `/${href}`;
               }
+              // For routes (/features, /architecture, etc.), let browser handle navigation
             }}
           >
             {item.label}
@@ -132,8 +130,8 @@ export function Header({ nav, headerCtas, variant = "default", backHref, backLab
           <Image
             src="/assets/logo.png"
             alt="NCSKIT logo"
-            width={120}
-            height={40}
+            width={144}
+            height={48}
             priority
           />
         </Link>
@@ -156,7 +154,7 @@ export function Header({ nav, headerCtas, variant = "default", backHref, backLab
         <div className={`header-actions${mobileMenuOpen ? " mobile-visible" : ""} ${isBlog ? "gap-2" : ""}`}>
           <LanguageToggle />
           {variant === "default" && (
-            <a className="primary-btn" href="#release" onClick={(e) => handleNavClick(e, "#release")}>
+            <a className="primary-btn" href="/login">
               {ctas.release}
             </a>
           )}

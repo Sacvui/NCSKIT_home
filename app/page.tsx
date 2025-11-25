@@ -9,7 +9,6 @@ import { InteractiveAnalysis } from "./components/InteractiveAnalysis";
 import { ProjectDashboard } from "./components/ProjectDashboard";
 import { ModuleCapabilities } from "./components/ModuleCapabilities";
 import { ResearchMetrics } from "./components/ResearchMetrics";
-import { AIPartnersSection } from "./components/AIPartnersSection";
 import { SEMResearchSection } from "./components/SEMResearchSection";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
@@ -109,8 +108,6 @@ function HomeContent() {
             </div>
           </div>
         </section>
-
-        <AIPartnersSection />
 
         <section id="modules" className="section features">
           <div className="container">

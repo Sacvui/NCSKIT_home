@@ -258,16 +258,16 @@ const navResearchChildren: Record<Locale, NavChild[]> = {
 
 const navFeaturesChildren: Record<Locale, NavChild[]> = {
   en: [
-    { label: "Core Modules", href: "#modules" },
-    { label: "Architecture", href: "#architecture" },
-    { label: "Workflow", href: "#workflow" },
-    { label: "Automation", href: "#auto-flow" },
+    { label: "Core Modules", href: "/features" },
+    { label: "Architecture", href: "/architecture" },
+    { label: "Workflow", href: "/workflow" },
+    { label: "Automation", href: "/workflow#automation" },
   ],
   vi: [
-    { label: "Phân hệ cốt lõi", href: "#modules" },
-    { label: "Kiến trúc", href: "#architecture" },
-    { label: "Quy trình", href: "#workflow" },
-    { label: "Tự động hóa", href: "#auto-flow" },
+    { label: "Phân hệ cốt lõi", href: "/features" },
+    { label: "Kiến trúc", href: "/architecture" },
+    { label: "Quy trình", href: "/workflow" },
+    { label: "Tự động hóa", href: "/workflow#automation" },
   ],
 };
 
@@ -317,15 +317,14 @@ const blogTags = [
 export const translations: Record<Locale, SiteCopy> = {
   en: {
     nav: [
-      { label: "Home", href: "#hero" },
       {
         label: "Features",
-        href: "#modules",
+        href: "/features",
         children: navFeaturesChildren.en,
       },
       {
         label: "Research",
-        href: "/blog#blog-lab",
+        href: "/research",
         children: navResearchChildren.en,
       },
       {
@@ -334,11 +333,11 @@ export const translations: Record<Locale, SiteCopy> = {
         children: navResourcesChildren.en,
       },
       { label: "Blog", href: "/blog" },
-      { label: "Contact", href: "#contact" },
+      { label: "Contact", href: "/contact" },
     ],
     headerCtas: {
       readme: "Project README",
-      release: "Launch ncskit.org",
+      release: "Login",
     },
     hero: {
       eyebrow: "Whitepaper-aligned · ncskit.org",
@@ -908,15 +907,14 @@ export const translations: Record<Locale, SiteCopy> = {
   },
   vi: {
     nav: [
-      { label: "Trang chủ", href: "#hero" },
       {
         label: "Tính năng",
-        href: "#modules",
+        href: "/features",
         children: navFeaturesChildren.vi,
       },
       {
         label: "Nghiên cứu",
-        href: "/blog#blog-lab",
+        href: "/research",
         children: navResearchChildren.vi,
       },
       {
@@ -926,7 +924,7 @@ export const translations: Record<Locale, SiteCopy> = {
       },
       { label: "Số liệu", href: "#research-metrics" },
       { label: "Blog", href: "/blog" },
-      { label: "Liên hệ", href: "#contact" },
+      { label: "Liên hệ", href: "/contact" },
     ],
     headerCtas: {
       readme: "Tải README",
