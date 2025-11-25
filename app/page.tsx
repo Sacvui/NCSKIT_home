@@ -9,7 +9,7 @@ import { InteractiveAnalysis } from "./components/InteractiveAnalysis";
 import { ProjectDashboard } from "./components/ProjectDashboard";
 import { ModuleCapabilities } from "./components/ModuleCapabilities";
 import { ResearchMetrics } from "./components/ResearchMetrics";
-import { TrustSection } from "./components/TrustSection";
+import { AIPartnersSection } from "./components/AIPartnersSection";
 import { SEMResearchSection } from "./components/SEMResearchSection";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
@@ -110,7 +110,7 @@ function HomeContent() {
           </div>
         </section>
 
-        <TrustSection />
+        <AIPartnersSection />
 
         <section id="modules" className="section features">
           <div className="container">
@@ -165,7 +165,7 @@ function HomeContent() {
                     </div>
                   ))}
                 </dl>
-                <Image src="/assets/NCSKIT.png" alt={architecture.imageAlt} width={640} height={360} />
+                {/* Logo removed per request */}
               </div>
             </div>
           </div>

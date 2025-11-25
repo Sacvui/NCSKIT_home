@@ -19,16 +19,16 @@ type ResearchScenario = {
 const researchScenarios: ResearchScenario[] = [
   {
     id: "quantitative",
-    title: "Nghiên cứu Định lượng",
-    description: "Khảo sát, thực nghiệm, phân tích số liệu thống kê",
+    title: "Quantitative Research",
+    description: "Surveys, experiments, statistical data analysis",
     workflow: "Quantitative Flow",
     steps: [
-      { id: "ideation", label: "Ideation Lab - Chọn đề tài & Xây dựng khung lý thuyết", status: "completed", progress: 100 },
-      { id: "literature", label: "Literature Review - Tổng hợp tài liệu tham khảo", status: "completed", progress: 100 },
-      { id: "design", label: "Design Studio - Thiết kế mô hình nghiên cứu (SEM/CFA)", status: "completed", progress: 100 },
-      { id: "survey", label: "Survey Builder - Xây dựng bảng hỏi", status: "completed", progress: 100 },
-      { id: "data", label: "Data Collection - Thu thập dữ liệu", status: "in-progress", progress: 85 },
-      { id: "health", label: "Data Health Check - Kiểm tra missing, outliers", status: "completed", progress: 100 },
+      { id: "ideation", label: "Ideation Lab - Select topic & Build theoretical framework", status: "completed", progress: 100 },
+      { id: "literature", label: "Literature Review - Synthesize references", status: "completed", progress: 100 },
+      { id: "design", label: "Design Studio - Design research model (SEM/CFA)", status: "completed", progress: 100 },
+      { id: "survey", label: "Survey Builder - Build questionnaire", status: "completed", progress: 100 },
+      { id: "data", label: "Data Collection - Gather data", status: "in-progress", progress: 85 },
+      { id: "health", label: "Data Health Check - Check missing values, outliers", status: "completed", progress: 100 },
       { id: "reliability", label: "Reliability & Validity - Cronbach's Alpha, EFA", status: "completed", progress: 100 },
       { id: "descriptive", label: "Descriptive Statistics - Mean, SD, Skewness", status: "completed", progress: 100 },
       { id: "assumptions", label: "Assumptions Testing - Normality, Levene", status: "completed", progress: 100 },
@@ -36,38 +36,38 @@ const researchScenarios: ResearchScenario[] = [
       { id: "group", label: "Group Comparisons - T-test, ANOVA, Mann-Whitney", status: "completed", progress: 100 },
       { id: "regression", label: "Regression / Modeling - Linear, Logistic", status: "in-progress", progress: 70 },
       { id: "multivariate", label: "Multivariate Analysis - PCA, SEM", status: "pending", progress: 0 },
-      { id: "writing", label: "Writing & Publishing - Xuất báo cáo", status: "pending", progress: 0 },
+      { id: "writing", label: "Writing & Publishing - Export report", status: "pending", progress: 0 },
     ],
   },
   {
     id: "qualitative",
-    title: "Nghiên cứu Định tính",
-    description: "Phỏng vấn, quan sát, phân tích nội dung",
+    title: "Qualitative Research",
+    description: "Interviews, observations, content analysis",
     workflow: "Qualitative Flow",
     steps: [
-      { id: "ideation", label: "Ideation Lab - Xác định câu hỏi nghiên cứu", status: "completed", progress: 100 },
-      { id: "literature", label: "Literature Review - Tổng hợp lý thuyết nền", status: "completed", progress: 100 },
-      { id: "design", label: "Design Studio - Thiết kế phỏng vấn/Quan sát", status: "completed", progress: 100 },
-      { id: "data", label: "Data Collection - Phỏng vấn, ghi chép", status: "in-progress", progress: 80 },
-      { id: "transcription", label: "Transcription - Gỡ băng, chuẩn hóa văn bản", status: "in-progress", progress: 60 },
+      { id: "ideation", label: "Ideation Lab - Define research questions", status: "completed", progress: 100 },
+      { id: "literature", label: "Literature Review - Synthesize background theory", status: "completed", progress: 100 },
+      { id: "design", label: "Design Studio - Design interview/Observation protocol", status: "completed", progress: 100 },
+      { id: "data", label: "Data Collection - Interviews, note-taking", status: "in-progress", progress: 80 },
+      { id: "transcription", label: "Transcription - Transcribe audio, normalize text", status: "in-progress", progress: 60 },
       { id: "coding", label: "Coding - Open/Axial coding", status: "pending", progress: 0 },
-      { id: "thematic", label: "Thematic Analysis - Rút trích chủ đề", status: "pending", progress: 0 },
+      { id: "thematic", label: "Thematic Analysis - Extract themes", status: "pending", progress: 0 },
       { id: "validation", label: "Validation - Member checking", status: "pending", progress: 0 },
-      { id: "writing", label: "Writing & Publishing - Tổng hợp insight", status: "pending", progress: 0 },
+      { id: "writing", label: "Writing & Publishing - Synthesize insights", status: "pending", progress: 0 },
     ],
   },
   {
     id: "systematic",
-    title: "Tổng quan Tài liệu",
+    title: "Systematic Review",
     description: "Systematic Review, Meta-analysis",
     workflow: "Systematic Review Flow",
     steps: [
-      { id: "ideation", label: "Ideation Lab - Xác định câu hỏi nghiên cứu", status: "completed", progress: 100 },
-      { id: "search", label: "Search Strategy - Từ khóa, cơ sở dữ liệu (Scopus, WoS)", status: "completed", progress: 100 },
-      { id: "screening", label: "Screening (PRISMA) - Sàng lọc bài báo", status: "in-progress", progress: 75 },
-      { id: "quality", label: "Quality Assessment - Đánh giá chất lượng", status: "pending", progress: 0 },
-      { id: "synthesis", label: "Synthesis - Meta-analysis hoặc Narrative", status: "pending", progress: 0 },
-      { id: "writing", label: "Writing & Publishing - Báo cáo tổng hợp", status: "pending", progress: 0 },
+      { id: "ideation", label: "Ideation Lab - Define research questions", status: "completed", progress: 100 },
+      { id: "search", label: "Search Strategy - Keywords, databases (Scopus, WoS)", status: "completed", progress: 100 },
+      { id: "screening", label: "Screening (PRISMA) - Screen articles", status: "in-progress", progress: 75 },
+      { id: "quality", label: "Quality Assessment - Assess quality", status: "pending", progress: 0 },
+      { id: "synthesis", label: "Synthesis - Meta-analysis or Narrative", status: "pending", progress: 0 },
+      { id: "writing", label: "Writing & Publishing - Synthesis report", status: "pending", progress: 0 },
     ],
   },
 ];
@@ -108,8 +108,8 @@ export function ProjectDashboard() {
     <div className="project-dashboard component-card">
       <div className="dashboard-header">
         <div>
-          <h3>Kịch bản Nghiên cứu Khoa học</h3>
-          <p className="dashboard-workflow">Chọn workflow phù hợp với loại hình nghiên cứu của bạn</p>
+          <h3>Scientific Research Scenarios</h3>
+          <p className="dashboard-workflow">Select the workflow that matches your research type</p>
         </div>
         <div className="dashboard-stats">
           <div className="stat-item">
@@ -193,4 +193,3 @@ export function ProjectDashboard() {
     </div>
   );
 }
-

@@ -51,7 +51,7 @@ export default function BlogArticleClient({
 
   return (
     <>
-      <Header variant="article" backHref="/blog" backLabel={copy.blog.ctaLabel} />
+      <Header variant="article" nav={copy.nav} headerCtas={copy.headerCtas} backHref="/blog" backLabel={copy.blog.ctaLabel} />
 
       <main className="blog-article container section-container">
         <section className="component-card">

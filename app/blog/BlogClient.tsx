@@ -37,7 +37,7 @@ export default function BlogClient(props: BlogClientProps) {
 
   return (
     <>
-      <Header variant="blog" />
+      <Header variant="blog" nav={copy.nav} headerCtas={copy.headerCtas} />
 
       <main className="blog-page section-container">
         <section className="section blog-hero">

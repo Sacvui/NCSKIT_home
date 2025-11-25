@@ -67,17 +67,29 @@ export function Header({ nav, headerCtas, variant = "default", backHref, backLab
       const sectionId = href.startsWith("#") ? href.substring(1) : "";
       const isActive = !isMobile && variant === "default" && activeSectionId === sectionId;
       
+      // Convert relative anchor links to absolute paths for blog pages
+      const getLinkHref = (linkHref: string) => {
+        if (linkHref.startsWith("#") && isBlog) {
+          return `/${linkHref}`;
+        }
+        return linkHref;
+      };
+      
       return (
         <div
           key={item.href}
           className={`nav-item${item.children ? " has-children" : ""}${isActive ? " active" : ""}`}
         >
           <a
-            href={item.href}
+            href={getLinkHref(href)}
             onClick={(e) => {
               if (onClick) onClick();
               if (variant === "default" && href.startsWith("#")) {
                 handleNavClick(e, href);
+              } else if (isBlog && href.startsWith("#")) {
+                // On blog pages, navigate to homepage section
+                e.preventDefault();
+                window.location.href = `/${href}`;
               }
             }}
           >
@@ -92,9 +104,15 @@ export function Header({ nav, headerCtas, variant = "default", backHref, backLab
                 return (
                   <a
                     key={`${item.href}-${child.href}`}
-                    href={child.href}
+                    href={getLinkHref(child.href)}
                     className={`nav-dropdown-item ${column}`}
-                    onClick={onClick}
+                    onClick={(e) => {
+                      if (onClick) onClick();
+                      if (isBlog && child.href.startsWith("#")) {
+                        e.preventDefault();
+                        window.location.href = `/${child.href}`;
+                      }
+                    }}
                   >
                     {child.label}
                   </a>
@@ -120,21 +138,9 @@ export function Header({ nav, headerCtas, variant = "default", backHref, backLab
           />
         </Link>
         
-        {variant === "default" && (
-          <nav className="nav" aria-label="Primary">
-            {renderNavItems(undefined, false)}
-          </nav>
-        )}
-
-        {variant === "blog" && (
-          <nav className="nav blog-nav" aria-label="Blog categories">
-            {copy.blog.categories.map((category) => (
-              <a key={category.anchor} href={`#${category.anchor}`}>
-                {category.title}
-              </a>
-            ))}
-          </nav>
-        )}
+        <nav className="nav" aria-label="Primary">
+          {renderNavItems(undefined, false)}
+        </nav>
 
         <button
           className={`mobile-menu-toggle${mobileMenuOpen ? " active" : ""}`}
@@ -168,18 +174,24 @@ export function Header({ nav, headerCtas, variant = "default", backHref, backLab
 
         {mobileMenuOpen && (
           <div className="mobile-menu active">
-            <nav className="nav" aria-label={variant === "blog" ? "Blog categories mobile" : "Primary mobile"}>
-              {variant === "default" && renderNavItems(() => setMobileMenuOpen(false), true)}
-              {variant === "blog" &&
-                copy.blog.categories.map((category) => (
-                  <a
-                    key={category.anchor}
-                    href={`#${category.anchor}`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {category.title}
-                  </a>
-                ))}
+            <nav className="nav" aria-label="Primary mobile">
+              {renderNavItems(() => setMobileMenuOpen(false), true)}
+              {variant === "blog" && (
+                <>
+                  <div className="nav-divider" />
+                  <div className="nav-section-label">Blog Categories</div>
+                  {copy.blog.categories.map((category) => (
+                    <a
+                      key={category.anchor}
+                      href={`#${category.anchor}`}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="mobile-nav-item"
+                    >
+                      {category.title}
+                    </a>
+                  ))}
+                </>
+              )}
             </nav>
           </div>
         )}
