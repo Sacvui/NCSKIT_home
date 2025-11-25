@@ -1,10 +1,12 @@
 "use client";
 
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import { StatusBoard } from "./components/StatusBoard";
 import { ArchitectureTabs } from "./components/ArchitectureTabs";
 import { LanguageProvider, useLanguageContext } from "./components/LanguageProvider";
 import { LanguageToggle } from "./components/LanguageToggle";
+import type { BlogPostMeta } from "@/types/blog";
 
 const currentYear = new Date().getFullYear();
 
@@ -27,6 +29,7 @@ function HomeContent() {
     architecture,
     workflow,
     changelog,
+    marketing,
     automation,
     techRequirements,
     blog,
@@ -35,19 +38,39 @@ function HomeContent() {
     contact,
     footer,
   } = copy;
+  const [latestPosts, setLatestPosts] = useState<BlogPostMeta[]>([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchPosts() {
+      try {
+        const response = await fetch("/api/blog?limit=3");
+        if (!response.ok) return;
+        const data = await response.json();
+        if (isMounted) {
+          setLatestPosts(data.posts);
+        }
+      } catch (error) {
+        console.error("Failed to load blog posts", error);
+      }
+    }
+
+    fetchPosts();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const footerText = footer.text.replace("{year}", `${currentYear}`);
+  const previewPosts = latestPosts.slice(0, 3);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <>
       <header className="site-header">
         <div className="container header-inner">
           <a className="brand" href="#hero">
-            <Image src="/assets/logo.png" alt="NCSKIT logo" width={48} height={48} priority />
-            <div>
-              <span>NCSKIT Research</span>
-              <small>ncskit.org</small>
-            </div>
+            <Image src="/assets/logo.png" alt="NCSKIT logo" width={64} height={64} priority />
           </a>
           <nav className="nav" aria-label="Primary">
             {nav.map((item) => (
@@ -58,17 +81,37 @@ function HomeContent() {
                 <a href={item.href}>{item.label}</a>
                 {item.children && (
                   <div className="nav-dropdown">
-                    {item.children.map((child) => (
-                      <a key={`${item.href}-${child.href}`} href={child.href}>
-                        {child.label}
-                      </a>
-                    ))}
+                    <div className="nav-dropdown-grid">
+                      {item.children.map((child, index) => {
+                        const midPoint = Math.ceil(item.children!.length / 2);
+                        const column = index < midPoint ? "left" : "right";
+                        return (
+                          <a
+                            key={`${item.href}-${child.href}`}
+                            href={child.href}
+                            className={`nav-dropdown-item ${column}`}
+                          >
+                            {child.label}
+                          </a>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </div>
             ))}
           </nav>
-          <div className="header-actions">
+          <button
+            className={`mobile-menu-toggle${mobileMenuOpen ? " active" : ""}`}
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle menu"
+            aria-expanded={mobileMenuOpen}
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+          <div className={`header-actions${mobileMenuOpen ? " mobile-visible" : ""}`}>
             <LanguageToggle />
             <div className="header-cta">
               <a className="ghost-btn" href="/docs/README.md" download>
@@ -79,6 +122,42 @@ function HomeContent() {
               </a>
             </div>
           </div>
+          {mobileMenuOpen && (
+            <div className="mobile-menu active">
+              <nav className="nav" aria-label="Primary mobile">
+                {nav.map((item) => (
+                  <div
+                    key={item.href}
+                    className={`nav-item${item.children ? " has-children" : ""}`}
+                  >
+                    <a href={item.href} onClick={() => setMobileMenuOpen(false)}>
+                      {item.label}
+                    </a>
+                    {item.children && (
+                      <div className="nav-dropdown">
+                        <div className="nav-dropdown-grid">
+                          {item.children.map((child, index) => {
+                            const midPoint = Math.ceil(item.children!.length / 2);
+                            const column = index < midPoint ? "left" : "right";
+                            return (
+                              <a
+                                key={`${item.href}-${child.href}`}
+                                href={child.href}
+                                className={`nav-dropdown-item ${column}`}
+                                onClick={() => setMobileMenuOpen(false)}
+                              >
+                                {child.label}
+                              </a>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </nav>
+            </div>
+          )}
         </div>
       </header>
 
@@ -93,7 +172,7 @@ function HomeContent() {
                 <a className="primary-btn" href="/docs/ARCHITECTURE.md" download>
                   {hero.primaryCta}
                 </a>
-                <a className="secondary-btn" href="#features">
+                <a className="secondary-btn" href="#modules">
                   {hero.secondaryCta}
                 </a>
               </div>
@@ -139,7 +218,7 @@ function HomeContent() {
           </div>
         </section>
 
-        <section id="features" className="section features">
+        <section id="modules" className="section features">
           <div className="container">
             <div className="section-head">
               <p className="eyebrow">{features.eyebrow}</p>
@@ -272,43 +351,94 @@ function HomeContent() {
           </div>
         </section>
 
-        <section id="blog" className="section blog">
+        <section id="marketing" className="section marketing">
           <div className="container">
             <div className="section-head">
-              <p className="eyebrow">{blog.eyebrow}</p>
-              <h2>{blog.title}</h2>
-              <p>{blog.description}</p>
+              <p className="eyebrow">{marketing.eyebrow}</p>
+              <h2>{marketing.title}</h2>
+              <p>{marketing.description}</p>
             </div>
-            <div className="blog-grid">
-              {blog.categories.map((category) => (
-                <article key={category.anchor} id={category.anchor} className="blog-card">
-                  <p className="blog-slug">{category.slug}</p>
-                  <h3>{category.title}</h3>
-                  <p>{category.description}</p>
-                  <p className="blog-excerpt">{category.excerpt}</p>
+            <div className="marketing-grid">
+              {marketing.cards.map((card) => (
+                <article key={card.title} className="marketing-card">
+                  <div className="marketing-card-header">
+                    <h3>{card.title}</h3>
+                  </div>
+                  <p>{card.description}</p>
                   <ul>
-                    {category.featured.map((topic) => (
-                      <li key={topic}>{topic}</li>
+                    {card.bullets.map((item) => (
+                      <li key={item}>{item}</li>
                     ))}
                   </ul>
-                  {category.children && (
-                    <div className="blog-subsections">
-                      {category.children.map((sub) => (
-                        <div key={sub.anchor} id={sub.anchor}>
-                          <h4>{sub.title}</h4>
-                          <p>{sub.description}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <a
+                    className="marketing-cta"
+                    href={card.ctaHref}
+                    target={card.ctaHref.startsWith("http") ? "_blank" : undefined}
+                    rel={card.ctaHref.startsWith("http") ? "noreferrer" : undefined}
+                  >
+                    {card.ctaLabel}
+                  </a>
                 </article>
               ))}
             </div>
-            <div className="blog-tags">
-              <span>{blog.tagsLabel}</span>
-              {blog.tags.map((tag) => (
-                <span key={tag}>{tag}</span>
-              ))}
+          </div>
+        </section>
+        <section id="blog-preview" className="section blog-preview">
+          <div className="container blog-preview-grid">
+            <div className="blog-preview-copy">
+              <p className="eyebrow">{blog.eyebrow}</p>
+              <h2>{blog.title}</h2>
+              <p>{blog.description}</p>
+              <a className="primary-btn" href="/blog">
+                {blog.ctaLabel}
+              </a>
+            </div>
+            <div className="blog-preview-cards">
+              {previewPosts.length > 0
+                ? previewPosts.map((post) => {
+                    const groupLabel =
+                      copy.blog.groups[post.group]?.label ?? copy.blog.groups.economic.label;
+                    return (
+                      <article key={post.slug} className="blog-preview-card">
+                        <p className="blog-slug">{groupLabel}</p>
+                      <h3>{post.title}</h3>
+                      <p>{post.summary}</p>
+                      <p className="blog-excerpt">
+                        {post.readingTime} · {new Date(post.date).toLocaleDateString()}
+                      </p>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {post.tags.slice(0, 3).map((tag) => (
+                          <span
+                            key={`${post.slug}-${tag}`}
+                            className="inline-flex items-center rounded-full border border-slate-200 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-500"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                        <a
+                          className="inline-flex items-center gap-2 font-semibold text-brand"
+                          href={post.href}
+                        >
+                          {blog.ctaLabel}
+                          <span aria-hidden="true">→</span>
+                        </a>
+                      </article>
+                    );
+                  })
+                : blog.categories.slice(0, 3).map((category) => (
+                    <article key={category.anchor} className="blog-preview-card">
+                      <p className="blog-slug">{category.slug}</p>
+                      <h3>{category.title}</h3>
+                      <p>{category.description}</p>
+                      <p className="blog-excerpt">{category.excerpt}</p>
+                      <ul>
+                        {category.featured.map((topic) => (
+                          <li key={topic}>{topic}</li>
+                        ))}
+                      </ul>
+                    </article>
+                  ))}
             </div>
           </div>
         </section>

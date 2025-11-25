@@ -1,0 +1,58 @@
+---
+title: "SEM Blueprint for Vietnamese Research Labs"
+slug: "sem-blueprint-for-vn-labs"
+summary: "From sampling to SmartPLS hand-off, this blueprint keeps Structural Equation Modeling transparent for bilingual review boards."
+seoDescription: "Step-by-step SEM workflow with Cronbach, EFA, CFA, and SmartPLS guidelines tailored for the NCSKIT automation phases."
+group: scientific
+groupLabel: "Scientific Research Group"
+category: blog-lab
+categoryLabel: "Phòng Lab \"Chạy Số\""
+tags:
+  - SEM
+  - SmartPLS
+  - Quantitative Research
+date: "2025-11-10"
+cover: "/assets/NCSKIT.png"
+authors:
+  - "NCSKIT Quant Team"
+---
+
+## Phase 0 → Phase 5 mapping
+
+| Phase | Output | Tool |
+| --- | --- | --- |
+| Phase 0 | Topic shortlist + theory graph | Ideation Wizard |
+| Phase 1 | Draw.io XML + hypothesis list | Draw.io bi-directional sync |
+| Phase 2 | `sections/01` + `sections/02` | Semantic Scholar agent |
+| Phase 3 | `sections/03` + `sections/04` | R/Python notebooks + LangSmith |
+| Phase 4 | Reviewer-ready discussion | Obsidian vault |
+| Phase 5 | Word/PDF export | ncskit.org Release CLI |
+
+### Measurement model sanity check
+
+1. Cronbach’s Alpha threshold ≥ 0.7 before EFA.  
+2. EFA factor loadings > 0.5 retained; we log rejects into `project_config.json` for transparency.  
+3. CFA is run with a bilingual template so committees can review both Vietnamese + English definitions.
+
+### Structural model snippet
+
+```python
+# /notebooks/sem_pipeline.py
+paths = sem.estimate(model, data=df_clean)
+paths.filter(lambda p: p.p_value < 0.05).plot()
+```
+
+And yes, every coefficient is mirrored inside the MDX article using math notation:
+
+$$
+\text{Intention} = 0.62 \times \text{Perceived Usefulness} + 0.28 \times \text{Trust} - 0.11 \times \text{Perceived Risk}
+$$
+
+## Reviewer checklist
+
+- Export standardized loadings and AVE stats into `resources/sem-audit.xlsx`.  
+- Provide `schema-dts` metadata so Google Scholar understands the article hierarchy.  
+- Link back to the Knowledge Atlas entry (`/knowledge-atlas/sem`) to keep UX consistent.
+
+With Tailwind Typography we can mix Vietnamese storytelling, math-heavy derivations, and CTA blocks without fighting inline styles—a single `.prose` class keeps everything clean for desktop and mobile.
+

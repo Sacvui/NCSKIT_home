@@ -1,0 +1,55 @@
+---
+title: "Peer Review Response Kit (Song ngữ)"
+slug: "peer-review-response-kit"
+summary: "Structure every rebuttal letter with academic etiquette, tone control, and AI-assisted translation."
+seoDescription: "A template-driven workflow for building reviewer response letters, integrating remark-math for formula corrections and bilingual copy for ncskit.org."
+group: scientific
+groupLabel: "Scientific Research Group"
+category: blog-writing
+categoryLabel: "Bút chiến học thuật"
+tags:
+  - Academic Writing
+  - Peer Review
+  - Publication Strategy
+date: "2025-08-22"
+cover: "/assets/NCSKIT.png"
+authors:
+  - "NCSKIT Editorial Board"
+readingTime: "7 min read"
+---
+
+## Anatomy of a great response
+
+1. **Gratitude** – acknowledge the reviewer ID and summarize the main concern.  
+2. **Evidence** – cite the exact section/line where the revision lives.  
+3. **Clarification** – explain the statistical or theoretical logic with math if needed.  
+4. **Tone control** – bilingual phrasing ensures the Vietnamese PDF mirrors the English submission.
+
+### Math-friendly rebuttal
+
+If Reviewer #2 questions the robustness of the regression, restate the equation:
+
+$$
+\hat{Y} = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \varepsilon
+$$
+
+Then note the change: “We now report Adjusted \\( R^2 = 0.67 \\) in Table 4 and include heteroskedasticity tests.”
+
+## Template snippet (MDX)
+
+```md
+> **Reviewer 2, Comment 1**  
+> Please justify the selection of Likert scale anchors.
+
+**Response**  
+We expanded Section 3.1 to detail the five-point semantic differential scale...
+```
+
+## Automation hooks
+
+- The Knowledge Atlas stores canned responses for common reviewer archetypes.  
+- `remark-math` lets us inline derivations without exporting images.  
+- `rehype-katex` ensures the exported static HTML on Vercel is still production-grade.
+
+Outcome: a repeatable, SEO-friendly longform article that still meets journal submission etiquette.
+

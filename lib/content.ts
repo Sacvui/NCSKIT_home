@@ -67,6 +67,8 @@ export type ResourceCard = {
   download?: boolean;
 };
 
+export type BlogGroup = "economic" | "scientific";
+
 export type BlogSubCategory = {
   title: string;
   description: string;
@@ -80,6 +82,7 @@ export type BlogCategory = {
   description: string;
   excerpt: string;
   featured: string[];
+  group: BlogGroup;
   children?: BlogSubCategory[];
 };
 
@@ -93,6 +96,14 @@ export type AutoPhase = {
 export type TechRequirement = {
   title: string;
   details: string[];
+};
+
+export type MarketingCard = {
+  title: string;
+  description: string;
+  bullets: string[];
+  ctaLabel: string;
+  ctaHref: string;
 };
 
 export type SiteCopy = {
@@ -147,10 +158,24 @@ export type SiteCopy = {
     description: string;
     entries: ChangelogEntry[];
   };
+  marketing: {
+    eyebrow: string;
+    title: string;
+    description: string;
+    cards: MarketingCard[];
+  };
   blog: {
     eyebrow: string;
     title: string;
     description: string;
+    ctaLabel: string;
+    groups: Record<
+      BlogGroup,
+      {
+        label: string;
+        description: string;
+      }
+    >;
     categories: BlogCategory[];
     tagsLabel: string;
     tags: string[];
@@ -214,16 +239,33 @@ export type SiteCopy = {
 
 const navResearchChildren: Record<Locale, NavChild[]> = {
   en: [
-    { label: "Research design", href: "#blog-lab-design" },
-    { label: "Data cleaning", href: "#blog-lab-data" },
-    { label: "Hypothesis testing", href: "#blog-lab-hypothesis" },
-    { label: "Advanced SEM / PLS", href: "#blog-lab-advanced" },
+    { label: "Research design", href: "/blog#blog-lab-design" },
+    { label: "Data cleaning", href: "/blog#blog-lab-data" },
+    { label: "Hypothesis testing", href: "/blog#blog-lab-hypothesis" },
+    { label: "Advanced SEM / PLS", href: "/blog#blog-lab-advanced" },
   ],
   vi: [
-    { label: "Thiết kế nghiên cứu", href: "#blog-lab-design" },
-    { label: "Xử lý dữ liệu", href: "#blog-lab-data" },
-    { label: "Kiểm định giả thuyết", href: "#blog-lab-hypothesis" },
-    { label: "SEM / SmartPLS", href: "#blog-lab-advanced" },
+    { label: "Thiết kế nghiên cứu", href: "/blog#blog-lab-design" },
+    { label: "Xử lý dữ liệu", href: "/blog#blog-lab-data" },
+    { label: "Kiểm định giả thuyết", href: "/blog#blog-lab-hypothesis" },
+    { label: "SEM / SmartPLS", href: "/blog#blog-lab-advanced" },
+  ],
+};
+
+const knowledgeNavChildren: Record<Locale, NavChild[]> = {
+  en: [
+    { label: "Marketing & Playbooks", href: "/blog#blog-marketing" },
+    { label: "Street Economics", href: "/blog#blog-economics" },
+    { label: "Research Lab Articles", href: "/blog#blog-lab" },
+    { label: "Writing & Publication", href: "/blog#blog-writing" },
+    { label: "Resource Vault", href: "/blog#blog-vault" },
+  ],
+  vi: [
+    { label: "Marketing & Chiêu trò", href: "/blog#blog-marketing" },
+    { label: "Kinh tế vỉa hè", href: "/blog#blog-economics" },
+    { label: 'Phòng Lab "Chạy số"', href: "/blog#blog-lab" },
+    { label: "Bút chiến học thuật", href: "/blog#blog-writing" },
+    { label: "Kho đồ chơi nghiên cứu", href: "/blog#blog-vault" },
   ],
 };
 
@@ -242,15 +284,21 @@ export const translations: Record<Locale, SiteCopy> = {
   en: {
     nav: [
       { label: "Home", href: "#hero" },
-      { label: "Marketing & Playbooks", href: "#blog-marketing" },
-      { label: "Street Economics", href: "#blog-economics" },
+      { label: "Marketing", href: "#marketing" },
+      { label: "Blog", href: "/blog" },
+      {
+        label: "Knowledge Atlas",
+        href: "/blog",
+        children: knowledgeNavChildren.en,
+      },
       {
         label: "Research Lab",
-        href: "#blog-lab",
+        href: "/blog#blog-lab",
         children: navResearchChildren.en,
       },
-      { label: "Writing & Publication", href: "#blog-writing" },
-      { label: "Resource Vault", href: "#blog-vault" },
+      { label: "Automation", href: "#auto-flow" },
+      { label: "Resources", href: "#resources" },
+      { label: "Release", href: "#release" },
       { label: "Contact", href: "#contact" },
     ],
     headerCtas: {
@@ -507,11 +555,66 @@ export const translations: Record<Locale, SiteCopy> = {
         },
       ],
     },
+    marketing: {
+      eyebrow: "Go-to-market",
+      title: "Positioning the research OS for students, labs, and partners.",
+      description:
+        "This hub centralises messaging so community managers, ambassadors, and partners can communicate consistently.",
+      cards: [
+        {
+          title: "Narrative & Differentiators",
+          description:
+            "Explain why NCSKIT matters now: a Vietnamese-built research OS that removes tool chaos and accelerates international publications.",
+          bullets: [
+            "All-in-one: ideation, data, writing, publishing",
+            "Bilingual by design for local + global audiences",
+            "Collaboration-ready for labs, universities, and ministries",
+          ],
+          ctaLabel: "Copy value props",
+          ctaHref: "#hero",
+        },
+        {
+          title: "Audience Playbooks",
+          description: "Tailored storyboards for students, faculty, research offices, and corporate R&D teams.",
+          bullets: [
+            "Students: from topic validation to defence-ready manuscripts",
+            "Faculty: manage cohorts, enforce methodology, speed up reviews",
+            "Enterprise: compress market studies with governed data rooms",
+          ],
+          ctaLabel: "Download messaging sheet",
+          ctaHref: "/docs/WHITEPAPER.md",
+        },
+        {
+          title: "Campaign & SEO hooks",
+          description: "Starter angles for events, webinars, and content marketing that resonate with the ecosystem.",
+          bullets: [
+            "“From thesis to journal in 90 days” workshop series",
+            "Partnership stories with Vietnamese universities",
+            "Technical deep dives on R/Python + SmartPLS automation",
+          ],
+          ctaLabel: "View campaign ideas",
+          ctaHref: "/blog",
+        },
+      ],
+    },
     blog: {
       eyebrow: "Knowledge atlas",
       title: "Blog categories to boost SEO & community learning.",
       description:
         "Two layers: accessible economics for traffic, and technical research content for authority.",
+      ctaLabel: "Open full blog",
+      groups: {
+        economic: {
+          label: "Economic Knowledge Group",
+          description:
+            "High-volume keywords around marketing psychology, management, and street economics that pull in the broader audience.",
+        },
+        scientific: {
+          label: "Scientific Research Group",
+          description:
+            "Deep-dive lab notes, methodology explainers, and academic writing guides that build authority with reviewers.",
+        },
+      },
       categories: [
         {
           title: "Marketing & Những Cú Lừa",
@@ -520,6 +623,7 @@ export const translations: Record<Locale, SiteCopy> = {
           description: "Behavioral economics meets street-smart branding tactics.",
           excerpt: "Decode FOMO, anchoring, and seeding tricks through Vietnamese case studies.",
           featured: ["4P/7P remix", "Decoy effect", "Seeding scandals"],
+          group: "economic",
         },
         {
           title: "Quản Trị & Drama Công Sở",
@@ -528,6 +632,7 @@ export const translations: Record<Locale, SiteCopy> = {
           description: "Leadership and HRM frameworks translated for real offices.",
           excerpt: "Maslow, Herzberg, KPI vs OKR explained with humor but backed by theory.",
           featured: ["Maslow reality check", "X-Y theory with Gen Z teams", "KPI vs OKR"],
+          group: "economic",
         },
         {
           title: "Kinh Tế Vỉa Hè",
@@ -536,6 +641,7 @@ export const translations: Record<Locale, SiteCopy> = {
           description: "Macro & micro economics retold via phở bowls, gas prices, and gold shops.",
           excerpt: "Google loves the silo, readers love the analogies.",
           featured: ["Inflation & bánh mì", "Fuel surcharges", "Opportunity cost of love"],
+          group: "economic",
         },
         {
           title: 'Phòng Lab "Chạy Số"',
@@ -544,6 +650,7 @@ export const translations: Record<Locale, SiteCopy> = {
           description: "Turn fear of numbers into joy with step-by-step research methods.",
           excerpt: "Split into four sub-categories for sampling, cleaning, testing, and SEM.",
           featured: ["Sampling cheat-sheets", "Cronbach & EFA macros", "SmartPLS pipelines"],
+          group: "scientific",
           children: [
             {
               title: "Research design",
@@ -574,6 +681,7 @@ export const translations: Record<Locale, SiteCopy> = {
           description: "Academic writing, citation mastery, and peer-review diplomacy.",
           excerpt: "From paraphrasing to answering reviewers, with bilingual examples.",
           featured: ["Paraphrase without plagiarism", "APA 7th survival kit", "Reviewer reply scripts"],
+          group: "scientific",
         },
         {
           title: 'Kho "Đồ Chơi" nghiên cứu',
@@ -582,6 +690,7 @@ export const translations: Record<Locale, SiteCopy> = {
           description: "Download hub for datasets, slide decks, thesis templates, and book notes.",
           excerpt: "A backlink magnet and sharing hub for the community.",
           featured: ["Sample datasets", "Capstone slide decks", "Word thesis templates"],
+          group: "scientific",
         },
       ],
       tagsLabel: "Popular tags",
@@ -752,7 +861,7 @@ export const translations: Record<Locale, SiteCopy> = {
       note: "Crafted in Vietnam by PhD candidate Lê Phúc Hải · Empowering international publications.",
       links: [
         { label: "Home", href: "#hero" },
-        { label: "Knowledge Hub", href: "#blog" },
+        { label: "Knowledge Hub", href: "/blog" },
         { label: "Contact", href: "#contact" },
       ],
     },
@@ -765,15 +874,21 @@ export const translations: Record<Locale, SiteCopy> = {
   vi: {
     nav: [
       { label: "Trang chủ", href: "#hero" },
-      { label: "Marketing & Chiêu trò", href: "#blog-marketing" },
-      { label: "Kinh tế vỉa hè", href: "#blog-economics" },
+      { label: "Marketing", href: "#marketing" },
+      { label: "Blog", href: "/blog" },
+      {
+        label: "Bản đồ tri thức",
+        href: "/blog",
+        children: knowledgeNavChildren.vi,
+      },
       {
         label: "Phòng Lab nghiên cứu",
-        href: "#blog-lab",
+        href: "/blog#blog-lab",
         children: navResearchChildren.vi,
       },
-      { label: "Viết & Công bố", href: "#blog-writing" },
-      { label: "Kho tài liệu", href: "#blog-vault" },
+      { label: "Tự động hoá", href: "#auto-flow" },
+      { label: "Nguồn lực", href: "#resources" },
+      { label: "Ra mắt", href: "#release" },
       { label: "Liên hệ", href: "#contact" },
     ],
     headerCtas: {
@@ -1029,11 +1144,67 @@ export const translations: Record<Locale, SiteCopy> = {
         },
       ],
     },
+    marketing: {
+      eyebrow: "Chiến dịch Marketing",
+      title: "Truyền thông cho cộng đồng học thuật & đối tác.",
+      description:
+        "Cung cấp thông điệp thống nhất cho sinh viên, giảng viên, phòng R&D và doanh nghiệp.",
+      cards: [
+        {
+          title: "Thông điệp & khác biệt",
+          description:
+            "Nhấn mạnh NCSKIT là Research OS do người Việt xây dựng, giải quyết sự rời rạc công cụ và đẩy nhanh công bố quốc tế.",
+          bullets: [
+            "All-in-one: Ideation → Publishing",
+            "Song ngữ EN/VN cho mọi touchpoint",
+            "Sẵn sàng cho phòng Lab, trường đại học, bộ ngành",
+          ],
+          ctaLabel: "Xem key message",
+          ctaHref: "#hero",
+        },
+        {
+          title: "Playbook từng nhóm",
+          description:
+            "Khung kể chuyện dành cho sinh viên, giảng viên, phòng quản lý khoa học, doanh nghiệp.",
+          bullets: [
+            "Sinh viên: từ chọn đề tài tới bảo vệ khoá luận",
+            "Giảng viên: quản lý cohort, chuẩn hoá phương pháp",
+            "Doanh nghiệp: rút ngắn nghiên cứu thị trường có kiểm soát",
+          ],
+          ctaLabel: "Tải messaging sheet",
+          ctaHref: "/docs/WHITEPAPER.md",
+        },
+        {
+          title: "Ý tưởng chiến dịch & SEO",
+          description: "Gợi ý sự kiện, webinar, content pillar để thu hút cộng đồng.",
+          bullets: [
+            "Workshop “Từ ý tưởng tới bài ISI trong 90 ngày”",
+            "Case study với các trường đại học tại Việt Nam",
+            "Chuỗi bài kỹ thuật về R/Python + SmartPLS",
+          ],
+          ctaLabel: "Khám phá ý tưởng",
+          ctaHref: "/blog",
+        },
+      ],
+    },
     blog: {
       eyebrow: "Bản đồ tri thức",
       title: "Sitemap hai tầng chuẩn SEO nhưng vẫn “lầy” đúng chất.",
       description:
         "Nhóm Kiến Thức Kinh Tế hút traffic đại chúng, Nhóm Nghiên Cứu Học Thuật tạo authority, Kho Tài Nguyên hút backlink.",
+      ctaLabel: "Truy cập blog",
+      groups: {
+        economic: {
+          label: "Nhóm Kiến Thức Kinh Tế",
+          description:
+            "Những topic marketing, quản trị, kinh tế đời sống giúp giữ traffic ổn định và dễ viral.",
+        },
+        scientific: {
+          label: "Nhóm Nghiên Cứu Học Thuật",
+          description:
+            "Phòng Lab, Academic Writing, Kho tài nguyên dùng để xây dựng trust với reviewer và Google Scholar.",
+        },
+      },
       categories: [
         {
           title: "Marketing & Những Cú Lừa",
@@ -1042,6 +1213,7 @@ export const translations: Record<Locale, SiteCopy> = {
           description: "Giải mã chiêu trò marketing, branding, digital qua lăng kính tâm lý hành vi.",
           excerpt: "FOMO, chim mồi, seeding – kể lại bằng ví dụ Việt Nam để người đọc share mạnh.",
           featured: ["4P/7P phiên bản Việt", "Hiệu ứng chim mồi", "Chiến thuật seeding"],
+          group: "economic",
         },
         {
           title: "Quản trị & Drama công sở",
@@ -1050,6 +1222,7 @@ export const translations: Record<Locale, SiteCopy> = {
           description: "Ứng dụng HRM, leadership vào xử lý sếp, quản lý nhân viên, sinh tồn nơi công sở.",
           excerpt: "Maslow, Herzberg, KPI/OKR được chuyển thành câu chuyện dí dỏm nhưng chuẩn mực.",
           featured: ["Tháp Maslow", "Thuyết X-Y & Gen Z", "KPI vs OKR"],
+          group: "economic",
         },
         {
           title: "Kinh tế vỉa hè",
@@ -1058,6 +1231,7 @@ export const translations: Record<Locale, SiteCopy> = {
           description: "Khái niệm vĩ mô/vi mô khó nhằn được giải thích bằng bát phở, tiền xăng, giá vàng.",
           excerpt: "Google bot dễ crawl, người đọc dễ hiểu, tăng dwell time.",
           featured: ["Lạm phát & bát phở", "Cung cầu chợ Bến Thành", "Chi phí cơ hội chuyện tình"],
+          group: "economic",
         },
         {
           title: 'Phòng Lab "Chạy Số"',
@@ -1066,6 +1240,7 @@ export const translations: Record<Locale, SiteCopy> = {
           description: "Hướng dẫn A-Z nghiên cứu định lượng/định tính, biến nỗi sợ số liệu thành niềm vui.",
           excerpt: "Chia thành 4 nhánh để Google hiểu cấu trúc silo, người đọc theo đúng kỹ năng cần học.",
           featured: ["Thiết kế nghiên cứu", "Cronbach & EFA", "SmartPLS pipeline"],
+          group: "scientific",
           children: [
             {
               title: "Thiết kế nghiên cứu",
@@ -1096,6 +1271,7 @@ export const translations: Record<Locale, SiteCopy> = {
           description: "Academic Writing, trích dẫn, quy trình nộp bài báo/hội thảo.",
           excerpt: "Từ paraphrasing tránh đạo văn tới trả lời reviewer.",
           featured: ["APA 7th", "Mendeley/Zotero", "Peer-review response"],
+          group: "scientific",
         },
         {
           title: 'Kho "Đồ chơi" nghiên cứu',
@@ -1104,6 +1280,7 @@ export const translations: Record<Locale, SiteCopy> = {
           description: "Dataset mẫu, template slide, Word luận văn, ebook kinh tế.",
           excerpt: "Nam châm hút backlink và chia sẻ cộng đồng.",
           featured: ["Dataset .sav/.xlsx", "Template slide bảo vệ", "Word luận văn chuẩn"],
+          group: "scientific",
         },
       ],
       tagsLabel: "Tag nổi bật",
@@ -1274,7 +1451,7 @@ export const translations: Record<Locale, SiteCopy> = {
       note: "Thực hiện tại Việt Nam bởi Nghiên cứu sinh Lê Phúc Hải · Đồng hành cùng cộng đồng nghiên cứu.",
       links: [
         { label: "Trang chủ", href: "#hero" },
-        { label: "Blog & Kiến thức", href: "#blog" },
+        { label: "Blog & Kiến thức", href: "/blog" },
         { label: "Liên hệ", href: "#contact" },
       ],
     },
