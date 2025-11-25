@@ -2,8 +2,8 @@
 
 import type { ReactNode } from "react";
 import Image from "next/image";
-import Link from "next/link";
-import { LanguageToggle } from "../components/LanguageToggle";
+import { Header } from "../components/Header";
+import { Footer } from "../components/Footer";
 import { useLanguageContext } from "../components/LanguageProvider";
 import type { BlogPostMeta } from "@/types/blog";
 import type { Article, WithContext } from "schema-dts";
@@ -13,15 +13,11 @@ type BlogArticleClientProps = {
   children: ReactNode;
 };
 
-const currentYear = new Date().getFullYear();
-
 export default function BlogArticleClient({
   meta,
   children,
 }: BlogArticleClientProps) {
   const { copy } = useLanguageContext();
-  const { footer } = copy;
-  const footerText = footer.text.replace("{year}", `${currentYear}`);
   const categoryInfo = copy.blog.categories.find(
     (category) => category.anchor === meta.category,
   );
@@ -55,25 +51,7 @@ export default function BlogArticleClient({
 
   return (
     <>
-      <header className="site-header blog-shell bg-white/80 backdrop-blur">
-        <div className="container header-inner gap-4">
-          <Link className="brand" href="/blog">
-            <Image
-              src="/assets/logo.png"
-              alt="NCSKIT logo"
-              width={64}
-              height={64}
-              priority
-            />
-          </Link>
-          <div className="header-actions gap-2">
-            <LanguageToggle />
-            <Link className="ghost-btn" href="/blog">
-              ← {copy.blog.ctaLabel}
-            </Link>
-          </div>
-        </div>
-      </header>
+      <Header variant="article" backHref="/blog" backLabel={copy.blog.ctaLabel} />
 
       <main className="blog-article container space-y-10 pb-16 pt-16">
         <section className="rounded-3xl border border-slate-200/70 bg-white/80 p-8 shadow-card">
@@ -110,25 +88,7 @@ export default function BlogArticleClient({
         </article>
       </main>
 
-      <footer className="site-footer border-t border-slate-200 bg-white/80">
-        <div className="container footer-grid">
-          <div>
-            <Image
-              src="/assets/ncskit-icon.svg"
-              alt="NCSKIT icon"
-              width={40}
-              height={40}
-            />
-            <p>{footerText}</p>
-            <small className="footer-note">{footer.note}</small>
-          </div>
-          <div className="footer-links">
-            <Link href="/">{copy.nav[0]?.label ?? "Home"}</Link>
-            <Link href="/blog">{copy.blog.ctaLabel}</Link>
-            <Link href="/#contact">{copy.contact.title}</Link>
-          </div>
-        </div>
-      </footer>
+      <Footer />
 
       <script
         type="application/ld+json"

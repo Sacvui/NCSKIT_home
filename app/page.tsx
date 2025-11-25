@@ -4,8 +4,10 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { StatusBoard } from "./components/StatusBoard";
 import { ArchitectureTabs } from "./components/ArchitectureTabs";
+import { AnalysisTable } from "./components/AnalysisTable";
+import { Header } from "./components/Header";
+import { Footer } from "./components/Footer";
 import { LanguageProvider, useLanguageContext } from "./components/LanguageProvider";
-import { LanguageToggle } from "./components/LanguageToggle";
 import type { BlogPostMeta } from "@/types/blog";
 
 const currentYear = new Date().getFullYear();
@@ -36,7 +38,6 @@ function HomeContent() {
     resources,
     release,
     contact,
-    footer,
   } = copy;
   const [latestPosts, setLatestPosts] = useState<BlogPostMeta[]>([]);
 
@@ -61,105 +62,11 @@ function HomeContent() {
     };
   }, []);
 
-  const footerText = footer.text.replace("{year}", `${currentYear}`);
   const previewPosts = latestPosts.slice(0, 3);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <>
-      <header className="site-header">
-        <div className="container header-inner">
-          <a className="brand" href="#hero">
-            <Image src="/assets/logo.png" alt="NCSKIT logo" width={64} height={64} priority />
-          </a>
-          <nav className="nav" aria-label="Primary">
-            {nav.map((item) => (
-              <div
-                key={item.href}
-                className={`nav-item${item.children ? " has-children" : ""}`}
-              >
-                <a href={item.href}>{item.label}</a>
-                {item.children && (
-                  <div className="nav-dropdown">
-                    <div className="nav-dropdown-grid">
-                      {item.children.map((child, index) => {
-                        const midPoint = Math.ceil(item.children!.length / 2);
-                        const column = index < midPoint ? "left" : "right";
-                        return (
-                          <a
-                            key={`${item.href}-${child.href}`}
-                            href={child.href}
-                            className={`nav-dropdown-item ${column}`}
-                          >
-                            {child.label}
-                          </a>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </nav>
-          <button
-            className={`mobile-menu-toggle${mobileMenuOpen ? " active" : ""}`}
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
-            aria-expanded={mobileMenuOpen}
-          >
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
-          <div className={`header-actions${mobileMenuOpen ? " mobile-visible" : ""}`}>
-            <LanguageToggle />
-            <div className="header-cta">
-              <a className="ghost-btn" href="/docs/README.md" download>
-                {headerCtas.readme}
-              </a>
-              <a className="primary-btn" href="#release">
-                {headerCtas.release}
-              </a>
-            </div>
-          </div>
-          {mobileMenuOpen && (
-            <div className="mobile-menu active">
-              <nav className="nav" aria-label="Primary mobile">
-                {nav.map((item) => (
-                  <div
-                    key={item.href}
-                    className={`nav-item${item.children ? " has-children" : ""}`}
-                  >
-                    <a href={item.href} onClick={() => setMobileMenuOpen(false)}>
-                      {item.label}
-                    </a>
-                    {item.children && (
-                      <div className="nav-dropdown">
-                        <div className="nav-dropdown-grid">
-                          {item.children.map((child, index) => {
-                            const midPoint = Math.ceil(item.children!.length / 2);
-                            const column = index < midPoint ? "left" : "right";
-                            return (
-                              <a
-                                key={`${item.href}-${child.href}`}
-                                href={child.href}
-                                className={`nav-dropdown-item ${column}`}
-                                onClick={() => setMobileMenuOpen(false)}
-                              >
-                                {child.label}
-                              </a>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </nav>
-            </div>
-          )}
-        </div>
-      </header>
+      <Header nav={nav} headerCtas={headerCtas} />
 
       <main>
         <section id="hero" className="hero">
@@ -202,6 +109,7 @@ function HomeContent() {
                   <p>{status.description}</p>
                 </div>
                 <StatusBoard columns={status.columns} />
+                <AnalysisTable type="descriptive" compact />
               </div>
               <div className="mini-terminal" aria-live="polite">
                 <div className="terminal-header">
@@ -226,7 +134,7 @@ function HomeContent() {
               <p>{features.description}</p>
             </div>
             <div className="feature-grid">
-              {features.list.map((feature) => (
+              {features.list.map((feature, index) => (
                 <article key={feature.title}>
                   <h3>{feature.title}</h3>
                   <p>{feature.description}</p>
@@ -235,6 +143,9 @@ function HomeContent() {
                       <li key={item}>{item}</li>
                     ))}
                   </ul>
+                  {index === 2 && (
+                    <AnalysisTable type="correlation" compact />
+                  )}
                 </article>
               ))}
             </div>
@@ -261,6 +172,7 @@ function HomeContent() {
                   </div>
                 ))}
               </dl>
+              <AnalysisTable type="sem" compact />
               <Image src="/assets/NCSKIT.png" alt={architecture.imageAlt} width={640} height={360} />
             </div>
           </div>
@@ -296,6 +208,7 @@ function HomeContent() {
                   </article>
                 ))}
               </div>
+              <AnalysisTable type="regression" compact />
               <a href="/docs/ARCHITECTURE.md" className="ghost-btn" download>
                 {workflow.apiCta}
               </a>
@@ -551,22 +464,7 @@ function HomeContent() {
         </section>
       </main>
 
-      <footer className="site-footer">
-        <div className="container footer-grid">
-          <div>
-            <Image src="/assets/ncskit-icon.svg" alt="NCSKIT icon" width={40} height={40} />
-            <p>{footerText}</p>
-            <small>{footer.note}</small>
-          </div>
-          <div className="footer-links">
-            {footer.links.map((link) => (
-              <a key={link.href} href={link.href}>
-                {link.label}
-              </a>
-            ))}
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </>
   );
 }

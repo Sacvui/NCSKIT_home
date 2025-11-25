@@ -239,16 +239,50 @@ export type SiteCopy = {
 
 const navResearchChildren: Record<Locale, NavChild[]> = {
   en: [
+    { label: "Research Lab", href: "/blog#blog-lab" },
+    { label: "Knowledge Atlas", href: "/blog" },
     { label: "Research design", href: "/blog#blog-lab-design" },
     { label: "Data cleaning", href: "/blog#blog-lab-data" },
     { label: "Hypothesis testing", href: "/blog#blog-lab-hypothesis" },
     { label: "Advanced SEM / PLS", href: "/blog#blog-lab-advanced" },
   ],
   vi: [
+    { label: "Phòng Lab", href: "/blog#blog-lab" },
+    { label: "Bản đồ tri thức", href: "/blog" },
     { label: "Thiết kế nghiên cứu", href: "/blog#blog-lab-design" },
     { label: "Xử lý dữ liệu", href: "/blog#blog-lab-data" },
     { label: "Kiểm định giả thuyết", href: "/blog#blog-lab-hypothesis" },
     { label: "SEM / SmartPLS", href: "/blog#blog-lab-advanced" },
+  ],
+};
+
+const navFeaturesChildren: Record<Locale, NavChild[]> = {
+  en: [
+    { label: "Core Modules", href: "#modules" },
+    { label: "Architecture", href: "#architecture" },
+    { label: "Workflow", href: "#workflow" },
+    { label: "Automation", href: "#auto-flow" },
+  ],
+  vi: [
+    { label: "Phân hệ cốt lõi", href: "#modules" },
+    { label: "Kiến trúc", href: "#architecture" },
+    { label: "Quy trình", href: "#workflow" },
+    { label: "Tự động hóa", href: "#auto-flow" },
+  ],
+};
+
+const navResourcesChildren: Record<Locale, NavChild[]> = {
+  en: [
+    { label: "Documentation", href: "#resources" },
+    { label: "Release Notes", href: "#release" },
+    { label: "Project README", href: "/docs/README.md" },
+    { label: "Architecture", href: "/docs/ARCHITECTURE.md" },
+  ],
+  vi: [
+    { label: "Tài liệu", href: "#resources" },
+    { label: "Ghi chú phát hành", href: "#release" },
+    { label: "Project README", href: "/docs/README.md" },
+    { label: "Kiến trúc", href: "/docs/ARCHITECTURE.md" },
   ],
 };
 
@@ -284,21 +318,22 @@ export const translations: Record<Locale, SiteCopy> = {
   en: {
     nav: [
       { label: "Home", href: "#hero" },
-      { label: "Marketing", href: "#marketing" },
-      { label: "Blog", href: "/blog" },
       {
-        label: "Knowledge Atlas",
-        href: "/blog",
-        children: knowledgeNavChildren.en,
+        label: "Features",
+        href: "#modules",
+        children: navFeaturesChildren.en,
       },
       {
-        label: "Research Lab",
+        label: "Research",
         href: "/blog#blog-lab",
         children: navResearchChildren.en,
       },
-      { label: "Automation", href: "#auto-flow" },
-      { label: "Resources", href: "#resources" },
-      { label: "Release", href: "#release" },
+      {
+        label: "Resources",
+        href: "#resources",
+        children: navResourcesChildren.en,
+      },
+      { label: "Blog", href: "/blog" },
       { label: "Contact", href: "#contact" },
     ],
     headerCtas: {
@@ -874,21 +909,22 @@ export const translations: Record<Locale, SiteCopy> = {
   vi: {
     nav: [
       { label: "Trang chủ", href: "#hero" },
-      { label: "Marketing", href: "#marketing" },
-      { label: "Blog", href: "/blog" },
       {
-        label: "Bản đồ tri thức",
-        href: "/blog",
-        children: knowledgeNavChildren.vi,
+        label: "Tính năng",
+        href: "#modules",
+        children: navFeaturesChildren.vi,
       },
       {
-        label: "Phòng Lab nghiên cứu",
+        label: "Nghiên cứu",
         href: "/blog#blog-lab",
         children: navResearchChildren.vi,
       },
-      { label: "Tự động hoá", href: "#auto-flow" },
-      { label: "Nguồn lực", href: "#resources" },
-      { label: "Ra mắt", href: "#release" },
+      {
+        label: "Tài nguyên",
+        href: "#resources",
+        children: navResourcesChildren.vi,
+      },
+      { label: "Blog", href: "/blog" },
       { label: "Liên hệ", href: "#contact" },
     ],
     headerCtas: {

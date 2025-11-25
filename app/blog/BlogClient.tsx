@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { LanguageToggle } from "../components/LanguageToggle";
+import { useMemo } from "react";
+import { Header } from "../components/Header";
+import { Footer } from "../components/Footer";
 import { useLanguageContext } from "../components/LanguageProvider";
 import type { BlogPostMeta } from "@/types/blog";
 import type { BlogGroup } from "@/lib/content";
@@ -15,13 +16,10 @@ type BlogClientProps = {
   postsByCategory: Record<string, BlogPostMeta[]>;
 };
 
-const currentYear = new Date().getFullYear();
-
 export default function BlogClient(props: BlogClientProps) {
   const { posts, postsByCategory } = props;
   const { copy } = useLanguageContext();
-  const { blog, footer, resources } = copy;
-  const footerText = footer.text.replace("{year}", `${currentYear}`);
+  const { blog } = copy;
 
   const heroPosts = posts.slice(0, 3);
 
@@ -37,61 +35,9 @@ export default function BlogClient(props: BlogClientProps) {
     [blog.categories, blog.groups],
   );
 
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   return (
     <>
-      <header className="site-header blog-shell sticky top-0 z-40 bg-white/80 backdrop-blur">
-        <div className="container header-inner gap-4">
-          <Link className="brand" href="/">
-            <Image
-              src="/assets/logo.png"
-              alt="NCSKIT logo"
-              width={64}
-              height={64}
-              priority
-            />
-          </Link>
-          <nav className="nav blog-nav" aria-label="Blog categories">
-            {blog.categories.map((category) => (
-              <a key={category.anchor} href={`#${category.anchor}`}>
-                {category.title}
-              </a>
-            ))}
-          </nav>
-          <button
-            className={`mobile-menu-toggle${mobileMenuOpen ? " active" : ""}`}
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
-            aria-expanded={mobileMenuOpen}
-          >
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
-          <div className={`header-actions gap-2${mobileMenuOpen ? " mobile-visible" : ""}`}>
-            <LanguageToggle />
-            <Link className="ghost-btn" href="/" onClick={() => setMobileMenuOpen(false)}>
-              Home
-            </Link>
-          </div>
-          {mobileMenuOpen && (
-            <div className="mobile-menu active">
-              <nav className="nav blog-nav" aria-label="Blog categories mobile">
-                {blog.categories.map((category) => (
-                  <a
-                    key={category.anchor}
-                    href={`#${category.anchor}`}
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {category.title}
-                  </a>
-                ))}
-              </nav>
-            </div>
-          )}
-        </div>
-      </header>
+      <Header variant="blog" />
 
       <main className="blog-page space-y-16 pb-16">
         <section className="section blog-hero">
@@ -220,50 +166,9 @@ export default function BlogClient(props: BlogClientProps) {
           </div>
         </section>
 
-        <section className="section resource-stack">
-          <div className="container space-y-6">
-            <div className="max-w-2xl">
-              <p className="eyebrow">{resources.eyebrow}</p>
-              <h2>{resources.title}</h2>
-            </div>
-            <div className="grid gap-4 md:grid-cols-3">
-              {resources.cards.slice(0, 3).map((card) => (
-                <Link
-                  key={card.title}
-                  href={card.href}
-                  className="marketing-card flex flex-col gap-2 rounded-2xl border border-slate-100 bg-white/70 p-5 shadow-card transition hover:-translate-y-1"
-                >
-                  <span className="text-sm uppercase tracking-wide text-slate-500">
-                    {card.label}
-                  </span>
-                  <h3>{card.title}</h3>
-                  <p className="text-sm text-slate-500">{card.description}</p>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
       </main>
 
-      <footer className="site-footer border-t border-slate-200 bg-white/80">
-        <div className="container footer-grid">
-          <div>
-            <Image
-              src="/assets/ncskit-icon.svg"
-              alt="NCSKIT icon"
-              width={40}
-              height={40}
-            />
-            <p>{footerText}</p>
-            <small className="footer-note">{footer.note}</small>
-          </div>
-          <div className="footer-links">
-            <Link href="/">{copy.nav[0]?.label ?? "Home"}</Link>
-            <Link href="/blog">{blog.ctaLabel}</Link>
-            <Link href="/#contact">{copy.contact.title}</Link>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </>
   );
 }

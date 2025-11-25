@@ -8,6 +8,9 @@ module.exports = {
     "./lib/**/*.{js,ts,jsx,tsx}",
     "./content/**/*.{md,mdx}",
   ],
+  corePlugins: {
+    preflight: false, // Disable Tailwind's base reset to preserve custom styles
+  },
   theme: {
     extend: {
       fontFamily: {
