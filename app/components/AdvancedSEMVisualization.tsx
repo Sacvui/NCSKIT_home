@@ -89,125 +89,144 @@ const COLORS = {
   },
 };
 
-// Complex SEM Model based on the image
+// Complex Q1 Research SEM Model - Extended TAM with Trust, Risk, and Social Influence
 const defaultVariables: SEMLatentVariable[] = [
   {
-    id: "HIEUQUA",
-    label: "Hiệu quả",
+    id: "PEFF",
+    label: "Perceived\nEffectiveness",
     type: "exogenous",
-    x: 100,
-    y: 100,
+    x: 80,
+    y: 120,
     observedVars: [
-      { id: "HIEUQUA1", label: "HIEUQUA1", x: 50, y: 50, loading: 1.0, errorId: "e22" },
-      { id: "HIEUQUA2", label: "HIEUQUA2", x: 50, y: 100, loading: 0.89, errorId: "e23" },
-      { id: "HIEUQUA3", label: "HIEUQUA3", x: 50, y: 150, loading: 0.92, errorId: "e24" },
-      { id: "HIEUQUA4", label: "HIEUQUA4", x: 50, y: 200, loading: 0.85, errorId: "e25" },
+      { id: "PEFF1", label: "PEFF1", x: 20, y: 60, loading: 1.0, errorId: "e1" },
+      { id: "PEFF2", label: "PEFF2", x: 20, y: 110, loading: 0.91, errorId: "e2" },
+      { id: "PEFF3", label: "PEFF3", x: 20, y: 160, loading: 0.88, errorId: "e3" },
+      { id: "PEFF4", label: "PEFF4", x: 20, y: 210, loading: 0.85, errorId: "e4" },
     ],
   },
   {
-    id: "XAHOI",
-    label: "Xã hội",
+    id: "SI",
+    label: "Social\nInfluence",
     type: "exogenous",
-    x: 100,
-    y: 250,
+    x: 80,
+    y: 280,
     observedVars: [
-      { id: "XAHOI4", label: "XAHOI4", x: 50, y: 200, loading: 1.0, errorId: "e18" },
-      { id: "XAHOI1", label: "XAHOI1", x: 50, y: 250, loading: 0.87, errorId: "e19" },
-      { id: "XAHOI2", label: "XAHOI2", x: 50, y: 300, loading: 0.91, errorId: "e20" },
-      { id: "XAHOI3", label: "XAHOI3", x: 50, y: 350, loading: 0.88, errorId: "e21" },
+      { id: "SI1", label: "SI1", x: 20, y: 230, loading: 1.0, errorId: "e5" },
+      { id: "SI2", label: "SI2", x: 20, y: 280, loading: 0.89, errorId: "e6" },
+      { id: "SI3", label: "SI3", x: 20, y: 330, loading: 0.87, errorId: "e7" },
+      { id: "SI4", label: "SI4", x: 20, y: 380, loading: 0.92, errorId: "e8" },
     ],
   },
   {
-    id: "TIENICH",
-    label: "Tiện ích",
+    id: "PU",
+    label: "Perceived\nUsefulness",
     type: "exogenous",
-    x: 100,
-    y: 400,
+    x: 80,
+    y: 440,
     observedVars: [
-      { id: "TIENICH2", label: "TIENICH2", x: 50, y: 350, loading: 1.0, errorId: "e13" },
-      { id: "TIENICH4", label: "TIENICH4", x: 50, y: 400, loading: 0.86, errorId: "e14" },
-      { id: "TIENICH3", label: "TIENICH3", x: 50, y: 450, loading: 0.90, errorId: "e15" },
-      { id: "TIENICH5", label: "TIENICH5", x: 50, y: 500, loading: 0.84, errorId: "e16" },
-      { id: "TIENICH1", label: "TIENICH1", x: 50, y: 550, loading: 0.88, errorId: "e17" },
+      { id: "PU1", label: "PU1", x: 20, y: 390, loading: 1.0, errorId: "e9" },
+      { id: "PU2", label: "PU2", x: 20, y: 440, loading: 0.90, errorId: "e10" },
+      { id: "PU3", label: "PU3", x: 20, y: 490, loading: 0.88, errorId: "e11" },
+      { id: "PU4", label: "PU4", x: 20, y: 540, loading: 0.86, errorId: "e12" },
+      { id: "PU5", label: "PU5", x: 20, y: 590, loading: 0.84, errorId: "e13" },
     ],
   },
   {
-    id: "MARKETING",
-    label: "Marketing",
+    id: "PEOU",
+    label: "Perceived\nEase of Use",
     type: "exogenous",
-    x: 100,
-    y: 550,
+    x: 80,
+    y: 600,
     observedVars: [
-      { id: "MARKETING6", label: "MARKETING6", x: 50, y: 500, loading: 1.0, errorId: "e7" },
-      { id: "MARKETING5", label: "MARKETING5", x: 50, y: 550, loading: 0.85, errorId: "e8" },
-      { id: "MARKETING3", label: "MARKETING3", x: 50, y: 600, loading: 0.89, errorId: "e9" },
-      { id: "MARKETING1", label: "MARKETING1", x: 50, y: 650, loading: 0.87, errorId: "e10" },
-      { id: "MARKETING2", label: "MARKETING2", x: 50, y: 700, loading: 0.83, errorId: "e11" },
-      { id: "MARKETING4", label: "MARKETING4", x: 50, y: 750, loading: 0.86, errorId: "e12" },
+      { id: "PEOU1", label: "PEOU1", x: 20, y: 550, loading: 1.0, errorId: "e14" },
+      { id: "PEOU2", label: "PEOU2", x: 20, y: 600, loading: 0.91, errorId: "e15" },
+      { id: "PEOU3", label: "PEOU3", x: 20, y: 650, loading: 0.89, errorId: "e16" },
+      { id: "PEOU4", label: "PEOU4", x: 20, y: 700, loading: 0.87, errorId: "e17" },
     ],
   },
   {
-    id: "CHIPHI",
-    label: "Chi phí",
+    id: "TRUST",
+    label: "Trust",
     type: "exogenous",
-    x: 100,
-    y: 700,
+    x: 80,
+    y: 760,
     observedVars: [
-      { id: "CHIPHI6", label: "CHIPHI6", x: 50, y: 650, loading: 1.0, errorId: "e1" },
-      { id: "CHIPHI3", label: "CHIPHI3", x: 50, y: 700, loading: 0.88, errorId: "e2" },
-      { id: "CHIPHI4", label: "CHIPHI4", x: 50, y: 750, loading: 0.90, errorId: "e3" },
-      { id: "CHIPHI5", label: "CHIPHI5", x: 50, y: 800, loading: 0.85, errorId: "e4" },
-      { id: "CHIPHI2", label: "CHIPHI2", x: 50, y: 850, loading: 0.87, errorId: "e5" },
-      { id: "CHIPHI1", label: "CHIPHI1", x: 50, y: 900, loading: 0.89, errorId: "e6" },
+      { id: "TR1", label: "TR1", x: 20, y: 710, loading: 1.0, errorId: "e18" },
+      { id: "TR2", label: "TR2", x: 20, y: 760, loading: 0.88, errorId: "e19" },
+      { id: "TR3", label: "TR3", x: 20, y: 810, loading: 0.90, errorId: "e20" },
+      { id: "TR4", label: "TR4", x: 20, y: 860, loading: 0.86, errorId: "e21" },
     ],
   },
   {
-    id: "YDINH",
-    label: "Ý định",
+    id: "RISK",
+    label: "Perceived\nRisk",
+    type: "exogenous",
+    x: 80,
+    y: 920,
+    observedVars: [
+      { id: "RISK1", label: "RISK1", x: 20, y: 870, loading: 1.0, errorId: "e22" },
+      { id: "RISK2", label: "RISK2", x: 20, y: 920, loading: 0.87, errorId: "e23" },
+      { id: "RISK3", label: "RISK3", x: 20, y: 970, loading: 0.85, errorId: "e24" },
+    ],
+  },
+  {
+    id: "ATT",
+    label: "Attitude",
     type: "endogenous",
-    x: 600,
-    y: 400,
-    errorId: "e35",
+    x: 500,
+    y: 440,
+    errorId: "e37",
     observedVars: [
-      { id: "YDINH5", label: "YDINH5", x: 750, y: 300, loading: 1.0, errorId: "e30" },
-      { id: "YDINH4", label: "YDINH4", x: 750, y: 350, loading: 0.91, errorId: "e29" },
-      { id: "YDINH1", label: "YDINH1", x: 750, y: 400, loading: 0.88, errorId: "e28" },
-      { id: "YDINH3", label: "YDINH3", x: 750, y: 450, loading: 0.90, errorId: "e27" },
-      { id: "YDINH2", label: "YDINH2", x: 750, y: 500, loading: 0.87, errorId: "e26" },
+      { id: "ATT1", label: "ATT1", x: 680, y: 380, loading: 1.0, errorId: "e25" },
+      { id: "ATT2", label: "ATT2", x: 680, y: 440, loading: 0.92, errorId: "e26" },
+      { id: "ATT3", label: "ATT3", x: 680, y: 500, loading: 0.89, errorId: "e27" },
     ],
   },
   {
-    id: "QUYETDINH",
-    label: "Quyết định",
+    id: "BI",
+    label: "Behavioral\nIntention",
     type: "endogenous",
-    x: 600,
-    y: 700,
-    errorId: "e36",
+    x: 500,
+    y: 760,
+    errorId: "e38",
     observedVars: [
-      { id: "QUYETDINH3", label: "QUYETDINH3", x: 750, y: 650, loading: 1.0, errorId: "e34" },
-      { id: "QUYETDINH1", label: "QUYETDINH1", x: 750, y: 700, loading: 0.89, errorId: "e33" },
-      { id: "QUYETDINH2", label: "QUYETDINH2", x: 750, y: 750, loading: 0.92, errorId: "e32" },
-      { id: "QUYETDINH4", label: "QUYETDINH4", x: 750, y: 800, loading: 0.86, errorId: "e31" },
+      { id: "BI1", label: "BI1", x: 680, y: 700, loading: 1.0, errorId: "e28" },
+      { id: "BI2", label: "BI2", x: 680, y: 760, loading: 0.91, errorId: "e29" },
+      { id: "BI3", label: "BI3", x: 680, y: 820, loading: 0.88, errorId: "e30" },
+      { id: "BI4", label: "BI4", x: 680, y: 880, loading: 0.90, errorId: "e31" },
     ],
   },
 ];
 
 const defaultPaths: SEMPath[] = [
-  { from: "HIEUQUA", to: "YDINH", coefficient: 0.342, pValue: 0.001, significant: true, label: "H1" },
-  { from: "XAHOI", to: "YDINH", coefficient: 0.287, pValue: 0.002, significant: true, label: "H2" },
-  { from: "TIENICH", to: "YDINH", coefficient: 0.398, pValue: 0.001, significant: true, label: "H3" },
-  { from: "MARKETING", to: "YDINH", coefficient: 0.256, pValue: 0.003, significant: true, label: "H4" },
-  { from: "CHIPHI", to: "YDINH", coefficient: -0.189, pValue: 0.012, significant: true, label: "H5" },
-  { from: "YDINH", to: "QUYETDINH", coefficient: 0.612, pValue: 0.001, significant: true, label: "H6" },
+  // Direct effects on Attitude
+  { from: "PU", to: "ATT", coefficient: 0.425, pValue: 0.001, significant: true, label: "H1" },
+  { from: "PEOU", to: "ATT", coefficient: 0.312, pValue: 0.001, significant: true, label: "H2" },
+  { from: "PEOU", to: "PU", coefficient: 0.387, pValue: 0.001, significant: true, label: "H3" },
+  { from: "TRUST", to: "ATT", coefficient: 0.289, pValue: 0.002, significant: true, label: "H4" },
+  { from: "SI", to: "ATT", coefficient: 0.198, pValue: 0.008, significant: true, label: "H5" },
+  { from: "RISK", to: "ATT", coefficient: -0.234, pValue: 0.004, significant: true, label: "H6" },
+  { from: "PEFF", to: "PU", coefficient: 0.351, pValue: 0.001, significant: true, label: "H7" },
+  { from: "PEFF", to: "ATT", coefficient: 0.267, pValue: 0.003, significant: true, label: "H8" },
+  
+  // Direct effects on Behavioral Intention
+  { from: "ATT", to: "BI", coefficient: 0.487, pValue: 0.001, significant: true, label: "H9" },
+  { from: "PU", to: "BI", coefficient: 0.298, pValue: 0.001, significant: true, label: "H10" },
+  { from: "SI", to: "BI", coefficient: 0.243, pValue: 0.002, significant: true, label: "H11" },
+  { from: "TRUST", to: "BI", coefficient: 0.312, pValue: 0.001, significant: true, label: "H12" },
+  { from: "RISK", to: "BI", coefficient: -0.186, pValue: 0.015, significant: true, label: "H13" },
+  
+  // Indirect effects (mediated)
+  { from: "PEOU", to: "BI", coefficient: 0.152, pValue: 0.028, significant: true, label: "H14" }, // via PU and ATT
 ];
 
 const defaultFitIndices: SEMFitIndices = {
-  chiSquare: 1245.32,
-  df: 342,
-  rmsea: 0.052,
-  cfi: 0.968,
-  gfi: 0.951,
-  tli: 0.963,
+  chiSquare: 1823.45,
+  df: 458,
+  rmsea: 0.048,
+  cfi: 0.972,
+  gfi: 0.958,
+  tli: 0.968,
 };
 
 export function AdvancedSEMVisualization({
@@ -263,7 +282,7 @@ export function AdvancedSEMVisualization({
 
       <div className="sem-canvas-container">
         <svg
-          viewBox="0 0 900 1000"
+          viewBox="0 0 750 1000"
           className="sem-canvas"
           style={{ width: "100%", height: "auto", maxHeight: "800px" }}
         >

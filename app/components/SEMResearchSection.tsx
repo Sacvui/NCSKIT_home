@@ -94,7 +94,7 @@ export function SEMResearchSection({
             </div>
             <div className="research-info-item">
               <span className="info-label">Analysis Tool</span>
-              <span className="info-value">SmartPLS 4.0</span>
+              <span className="info-value">NCSKIT</span>
             </div>
             <div className="research-info-item">
               <span className="info-label">Hypotheses</span>

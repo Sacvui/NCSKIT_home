@@ -106,6 +106,26 @@ export type MarketingCard = {
   ctaHref: string;
 };
 
+export type TeamMember = {
+  name: string;
+  role: string;
+  subtitle?: string;
+  responsibilities?: string[];
+  expertise?: string[];
+  isLead?: boolean;
+};
+
+export type CoreTeam = {
+  eyebrow: string;
+  title: string;
+  description: string;
+  members: TeamMember[];
+  otherMembers: {
+    role: string;
+    count: number;
+  }[];
+};
+
 export type SiteCopy = {
   nav: NavItem[];
   headerCtas: { readme: string; release: string };
@@ -235,6 +255,7 @@ export type SiteCopy = {
     en: string;
     vi: string;
   };
+  coreTeam: CoreTeam;
 };
 
 const navResearchChildren: Record<Locale, NavChild[]> = {
@@ -273,16 +294,18 @@ const navFeaturesChildren: Record<Locale, NavChild[]> = {
 
 const navResourcesChildren: Record<Locale, NavChild[]> = {
   en: [
-    { label: "Documentation", href: "#resources" },
-    { label: "Release Notes", href: "#release" },
+    { label: "Documentation", href: "/resources" },
+    { label: "Release Notes", href: "/releases" },
     { label: "Project README", href: "/docs/README.md" },
     { label: "Architecture", href: "/docs/ARCHITECTURE.md" },
+    { label: "Core Team", href: "/team" },
   ],
   vi: [
-    { label: "Tài liệu", href: "#resources" },
-    { label: "Ghi chú phát hành", href: "#release" },
+    { label: "Tài liệu", href: "/resources" },
+    { label: "Ghi chú phát hành", href: "/releases" },
     { label: "Project README", href: "/docs/README.md" },
     { label: "Kiến trúc", href: "/docs/ARCHITECTURE.md" },
+    { label: "Đội ngũ", href: "/team" },
   ],
 };
 
@@ -904,6 +927,60 @@ export const translations: Record<Locale, SiteCopy> = {
       en: "EN",
       vi: "VI",
     },
+    coreTeam: {
+      eyebrow: "Our Team",
+      title: "Meet the researchers and developers behind NCSKIT",
+      description: "A multidisciplinary team of PhD candidates, data scientists, and engineers.",
+      members: [
+        {
+          name: "Lê Phúc Hải",
+          role: "Lead Developer & Research Scientist",
+          subtitle: "PhD Candidate in Business Management",
+          isLead: true,
+          responsibilities: [
+            "System architecture and programming development",
+            "Statistical analysis methodology implementation",
+            "Research methodology design and validation",
+            "AI-powered analytics engine development",
+            "Scientific accuracy and quality assurance"
+          ],
+          expertise: ["Statistical Analysis", "SEM & Factor Analysis", "Research Methods", "Full-Stack Development", "PhD Candidate", "Business Management"]
+        },
+        {
+          name: "Tín Nguyễn",
+          role: "Research Assistant & Data Specialist",
+          subtitle: "Master of Tourism Management",
+          isLead: true,
+          responsibilities: [
+            "Research literature collection and curation",
+            "Data entry and database management",
+            "Content quality control and validation",
+            "Research documentation and archiving",
+            "User support and data assistance"
+          ],
+          expertise: ["Data Management", "Literature Review", "Content Curation", "Quality Assurance", "Master's Degree", "Tourism Management"]
+        },
+        {
+          name: "Châu Carmen Nguyễn",
+          role: "Scientific Research & Partnership Lead",
+          subtitle: "PhD Candidate in Business Administration",
+          isLead: true,
+          responsibilities: [
+            "Supporting scientific research for management models",
+            "Developing and managing academic partnerships",
+            "Strategic planning for research outreach",
+            "Identifying collaboration opportunities",
+            "Community engagement and networking"
+          ],
+          expertise: ["Business Strategy", "Partnership Management", "Research Management", "Academic Collaboration", "PhD Candidate", "Business Administration"]
+        },
+      ],
+      otherMembers: [
+        { role: "Developers", count: 2 },
+        { role: "Designer", count: 1 },
+        { role: "Marketing", count: 2 }
+      ]
+    },
   },
   vi: {
     nav: [
@@ -1494,6 +1571,60 @@ export const translations: Record<Locale, SiteCopy> = {
       label: "Ngôn ngữ",
       en: "EN",
       vi: "VI",
+    },
+    coreTeam: {
+      eyebrow: "Đội ngũ",
+      title: "Gặp gỡ các nhà nghiên cứu và lập trình viên đằng sau NCSKIT",
+      description: "Một đội ngũ đa ngành gồm các nghiên cứu sinh, nhà khoa học dữ liệu và kỹ sư.",
+      members: [
+        {
+          name: "Lê Phúc Hải",
+          role: "Lead Developer & Research Scientist",
+          subtitle: "Nghiên cứu sinh Quản trị Kinh doanh",
+          isLead: true,
+          responsibilities: [
+            "Phát triển kiến trúc hệ thống và lập trình",
+            "Triển khai phương pháp phân tích thống kê",
+            "Thiết kế và kiểm định phương pháp nghiên cứu",
+            "Phát triển công cụ phân tích AI",
+            "Đảm bảo tính chính xác khoa học và chất lượng"
+          ],
+          expertise: ["Phân tích thống kê", "SEM & Phân tích nhân tố", "Phương pháp nghiên cứu", "Full-Stack Development", "Nghiên cứu sinh", "Quản trị Kinh doanh"]
+        },
+        {
+          name: "Tín Nguyễn",
+          role: "Research Assistant & Data Specialist",
+          subtitle: "Thạc sĩ Quản trị Du lịch",
+          isLead: true,
+          responsibilities: [
+            "Thu thập và chọn lọc tài liệu nghiên cứu",
+            "Nhập liệu và quản lý cơ sở dữ liệu",
+            "Kiểm soát chất lượng nội dung và kiểm định",
+            "Lưu trữ và tài liệu hóa nghiên cứu",
+            "Hỗ trợ người dùng và dữ liệu"
+          ],
+          expertise: ["Quản lý dữ liệu", "Tổng quan tài liệu", "Chọn lọc nội dung", "Đảm bảo chất lượng", "Thạc sĩ", "Quản trị Du lịch"]
+        },
+        {
+          name: "Châu Carmen Nguyễn",
+          role: "Scientific Research & Partnership Lead",
+          subtitle: "Nghiên cứu sinh Quản trị Kinh doanh",
+          isLead: true,
+          responsibilities: [
+            "Hỗ trợ nghiên cứu khoa học cho các mô hình quản lý",
+            "Phát triển và quản lý quan hệ đối tác học thuật",
+            "Lập kế hoạch chiến lược cho tiếp cận nghiên cứu",
+            "Xác định cơ hội hợp tác",
+            "Kết nối cộng đồng và mạng lưới"
+          ],
+          expertise: ["Chiến lược kinh doanh", "Quản lý đối tác", "Quản lý nghiên cứu", "Hợp tác học thuật", "Nghiên cứu sinh", "Quản trị Kinh doanh"]
+        }
+      ],
+      otherMembers: [
+        { role: "Lập trình viên", count: 2 },
+        { role: "Thiết kế", count: 1 },
+        { role: "Marketing", count: 2 }
+      ]
     },
   },
 };
