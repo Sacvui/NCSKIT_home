@@ -16,7 +16,7 @@ export function AnalysisTable({ type, title, compact = false }: AnalysisTablePro
   const renderSEMTable = () => (
     <div className="analysis-table-wrapper">
       <div className="analysis-table-header">
-        <h4>Structural Equation Modeling (SEM) Results</h4>
+        <h4>Analysis Hub - SEM Results (from Design Studio Model)</h4>
         <span className="analysis-badge">Model Fit: Excellent</span>
       </div>
       <div className="analysis-table-container">
@@ -85,7 +85,7 @@ export function AnalysisTable({ type, title, compact = false }: AnalysisTablePro
   const renderRegressionTable = () => (
     <div className="analysis-table-wrapper">
       <div className="analysis-table-header">
-        <h4>Multiple Regression Analysis</h4>
+        <h4>Analysis Hub - Auto-Stats: Regression Analysis</h4>
         <span className="analysis-badge">R² = 0.642</span>
       </div>
       <div className="analysis-table-container">
@@ -154,7 +154,7 @@ export function AnalysisTable({ type, title, compact = false }: AnalysisTablePro
   const renderDescriptiveTable = () => (
     <div className="analysis-table-wrapper">
       <div className="analysis-table-header">
-        <h4>Descriptive Statistics</h4>
+        <h4>Analysis Hub - Smart Grid: Descriptive Statistics</h4>
         <span className="analysis-badge">N = 300</span>
       </div>
       <div className="analysis-table-container">
@@ -216,7 +216,7 @@ export function AnalysisTable({ type, title, compact = false }: AnalysisTablePro
   const renderCorrelationTable = () => (
     <div className="analysis-table-wrapper">
       <div className="analysis-table-header">
-        <h4>Pearson Correlation Matrix</h4>
+        <h4>Analysis Hub - Auto-Stats: Correlation Matrix</h4>
         <span className="analysis-badge">Two-tailed</span>
       </div>
       <div className="analysis-table-container">
@@ -273,7 +273,7 @@ export function AnalysisTable({ type, title, compact = false }: AnalysisTablePro
   const renderANOVATable = () => (
     <div className="analysis-table-wrapper">
       <div className="analysis-table-header">
-        <h4>One-Way ANOVA Results</h4>
+        <h4>Analysis Hub - Auto-Stats: One-Way ANOVA</h4>
         <span className="analysis-badge">Group Comparison</span>
       </div>
       <div className="analysis-table-container">

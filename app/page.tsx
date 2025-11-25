@@ -1,14 +1,25 @@
 "use client";
 
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 import { StatusBoard } from "./components/StatusBoard";
 import { ArchitectureTabs } from "./components/ArchitectureTabs";
-import { AnalysisTable } from "./components/AnalysisTable";
+import { InteractiveAnalysis } from "./components/InteractiveAnalysis";
+import { ProjectDashboard } from "./components/ProjectDashboard";
+import { ModuleCapabilities } from "./components/ModuleCapabilities";
+import { ResearchMetrics } from "./components/ResearchMetrics";
+import { TrustSection } from "./components/TrustSection";
+import { SEMResearchSection } from "./components/SEMResearchSection";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { LanguageProvider, useLanguageContext } from "./components/LanguageProvider";
 import type { BlogPostMeta } from "@/types/blog";
+
+// Removed - using SEMResearchSection instead
+
+// Removed - using InteractiveAnalysis instead
+
 
 const currentYear = new Date().getFullYear();
 
@@ -70,61 +81,36 @@ function HomeContent() {
 
       <main>
         <section id="hero" className="hero">
-          <div className="container hero-grid">
+          <div className="container hero-container">
             <div className="hero-content">
-              <p className="eyebrow">{hero.eyebrow}</p>
-              <h1>{hero.title}</h1>
-              <p className="lede">{hero.lede}</p>
+              <h1 className="hero-title">{hero.title}</h1>
+              <p className="hero-subtitle">{hero.lede}</p>
               <div className="hero-actions">
-                <a className="primary-btn" href="/docs/ARCHITECTURE.md" download>
-                  {hero.primaryCta}
+                <a className="primary-btn hero-cta" href="/docs/ARCHITECTURE.md" download>
+                  Download NCSKIT IDE
                 </a>
                 <a className="secondary-btn" href="#modules">
-                  {hero.secondaryCta}
+                  Explore Features
                 </a>
               </div>
-              <div className="hero-tags">
-                {hero.tags.map((tag) => (
-                  <span key={tag}>{tag}</span>
-                ))}
-              </div>
-              <div className="hero-metrics">
-                {hero.metrics.map((metric) => (
-                  <div key={metric.label} className="hero-metric">
-                    <strong>{metric.value}</strong>
-                    <span>{metric.label}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="hero-announcement">
-                <strong>{hero.announcementLabel}: </strong>
-                <span>{hero.announcementDescription}</span>
-              </div>
             </div>
-            <div className="hero-showcase">
-              <div>
-                <div className="section-head compact">
-                  <p className="eyebrow">{status.eyebrow}</p>
-                  <h2>{status.title}</h2>
-                  <p>{status.description}</p>
+            <div className="hero-demo">
+              <div className="demo-container">
+                <div className="demo-header">
+                  <span className="demo-dot" />
+                  <span className="demo-dot" />
+                  <span className="demo-dot" />
+                  <span className="demo-title">NCSKIT IDE Preview</span>
                 </div>
-                <StatusBoard columns={status.columns} />
-                <AnalysisTable type="descriptive" compact />
-              </div>
-              <div className="mini-terminal" aria-live="polite">
-                <div className="terminal-header">
-                  <span />
-                  <span />
-                  <span />
-                  <p>{status.terminalTitle}</p>
+                <div className="demo-content">
+                  <StatusBoard columns={status.columns} />
                 </div>
-                <pre>
-                  <code>{status.terminalLog}</code>
-                </pre>
               </div>
             </div>
           </div>
         </section>
+
+        <TrustSection />
 
         <section id="modules" className="section features">
           <div className="container">
@@ -133,9 +119,10 @@ function HomeContent() {
               <h2>{features.title}</h2>
               <p>{features.description}</p>
             </div>
+            <ProjectDashboard />
             <div className="feature-grid">
               {features.list.map((feature, index) => (
-                <article key={feature.title}>
+                <article key={feature.title} className="component-card">
                   <h3>{feature.title}</h3>
                   <p>{feature.description}</p>
                   <ul>
@@ -143,37 +130,43 @@ function HomeContent() {
                       <li key={item}>{item}</li>
                     ))}
                   </ul>
-                  {index === 2 && (
-                    <AnalysisTable type="correlation" compact />
-                  )}
                 </article>
               ))}
             </div>
+            
+            {/* Interactive Analysis Showcase - Only one, but WOW */}
+            {features.list.length > 0 && (
+              <div className="interactive-showcase">
+                <InteractiveAnalysis mode="chart" initialView="overview" />
+              </div>
+            )}
           </div>
         </section>
 
         <section id="architecture" className="section architecture">
-          <div className="container architecture-grid">
-            <div>
-              <div className="section-head">
-                <p className="eyebrow">{architecture.eyebrow}</p>
-                <h2>{architecture.title}</h2>
-                <p>{architecture.description}</p>
-              </div>
-              <ArchitectureTabs tabs={architecture.tabs} />
+          <div className="container">
+            <div className="section-head">
+              <p className="eyebrow">{architecture.eyebrow}</p>
+              <h2>{architecture.title}</h2>
+              <p>{architecture.description}</p>
             </div>
-            <div className="architecture-card">
-              <h3>{architecture.techStackTitle}</h3>
-              <dl>
-                {architecture.techStack.map((item) => (
-                  <div key={item.label}>
-                    <dt>{item.label}</dt>
-                    <dd>{item.value}</dd>
-                  </div>
-                ))}
-              </dl>
-              <AnalysisTable type="sem" compact />
-              <Image src="/assets/NCSKIT.png" alt={architecture.imageAlt} width={640} height={360} />
+            <ModuleCapabilities />
+            <div className="architecture-grid">
+              <div>
+                <ArchitectureTabs tabs={architecture.tabs} />
+              </div>
+              <div className="architecture-card component-card">
+                <h3>{architecture.techStackTitle}</h3>
+                <dl>
+                  {architecture.techStack.map((item) => (
+                    <div key={item.label}>
+                      <dt>{item.label}</dt>
+                      <dd>{item.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+                <Image src="/assets/NCSKIT.png" alt={architecture.imageAlt} width={640} height={360} />
+              </div>
             </div>
           </div>
         </section>
@@ -208,7 +201,7 @@ function HomeContent() {
                   </article>
                 ))}
               </div>
-              <AnalysisTable type="regression" compact />
+              <InteractiveAnalysis mode="table" initialView="overview" />
               <a href="/docs/ARCHITECTURE.md" className="ghost-btn" download>
                 {workflow.apiCta}
               </a>
@@ -375,28 +368,8 @@ function HomeContent() {
           </div>
         </section>
 
-        <section id="resources" className="section resources">
-          <div className="container">
-            <div className="section-head">
-              <p className="eyebrow">{resources.eyebrow}</p>
-              <h2>{resources.title}</h2>
-            </div>
-            <div className="resources-grid">
-              {resources.cards.map((resource) => (
-                <article key={resource.title}>
-                  <h3>{resource.title}</h3>
-                  <p>{resource.description}</p>
-                  <a
-                    href={resource.href}
-                    download={resource.download ? true : undefined}
-                  >
-                    {resource.label}
-                  </a>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
+        {/* SEM Research Section - Professional Q1 Research Model */}
+        <SEMResearchSection />
 
         <section id="release" className="section release">
           <div className="container release-card">

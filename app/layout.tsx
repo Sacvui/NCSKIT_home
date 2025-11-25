@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
+import "./styles/design-system.css";
 import "./globals.css";
 import "katex/dist/katex.min.css";
 

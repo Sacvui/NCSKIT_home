@@ -53,11 +53,11 @@ export default function BlogArticleClient({
     <>
       <Header variant="article" backHref="/blog" backLabel={copy.blog.ctaLabel} />
 
-      <main className="blog-article container space-y-10 pb-16 pt-16">
-        <section className="rounded-3xl border border-slate-200/70 bg-white/80 p-8 shadow-card">
+      <main className="blog-article container section-container">
+        <section className="component-card">
           <p className="eyebrow">{meta.groupLabel ?? groupInfo?.label}</p>
-          <h1 className="text-4xl font-semibold leading-tight">{meta.title}</h1>
-          <p className="mt-4 text-lg text-slate-600">{meta.summary}</p>
+          <h1 className="section-heading">{meta.title}</h1>
+          <p className="section-description">{meta.summary}</p>
           {meta.cover && (
             <div className="mt-8 overflow-hidden rounded-2xl border border-slate-100">
               <Image

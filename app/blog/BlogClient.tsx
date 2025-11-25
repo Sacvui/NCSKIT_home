@@ -39,7 +39,7 @@ export default function BlogClient(props: BlogClientProps) {
     <>
       <Header variant="blog" />
 
-      <main className="blog-page space-y-16 pb-16">
+      <main className="blog-page section-container">
         <section className="section blog-hero">
           <div className="container blog-hero-grid items-center gap-12">
             <div className="space-y-6">

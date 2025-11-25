@@ -924,6 +924,7 @@ export const translations: Record<Locale, SiteCopy> = {
         href: "#resources",
         children: navResourcesChildren.vi,
       },
+      { label: "Số liệu", href: "#research-metrics" },
       { label: "Blog", href: "/blog" },
       { label: "Liên hệ", href: "#contact" },
     ],
