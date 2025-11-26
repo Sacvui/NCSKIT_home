@@ -136,7 +136,7 @@ function LoginPageContent() {
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
                             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                            className="w-20 h-20 mx-auto mb-4 flex items-center justify-center"
+                            className="w-32 h-32 mx-auto mb-4 flex items-center justify-center"
                         >
                             <img src="/assets/logo.png" alt="NCSKIT Logo" className="w-full h-full object-contain" />
                         </motion.div>
@@ -184,8 +184,8 @@ function LoginPageContent() {
                                 setSuccess(null);
                             }}
                             className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${isLogin
-                                    ? "bg-white text-blue-600 shadow-sm"
-                                    : "text-gray-600 hover:text-gray-900"
+                                ? "bg-white text-blue-600 shadow-sm"
+                                : "text-gray-600 hover:text-gray-900"
                                 }`}
                         >
                             Sign In
@@ -198,8 +198,8 @@ function LoginPageContent() {
                                 setSuccess(null);
                             }}
                             className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${!isLogin
-                                    ? "bg-white text-blue-600 shadow-sm"
-                                    : "text-gray-600 hover:text-gray-900"
+                                ? "bg-white text-blue-600 shadow-sm"
+                                : "text-gray-600 hover:text-gray-900"
                                 }`}
                         >
                             Sign Up
