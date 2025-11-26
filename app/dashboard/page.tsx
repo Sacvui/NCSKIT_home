@@ -76,7 +76,7 @@ function DashboardPageContent() {
                         <h1 className="text-4xl font-bold text-gray-900 mb-2">
                             Welcome back, {session.user.name?.split(" ")[0]}! 👋
                         </h1>
-                        <p className="text-gray-600">Here's your research dashboard overview</p>
+                        <p className="text-gray-600">Here&apos;s your research dashboard overview</p>
                     </motion.div>
 
                     {/* Stats Grid */}
