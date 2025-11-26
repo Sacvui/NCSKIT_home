@@ -266,19 +266,38 @@ export function AdvancedSEMVisualization({
 
   return (
     <div className="advanced-sem-visualization component-card">
-      <div className="sem-header">
+      <motion.div
+        className="sem-header"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+      >
         <div>
-          <h4>Advanced Structural Equation Model</h4>
-          <p>NCSKIT automatically constructs and validates complex SEM models, offering precise fit indices and path coefficients with scientific annotations for immediate reporting.</p>
+          <motion.h4
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+          >
+            Advanced Structural Equation Model
+          </motion.h4>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
+          >
+            NCSKIT automatically constructs and validates complex SEM models, offering precise fit indices and path coefficients with scientific annotations for immediate reporting.
+          </motion.p>
         </div>
-        <button
+        <motion.button
           className="sem-toggle"
           onClick={() => setShowDetails(!showDetails)}
           aria-label="Toggle details"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
           {showDetails ? "Hide" : "Show"} Details
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
 
       <div className="sem-canvas-container">
         <svg
@@ -606,31 +625,26 @@ export function AdvancedSEMVisualization({
       <div className="sem-fit-indices">
         <h4>Model Fit Indices</h4>
         <div className="fit-indices-grid">
-          <div className="fit-index-item">
-            <span className="fit-label">χ²/df</span>
-            <span className="fit-value">{fitIndices.chiSquare.toFixed(2)}/{fitIndices.df}</span>
-            <span className="fit-status good">= {(fitIndices.chiSquare / fitIndices.df).toFixed(2)}</span>
-          </div>
-          <div className="fit-index-item">
-            <span className="fit-label">RMSEA</span>
-            <span className="fit-value">{fitIndices.rmsea.toFixed(3)}</span>
-            <span className="fit-status excellent">Excellent</span>
-          </div>
-          <div className="fit-index-item">
-            <span className="fit-label">CFI</span>
-            <span className="fit-value">{fitIndices.cfi.toFixed(3)}</span>
-            <span className="fit-status excellent">Excellent</span>
-          </div>
-          <div className="fit-index-item">
-            <span className="fit-label">GFI</span>
-            <span className="fit-value">{fitIndices.gfi.toFixed(3)}</span>
-            <span className="fit-status excellent">Excellent</span>
-          </div>
-          <div className="fit-index-item">
-            <span className="fit-label">TLI</span>
-            <span className="fit-value">{fitIndices.tli.toFixed(3)}</span>
-            <span className="fit-status excellent">Excellent</span>
-          </div>
+          {[
+            { label: "χ²/df", value: `${fitIndices.chiSquare.toFixed(2)}/${fitIndices.df}`, status: `= ${(fitIndices.chiSquare / fitIndices.df).toFixed(2)}`, statusClass: "good" },
+            { label: "RMSEA", value: fitIndices.rmsea.toFixed(3), status: "Excellent", statusClass: "excellent" },
+            { label: "CFI", value: fitIndices.cfi.toFixed(3), status: "Excellent", statusClass: "excellent" },
+            { label: "GFI", value: fitIndices.gfi.toFixed(3), status: "Excellent", statusClass: "excellent" },
+            { label: "TLI", value: fitIndices.tli.toFixed(3), status: "Excellent", statusClass: "excellent" }
+          ].map((item, index) => (
+            <motion.div
+              key={item.label}
+              className="fit-index-item"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.8 + index * 0.1, duration: 0.4 }}
+              whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)" }}
+            >
+              <span className="fit-label">{item.label}</span>
+              <span className="fit-value">{item.value}</span>
+              <span className={`fit-status ${item.statusClass}`}>{item.status}</span>
+            </motion.div>
+          ))}
         </div>
       </div>
 

@@ -18,47 +18,47 @@ type ChartDataItem = {
   description?: string;
 };
 
-// Real workflow progress based on quantitative research flow
+// Research Journey Timeline: Traditional vs NCSKIT (Days)
 const chartData: ChartDataItem[] = [
   {
     name: "Ideation & Design",
-    value: 100,
-    target: 100,
-    completed: 4,
-    total: 4,
-    description: "Topic selection, theoretical framework, research model design, and questionnaire development"
+    value: 7, // Traditional
+    target: 2, // NCSKIT
+    completed: 71, // % Saved
+    total: 5, // Days Saved
+    description: "Automated topic selection, framework generation, and questionnaire design."
   },
   {
     name: "Data Collection",
-    value: 85,
-    target: 100,
-    completed: 1,
-    total: 1,
-    description: "Survey distribution and data gathering phase"
+    value: 30,
+    target: 15,
+    completed: 50,
+    total: 15,
+    description: "Optimized survey distribution and real-time data monitoring."
   },
   {
     name: "Data Analysis",
-    value: 92,
-    target: 95,
-    completed: 8,
-    total: 9,
-    description: "Data health check, reliability, descriptive stats, assumptions, correlation, group comparisons, regression"
-  },
-  {
-    name: "Advanced Analysis",
-    value: 0,
-    target: 100,
-    completed: 0,
-    total: 1,
-    description: "Multivariate analysis (PCA, SEM) and model validation"
+    value: 14,
+    target: 1,
+    completed: 93,
+    total: 13,
+    description: "Instant cleaning, processing, and advanced statistical analysis (SEM/PLS)."
   },
   {
     name: "Writing & Publishing",
-    value: 0,
-    target: 100,
-    completed: 0,
-    total: 1,
-    description: "Manuscript writing, peer review response, and final submission"
+    value: 30,
+    target: 5,
+    completed: 83,
+    total: 25,
+    description: "AI-assisted drafting, citation management, and journal formatting."
+  },
+  {
+    name: "Peer Review",
+    value: 60,
+    target: 15,
+    completed: 75,
+    total: 45,
+    description: "Automated response generation and revision tracking."
   },
 ];
 
@@ -203,8 +203,8 @@ export function InteractiveAnalysis({ mode = "chart", initialView = "overview" }
         <div className="interactive-analysis-chart component-card">
           <div className="analysis-header">
             <div>
-              <h4>Research Workflow Progress</h4>
-              <p>Quantitative research flow tracking: 13 steps across 5 phases. Completed: 13/15 steps (87% overall progress)</p>
+              <h4>Research Journey Timeline</h4>
+              <p>Compare the time investment between Traditional Methods and NCSKIT. Save up to 73% of your research time.</p>
             </div>
             <div className="view-toggle">
               <button
@@ -256,33 +256,33 @@ export function InteractiveAnalysis({ mode = "chart", initialView = "overview" }
                     <Legend />
                     <Bar
                       dataKey="value"
-                      name="Current"
-                      fill="#2563eb"
+                      name="Traditional"
+                      fill="#94a3b8"
                       radius={[8, 8, 0, 0]}
                       onMouseEnter={() => setHoveredItem("value")}
                       onMouseLeave={() => setHoveredItem(null)}
                       style={{
-                        filter: hoveredItem === "value" ? "brightness(1.2)" : "none",
+                        filter: hoveredItem === "value" ? "brightness(0.9)" : "none",
                         transition: "all 0.3s ease",
                       }}
                     >
                       {chartData.map((entry, index) => (
                         <Cell
                           key={`cell-${index}`}
-                          fill={hoveredItem === "value" ? "#3b82f6" : COLORS[index % COLORS.length]}
+                          fill={hoveredItem === "value" ? "#cbd5e1" : "#94a3b8"}
                         />
                       ))}
                     </Bar>
                     <Bar
                       dataKey="target"
-                      name="Target"
-                      fill="#8b5cf6"
+                      name="NCSKIT"
+                      fill="#10b981"
                       radius={[8, 8, 0, 0]}
-                      opacity={0.6}
+                      opacity={1}
                       onMouseEnter={() => setHoveredItem("target")}
                       onMouseLeave={() => setHoveredItem(null)}
                       style={{
-                        filter: hoveredItem === "target" ? "brightness(1.2)" : "none",
+                        filter: hoveredItem === "target" ? "brightness(1.1)" : "none",
                         transition: "all 0.3s ease",
                       }}
                     />
@@ -322,22 +322,22 @@ export function InteractiveAnalysis({ mode = "chart", initialView = "overview" }
                     <Line
                       type="monotone"
                       dataKey="value"
-                      name="Current Progress"
-                      stroke="#2563eb"
+                      name="Traditional"
+                      stroke="#94a3b8"
                       strokeWidth={3}
-                      dot={{ fill: "#2563eb", r: 6 }}
-                      activeDot={{ r: 8, fill: "#3b82f6" }}
+                      dot={{ fill: "#94a3b8", r: 6 }}
+                      activeDot={{ r: 8, fill: "#cbd5e1" }}
                       animationDuration={1000}
                     />
                     <Line
                       type="monotone"
                       dataKey="target"
-                      name="Target"
-                      stroke="#8b5cf6"
-                      strokeWidth={2}
+                      name="NCSKIT"
+                      stroke="#10b981"
+                      strokeWidth={3}
                       strokeDasharray="5 5"
-                      dot={{ fill: "#8b5cf6", r: 4 }}
-                      opacity={0.7}
+                      dot={{ fill: "#10b981", r: 4 }}
+                      opacity={1}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -363,12 +363,16 @@ export function InteractiveAnalysis({ mode = "chart", initialView = "overview" }
               >
                 <div className="stat-header">
                   <span className="stat-label">{item.name}</span>
-                  <span className="stat-value">{item.value}%</span>
+                  <div className="stat-values">
+                    <span className="stat-value traditional" style={{ color: "#94a3b8", fontSize: "0.9em" }}>{item.value}d</span>
+                    <span className="stat-arrow">→</span>
+                    <span className="stat-value ncskit" style={{ color: "#10b981", fontWeight: "bold" }}>{item.target}d</span>
+                  </div>
                 </div>
                 {item.total && (
                   <div className="stat-meta">
-                    <span className="stat-steps">
-                      {item.completed}/{item.total} steps completed
+                    <span className="stat-savings" style={{ color: "#10b981", fontSize: "0.85em", fontWeight: 500 }}>
+                      Saved {item.total} days ({item.completed}%)
                     </span>
                   </div>
                 )}
@@ -379,13 +383,26 @@ export function InteractiveAnalysis({ mode = "chart", initialView = "overview" }
                   <motion.div
                     className="stat-progress-bar"
                     initial={{ width: 0 }}
-                    animate={{ width: `${item.value}%` }}
+                    animate={{ width: `${item.completed}%` }}
                     transition={{ duration: 1, delay: index * 0.2 }}
-                    style={{ background: COLORS[index % COLORS.length] }}
+                    style={{ background: "#10b981" }}
                   />
                 </div>
               </motion.div>
             ))}
+            <motion.div
+              className="stat-item timeline-summary"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.6 }}
+              style={{ background: "rgba(16, 185, 129, 0.1)", borderColor: "#10b981" }}
+            >
+              <div className="stat-header">
+                <span className="stat-label">Total Time Saved</span>
+                <span className="stat-value" style={{ color: "#10b981" }}>~103 Days</span>
+              </div>
+              <p className="stat-description">Accelerate your research from months to weeks with NCSKIT&apos;s automated workflow.</p>
+            </motion.div>
           </div>
         </div>
       );

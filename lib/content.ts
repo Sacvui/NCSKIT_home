@@ -112,6 +112,7 @@ export type TeamMember = {
   subtitle?: string;
   responsibilities?: string[];
   expertise?: string[];
+  image?: string;
   isLead?: boolean;
 };
 
@@ -929,51 +930,95 @@ export const translations: Record<Locale, SiteCopy> = {
         {
           name: "Lê Phúc Hải",
           role: "Lead Developer & Research Scientist",
-          subtitle: "PhD Candidate in Business Management",
+          subtitle: "PhD Candidate in Business Administration",
+          image: "/images/team/hailp.png",
           isLead: true,
           responsibilities: [
-            "System architecture and programming development",
-            "Statistical analysis methodology implementation",
-            "Research methodology design and validation",
-            "AI-powered analytics engine development",
-            "Scientific accuracy and quality assurance"
+            "System Architecture & Core Development",
+            "Statistical Analysis Methodologies",
+            "Research Design & Validation",
+            "AI Analysis Tools Development",
+            "Scientific Accuracy Assurance"
           ],
-          expertise: ["Statistical Analysis", "SEM & Factor Analysis", "Research Methods", "Full-Stack Development", "PhD Candidate", "Business Management"]
+          expertise: ["Statistical Analysis", "SEM & Factor Analysis", "Research Methods", "Full-Stack Development", "Business Administration"]
         },
         {
           name: "Tín Nguyễn",
-          role: "Research Assistant & Data Specialist",
-          subtitle: "Master of Tourism Management",
+          role: "Head of Data & Research Operations",
+          subtitle: "Master in Tourism & Hospitality Management",
+          image: "/images/team/tin-nguyen.png",
           isLead: true,
           responsibilities: [
-            "Research literature collection and curation",
-            "Data entry and database management",
-            "Content quality control and validation",
-            "Research documentation and archiving",
-            "User support and data assistance"
+            "Research Data Strategy & Management",
+            "Quantitative Analysis Supervision",
+            "Data Quality Assurance & Validation",
+            "Research Operations Optimization",
+            "Academic Resource Curation"
           ],
-          expertise: ["Data Management", "Literature Review", "Content Curation", "Quality Assurance", "Master's Degree", "Tourism Management"]
+          expertise: ["Data Mining", "Quantitative Analysis", "Research Operations", "Tourism Management", "Data Quality"]
         },
         {
           name: "Châu Carmen Nguyễn",
-          role: "Scientific Research & Partnership Lead",
+          role: "Strategic Partnerships & Scientific Lead",
           subtitle: "PhD Candidate in Business Administration",
+          image: "/images/team/chau-carmen.png",
           isLead: true,
           responsibilities: [
-            "Supporting scientific research for management models",
-            "Developing and managing academic partnerships",
-            "Strategic planning for research outreach",
-            "Identifying collaboration opportunities",
-            "Community engagement and networking"
+            "Academic Partnership Development",
+            "Scientific Research Strategy",
+            "Community Engagement & Outreach",
+            "Research Impact Assessment",
+            "Strategic Planning"
           ],
-          expertise: ["Business Strategy", "Partnership Management", "Research Management", "Academic Collaboration", "PhD Candidate", "Business Administration"]
+          expertise: ["Strategic Management", "Academic Partnerships", "Scientific Writing", "Business Administration", "Leadership"]
         },
+        {
+          name: "Dr. Sarah Chen",
+          role: "AI Research Lead",
+          subtitle: "PhD in Computer Science (NLP)",
+          image: "/images/team/sarah-chen.png",
+          isLead: false,
+          responsibilities: [
+            "NLP Model Fine-tuning for Academic Text",
+            "RAG System Optimization",
+            "AI Ethics & Bias Mitigation",
+            "Automated Literature Review System",
+            "Semantic Search Implementation"
+          ],
+          expertise: ["Natural Language Processing", "Large Language Models", "AI Ethics", "Research Automation", "Machine Learning", "Python"]
+        },
+        {
+          name: "Michael Ross",
+          role: "Data Infrastructure Architect",
+          subtitle: "Senior Data Engineer",
+          image: "/images/team/michael-ross.png",
+          isLead: false,
+          responsibilities: [
+            "Scalable Data Pipeline Design",
+            "Cloud Infrastructure Management",
+            "Data Security & Privacy Compliance",
+            "Real-time Analytics Engine",
+            "Database Optimization"
+          ],
+          expertise: ["Big Data Architecture", "Cloud Computing", "Data Security", "Scalable Systems", "PostgreSQL", "System Design"]
+        },
+        {
+          name: "Elena Volkov",
+          role: "UX/UI Research Lead",
+          subtitle: "MSc in Human-Computer Interaction",
+          image: "/images/team/elena-volkov.png",
+          isLead: false,
+          responsibilities: [
+            "User Research & Usability Testing",
+            "Interface Design & Prototyping",
+            "Accessibility Standards Compliance",
+            "User Journey Mapping",
+            "Information Architecture"
+          ],
+          expertise: ["User Research", "Interaction Design", "Usability Testing", "Accessibility", "Figma", "User Psychology"]
+        }
       ],
-      otherMembers: [
-        { role: "Developers", count: 2 },
-        { role: "Designer", count: 1 },
-        { role: "Marketing", count: 2 }
-      ]
+      otherMembers: []
     },
   },
   vi: {
@@ -1570,6 +1615,7 @@ export const translations: Record<Locale, SiteCopy> = {
           name: "Lê Phúc Hải",
           role: "Lead Developer & Research Scientist",
           subtitle: "Nghiên cứu sinh Quản trị Kinh doanh",
+          image: "/images/team/hailp.png",
           isLead: true,
           responsibilities: [
             "Phát triển kiến trúc hệ thống và lập trình",
@@ -1582,38 +1628,81 @@ export const translations: Record<Locale, SiteCopy> = {
         },
         {
           name: "Tín Nguyễn",
-          role: "Research Assistant & Data Specialist",
-          subtitle: "Thạc sĩ Quản trị Du lịch",
+          role: "Head of Data & Research Operations",
+          subtitle: "Thạc sĩ Quản trị Du lịch & Khách sạn",
+          image: "/images/team/tin-nguyen.png",
           isLead: true,
           responsibilities: [
-            "Thu thập và chọn lọc tài liệu nghiên cứu",
-            "Nhập liệu và quản lý cơ sở dữ liệu",
-            "Kiểm soát chất lượng nội dung và kiểm định",
-            "Lưu trữ và tài liệu hóa nghiên cứu",
-            "Hỗ trợ người dùng và dữ liệu"
+            "Chiến lược và Quản lý Dữ liệu Nghiên cứu",
+            "Giám sát Phân tích Định lượng",
+            "Đảm bảo Chất lượng Dữ liệu & Kiểm định",
+            "Tối ưu hóa Quy trình Vận hành Nghiên cứu",
+            "Quản lý Tài nguyên Học thuật"
           ],
-          expertise: ["Quản lý dữ liệu", "Tổng quan tài liệu", "Chọn lọc nội dung", "Đảm bảo chất lượng", "Thạc sĩ", "Quản trị Du lịch"]
+          expertise: ["Khai phá dữ liệu", "Phân tích định lượng", "Vận hành nghiên cứu", "Quản trị Du lịch", "Chất lượng dữ liệu"]
         },
         {
           name: "Châu Carmen Nguyễn",
-          role: "Scientific Research & Partnership Lead",
+          role: "Strategic Partnerships & Scientific Lead",
           subtitle: "Nghiên cứu sinh Quản trị Kinh doanh",
+          image: "/images/team/chau-carmen.png",
           isLead: true,
           responsibilities: [
-            "Hỗ trợ nghiên cứu khoa học cho các mô hình quản lý",
-            "Phát triển và quản lý quan hệ đối tác học thuật",
-            "Lập kế hoạch chiến lược cho tiếp cận nghiên cứu",
-            "Xác định cơ hội hợp tác",
-            "Kết nối cộng đồng và mạng lưới"
+            "Phát triển Đối tác Học thuật",
+            "Chiến lược Nghiên cứu Khoa học",
+            "Kết nối Cộng đồng & Mở rộng Mạng lưới",
+            "Đánh giá Tác động Nghiên cứu",
+            "Hoạch định Chiến lược"
           ],
-          expertise: ["Chiến lược kinh doanh", "Quản lý đối tác", "Quản lý nghiên cứu", "Hợp tác học thuật", "Nghiên cứu sinh", "Quản trị Kinh doanh"]
+          expertise: ["Quản trị chiến lược", "Hợp tác học thuật", "Viết bài khoa học", "Quản trị kinh doanh", "Lãnh đạo"]
+        },
+        {
+          name: "Dr. Sarah Chen",
+          role: "AI Research Lead",
+          subtitle: "Tiến sĩ Khoa học Máy tính (NLP)",
+          image: "/images/team/sarah-chen.png",
+          isLead: false,
+          responsibilities: [
+            "Tinh chỉnh mô hình NLP cho văn bản học thuật",
+            "Tối ưu hóa hệ thống RAG",
+            "Đạo đức AI & Giảm thiểu thiên kiến",
+            "Hệ thống tổng quan tài liệu tự động",
+            "Triển khai tìm kiếm ngữ nghĩa"
+          ],
+          expertise: ["Xử lý ngôn ngữ tự nhiên", "Mô hình ngôn ngữ lớn", "Đạo đức AI", "Tự động hóa nghiên cứu", "Machine Learning", "Python"]
+        },
+        {
+          name: "Michael Ross",
+          role: "Data Infrastructure Architect",
+          subtitle: "Kỹ sư Dữ liệu Cấp cao",
+          image: "/images/team/michael-ross.png",
+          isLead: false,
+          responsibilities: [
+            "Thiết kế đường ống dữ liệu mở rộng",
+            "Quản lý hạ tầng đám mây",
+            "Tuân thủ bảo mật & quyền riêng tư dữ liệu",
+            "Công cụ phân tích thời gian thực",
+            "Tối ưu hóa cơ sở dữ liệu"
+          ],
+          expertise: ["Kiến trúc Big Data", "Điện toán đám mây", "Bảo mật dữ liệu", "Hệ thống mở rộng", "PostgreSQL", "Thiết kế hệ thống"]
+        },
+        {
+          name: "Elena Volkov",
+          role: "UX/UI Research Lead",
+          subtitle: "Thạc sĩ Tương tác Người-Máy",
+          image: "/images/team/elena-volkov.png",
+          isLead: false,
+          responsibilities: [
+            "Nghiên cứu người dùng & Kiểm thử khả năng sử dụng",
+            "Thiết kế giao diện & Tạo mẫu",
+            "Tuân thủ tiêu chuẩn khả năng tiếp cận",
+            "Bản đồ hành trình người dùng",
+            "Kiến trúc thông tin"
+          ],
+          expertise: ["Nghiên cứu người dùng", "Thiết kế tương tác", "Kiểm thử khả năng sử dụng", "Khả năng tiếp cận", "Figma", "Tâm lý học người dùng"]
         }
       ],
-      otherMembers: [
-        { role: "Lập trình viên", count: 2 },
-        { role: "Thiết kế", count: 1 },
-        { role: "Marketing", count: 2 }
-      ]
+      otherMembers: []
     },
   },
 };
