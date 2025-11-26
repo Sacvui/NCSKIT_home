@@ -28,14 +28,14 @@ export const authOptions: NextAuthOptions = {
             clientSecret: process.env.ORCID_CLIENT_SECRET,
             idToken: true,
             checks: ["pkce", "state"],
-            profile(profile) {
+            profile(profile: any) {
                 return {
                     id: profile.sub,
                     name: profile.name,
                     email: profile.email,
                 };
             },
-        },
+        } as any,
         CredentialsProvider({
             name: "Credentials",
             credentials: {
