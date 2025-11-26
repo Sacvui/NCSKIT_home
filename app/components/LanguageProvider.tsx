@@ -25,14 +25,18 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [locale, setLocale] = useState<Locale>("en");
 
   useEffect(() => {
-    const stored = window.localStorage.getItem("ncskit-lang") as Locale | null;
-    if (stored === "en" || stored === "vi") {
-      setLocale(stored);
+    if (typeof window !== "undefined") {
+      const stored = window.localStorage.getItem("ncskit-lang") as Locale | null;
+      if (stored === "en" || stored === "vi") {
+        setLocale(stored);
+      }
     }
   }, []);
 
   useEffect(() => {
-    window.localStorage.setItem("ncskit-lang", locale);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("ncskit-lang", locale);
+    }
   }, [locale]);
 
   const value = useMemo(

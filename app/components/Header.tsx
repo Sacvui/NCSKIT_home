@@ -181,27 +181,34 @@ export function Header({ nav, headerCtas, variant = "default", backHref, backLab
         </div>
 
         {mobileMenuOpen && (
-          <div className="mobile-menu active">
-            <nav className="nav" aria-label="Primary mobile">
-              {renderNavItems(() => setMobileMenuOpen(false), true)}
-              {variant === "blog" && (
-                <>
-                  <div className="nav-divider" />
-                  <div className="nav-section-label">Blog Categories</div>
-                  {copy.blog.categories.map((category) => (
-                    <a
-                      key={category.anchor}
-                      href={`#${category.anchor}`}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="mobile-nav-item"
-                    >
-                      {category.title}
-                    </a>
-                  ))}
-                </>
-              )}
-            </nav>
-          </div>
+          <>
+            <div 
+              className={`mobile-menu-overlay${mobileMenuOpen ? " active" : ""}`}
+              onClick={() => setMobileMenuOpen(false)}
+              aria-hidden="true"
+            />
+            <div className="mobile-menu active">
+              <nav className="nav" aria-label="Primary mobile">
+                {renderNavItems(() => setMobileMenuOpen(false), true)}
+                {variant === "blog" && (
+                  <>
+                    <div className="nav-divider" />
+                    <div className="nav-section-label">Blog Categories</div>
+                    {copy.blog.categories.map((category) => (
+                      <a
+                        key={category.anchor}
+                        href={`#${category.anchor}`}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="mobile-nav-item"
+                      >
+                        {category.title}
+                      </a>
+                    ))}
+                  </>
+                )}
+              </nav>
+            </div>
+          </>
         )}
       </div>
     </header>

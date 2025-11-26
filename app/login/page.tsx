@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { LanguageProvider, useLanguageContext } from "../components/LanguageProvider";
@@ -138,7 +139,13 @@ function LoginPageContent() {
                             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
                             className="w-32 h-32 mx-auto mb-4 flex items-center justify-center"
                         >
-                            <img src="/assets/logo.png" alt="NCSKIT Logo" className="w-full h-full object-contain" />
+                            <Image 
+                                src="/assets/logo.png" 
+                                alt="NCSKIT Logo" 
+                                width={128}
+                                height={128}
+                                className="w-full h-full object-contain" 
+                            />
                         </motion.div>
                         <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
                             {isLogin ? "Welcome Back" : "Create Account"}

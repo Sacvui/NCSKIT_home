@@ -5,6 +5,8 @@
   --color-primary: #2563eb;
   --color-primary-dark: #1e40af;
   --color-primary-light: #3b82f6;
+  --color-primary-alpha: rgba(37, 99, 235, 0.1);
+  --color-primary-alpha-2: rgba(37, 99, 235, 0.15);
   --color-secondary: #8b5cf6;
   --color-success: #10b981;
   --color-warning: #f59e0b;

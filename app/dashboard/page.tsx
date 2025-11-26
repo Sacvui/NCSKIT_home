@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Header } from "../components/Header";
@@ -23,6 +23,7 @@ function DashboardPageContent() {
     const { nav, headerCtas } = copy;
     const { data: session, status } = useSession();
     const router = useRouter();
+    const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         if (status === "unauthenticated") {
@@ -125,42 +126,61 @@ function DashboardPageContent() {
                         </div>
                     </motion.div>
 
-                    {/* Recent Activity */}
+                    {/* Comprehensive Statistical Analysis */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.5 }}
-                        className="grid grid-cols-1 lg:grid-cols-2 gap-8"
+                        transition={{ delay: 0.6 }}
+                        className="bg-white rounded-xl shadow-lg border border-gray-200 p-8 mb-8"
                     >
-                        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-6">Recent Projects</h2>
-                            <div className="text-center py-12 text-gray-500">
-                                <p className="text-lg mb-2">No projects yet</p>
-                                <p className="text-sm">Start by creating your first research project</p>
+                        <h2 className="text-2xl font-bold text-gray-900 mb-4 cursor-pointer" onClick={() => setExpandedItems(prev => {
+                            const newSet = new Set(prev);
+                            if (newSet.has('analysis')) newSet.delete('analysis'); else newSet.add('analysis');
+                            return newSet;
+                        })}>Comprehensive Statistical Analysis {expandedItems.has('analysis') ? '▲' : '▼'}</h2>
+                        {expandedItems.has('analysis') && (
+                            <div className="text-gray-700">
+                                <p>Here you can display detailed statistical analysis results, charts, and tables. This placeholder can be replaced with actual components such as Recharts or custom visualizations.</p>
                             </div>
-                        </div>
+                        )}
+                    </motion.div>
 
-                        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-6">Account Information</h2>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="text-sm text-gray-500">Email</label>
-                                    <p className="text-gray-900 font-medium">{session.user.email}</p>
-                                </div>
-                                <div>
-                                    <label className="text-sm text-gray-500">Role</label>
-                                    <p className="text-gray-900 font-medium capitalize">
-                                        {session.user.role || "User"}
-                                    </p>
-                                </div>
-                                <Link
-                                    href="/profile"
-                                    className="inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                                >
-                                    Manage Profile →
-                                </Link>
+                    {/* Scientific Interpretation Guide */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.7 }}
+                        className="bg-white rounded-xl shadow-lg border border-gray-200 p-8 mb-8"
+                    >
+                        <h2 className="text-2xl font-bold text-gray-900 mb-4 cursor-pointer" onClick={() => setExpandedItems(prev => {
+                            const newSet = new Set(prev);
+                            if (newSet.has('guide')) newSet.delete('guide'); else newSet.add('guide');
+                            return newSet;
+                        })}>Scientific Interpretation Guide {expandedItems.has('guide') ? '▲' : '▼'}</h2>
+                        {expandedItems.has('guide') && (
+                            <div className="text-gray-700">
+                                <p>This section provides guidance on interpreting the statistical results, offering explanations, confidence intervals, and practical implications.</p>
                             </div>
-                        </div>
+                        )}
+                    </motion.div>
+
+                    {/* Structural Equation Modeling (SEM) Results */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.8 }}
+                        className="bg-white rounded-xl shadow-lg border border-gray-200 p-8 mb-8"
+                    >
+                        <h2 className="text-2xl font-bold text-gray-900 mb-4 cursor-pointer" onClick={() => setExpandedItems(prev => {
+                            const newSet = new Set(prev);
+                            if (newSet.has('sem')) newSet.delete('sem'); else newSet.add('sem');
+                            return newSet;
+                        })}>Structural Equation Modeling (SEM) Results {expandedItems.has('sem') ? '▲' : '▼'}</h2>
+                        {expandedItems.has('sem') && (
+                            <div className="text-gray-700">
+                                <p>Display SEM model fit indices, path coefficients, and visual diagram. Replace this placeholder with a proper SEM visualization component.</p>
+                            </div>
+                        )}
                     </motion.div>
                 </div>
             </main>
@@ -168,4 +188,3 @@ function DashboardPageContent() {
         </>
     );
 }
-
