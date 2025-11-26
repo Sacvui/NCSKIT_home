@@ -1,9 +1,9 @@
-# *
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /login
+Disallow: /profile
 
-# Host
-Host: https://ncskit.org
-
-# Sitemaps
 Sitemap: https://ncskit.org/sitemap.xml

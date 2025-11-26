@@ -5,6 +5,16 @@ module.exports = {
   changefreq: "weekly",
   priority: 0.7,
   sitemapSize: 5000,
+  exclude: ['/api/*', '/admin/*', '/dashboard', '/login', '/profile'],
+  robotsTxtOptions: {
+    policies: [
+      {
+        userAgent: '*',
+        allow: '/',
+        disallow: ['/api/', '/admin/', '/dashboard/', '/login', '/profile'],
+      },
+    ],
+  },
   transform: async (config, path) => {
     return {
       loc: path,
