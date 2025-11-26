@@ -19,6 +19,10 @@ export const metadata: Metadata = {
   title: "NCSKIT IDE · Research Operating System",
   description:
     "NCSKIT IDE blends a custom VS Code OSS fork, FastAPI, and LangChain so researchers can turn ideas into publish-ready papers without writing code.",
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/assets/logo.png',
+  },
 };
 
 import { AuthProvider } from "./components/AuthProvider";

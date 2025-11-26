@@ -34,47 +34,68 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Check if user already exists
-        const existingUser = await db.query.users.findFirst({
-            where: eq(users.email, email),
-        });
+        try {
+            // Check if user already exists
+            const existingUser = await db.query.users.findFirst({
+                where: eq(users.email, email),
+            });
 
-        if (existingUser) {
+            if (existingUser) {
+                return NextResponse.json(
+                    { error: "User with this email already exists" },
+                    { status: 409 }
+                );
+            }
+
+            // Hash password
+            const hashedPassword = await bcrypt.hash(password, 10);
+
+            // Create new user
+            const [newUser] = await db.insert(users).values({
+                name,
+                email,
+                password: hashedPassword,
+                role: "user",
+                isActive: true,
+            }).returning({
+                id: users.id,
+                name: users.name,
+                email: users.email,
+                role: users.role,
+                createdAt: users.createdAt,
+            });
+
             return NextResponse.json(
-                { error: "User with this email already exists" },
-                { status: 409 }
+                {
+                    message: "User registered successfully",
+                    user: newUser,
+                },
+                { status: 201 }
             );
+        } catch (dbError: any) {
+            console.error("Database error during registration:", dbError);
+
+            // Check if it's a connection error
+            if (dbError.code === 'ECONNREFUSED' || dbError.code === 'ENOTFOUND') {
+                return NextResponse.json(
+                    {
+                        error: "Database connection failed. Please ensure the database is configured in Vercel environment variables.",
+                        hint: "Set POSTGRES_URL in your Vercel project settings"
+                    },
+                    { status: 503 }
+                );
+            }
+
+            throw dbError; // Re-throw to be caught by outer catch
         }
-
-        // Hash password
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        // Create new user
-        const [newUser] = await db.insert(users).values({
-            name,
-            email,
-            password: hashedPassword,
-            role: "user",
-            isActive: true,
-        }).returning({
-            id: users.id,
-            name: users.name,
-            email: users.email,
-            role: users.role,
-            createdAt: users.createdAt,
-        });
-
-        return NextResponse.json(
-            {
-                message: "User registered successfully",
-                user: newUser,
-            },
-            { status: 201 }
-        );
     } catch (error: any) {
         console.error("Registration error:", error);
         return NextResponse.json(
-            { error: "Internal server error", details: error.message },
+            {
+                error: "Registration failed",
+                message: error.message || "Internal server error",
+                hint: "Please contact support if this persists"
+            },
             { status: 500 }
         );
     }

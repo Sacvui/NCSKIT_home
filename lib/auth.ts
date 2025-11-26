@@ -1,5 +1,7 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
+import LinkedInProvider from "next-auth/providers/linkedin";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -7,6 +9,33 @@ import bcrypt from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
     providers: [
+        GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID || "",
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+        }),
+        LinkedInProvider({
+            clientId: process.env.LINKEDIN_CLIENT_ID || "",
+            clientSecret: process.env.LINKEDIN_CLIENT_SECRET || "",
+        }),
+        // ORCID Provider (custom configuration)
+        {
+            id: "orcid",
+            name: "ORCID",
+            type: "oauth",
+            wellKnown: "https://orcid.org/.well-known/openid-configuration",
+            authorization: { params: { scope: "openid" } },
+            clientId: process.env.ORCID_CLIENT_ID,
+            clientSecret: process.env.ORCID_CLIENT_SECRET,
+            idToken: true,
+            checks: ["pkce", "state"],
+            profile(profile) {
+                return {
+                    id: profile.sub,
+                    name: profile.name,
+                    email: profile.email,
+                };
+            },
+        },
         CredentialsProvider({
             name: "Credentials",
             credentials: {
@@ -60,6 +89,30 @@ export const authOptions: NextAuthOptions = {
         signIn: '/login',
     },
     callbacks: {
+        async signIn({ user, account, profile }) {
+            // For OAuth providers, create user in database if doesn't exist
+            if (account?.provider !== "credentials" && user.email) {
+                try {
+                    const existingUser = await db.query.users.findFirst({
+                        where: eq(users.email, user.email),
+                    });
+
+                    if (!existingUser) {
+                        // Create new user from OAuth
+                        await db.insert(users).values({
+                            name: user.name || user.email.split('@')[0],
+                            email: user.email,
+                            password: await bcrypt.hash(Math.random().toString(36), 10), // Random password for OAuth users
+                            role: "user",
+                            isActive: true,
+                        });
+                    }
+                } catch (error) {
+                    console.error("Error creating OAuth user:", error);
+                }
+            }
+            return true;
+        },
         async session({ session, token }: { session: any; token: any }) {
             if (token && session.user) {
                 session.user.id = token.id;
@@ -67,10 +120,25 @@ export const authOptions: NextAuthOptions = {
             }
             return session;
         },
-        async jwt({ token, user }: { token: any; user: any }) {
+        async jwt({ token, user, account }: { token: any; user: any; account: any }) {
             if (user) {
-                token.id = user.id;
-                token.role = user.role;
+                // For OAuth, fetch user from database to get role
+                if (account?.provider !== "credentials" && user.email) {
+                    try {
+                        const dbUser = await db.query.users.findFirst({
+                            where: eq(users.email, user.email),
+                        });
+                        if (dbUser) {
+                            token.id = dbUser.id.toString();
+                            token.role = dbUser.role || "user";
+                        }
+                    } catch (error) {
+                        console.error("Error fetching user in JWT callback:", error);
+                    }
+                } else {
+                    token.id = user.id;
+                    token.role = user.role;
+                }
             }
             return token;
         }
