@@ -397,15 +397,16 @@ a {
   border-radius: 1rem;
   box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.1), 0 10px 20px -5px rgba(0, 0, 0, 0.04);
   padding: 0.75rem;
-  min-width: 340px;
-  max-width: 480px;
+  min-width: 260px;
+  /* Reduced width for single column */
+  max-width: 320px;
   z-index: 30;
 }
 
 .nav-dropdown-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.25rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .nav-item.has-children:hover .nav-dropdown,
@@ -434,12 +435,10 @@ a {
   transform: translateX(2px);
 }
 
-.nav-dropdown-item.left {
-  grid-column: 1;
-}
-
+/* Disable grid positioning */
+.nav-dropdown-item.left,
 .nav-dropdown-item.right {
-  grid-column: 2;
+  grid-column: auto;
 }
 
 .header-cta {
@@ -4920,6 +4919,17 @@ html {
   .sem-canvas-container {
     padding: var(--space-xs);
     margin: var(--space-sm) 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Fix for Charts on mobile */
+  .recharts-wrapper {
+    font-size: 10px;
+  }
+
+  .recharts-legend-item {
+    margin-right: 10px !important;
   }
 
   .sem-header {
