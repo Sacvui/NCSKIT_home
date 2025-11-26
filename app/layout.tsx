@@ -3,6 +3,7 @@ import { Inter, Space_Grotesk } from "next/font/google";
 import "./styles/design-system.css";
 import "./globals.css";
 import "katex/dist/katex.min.css";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -33,6 +34,7 @@ export default function RootLayout({
         <AuthProvider>
           <div className="glow-bg" aria-hidden="true" />
           {children}
+          <SpeedInsights />
         </AuthProvider>
       </body>
     </html>
