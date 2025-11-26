@@ -37,7 +37,7 @@
     "@types/react": "18.3.4",
     "@types/react-dom": "18.3.2",
     "autoprefixer": "^10.4.22",
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.6.1",
     "eslint": "8.57.0",
     "eslint-config-next": "14.2.5",
     "next-sitemap": "^4.2.3",

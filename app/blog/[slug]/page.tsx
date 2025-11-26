@@ -20,10 +20,11 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: BlogPageParams;
+  params: Promise<BlogPageParams>;
 }): Promise<Metadata> {
+  const { slug } = await params;
   try {
-    const { meta } = await getPostBySlug(params.slug);
+    const { meta } = await getPostBySlug(slug);
     const title = `${meta.title} · NCSKIT Blog`;
     const description = meta.seoDescription ?? meta.summary;
 
@@ -58,9 +59,10 @@ export async function generateMetadata({
 export default async function BlogArticlePage({
   params,
 }: {
-  params: BlogPageParams;
+  params: Promise<BlogPageParams>;
 }) {
-  const post = await safeGetPost(params.slug);
+  const { slug } = await params;
+  const post = await safeGetPost(slug);
   if (!post) {
     notFound();
   }

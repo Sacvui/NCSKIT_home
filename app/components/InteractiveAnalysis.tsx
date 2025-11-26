@@ -396,7 +396,7 @@ export function InteractiveAnalysis({ mode = "chart", initialView = "overview" }
           <div className="analysis-header">
             <div>
               <h4>Comprehensive Statistical Analysis</h4>
-              <p>Click on any variable to explore detailed metrics including reliability, validity, distribution, normality tests, and correlations</p>
+              <p>NCSKIT automates data processing with precision, providing instant statistical metrics and intelligent, standard-compliant annotations to guide your interpretation step-by-step.</p>
             </div>
           </div>
 

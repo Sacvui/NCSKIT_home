@@ -208,14 +208,14 @@ const defaultPaths: SEMPath[] = [
   { from: "RISK", to: "ATT", coefficient: -0.234, pValue: 0.004, significant: true, label: "H6" },
   { from: "PEFF", to: "PU", coefficient: 0.351, pValue: 0.001, significant: true, label: "H7" },
   { from: "PEFF", to: "ATT", coefficient: 0.267, pValue: 0.003, significant: true, label: "H8" },
-  
+
   // Direct effects on Behavioral Intention
   { from: "ATT", to: "BI", coefficient: 0.487, pValue: 0.001, significant: true, label: "H9" },
   { from: "PU", to: "BI", coefficient: 0.298, pValue: 0.001, significant: true, label: "H10" },
   { from: "SI", to: "BI", coefficient: 0.243, pValue: 0.002, significant: true, label: "H11" },
   { from: "TRUST", to: "BI", coefficient: 0.312, pValue: 0.001, significant: true, label: "H12" },
   { from: "RISK", to: "BI", coefficient: -0.186, pValue: 0.015, significant: true, label: "H13" },
-  
+
   // Indirect effects (mediated)
   { from: "PEOU", to: "BI", coefficient: 0.152, pValue: 0.028, significant: true, label: "H14" }, // via PU and ATT
 ];
@@ -269,7 +269,7 @@ export function AdvancedSEMVisualization({
       <div className="sem-header">
         <div>
           <h4>Advanced Structural Equation Model</h4>
-          <p>Click variables, observed indicators, or paths to explore relationships</p>
+          <p>NCSKIT automatically constructs and validates complex SEM models, offering precise fit indices and path coefficients with scientific annotations for immediate reporting.</p>
         </div>
         <button
           className="sem-toggle"
@@ -321,11 +321,9 @@ export function AdvancedSEMVisualization({
                 />
                 {/* Arrow head */}
                 <motion.polygon
-                  points={`${toVar.x - 12 * Math.cos((angle - 90) * (Math.PI / 180))},${
-                    toVar.y - 12 * Math.sin((angle - 90) * (Math.PI / 180))
-                  } ${toVar.x},${toVar.y} ${
-                    toVar.x - 12 * Math.cos((angle + 90) * (Math.PI / 180))
-                  },${toVar.y - 12 * Math.sin((angle + 90) * (Math.PI / 180))}`}
+                  points={`${toVar.x - 12 * Math.cos((angle - 90) * (Math.PI / 180))},${toVar.y - 12 * Math.sin((angle - 90) * (Math.PI / 180))
+                    } ${toVar.x},${toVar.y} ${toVar.x - 12 * Math.cos((angle + 90) * (Math.PI / 180))
+                    },${toVar.y - 12 * Math.sin((angle + 90) * (Math.PI / 180))}`}
                   fill={getPathColor(path)}
                   opacity={hoveredPath && hoveredPath !== path.label ? 0.2 : 1}
                   initial={{ opacity: 0 }}

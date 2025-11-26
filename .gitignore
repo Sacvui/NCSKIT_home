@@ -46,3 +46,4 @@ __pycache__/
 *.so
 .Python
 fix-css-indent.py
+.vercel

@@ -364,9 +364,9 @@ export const translations: Record<Locale, SiteCopy> = {
     },
     hero: {
       eyebrow: "Whitepaper-aligned · ncskit.org",
-      title: "Turn ideas into published research. No code required.",
+      title: "Empowering Research for All Levels",
       lede:
-        "NCSKIT IDE is the all-in-one Research OS purpose-built by PhD candidate Lê Phúc Hải to standardise methodology, automate data analysis, and accelerate ISI/Scopus submissions while keeping every dataset on your device.",
+        "NCSKIT IDE is a community-driven Research OS designed to automate the scientific workflow. Whether you're a beginner needing guidance or an expert seeking efficiency, we empower the Economics community to deliver professional, high-impact results.",
       primaryCta: "Download architecture brief",
       secondaryCta: "Review core modules",
       tags: ["No-Code Research Hub", "APA / ISI compliant", "Local & Secure"],
@@ -381,50 +381,44 @@ export const translations: Record<Locale, SiteCopy> = {
     },
     status: {
       eyebrow: "Mission control",
-      title: "Who NCSKIT empowers today.",
+      title: "Value for every researcher.",
       description:
-        "Insights from the whitepaper guide every sprint: serve students, graduate researchers, faculty, and market analysts with one no-code stack.",
+        "From guiding novices to standard outputs to accelerating expert workflows.",
       terminalTitle: "Field log",
       columns: [
         {
           id: "in-progress",
-          label: "In progress",
+          label: "For Beginners",
           cards: [
             {
-              title: "Student & graduate uplift",
-              summary: "Removing SPSS/R hurdles for theses and capstones with Smart Grid + Auto-Stats.",
-              effort: "+44 · -5",
+              title: "Guided Learning",
+              summary: "Step-by-step guidance to produce standard research outputs without prior experience.",
+              effort: "High Impact",
               tag: "Students",
             },
             {
-              title: "PhD cockpit",
-              summary: "Packaging literature, AI assistant, and hypothesis builder into a single Ideation Lab.",
-              effort: "+33 · -3",
-              tag: "PhD",
-            },
-            {
-              title: "Faculty productivity",
-              summary: "One-click exporting + citation manager to shorten the ISI/Scopus submission loop.",
-              effort: "+27 · -2",
-              tag: "Faculty",
+              title: "Standardization",
+              summary: "Automated templates ensure your thesis or capstone meets academic standards instantly.",
+              effort: "High Quality",
+              tag: "Novice",
             },
           ],
         },
         {
           id: "ready",
-          label: "Ready for review",
+          label: "For Experts",
           cards: [
             {
-              title: "Market research bridge",
-              summary: "Dashboard presets for analysts needing quick descriptive insights without coding.",
-              effort: "+18 · 0",
-              tag: "Industry",
+              title: "Accelerated Workflow",
+              summary: "Skip the tedious setup. Automate data cleaning and analysis to focus on insights.",
+              effort: "Time Saver",
+              tag: "PhD/Faculty",
             },
             {
-              title: "Compliance starter pack",
-              summary: "Consent, anonymisation, and APA/PRISMA checklists aligned with the whitepaper.",
-              effort: "+12 · 0",
-              tag: "Governance",
+              title: "Enhanced Quality",
+              summary: "Advanced tools for deep analysis and ISI/Scopus compliant reporting.",
+              effort: "Top Tier",
+              tag: "Expert",
             },
           ],
         },
@@ -1008,77 +1002,72 @@ export const translations: Record<Locale, SiteCopy> = {
       release: "Đăng nhập",
     },
     hero: {
-      eyebrow: "Whitepaper · ncskit.org",
-      title: "Biến ý tưởng thành bài báo khoa học. Không cần lập trình.",
+      eyebrow: "Whitepaper-aligned · ncskit.org",
+      title: "NCSKIT - Giá trị thực cho mọi cấp độ nghiên cứu",
       lede:
-        "NCSKIT IDE do Nghiên cứu sinh Lê Phúc Hải xây dựng dựa trên whitepaper sản phẩm: một Research OS all-in-one chuẩn hóa phương pháp, tự động hoá phân tích và đảm bảo dữ liệu luôn nằm trên máy.",
-      primaryCta: "Tải kiến trúc dự án",
-      secondaryCta: "Xem 4 phân hệ cốt lõi",
-      tags: ["No-Code Research Hub", "Chuẩn APA/ISI", "Local & Secure"],
+        "NCSKIT IDE, được phát triển bởi NCS Lê Phúc Hải, tự động hóa quy trình nghiên cứu khoa học. Dìu dắt người mới để ra bài chuẩn chỉnh, giúp chuyên gia rút ngắn thời gian và nâng cao chất lượng. Đóng góp thiết thực cho cộng đồng khoa học, đặc biệt là ngành Kinh tế.",
+      primaryCta: "Tải bản giới thiệu",
+      secondaryCta: "Xem các phân hệ",
+      tags: ["Nền tảng nghiên cứu No-Code", "Chuẩn APA / ISI", "Bảo mật & Cục bộ"],
       announcementLabel: "Sứ mệnh",
-      announcementDescription: "Chuẩn hóa và tự động hóa quy trình nghiên cứu khoa học cho mọi đối tượng.",
+      announcementDescription:
+        "Chuẩn hoá và tự động hoá toàn bộ hành trình nghiên cứu để học giả tập trung vào tri thức—không phải công cụ.",
       metrics: [
-        { value: "4 phân hệ", label: "Ideation · Design · Analysis · Publishing" },
-        { value: "9 bước", label: "Flow định lượng dựng sẵn" },
-        { value: "100% local", label: "Dữ liệu nằm trên thiết bị" },
+        { value: "4 phân hệ", label: "Ý tưởng · Thiết kế · Phân tích · Công bố" },
+        { value: "9 bước", label: "Quy trình định lượng tích hợp sẵn" },
+        { value: "100% cục bộ", label: "Dữ liệu lưu trữ trên máy của bạn" },
       ],
     },
     status: {
-      eyebrow: "Buồng lái công bố",
-      title: "Đối tượng sử dụng chính theo whitepaper.",
+      eyebrow: "Trung tâm điều hành",
+      title: "Giải pháp cho mọi nhà nghiên cứu",
       description:
-        "Sinh viên, nghiên cứu sinh, giảng viên và người làm nghiên cứu thị trường đều được phục vụ bằng một stack no-code.",
-      terminalTitle: "Nhật ký triển khai",
+        "Từ sinh viên làm khóa luận đến giáo sư công bố quốc tế, NCSKIT tối ưu hóa mọi bước đi.",
+      terminalTitle: "Nhật ký thực địa",
       columns: [
         {
           id: "in-progress",
-          label: "Đang triển khai",
+          label: "Cho Người Mới",
           cards: [
             {
-              title: "Sinh viên & học viên cao học",
-              summary: "Smart Grid + Auto-Stats giúp xử lý khoá luận mà không cần SPSS/R.",
-              effort: "+44 · -5",
-              tag: "Students",
+              title: "Dìu dắt từng bước",
+              summary: "Hướng dẫn chi tiết để tạo ra sản phẩm nghiên cứu chuẩn chỉnh mà không cần kinh nghiệm.",
+              effort: "Hiệu quả cao",
+              tag: "Sinh viên",
             },
             {
-              title: "Nghiên cứu sinh/PhD",
-              summary: "Ideation Lab kết hợp AI assistant và Literature Builder cho đề cương & giả thuyết.",
-              effort: "+33 · -3",
-              tag: "PhD",
-            },
-            {
-              title: "Giảng viên & nhóm nghiên cứu",
-              summary: "Citation Manager + One-click export rút ngắn vòng đời bài ISI/Scopus.",
-              effort: "+27 · -2",
-              tag: "Faculty",
+              title: "Chuẩn hóa quy trình",
+              summary: "Các mẫu tự động đảm bảo luận văn hoặc đồ án đạt chuẩn học thuật ngay lập tức.",
+              effort: "Chất lượng",
+              tag: "Người mới",
             },
           ],
         },
         {
           id: "ready",
-          label: "Sẵn sàng review",
+          label: "Cho Chuyên Gia",
           cards: [
             {
-              title: "Analyst/Market Research",
-              summary: "Dashboard preset cho phân tích mô tả nhanh và chia sẻ nội bộ.",
-              effort: "+18 · 0",
-              tag: "Industry",
+              title: "Tốc độ & Hiệu quả",
+              summary: "Bỏ qua các bước thiết lập nhàm chán. Tự động hóa làm sạch và phân tích dữ liệu.",
+              effort: "Tiết kiệm thời gian",
+              tag: "NCS/Giảng viên",
             },
             {
-              title: "Compliance kit",
-              summary: "Consent template, log ẩn danh, checklist APA/PRISMA đúng whitepaper.",
-              effort: "+12 · 0",
-              tag: "Governance",
+              title: "Nâng cao chất lượng",
+              summary: "Công cụ chuyên sâu cho phân tích phức tạp và báo cáo chuẩn ISI/Scopus.",
+              effort: "Đẳng cấp",
+              tag: "Chuyên gia",
             },
           ],
         },
       ],
       terminalLog: `$ ncskit mission --whitepaper
-→ Ideation Lab cập nhật AI Assistant + Literature Review
-→ Design Studio tinh chỉnh Model & Survey Builder
-→ Analysis Hub gom Smart Grid · Auto-Stats · Auto-Viz
-→ Publishing Center hoàn thiện Smart Editor & Citation
-🎉  Các phân hệ đã bám sát brief whitepaper`,
+→ Ideation Lab: Đồng bộ trợ lý AI + xây dựng tổng quan tài liệu
+→ Design Studio: Hoàn thiện khảo sát + mẫu mô hình
+→ Analysis Hub: Gói gọn Smart Grid, Auto-Stats, Auto-Viz
+→ Publishing Center: Trau chuốt xuất bản DOCX/PDF 1 cú click
+🎉  Tất cả phân hệ đã sẵn sàng theo bản tóm tắt phát hành ncskit.org`,
     },
     features: {
       eyebrow: "Phân hệ cốt lõi",

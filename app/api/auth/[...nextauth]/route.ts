@@ -30,27 +30,26 @@ export const authOptions = {
                 }
 
                 try {
-                    console.log("Attempting DB connection...");
                     // 1. Check if user exists in database
                     const user = await db.query.users.findFirst({
                         where: eq(users.email, credentials.email),
                     });
 
                     // 2. If user exists, verify password
-                    if (user) {
+                    if (user && user.password) {
                         const isValid = await bcrypt.compare(credentials.password, user.password);
                         if (isValid) {
                             return {
                                 id: user.id.toString(),
                                 name: user.name,
                                 email: user.email,
-                                role: user.role,
+                                role: user.role || "user",
                             };
                         }
                     }
-                } catch (error) {
-                    console.error("Database error:", error);
-                    // Continue to fallback if DB fails
+                } catch (error: any) {
+                    console.error("Database error (will use fallback):", error?.message || error);
+                    // Continue to fallback if DB fails - don't throw error
                 }
 
                 return null;
@@ -79,7 +78,14 @@ export const authOptions = {
     secret: process.env.NEXTAUTH_SECRET,
 };
 
-// @ts-ignore
+// Ensure NEXTAUTH_SECRET is set
+if (!process.env.NEXTAUTH_SECRET) {
+    console.warn("⚠️  NEXTAUTH_SECRET is not set. Using default for development.");
+    process.env.NEXTAUTH_SECRET = "development-secret-key-change-in-production";
+}
+
 const handler = NextAuth(authOptions);
 
-export { handler as GET, handler as POST };
+// Next.js App Router requires named exports
+export const GET = handler;
+export const POST = handler;
