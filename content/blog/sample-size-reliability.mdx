@@ -1,0 +1,57 @@
+---
+title: "Ensuring Statistical Rigor: Sample Size and Reliability Analysis"
+slug: "sample-size-reliability"
+summary: "Why sample size matters and how to ensure your research findings are reliable and valid."
+seoDescription: "Master sample size calculation and reliability analysis. Understand Cronbach's Alpha, CR, and AVE to ensure statistical rigor in your research."
+group: scientific
+groupLabel: "Scientific Research"
+category: blog-lab
+categoryLabel: "Phòng Lab 'Chạy Số'"
+tags:
+  - Statistics
+  - Sample Size
+  - Reliability
+  - Validity
+date: "2025-11-23"
+cover: "/assets/NCSKIT.png"
+authors:
+  - "Lê Phúc Hải"
+---
+
+## Introduction
+
+"Is my sample size large enough?" This is perhaps the most common question asked by graduate students. The answer, unfortunately, is rarely a simple number. It depends on the complexity of your model, the strength of the relationships, and the statistical power you wish to achieve.
+
+## The Science of Sample Size
+
+### Power Analysis
+
+Statistical power is the probability of rejecting a false null hypothesis. A study with low power may fail to detect true effects.
+*   **G*Power** has been the standard tool, but modern platforms like NCSKIT integrate power analysis directly into the model building process, suggesting the required sample size based on your specific SEM structure.
+
+### The "10 Times Rule"
+
+A common rule of thumb in SEM is to have 10 times as many observations as the number of indicators. However, this is often an oversimplification. Monte Carlo simulations provide a much more accurate estimation.
+
+## Reliability and Validity
+
+Collecting data is not enough; you must prove it is trustworthy.
+
+### Cronbach's Alpha vs. Composite Reliability (CR)
+
+While Cronbach's Alpha is widely used, it assumes equal factor loadings—an assumption often violated. **Composite Reliability (CR)** is a more robust measure for SEM.
+$$
+CR = \frac{(\sum \lambda_i)^2}{(\sum \lambda_i)^2 + \sum Var(\epsilon_i)}
+$$
+
+### Average Variance Extracted (AVE)
+
+AVE measures the amount of variance captured by a construct versus the amount due to measurement error. An AVE > 0.5 is generally required for convergent validity.
+
+## Automated Validation with NCSKIT
+
+Calculating CR and AVE manually is tedious. NCSKIT computes these metrics automatically for every latent variable in your model, flagging any constructs that fail to meet the thresholds (e.g., CR < 0.7 or AVE < 0.5).
+
+## Conclusion
+
+Statistical rigor is non-negotiable in high-impact publishing. By understanding and correctly applying sample size and reliability criteria, you build a solid foundation for your research findings.

@@ -76,11 +76,20 @@ export async function POST(request: NextRequest) {
             console.error("Database error during registration:", dbError);
 
             // Check if it's a connection error
-            if (dbError.code === 'ECONNREFUSED' || dbError.code === 'ENOTFOUND') {
+            // Check if it's a connection error
+            const isConnectionError =
+                dbError.code === 'ECONNREFUSED' ||
+                dbError.code === 'ENOTFOUND' ||
+                dbError.message?.includes('connect') ||
+                dbError.message?.includes('connection') ||
+                dbError.message?.includes('Postgres');
+
+            if (isConnectionError) {
                 return NextResponse.json(
                     {
-                        error: "Database connection failed. Please ensure the database is configured in Vercel environment variables.",
-                        hint: "Set POSTGRES_URL in your Vercel project settings"
+                        error: "Database connection failed",
+                        message: "The application is running without a valid database connection. Registration requires a PostgreSQL database.",
+                        hint: "You can still log in using the demo account: demo@ncskit.org / demo123"
                     },
                     { status: 503 }
                 );

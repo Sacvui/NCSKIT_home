@@ -455,7 +455,7 @@ export function InteractiveAnalysis({ mode = "chart", initialView = "overview" }
                     }}
                   >
                     <td>
-                      <strong>{row.variable}</strong>
+                      <strong style={{ color: "var(--color-primary)" }}>{row.variable}</strong>
                     </td>
                     <td>{row.mean.toFixed(2)}</td>
                     <td>{row.sd.toFixed(2)}</td>
@@ -473,19 +473,50 @@ export function InteractiveAnalysis({ mode = "chart", initialView = "overview" }
                       </span>
                     </td>
                     <td>
-                      <span className={row.alpha >= 0.9 ? "excellent" : row.alpha >= 0.7 ? "good" : "fair"}>
+                      <motion.span
+                        initial={{ scale: 0.5, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ type: "spring", stiffness: 400, delay: 0.3 + index * 0.1 }}
+                        className="inline-block px-2 py-0.5 rounded text-xs font-bold"
+                        style={{
+                          color: row.alpha >= 0.7 ? "#10b981" : "#ef4444",
+                          background: row.alpha >= 0.7 ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
+                        }}
+                      >
                         {row.alpha.toFixed(2)}
-                      </span>
+                      </motion.span>
                     </td>
                     <td>
-                      <span className={row.reliability && row.reliability.cr >= 0.9 ? "excellent" : row.reliability && row.reliability.cr >= 0.7 ? "good" : "fair"}>
-                        {row.reliability?.cr.toFixed(2) ?? "—"}
-                      </span>
+                      {row.reliability && (
+                        <motion.span
+                          initial={{ scale: 0.5, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ type: "spring", stiffness: 400, delay: 0.4 + index * 0.1 }}
+                          className="inline-block px-2 py-0.5 rounded text-xs font-bold"
+                          style={{
+                            color: row.reliability.cr >= 0.7 ? "#10b981" : "#ef4444",
+                            background: row.reliability.cr >= 0.7 ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
+                          }}
+                        >
+                          {row.reliability.cr.toFixed(2)}
+                        </motion.span>
+                      )}
                     </td>
                     <td>
-                      <span className={row.reliability && row.reliability.ave >= 0.5 ? "excellent" : "fair"}>
-                        {row.reliability?.ave.toFixed(2) ?? "—"}
-                      </span>
+                      {row.reliability && (
+                        <motion.span
+                          initial={{ scale: 0.5, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          transition={{ type: "spring", stiffness: 400, delay: 0.5 + index * 0.1 }}
+                          className="inline-block px-2 py-0.5 rounded text-xs font-bold"
+                          style={{
+                            color: row.reliability.ave >= 0.5 ? "#10b981" : "#ef4444",
+                            background: row.reliability.ave >= 0.5 ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
+                          }}
+                        >
+                          {row.reliability.ave.toFixed(2)}
+                        </motion.span>
+                      )}
                     </td>
                   </motion.tr>
                 ))}

@@ -59,12 +59,21 @@ export async function getPostsByCategory() {
   }, {});
 }
 
+import { BlogChart } from "@/app/components/blog/BlogChart";
+
+// ... (existing imports)
+
+// ...
+
 export async function getPostBySlug(slug: string): Promise<BlogPost> {
   const fullPath = path.join(BLOG_DIR, `${slug}.mdx`);
   const source = await fs.readFile(fullPath, "utf-8");
 
   const { content, frontmatter } = await compileMDX<BlogFrontmatter>({
     source,
+    components: {
+      BlogChart,
+    },
     options: {
       parseFrontmatter: true,
       mdxOptions: {

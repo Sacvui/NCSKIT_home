@@ -3,6 +3,8 @@ import { LanguageProvider } from "../components/LanguageProvider";
 import BlogClient from "./BlogClient";
 import { getBlogIndex, type BlogPostMeta } from "@/lib/blog";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "NCSKIT Blog · Knowledge Atlas & Research Lab Notes",
   description:
