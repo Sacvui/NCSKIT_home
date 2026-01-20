@@ -319,210 +319,212 @@ export function AdvancedSEMVisualization({
         </motion.button>
       </motion.div>
 
-      <div className="sem-canvas-container" style={{ borderRadius: "1.5rem", border: "1px solid rgba(0,0,0,0.05)", background: "rgba(255,255,255,0.5)" }}>
-        <svg
-          viewBox="-50 -50 1100 700"
-          className="sem-canvas"
-          style={{ width: "100%", height: "auto", maxHeight: "800px" }}
-        >
-          <Gradients />
+      <div className="sem-canvas-container" style={{ borderRadius: "1.5rem", border: "1px solid rgba(0,0,0,0.05)", background: "rgba(255,255,255,0.5)", overflowX: "auto", maxWidth: "100%" }}>
+        <div style={{ minWidth: "900px", padding: "1rem" }}>
+          <svg
+            viewBox="-50 -50 1100 700"
+            className="sem-canvas"
+            style={{ width: "100%", height: "auto", maxHeight: "800px" }}
+          >
+            <Gradients />
 
-          {/* Render paths first (z-index equivalent) */}
-          {paths.map((path, index) => {
-            const fromVar = variables.find((v) => v.id === path.from);
-            const toVar = variables.find((v) => v.id === path.to);
-            if (!fromVar || !toVar) return null;
+            {/* Render paths first (z-index equivalent) */}
+            {paths.map((path, index) => {
+              const fromVar = variables.find((v) => v.id === path.from);
+              const toVar = variables.find((v) => v.id === path.to);
+              if (!fromVar || !toVar) return null;
 
-            const { dx, dy, distance, angle } = calculatePath(fromVar, toVar);
-            const midX = fromVar.x + dx / 2;
-            const midY = fromVar.y + dy / 2;
-            const labelBgWidth = 56;
-            const labelBgHeight = 20;
-
-            return (
-              <g key={`path-${index}`}>
-                <motion.line
-                  x1={fromVar.x}
-                  y1={fromVar.y}
-                  x2={toVar.x}
-                  y2={toVar.y}
-                  stroke={getPathColor(path)}
-                  strokeWidth={getPathWidth(path)}
-                  strokeDasharray={path.significant ? "0" : "4,4"}
-                  opacity={hoveredPath && hoveredPath !== path.label ? 0.2 : 0.8}
-                  initial={{ pathLength: 0, opacity: 0 }}
-                  animate={{ pathLength: 1, opacity: 0.8 }}
-                  transition={{ duration: 1, delay: index * 0.15 }}
-                  onMouseEnter={() => setHoveredPath(path.label)}
-                  onMouseLeave={() => setHoveredPath(null)}
-                  style={{ cursor: "pointer", transition: "all 0.3s ease" }}
-                />
-                {/* Invisible wider hit area for easier hovering */}
-                <line
-                  x1={fromVar.x}
-                  y1={fromVar.y}
-                  x2={toVar.x}
-                  y2={toVar.y}
-                  stroke="transparent"
-                  strokeWidth={20}
-                  onMouseEnter={() => setHoveredPath(path.label)}
-                  onMouseLeave={() => setHoveredPath(null)}
-                  onClick={() => setShowDetails(true)}
-                  style={{ cursor: "pointer" }}
-                />
-
-                <motion.polygon
-                  points={`${toVar.x - 14 * Math.cos((angle - 90) * (Math.PI / 180))},${toVar.y - 14 * Math.sin((angle - 90) * (Math.PI / 180))
-                    } ${toVar.x},${toVar.y} ${toVar.x - 14 * Math.cos((angle + 90) * (Math.PI / 180))
-                    },${toVar.y - 14 * Math.sin((angle + 90) * (Math.PI / 180))}`}
-                  fill={getPathColor(path)}
-                  opacity={hoveredPath && hoveredPath !== path.label ? 0.2 : 1}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 1, delay: index * 0.15 + 0.5 }}
-                />
-
-                {/* Path Coefficient Label + Background Pill */}
-                <motion.g
-                  initial={{ opacity: 0, scale: 0 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.4, delay: index * 0.15 + 0.6 }}
-                >
-                  <rect
-                    x={midX - labelBgWidth / 2}
-                    y={midY - 16}
-                    width={labelBgWidth}
-                    height={labelBgHeight}
-                    rx={6}
-                    fill="white"
-                    fillOpacity="0.95"
-                    stroke={getPathColor(path)}
-                    strokeWidth={1.5}
-                  />
-                  <text
-                    x={midX}
-                    y={midY - 2}
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    fontSize="11"
-                    fontWeight="700"
-                    fill={getPathColor(path)}
-                    style={{ pointerEvents: "none" }}
-                  >
-                    {path.coefficient.toFixed(3)}
-                    {path.significant && "***"}
-                  </text>
-                </motion.g>
-              </g>
-            );
-          })}
-
-          {/* Render error terms */}
-          {variables
-            .filter((v) => v.type === "endogenous" && v.errorId)
-            .map((variable) => {
-              const errorX = variable.x;
-              const errorY = variable.y - 50;
-              return (
-                <g key={`error-${variable.errorId}`}>
-                  <circle cx={errorX} cy={errorY} r={12} fill="white" stroke={COLORS.error.light} strokeWidth={1} />
-                  <text x={errorX} y={errorY + 4} textAnchor="middle" fontSize="10" fill={COLORS.error.primary}>{variable.errorId}</text>
-                  <line x1={errorX} y1={errorY + 12} x2={variable.x} y2={variable.y - 35} stroke={COLORS.error.light} strokeDasharray="3,3" />
-                </g>
-              )
-            })}
-
-          {/* Render Measurement Models */}
-          {variables.map((variable) =>
-            variable.observedVars?.map((observed, obsIndex) => {
-              const isSelected = selectedVariable === variable.id && selectedObserved === observed.id;
-              const isHovered = selectedVariable === variable.id;
+              const { dx, dy, distance, angle } = calculatePath(fromVar, toVar);
+              const midX = fromVar.x + dx / 2;
+              const midY = fromVar.y + dy / 2;
+              const labelBgWidth = 56;
+              const labelBgHeight = 20;
 
               return (
-                <g key={observed.id}>
-                  {/* Link Line */}
+                <g key={`path-${index}`}>
                   <motion.line
-                    x1={variable.x}
-                    y1={variable.y}
-                    x2={observed.x}
-                    y2={observed.y}
-                    stroke={COLORS.observed.border}
-                    strokeWidth={1}
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ duration: 0.5 }}
+                    x1={fromVar.x}
+                    y1={fromVar.y}
+                    x2={toVar.x}
+                    y2={toVar.y}
+                    stroke={getPathColor(path)}
+                    strokeWidth={getPathWidth(path)}
+                    strokeDasharray={path.significant ? "0" : "4,4"}
+                    opacity={hoveredPath && hoveredPath !== path.label ? 0.2 : 0.8}
+                    initial={{ pathLength: 0, opacity: 0 }}
+                    animate={{ pathLength: 1, opacity: 0.8 }}
+                    transition={{ duration: 1, delay: index * 0.15 }}
+                    onMouseEnter={() => setHoveredPath(path.label)}
+                    onMouseLeave={() => setHoveredPath(null)}
+                    style={{ cursor: "pointer", transition: "all 0.3s ease" }}
                   />
-                  {/* Observed Rect */}
-                  <motion.rect
-                    x={observed.x - 30}
-                    y={observed.y - 12}
-                    width={60}
-                    height={24}
-                    fill="white"
-                    stroke={isSelected ? COLORS.exogenous.primary : COLORS.observed.border}
-                    strokeWidth={isSelected ? 2 : 1}
-                    rx={4}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: obsIndex * 0.05 }}
-                    onClick={() => {
-                      setSelectedObserved(selectedObserved === observed.id ? null : observed.id);
-                      setSelectedVariable(variable.id);
-                      setShowDetails(true);
-                    }}
+                  {/* Invisible wider hit area for easier hovering */}
+                  <line
+                    x1={fromVar.x}
+                    y1={fromVar.y}
+                    x2={toVar.x}
+                    y2={toVar.y}
+                    stroke="transparent"
+                    strokeWidth={20}
+                    onMouseEnter={() => setHoveredPath(path.label)}
+                    onMouseLeave={() => setHoveredPath(null)}
+                    onClick={() => setShowDetails(true)}
                     style={{ cursor: "pointer" }}
                   />
-                  <text x={observed.x} y={observed.y + 4} textAnchor="middle" fontSize="9" fill={COLORS.observed.dark} pointerEvents="none">{observed.label}</text>
+
+                  <motion.polygon
+                    points={`${toVar.x - 14 * Math.cos((angle - 90) * (Math.PI / 180))},${toVar.y - 14 * Math.sin((angle - 90) * (Math.PI / 180))
+                      } ${toVar.x},${toVar.y} ${toVar.x - 14 * Math.cos((angle + 90) * (Math.PI / 180))
+                      },${toVar.y - 14 * Math.sin((angle + 90) * (Math.PI / 180))}`}
+                    fill={getPathColor(path)}
+                    opacity={hoveredPath && hoveredPath !== path.label ? 0.2 : 1}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 1, delay: index * 0.15 + 0.5 }}
+                  />
+
+                  {/* Path Coefficient Label + Background Pill */}
+                  <motion.g
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.4, delay: index * 0.15 + 0.6 }}
+                  >
+                    <rect
+                      x={midX - labelBgWidth / 2}
+                      y={midY - 16}
+                      width={labelBgWidth}
+                      height={labelBgHeight}
+                      rx={6}
+                      fill="white"
+                      fillOpacity="0.95"
+                      stroke={getPathColor(path)}
+                      strokeWidth={1.5}
+                    />
+                    <text
+                      x={midX}
+                      y={midY - 2}
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      fontSize="11"
+                      fontWeight="700"
+                      fill={getPathColor(path)}
+                      style={{ pointerEvents: "none" }}
+                    >
+                      {path.coefficient.toFixed(3)}
+                      {path.significant && "***"}
+                    </text>
+                  </motion.g>
                 </g>
               );
-            })
-          )}
+            })}
 
-          {/* Render Latent Variables */}
-          {variables.map((variable, index) => {
-            const colors = getVariableColor(variable.type);
-            const isSelected = selectedVariable === variable.id;
+            {/* Render error terms */}
+            {variables
+              .filter((v) => v.type === "endogenous" && v.errorId)
+              .map((variable) => {
+                const errorX = variable.x;
+                const errorY = variable.y - 50;
+                return (
+                  <g key={`error-${variable.errorId}`}>
+                    <circle cx={errorX} cy={errorY} r={12} fill="white" stroke={COLORS.error.light} strokeWidth={1} />
+                    <text x={errorX} y={errorY + 4} textAnchor="middle" fontSize="10" fill={COLORS.error.primary}>{variable.errorId}</text>
+                    <line x1={errorX} y1={errorY + 12} x2={variable.x} y2={variable.y - 35} stroke={COLORS.error.light} strokeDasharray="3,3" />
+                  </g>
+                )
+              })}
 
-            return (
-              <g key={variable.id}>
-                <motion.ellipse
-                  cx={variable.x}
-                  cy={variable.y}
-                  rx={55}
-                  ry={32}
-                  fill={`url(#grad-${variable.type})`}
-                  stroke={isSelected ? colors.dark : colors.border}
-                  strokeWidth={isSelected ? 3 : 2}
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  whileHover={{ scale: 1.05 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  onMouseEnter={() => setSelectedVariable(variable.id)}
-                  onClick={() => {
-                    setSelectedVariable(selectedVariable === variable.id ? null : variable.id);
-                    setShowDetails(true);
-                  }}
-                  style={{ cursor: "pointer", filter: "drop-shadow(0px 4px 6px rgba(0,0,0,0.05))" }}
-                />
-                <motion.text
-                  x={variable.x}
-                  y={variable.y}
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  fontSize="12"
-                  fontWeight="700"
-                  fill={colors.dark}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  style={{ pointerEvents: "none" }}
-                >
-                  <tspan x={variable.x} dy="-0.4em">{variable.label.split('\n')[0]}</tspan>
-                  {variable.label.split('\n')[1] && <tspan x={variable.x} dy="1.2em">{variable.label.split('\n')[1]}</tspan>}
-                </motion.text>
-              </g>
-            );
-          })}
-        </svg>
+            {/* Render Measurement Models */}
+            {variables.map((variable) =>
+              variable.observedVars?.map((observed, obsIndex) => {
+                const isSelected = selectedVariable === variable.id && selectedObserved === observed.id;
+                const isHovered = selectedVariable === variable.id;
+
+                return (
+                  <g key={observed.id}>
+                    {/* Link Line */}
+                    <motion.line
+                      x1={variable.x}
+                      y1={variable.y}
+                      x2={observed.x}
+                      y2={observed.y}
+                      stroke={COLORS.observed.border}
+                      strokeWidth={1}
+                      initial={{ pathLength: 0 }}
+                      animate={{ pathLength: 1 }}
+                      transition={{ duration: 0.5 }}
+                    />
+                    {/* Observed Rect */}
+                    <motion.rect
+                      x={observed.x - 30}
+                      y={observed.y - 12}
+                      width={60}
+                      height={24}
+                      fill="white"
+                      stroke={isSelected ? COLORS.exogenous.primary : COLORS.observed.border}
+                      strokeWidth={isSelected ? 2 : 1}
+                      rx={4}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: obsIndex * 0.05 }}
+                      onClick={() => {
+                        setSelectedObserved(selectedObserved === observed.id ? null : observed.id);
+                        setSelectedVariable(variable.id);
+                        setShowDetails(true);
+                      }}
+                      style={{ cursor: "pointer" }}
+                    />
+                    <text x={observed.x} y={observed.y + 4} textAnchor="middle" fontSize="9" fill={COLORS.observed.dark} pointerEvents="none">{observed.label}</text>
+                  </g>
+                );
+              })
+            )}
+
+            {/* Render Latent Variables */}
+            {variables.map((variable, index) => {
+              const colors = getVariableColor(variable.type);
+              const isSelected = selectedVariable === variable.id;
+
+              return (
+                <g key={variable.id}>
+                  <motion.ellipse
+                    cx={variable.x}
+                    cy={variable.y}
+                    rx={55}
+                    ry={32}
+                    fill={`url(#grad-${variable.type})`}
+                    stroke={isSelected ? colors.dark : colors.border}
+                    strokeWidth={isSelected ? 3 : 2}
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    whileHover={{ scale: 1.05 }}
+                    transition={{ duration: 0.6, delay: index * 0.1 }}
+                    onMouseEnter={() => setSelectedVariable(variable.id)}
+                    onClick={() => {
+                      setSelectedVariable(selectedVariable === variable.id ? null : variable.id);
+                      setShowDetails(true);
+                    }}
+                    style={{ cursor: "pointer", filter: "drop-shadow(0px 4px 6px rgba(0,0,0,0.05))" }}
+                  />
+                  <motion.text
+                    x={variable.x}
+                    y={variable.y}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    fontSize="12"
+                    fontWeight="700"
+                    fill={colors.dark}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    style={{ pointerEvents: "none" }}
+                  >
+                    <tspan x={variable.x} dy="-0.4em">{variable.label.split('\n')[0]}</tspan>
+                    {variable.label.split('\n')[1] && <tspan x={variable.x} dy="1.2em">{variable.label.split('\n')[1]}</tspan>}
+                  </motion.text>
+                </g>
+              );
+            })}
+          </svg>
+        </div>
       </div>
 
       {/* Fit Indices Panel */}
