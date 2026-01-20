@@ -294,11 +294,9 @@ const navResourcesChildren: Record<Locale, NavChild[]> = {
     { label: "Release Notes", href: "/releases" },
     { label: "Project README", href: "/docs/README.md" },
     { label: "Architecture", href: "/docs/ARCHITECTURE.md" },
-    { label: "Core Team", href: "/team" },
   ],
   vi: [
     { label: "Hướng dẫn sử dụng", href: "/resources" },
-    { label: "Đội ngũ phát triển", href: "/team" },
   ],
 };
 

@@ -92,27 +92,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="footer-bottom">
-          <div className="footer-copyright">
-            <p>
-              © {currentYear} NCSKIT Research. All rights reserved.
-            </p>
-            <p className="footer-creator">
-              Created by <strong>Hải Rong Chơi</strong>
-            </p>
-          </div>
-          <div className="footer-social">
-            <a
-              href="https://ncskit.org"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="footer-social-link"
-              aria-label="Visit ncskit.org"
-            >
-              ncskit.org
-            </a>
-          </div>
-        </div>
+
       </div>
     </footer>
   );
