@@ -269,12 +269,9 @@ const navResearchChildren: Record<Locale, NavChild[]> = {
     { label: "Advanced SEM / PLS", href: "/blog#blog-lab" },
   ],
   vi: [
-    { label: "Phòng Lab", href: "/blog#blog-lab" },
-    { label: "Bản đồ tri thức", href: "/blog" },
-    { label: "Thiết kế nghiên cứu", href: "/blog#blog-lab" },
-    { label: "Xử lý dữ liệu", href: "/blog#blog-lab" },
-    { label: "Kiểm định giả thuyết", href: "/blog#blog-lab" },
-    { label: "SEM / SmartPLS", href: "/blog#blog-lab" },
+    { label: "Phòng Lab Chạy Số", href: "/blog#blog-lab" },
+    { label: "Góc nhìn Kinh tế", href: "/blog#blog-economics" },
+    { label: "Kỹ năng Viết & Công bố", href: "/blog#blog-writing" },
   ],
 };
 
@@ -287,9 +284,7 @@ const navFeaturesChildren: Record<Locale, NavChild[]> = {
   ],
   vi: [
     { label: "Phân hệ cốt lõi", href: "/features" },
-    { label: "Kiến trúc", href: "/architecture" },
-    { label: "Quy trình", href: "/workflow" },
-    { label: "Tự động hóa", href: "/workflow#automation" },
+    { label: "Quy trình nghiên cứu", href: "/workflow" },
   ],
 };
 
@@ -302,11 +297,8 @@ const navResourcesChildren: Record<Locale, NavChild[]> = {
     { label: "Core Team", href: "/team" },
   ],
   vi: [
-    { label: "Tài liệu", href: "/resources" },
-    { label: "Ghi chú phát hành", href: "/releases" },
-    { label: "Project README", href: "/docs/README.md" },
-    { label: "Kiến trúc", href: "/docs/ARCHITECTURE.md" },
-    { label: "Đội ngũ", href: "/team" },
+    { label: "Hướng dẫn sử dụng", href: "/resources" },
+    { label: "Đội ngũ phát triển", href: "/team" },
   ],
 };
 
@@ -935,7 +927,7 @@ export const translations: Record<Locale, SiteCopy> = {
           name: "Hải Rong Chơi",
           role: "Lead Developer & Research Scientist",
           subtitle: "PhD Candidate in Business Administration",
-          image: "/images/team/hailp.png",
+          image: "/images/team/hailp.jpg",
           isLead: true,
           responsibilities: [
             "System Architecture & Core Development",
@@ -1623,7 +1615,7 @@ export const translations: Record<Locale, SiteCopy> = {
           name: "Hải Rong Chơi",
           role: "Lead Developer & Research Scientist",
           subtitle: "Nghiên cứu sinh Quản trị Kinh doanh",
-          image: "/images/team/hailp.png",
+          image: "/images/team/hailp.jpg",
           isLead: true,
           responsibilities: [
             "Phát triển kiến trúc hệ thống và lập trình",
