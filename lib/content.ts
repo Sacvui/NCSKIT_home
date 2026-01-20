@@ -1025,22 +1025,15 @@ export const translations: Record<Locale, SiteCopy> = {
         children: navFeaturesChildren.vi,
       },
       {
-        label: "Nghiên cứu",
-        href: "/research",
+        label: "Kiến thức",
+        href: "/blog",
         children: navResearchChildren.vi,
       },
       {
-        label: "Tài nguyên",
-        href: "#resources",
+        label: "Về NCSKIT",
+        href: "/resources",
         children: navResourcesChildren.vi,
       },
-
-      {
-        label: "Blog",
-        href: "/blog",
-        children: knowledgeNavChildren.vi,
-      },
-      { label: "Liên hệ", href: "/contact" },
     ],
     headerCtas: {
       readme: "Tải README",
