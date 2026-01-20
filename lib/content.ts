@@ -263,18 +263,18 @@ const navResearchChildren: Record<Locale, NavChild[]> = {
   en: [
     { label: "Research Lab", href: "/blog#blog-lab" },
     { label: "Knowledge Atlas", href: "/blog" },
-    { label: "Research design", href: "/blog#blog-lab-design" },
-    { label: "Data cleaning", href: "/blog#blog-lab-data" },
-    { label: "Hypothesis testing", href: "/blog#blog-lab-hypothesis" },
-    { label: "Advanced SEM / PLS", href: "/blog#blog-lab-advanced" },
+    { label: "Research design", href: "/blog#blog-lab" },
+    { label: "Data cleaning", href: "/blog#blog-lab" },
+    { label: "Hypothesis testing", href: "/blog#blog-lab" },
+    { label: "Advanced SEM / PLS", href: "/blog#blog-lab" },
   ],
   vi: [
     { label: "Phòng Lab", href: "/blog#blog-lab" },
     { label: "Bản đồ tri thức", href: "/blog" },
-    { label: "Thiết kế nghiên cứu", href: "/blog#blog-lab-design" },
-    { label: "Xử lý dữ liệu", href: "/blog#blog-lab-data" },
-    { label: "Kiểm định giả thuyết", href: "/blog#blog-lab-hypothesis" },
-    { label: "SEM / SmartPLS", href: "/blog#blog-lab-advanced" },
+    { label: "Thiết kế nghiên cứu", href: "/blog#blog-lab" },
+    { label: "Xử lý dữ liệu", href: "/blog#blog-lab" },
+    { label: "Kiểm định giả thuyết", href: "/blog#blog-lab" },
+    { label: "SEM / SmartPLS", href: "/blog#blog-lab" },
   ],
 };
 
