@@ -18,11 +18,18 @@ export type BlogFrontmatter = {
   readingTime?: string;
 };
 
+export type TOCItem = {
+  title: string;
+  url: string;
+  depth: number;
+};
+
 export type BlogPostMeta = BlogFrontmatter & {
   slug: string;
   tags: string[];
   readingTime: string;
   href: string;
+  toc: TOCItem[];
 };
 
 export type BlogPost = {

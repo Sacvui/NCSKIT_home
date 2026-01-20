@@ -90,6 +90,32 @@ export default function RootLayout({
           {children}
           <SpeedInsights />
         </AuthProvider>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@graph": [
+                {
+                  "@type": "WebSite",
+                  "name": "NCSKIT IDE",
+                  "url": "https://ncskit.org",
+                  "potentialAction": {
+                    "@type": "SearchAction",
+                    "target": "https://ncskit.org/search?q={search_term_string}",
+                    "query-input": "required name=search_term_string"
+                  }
+                },
+                {
+                  "@type": "Organization",
+                  "name": "NCSKIT",
+                  "url": "https://ncskit.org",
+                  "logo": "https://ncskit.org/assets/logo.png"
+                }
+              ]
+            })
+          }}
+        />
       </body>
     </html>
   );

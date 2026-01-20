@@ -80,34 +80,34 @@ export function Header({ nav, headerCtas, variant = "default", backHref, backLab
       };
 
       return (
-        <div
+        <li
           key={item.href}
-          className={`nav-item${item.children ? " has-children" : ""}${isActive ? " active" : ""}`}
+          className={`nav-item relative group px-2 py-1${item.children ? " has-children" : ""}${isActive ? " active" : ""}`}
         >
-          <a
+          <Link
             href={getLinkHref(href)}
             onClick={(e) => {
               if (onClick) onClick();
-              // Only handle anchor links for smooth scroll on homepage
               if (variant === "default" && href.startsWith("#") && !href.startsWith("/")) {
                 handleNavClick(e, href);
               }
-              // For routes (/features, /architecture, etc.), let browser handle navigation
             }}
+            className="flex items-center gap-1 hover:text-brand transition-colors text-sm font-medium"
           >
             {item.label}
-          </a>
+            {item.children && (
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50 group-hover:opacity-100 transition-opacity"><path d="m6 9 6 6 6-6" /></svg>
+            )}
+          </Link>
           {item.children && (
-            <div className="nav-dropdown">
-              <div className="nav-dropdown-grid">
-                {item.children.map((child, index) => {
-                  const midPoint = Math.ceil(item.children!.length / 2);
-                  const column = index < midPoint ? "left" : "right";
-                  return (
-                    <a
+            <div className="absolute top-full left-0 pt-2 opacity-0 translate-y-2 pointer-events-none group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto transition-all duration-200 z-50">
+              <div className="bg-white/90 backdrop-blur-md rounded-xl shadow-xl border border-slate-200/50 p-2 min-w-[240px]">
+                <div className="grid gap-1">
+                  {item.children.map((child, index) => (
+                    <Link
                       key={`${item.href}-${child.href}`}
                       href={getLinkHref(child.href)}
-                      className={`nav-dropdown-item ${column}`}
+                      className="block px-4 py-2 text-sm text-slate-600 hover:text-brand hover:bg-slate-50 rounded-lg transition-colors"
                       onClick={(e) => {
                         if (onClick) onClick();
                         if (isBlog && child.href.startsWith("#")) {
@@ -117,13 +117,13 @@ export function Header({ nav, headerCtas, variant = "default", backHref, backLab
                       }}
                     >
                       {child.label}
-                    </a>
-                  );
-                })}
+                    </Link>
+                  ))}
+                </div>
               </div>
             </div>
           )}
-        </div>
+        </li>
       );
     });
 
@@ -141,7 +141,9 @@ export function Header({ nav, headerCtas, variant = "default", backHref, backLab
         </Link>
 
         <nav className="nav" aria-label="Primary">
-          {renderNavItems(undefined, false)}
+          <ul className="flex items-center gap-6">
+            {renderNavItems(undefined, false)}
+          </ul>
         </nav>
 
         <button
@@ -182,7 +184,7 @@ export function Header({ nav, headerCtas, variant = "default", backHref, backLab
 
         {mobileMenuOpen && (
           <>
-            <div 
+            <div
               className={`mobile-menu-overlay${mobileMenuOpen ? " active" : ""}`}
               onClick={() => setMobileMenuOpen(false)}
               aria-hidden="true"

@@ -356,7 +356,11 @@ export const translations: Record<Locale, SiteCopy> = {
         href: "#resources",
         children: navResourcesChildren.en,
       },
-      { label: "Blog", href: "/blog" },
+      {
+        label: "Blog",
+        href: "/blog",
+        children: knowledgeNavChildren.en,
+      },
       { label: "Contact", href: "/contact" },
     ],
     headerCtas: {
@@ -1038,8 +1042,12 @@ export const translations: Record<Locale, SiteCopy> = {
         href: "#resources",
         children: navResourcesChildren.vi,
       },
-      { label: "Số liệu", href: "#research-metrics" },
-      { label: "Blog", href: "/blog" },
+
+      {
+        label: "Blog",
+        href: "/blog",
+        children: knowledgeNavChildren.vi,
+      },
       { label: "Liên hệ", href: "/contact" },
     ],
     headerCtas: {
@@ -1391,22 +1399,22 @@ export const translations: Record<Locale, SiteCopy> = {
             {
               title: "Thiết kế nghiên cứu",
               description: "Chọn mẫu, bảng hỏi, thang đo Likert, mô hình khái niệm.",
-              anchor: "blog-lab-design",
+              anchor: "blog-lab",
             },
             {
               title: "Xử lý dữ liệu (SPSS/Excel)",
               description: "Làm sạch dữ liệu, thống kê mô tả, Cronbach, EFA.",
-              anchor: "blog-lab-data",
+              anchor: "blog-lab",
             },
             {
               title: "Kiểm định giả thuyết",
               description: "Tương quan Pearson, hồi quy, T-test, ANOVA.",
-              anchor: "blog-lab-hypothesis",
+              anchor: "blog-lab",
             },
             {
               title: "Nâng cao (SEM/SmartPLS)",
               description: "Dự kiến triển khai giai đoạn sau.",
-              anchor: "blog-lab-advanced",
+              anchor: "blog-lab",
             },
           ],
         },

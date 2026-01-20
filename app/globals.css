@@ -1,4 +1,29 @@
-﻿@tailwind base;
+﻿/* Glassmorphism Utilities */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.glass-dark {
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Hover Effects */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -326,120 +351,7 @@ a {
   transition: color 0.2s ease;
 }
 
-.nav-item {
-  position: relative;
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-
-.nav a::after {
-  content: "";
-  position: absolute;
-  bottom: 0.25rem;
-  left: 0.75rem;
-  right: 0.75rem;
-  height: 2px;
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
-  opacity: 0;
-  transform: scaleX(0);
-  transition: all 0.2s ease;
-  border-radius: 2px;
-}
-
-.nav a:hover,
-.nav a:focus-visible {
-  color: var(--text);
-}
-
-.nav a:hover::after,
-.nav a:focus-visible::after {
-  opacity: 1;
-  transform: scaleX(1);
-}
-
-.nav-item.active>a {
-  color: var(--accent);
-  font-weight: 600;
-}
-
-.nav-item.active>a::after {
-  opacity: 1;
-  transform: scaleX(1);
-  background: linear-gradient(90deg, var(--accent), var(--accent-2));
-}
-
-.nav-item.has-children>a {
-  padding-right: 1.5rem;
-}
-
-.nav-item.has-children>a::before {
-  content: "▼";
-  position: absolute;
-  right: 0.5rem;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 0.6rem;
-  color: var(--muted);
-  transition: transform 0.2s ease;
-}
-
-.nav-dropdown {
-  position: absolute;
-  top: calc(100% + 0.5rem);
-  left: 0;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(-0.5rem);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--border);
-  border-radius: 1rem;
-  box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.1), 0 10px 20px -5px rgba(0, 0, 0, 0.04);
-  padding: 0.75rem;
-  min-width: 260px;
-  /* Reduced width for single column */
-  max-width: 320px;
-  z-index: 30;
-}
-
-.nav-dropdown-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.nav-item.has-children:hover .nav-dropdown,
-.nav-item.has-children:focus-within .nav-dropdown {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateY(0);
-}
-
-.nav-dropdown-item {
-  color: var(--text);
-  font-size: 0.9rem;
-  padding: 0.6rem 1rem;
-  border-radius: 0.5rem;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  white-space: nowrap;
-  font-weight: 500;
-  line-height: 1.4;
-}
-
-.nav-dropdown-item:hover {
-  color: var(--accent);
-  background: rgba(37, 99, 235, 0.08);
-  transform: translateX(2px);
-}
-
-/* Disable grid positioning */
-.nav-dropdown-item.left,
-.nav-dropdown-item.right {
-  grid-column: auto;
-}
+/* Legacy nav styles removed in favor of Tailwind in Header.tsx */
 
 .header-cta {
   display: flex;

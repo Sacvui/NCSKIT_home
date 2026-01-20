@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo } from "react";
 import { Header } from "../components/Header";
+import { FormattedDate } from "../components/FormattedDate";
 import { Footer } from "../components/Footer";
 import { useLanguageContext } from "../components/LanguageProvider";
 import type { BlogPostMeta } from "@/types/blog";
@@ -123,9 +124,9 @@ export default function BlogClient(props: BlogClientProps) {
                 <span className="text-sm text-slate-500">Fresh from the lab</span>
               </div>
 
-              <div className="grid md:grid-cols-3 gap-8">
+              <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
                 {recentPosts.map((post) => (
-                  <Link key={post.slug} href={post.href} className="group flex flex-col bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 hover:border-brand/50 hover:shadow-lg transition-all duration-300">
+                  <Link key={post.slug} href={post.href} className="group block text-left break-inside-avoid bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 hover:border-brand/50 hover:shadow-lg transition-all duration-300">
                     <div className="aspect-[16/9] relative overflow-hidden bg-slate-100">
                       <Image
                         src={post.cover || "/assets/NCSKIT.png"}
@@ -134,14 +135,14 @@ export default function BlogClient(props: BlogClientProps) {
                         className="object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     </div>
-                    <div className="p-6 flex flex-col flex-grow">
+                    <div className="p-6 flex flex-col">
                       <div className="flex items-center gap-2 text-xs font-semibold text-brand mb-3 uppercase tracking-wide">
                         <span>{post.categoryLabel || post.category}</span>
                       </div>
                       <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3 group-hover:text-brand transition-colors line-clamp-2">
                         {post.title}
                       </h3>
-                      <p className="text-slate-600 dark:text-slate-400 text-sm line-clamp-3 mb-4 flex-grow">
+                      <p className="text-slate-600 dark:text-slate-400 text-sm line-clamp-3 mb-4">
                         {post.summary}
                       </p>
                       <div className="flex items-center gap-3 text-xs text-slate-500 mt-auto pt-4 border-t border-slate-100 dark:border-slate-800">
@@ -151,7 +152,7 @@ export default function BlogClient(props: BlogClientProps) {
                           </div>
                           <span>{post.authors?.[0] || "NCSKIT Team"}</span>
                         </div>
-                        <span className="ml-auto">{new Date(post.date).toLocaleDateString()}</span>
+                        <span className="ml-auto"><FormattedDate date={post.date} /></span>
                       </div>
                     </div>
                   </Link>
@@ -175,7 +176,7 @@ export default function BlogClient(props: BlogClientProps) {
                     if (entries.length === 0) return null;
 
                     return (
-                      <div key={category.anchor} className="space-y-6">
+                      <div key={category.anchor} id={category.anchor} className="space-y-6 scroll-mt-32">
                         <div className="flex items-center gap-4">
                           <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200">{category.title}</h3>
                           <div className="h-px flex-grow bg-slate-200 dark:border-slate-800"></div>
@@ -198,7 +199,7 @@ export default function BlogClient(props: BlogClientProps) {
                                   {post.title}
                                 </h4>
                                 <div className="flex items-center gap-2 text-xs text-slate-500 mb-2">
-                                  <span>{new Date(post.date).toLocaleDateString()}</span>
+                                  <FormattedDate date={post.date} />
                                   <span>•</span>
                                   <span>{post.readingTime}</span>
                                 </div>

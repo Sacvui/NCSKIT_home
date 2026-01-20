@@ -11,13 +11,62 @@ const AdvancedSEMVisualization = dynamic(() => import("./AdvancedSEMVisualizatio
 
 // Q1 Research Model - Extended TAM with Trust, Risk, and Social Influence
 const q1Variables = [
-  { id: "PEOU", label: "Perceived\nEase of Use", type: "exogenous" as const, x: 80, y: 150 },
-  { id: "PU", label: "Perceived\nUsefulness", type: "mediator" as const, x: 280, y: 150 },
-  { id: "TR", label: "Trust", type: "exogenous" as const, x: 80, y: 280 },
-  { id: "PR", label: "Perceived\nRisk", type: "exogenous" as const, x: 80, y: 410 },
-  { id: "SI", label: "Social\nInfluence", type: "exogenous" as const, x: 280, y: 410 },
-  { id: "ATT", label: "Attitude", type: "mediator" as const, x: 480, y: 280 },
-  { id: "BI", label: "Behavioral\nIntention", type: "endogenous" as const, x: 680, y: 280 },
+  {
+    id: "PEOU", label: "Perceived\nEase of Use", type: "exogenous" as const, x: 150, y: 150,
+    observedVars: [
+      { id: "PEOU1", label: "PEOU1", x: 50, y: 130, loading: 0.85, errorId: "e1" },
+      { id: "PEOU2", label: "PEOU2", x: 50, y: 150, loading: 0.88, errorId: "e2" },
+      { id: "PEOU3", label: "PEOU3", x: 50, y: 170, loading: 0.82, errorId: "e3" }
+    ]
+  },
+  {
+    id: "PU", label: "Perceived\nUsefulness", type: "mediator" as const, x: 350, y: 150,
+    observedVars: [
+      { id: "PU1", label: "PU1", x: 270, y: 80, loading: 0.89, errorId: "e4" },
+      { id: "PU2", label: "PU2", x: 350, y: 80, loading: 0.91, errorId: "e5" },
+      { id: "PU3", label: "PU3", x: 430, y: 80, loading: 0.87, errorId: "e6" }
+    ]
+  },
+  {
+    id: "TR", label: "Trust", type: "exogenous" as const, x: 150, y: 300,
+    observedVars: [
+      { id: "TR1", label: "TR1", x: 50, y: 280, loading: 0.84, errorId: "e7" },
+      { id: "TR2", label: "TR2", x: 50, y: 300, loading: 0.86, errorId: "e8" },
+      { id: "TR3", label: "TR3", x: 50, y: 320, loading: 0.81, errorId: "e9" }
+    ]
+  },
+  {
+    id: "PR", label: "Perceived\nRisk", type: "exogenous" as const, x: 150, y: 450,
+    observedVars: [
+      { id: "PR1", label: "PR1", x: 50, y: 430, loading: 0.79, errorId: "e10" },
+      { id: "PR2", label: "PR2", x: 50, y: 450, loading: 0.82, errorId: "e11" },
+      { id: "PR3", label: "PR3", x: 50, y: 470, loading: 0.75, errorId: "e12" }
+    ]
+  },
+  {
+    id: "SI", label: "Social\nInfluence", type: "exogenous" as const, x: 350, y: 450,
+    observedVars: [
+      { id: "SI1", label: "SI1", x: 270, y: 520, loading: 0.88, errorId: "e13" },
+      { id: "SI2", label: "SI2", x: 350, y: 520, loading: 0.90, errorId: "e14" },
+      { id: "SI3", label: "SI3", x: 430, y: 520, loading: 0.85, errorId: "e15" }
+    ]
+  },
+  {
+    id: "ATT", label: "Attitude", type: "mediator" as const, x: 600, y: 300,
+    observedVars: [
+      { id: "ATT1", label: "ATT1", x: 520, y: 230, loading: 0.92, errorId: "e16" },
+      { id: "ATT2", label: "ATT2", x: 600, y: 230, loading: 0.94, errorId: "e17" },
+      { id: "ATT3", label: "ATT3", x: 680, y: 230, loading: 0.89, errorId: "e18" }
+    ]
+  },
+  {
+    id: "BI", label: "Behavioral\nIntention", type: "endogenous" as const, x: 850, y: 300,
+    observedVars: [
+      { id: "BI1", label: "BI1", x: 950, y: 280, loading: 0.95, errorId: "e19" },
+      { id: "BI2", label: "BI2", x: 950, y: 300, loading: 0.93, errorId: "e20" },
+      { id: "BI3", label: "BI3", x: 950, y: 320, loading: 0.91, errorId: "e21" }
+    ]
+  },
 ];
 
 const q1Paths = [
@@ -38,6 +87,7 @@ const q1FitIndices = {
   tli: 0.965,
   rmsea: 0.045,
   srmr: 0.038,
+  gfi: 0.954,
 };
 
 type SEMResearchSectionProps = {
@@ -73,7 +123,11 @@ export function SEMResearchSection({
           viewport={{ once: true }}
           transition={{ duration: 0.8, delay: 0.2 }}
         >
-          <AdvancedSEMVisualization />
+          <AdvancedSEMVisualization
+            variables={q1Variables}
+            paths={q1Paths}
+            fitIndices={q1FitIndices}
+          />
         </motion.div>
 
         <motion.div

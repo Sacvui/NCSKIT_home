@@ -395,11 +395,11 @@ export function InteractiveAnalysis({ mode = "chart", initialView = "overview" }
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.6 }}
-              style={{ background: "rgba(16, 185, 129, 0.1)", borderColor: "#10b981" }}
+              style={{ background: "rgba(16, 185, 129, 0.1)", borderColor: "#10b981", width: "100%" }}
             >
-              <div className="stat-header">
+              <div className="stat-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
                 <span className="stat-label">Total Time Saved</span>
-                <span className="stat-value" style={{ color: "#10b981" }}>~103 Days</span>
+                <span className="stat-value" style={{ color: "#10b981", fontSize: "1.5rem" }}>~103 Days</span>
               </div>
               <p className="stat-description">Accelerate your research from months to weeks with NCSKIT&apos;s automated workflow.</p>
             </motion.div>
@@ -639,7 +639,7 @@ export function InteractiveAnalysis({ mode = "chart", initialView = "overview" }
               <div className="interpretation-section">
                 <h6>Understanding Descriptive Statistics</h6>
                 <p><strong>Mean</strong> represents the average value, providing a central tendency measure. <strong>Standard Deviation (SD)</strong> indicates data dispersion—smaller SD means data points cluster closer to the mean. <strong>Median</strong> shows the middle value, useful when data is skewed.</p>
-                <p><strong>Skewness</strong> measures distribution asymmetry: values between -0.5 and 0.5 indicate approximately normal distribution. <strong>Kurtosis</strong> describes tail heaviness: values between -0.5 and 0.5 suggest normal tails.</p>
+                <p><strong>Skewness</strong> measures distribution asymmetry: values between -0.5 and 0.5 indicate approximately normal distribution. <strong>Kurtosis</strong> describes tail heaviness: values between -1.0 and 1.0 are generally considered acceptable for normality assumptions in SEM.</p>
               </div>
 
               <div className="interpretation-section">

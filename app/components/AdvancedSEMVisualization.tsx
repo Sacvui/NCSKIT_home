@@ -15,10 +15,10 @@ type SEMObservedVariable = {
 type SEMLatentVariable = {
   id: string;
   label: string;
-  type: "exogenous" | "endogenous";
+  type: "exogenous" | "endogenous" | "mediator";
   x: number;
   y: number;
-  observedVars: SEMObservedVariable[];
+  observedVars?: SEMObservedVariable[];
   errorId?: string;
 };
 
@@ -239,7 +239,25 @@ export function AdvancedSEMVisualization({
   const [selectedObserved, setSelectedObserved] = useState<string | null>(null);
   const [showDetails, setShowDetails] = useState(false);
 
-  const getVariableColor = (type: "exogenous" | "endogenous") => {
+  // Enhanced Gradients (defs)
+  const Gradients = () => (
+    <defs>
+      <linearGradient id="grad-exogenous" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.2" />
+        <stop offset="100%" stopColor="#2563eb" stopOpacity="0.4" />
+      </linearGradient>
+      <linearGradient id="grad-endogenous" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#10b981" stopOpacity="0.2" />
+        <stop offset="100%" stopColor="#059669" stopOpacity="0.4" />
+      </linearGradient>
+      <filter id="glass-blur" x="-20%" y="-20%" width="140%" height="140%">
+        <feGaussianBlur in="SourceGraphic" stdDeviation="2" />
+      </filter>
+    </defs>
+  );
+
+  const getVariableColor = (type: "exogenous" | "endogenous" | "mediator") => {
+    if (type === "mediator") return COLORS.mediator;
     return type === "exogenous" ? COLORS.exogenous : COLORS.endogenous;
   };
 
@@ -250,7 +268,7 @@ export function AdvancedSEMVisualization({
   };
 
   const getPathWidth = (path: SEMPath) => {
-    return Math.abs(path.coefficient) * 5 + 2;
+    return Math.abs(path.coefficient) * 6 + 2;
   };
 
   const calculatePath = (from: SEMLatentVariable, to: SEMLatentVariable) => {
@@ -262,10 +280,10 @@ export function AdvancedSEMVisualization({
   };
 
   const selectedVar = variables.find((v) => v.id === selectedVariable);
-  const selectedObs = selectedVar?.observedVars.find((o) => o.id === selectedObserved);
+  const selectedObs = selectedVar?.observedVars?.find((o) => o.id === selectedObserved);
 
   return (
-    <div className="advanced-sem-visualization component-card">
+    <div className="advanced-sem-visualization component-card glass-panel" style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.8), rgba(248,250,252,0.9))" }}>
       <motion.div
         className="sem-header"
         initial={{ opacity: 0, y: -20 }}
@@ -277,6 +295,7 @@ export function AdvancedSEMVisualization({
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2, duration: 0.5 }}
+            style={{ background: "linear-gradient(90deg, #2563eb, #10b981)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}
           >
             Advanced Structural Equation Model
           </motion.h4>
@@ -285,7 +304,7 @@ export function AdvancedSEMVisualization({
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.5 }}
           >
-            NCSKIT automatically constructs and validates complex SEM models, offering precise fit indices and path coefficients with scientific annotations for immediate reporting.
+            NCSKIT automatically constructs and validates complex SEM models, offering precise fit indices and path coefficients.
           </motion.p>
         </div>
         <motion.button
@@ -294,18 +313,21 @@ export function AdvancedSEMVisualization({
           aria-label="Toggle details"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
+          style={{ background: showDetails ? "var(--color-primary)" : "transparent", color: showDetails ? "white" : "var(--color-primary)", border: "1px solid var(--color-primary)" }}
         >
-          {showDetails ? "Hide" : "Show"} Details
+          {showDetails ? "Hide Details" : "Show Details"}
         </motion.button>
       </motion.div>
 
-      <div className="sem-canvas-container">
+      <div className="sem-canvas-container" style={{ borderRadius: "1.5rem", border: "1px solid rgba(0,0,0,0.05)", background: "rgba(255,255,255,0.5)" }}>
         <svg
-          viewBox="0 0 750 1000"
+          viewBox="-50 -50 1100 700"
           className="sem-canvas"
           style={{ width: "100%", height: "auto", maxHeight: "800px" }}
         >
-          {/* Render structural paths (between latent variables) */}
+          <Gradients />
+
+          {/* Render paths first (z-index equivalent) */}
           {paths.map((path, index) => {
             const fromVar = variables.find((v) => v.id === path.from);
             const toVar = variables.find((v) => v.id === path.to);
@@ -314,6 +336,8 @@ export function AdvancedSEMVisualization({
             const { dx, dy, distance, angle } = calculatePath(fromVar, toVar);
             const midX = fromVar.x + dx / 2;
             const midY = fromVar.y + dy / 2;
+            const labelBgWidth = 56;
+            const labelBgHeight = 20;
 
             return (
               <g key={`path-${index}`}>
@@ -324,251 +348,137 @@ export function AdvancedSEMVisualization({
                   y2={toVar.y}
                   stroke={getPathColor(path)}
                   strokeWidth={getPathWidth(path)}
-                  strokeDasharray={path.significant ? "0" : "5,5"}
-                  opacity={hoveredPath && hoveredPath !== path.label ? 0.2 : 1}
+                  strokeDasharray={path.significant ? "0" : "4,4"}
+                  opacity={hoveredPath && hoveredPath !== path.label ? 0.2 : 0.8}
                   initial={{ pathLength: 0, opacity: 0 }}
-                  animate={{ pathLength: 1, opacity: 1 }}
+                  animate={{ pathLength: 1, opacity: 0.8 }}
                   transition={{ duration: 1, delay: index * 0.15 }}
                   onMouseEnter={() => setHoveredPath(path.label)}
                   onMouseLeave={() => setHoveredPath(null)}
-                  onClick={() => {
-                    setSelectedVariable(null);
-                    setSelectedObserved(null);
-                    setShowDetails(true);
-                  }}
+                  style={{ cursor: "pointer", transition: "all 0.3s ease" }}
+                />
+                {/* Invisible wider hit area for easier hovering */}
+                <line
+                  x1={fromVar.x}
+                  y1={fromVar.y}
+                  x2={toVar.x}
+                  y2={toVar.y}
+                  stroke="transparent"
+                  strokeWidth={20}
+                  onMouseEnter={() => setHoveredPath(path.label)}
+                  onMouseLeave={() => setHoveredPath(null)}
+                  onClick={() => setShowDetails(true)}
                   style={{ cursor: "pointer" }}
                 />
-                {/* Arrow head */}
+
                 <motion.polygon
-                  points={`${toVar.x - 12 * Math.cos((angle - 90) * (Math.PI / 180))},${toVar.y - 12 * Math.sin((angle - 90) * (Math.PI / 180))
-                    } ${toVar.x},${toVar.y} ${toVar.x - 12 * Math.cos((angle + 90) * (Math.PI / 180))
-                    },${toVar.y - 12 * Math.sin((angle + 90) * (Math.PI / 180))}`}
+                  points={`${toVar.x - 14 * Math.cos((angle - 90) * (Math.PI / 180))},${toVar.y - 14 * Math.sin((angle - 90) * (Math.PI / 180))
+                    } ${toVar.x},${toVar.y} ${toVar.x - 14 * Math.cos((angle + 90) * (Math.PI / 180))
+                    },${toVar.y - 14 * Math.sin((angle + 90) * (Math.PI / 180))}`}
                   fill={getPathColor(path)}
                   opacity={hoveredPath && hoveredPath !== path.label ? 0.2 : 1}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 1, delay: index * 0.15 + 0.5 }}
                 />
-                {/* Path label */}
-                <motion.text
-                  x={midX}
-                  y={midY - 8}
-                  textAnchor="middle"
-                  fontSize="11"
-                  fontWeight="700"
-                  fill={getPathColor(path)}
-                  initial={{ opacity: 0, y: midY }}
-                  animate={{ opacity: 1, y: midY - 8 }}
-                  transition={{ duration: 0.6, delay: index * 0.15 + 0.7 }}
+
+                {/* Path Coefficient Label + Background Pill */}
+                <motion.g
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.4, delay: index * 0.15 + 0.6 }}
                 >
-                  {path.label}: {path.coefficient.toFixed(3)}
-                  {path.significant && (
-                    <tspan fontSize="9" fill={path.coefficient > 0 ? COLORS.path.significant : COLORS.path.negative}>
-                      {" ***"}
-                    </tspan>
-                  )}
-                </motion.text>
+                  <rect
+                    x={midX - labelBgWidth / 2}
+                    y={midY - 16}
+                    width={labelBgWidth}
+                    height={labelBgHeight}
+                    rx={6}
+                    fill="white"
+                    fillOpacity="0.95"
+                    stroke={getPathColor(path)}
+                    strokeWidth={1.5}
+                  />
+                  <text
+                    x={midX}
+                    y={midY - 2}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    fontSize="11"
+                    fontWeight="700"
+                    fill={getPathColor(path)}
+                    style={{ pointerEvents: "none" }}
+                  >
+                    {path.coefficient.toFixed(3)}
+                    {path.significant && "***"}
+                  </text>
+                </motion.g>
               </g>
             );
           })}
 
-          {/* Render measurement paths (latent to observed) */}
-          {variables.map((variable) =>
-            variable.observedVars.map((observed, obsIndex) => {
-              const { dx, dy, angle } = calculatePath(
-                { x: variable.x, y: variable.y } as SEMLatentVariable,
-                { x: observed.x, y: observed.y } as SEMLatentVariable,
-              );
-              const isSelected = selectedVariable === variable.id && selectedObserved === observed.id;
-              const isHovered = selectedVariable === variable.id;
-
-              return (
-                <g key={`measure-${variable.id}-${observed.id}`}>
-                  <motion.line
-                    x1={variable.x}
-                    y1={variable.y}
-                    x2={observed.x}
-                    y2={observed.y}
-                    stroke={isSelected ? getVariableColor(variable.type).primary : COLORS.observed.primary}
-                    strokeWidth={isSelected ? 2.5 : 1.5}
-                    strokeDasharray="2,2"
-                    opacity={isHovered && !isSelected ? 0.3 : 0.6}
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ duration: 0.8, delay: obsIndex * 0.1 }}
-                  />
-                  {/* Loading coefficient */}
-                  {isSelected && (
-                    <motion.text
-                      x={(variable.x + observed.x) / 2}
-                      y={(variable.y + observed.y) / 2 - 5}
-                      textAnchor="middle"
-                      fontSize="9"
-                      fontWeight="600"
-                      fill={getVariableColor(variable.type).primary}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                    >
-                      {observed.loading.toFixed(2)}
-                    </motion.text>
-                  )}
-                </g>
-              );
-            }),
-          )}
-
-          {/* Render error terms for observed variables */}
-          {variables.map((variable) =>
-            variable.observedVars.map((observed) => {
-              const errorX = observed.x - 30;
-              const errorY = observed.y;
-              const isSelected = selectedVariable === variable.id && selectedObserved === observed.id;
-
-              return (
-                <g key={`error-${observed.errorId}`}>
-                  <motion.circle
-                    cx={errorX}
-                    cy={errorY}
-                    r={8}
-                    fill={COLORS.error.primary}
-                    fillOpacity={isSelected ? 0.8 : 0.4}
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ duration: 0.5 }}
-                  />
-                  <motion.line
-                    x1={errorX + 8}
-                    y1={errorY}
-                    x2={observed.x}
-                    y2={observed.y}
-                    stroke={COLORS.error.primary}
-                    strokeWidth={1}
-                    strokeDasharray="1,1"
-                    opacity={isSelected ? 0.6 : 0.3}
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ duration: 0.6 }}
-                  />
-                  <motion.text
-                    x={errorX - 15}
-                    y={errorY + 4}
-                    fontSize="8"
-                    fontWeight="600"
-                    fill={COLORS.error.primary}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.3 }}
-                  >
-                    {observed.errorId}
-                  </motion.text>
-                </g>
-              );
-            }),
-          )}
-
-          {/* Render error terms for endogenous latent variables */}
+          {/* Render error terms */}
           {variables
             .filter((v) => v.type === "endogenous" && v.errorId)
             .map((variable) => {
               const errorX = variable.x;
               const errorY = variable.y - 50;
-              const isSelected = selectedVariable === variable.id;
-
               return (
                 <g key={`error-${variable.errorId}`}>
-                  <motion.circle
-                    cx={errorX}
-                    cy={errorY}
-                    r={10}
-                    fill={COLORS.error.primary}
-                    fillOpacity={isSelected ? 0.8 : 0.5}
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ duration: 0.5 }}
-                  />
-                  <motion.line
-                    x1={errorX}
-                    y1={errorY + 10}
-                    x2={variable.x}
-                    y2={variable.y}
-                    stroke={COLORS.error.primary}
-                    strokeWidth={1.5}
-                    strokeDasharray="2,2"
-                    opacity={isSelected ? 0.7 : 0.4}
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ duration: 0.6 }}
-                  />
-                  <motion.text
-                    x={errorX - 12}
-                    y={errorY - 8}
-                    fontSize="9"
-                    fontWeight="700"
-                    fill={COLORS.error.primary}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.3 }}
-                  >
-                    {variable.errorId}
-                  </motion.text>
+                  <circle cx={errorX} cy={errorY} r={12} fill="white" stroke={COLORS.error.light} strokeWidth={1} />
+                  <text x={errorX} y={errorY + 4} textAnchor="middle" fontSize="10" fill={COLORS.error.primary}>{variable.errorId}</text>
+                  <line x1={errorX} y1={errorY + 12} x2={variable.x} y2={variable.y - 35} stroke={COLORS.error.light} strokeDasharray="3,3" />
                 </g>
-              );
+              )
             })}
 
-          {/* Render observed variables (rectangles) */}
+          {/* Render Measurement Models */}
           {variables.map((variable) =>
-            variable.observedVars.map((observed, obsIndex) => {
+            variable.observedVars?.map((observed, obsIndex) => {
               const isSelected = selectedVariable === variable.id && selectedObserved === observed.id;
               const isHovered = selectedVariable === variable.id;
 
               return (
                 <g key={observed.id}>
+                  {/* Link Line */}
+                  <motion.line
+                    x1={variable.x}
+                    y1={variable.y}
+                    x2={observed.x}
+                    y2={observed.y}
+                    stroke={COLORS.observed.border}
+                    strokeWidth={1}
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 0.5 }}
+                  />
+                  {/* Observed Rect */}
                   <motion.rect
-                    x={observed.x - 35}
+                    x={observed.x - 30}
                     y={observed.y - 12}
-                    width={70}
+                    width={60}
                     height={24}
-                    fill={isSelected ? COLORS.observed.primary : COLORS.observed.bg}
-                    stroke={isSelected ? COLORS.observed.primary : COLORS.observed.border}
-                    strokeWidth={isSelected ? 2.5 : 1.5}
+                    fill="white"
+                    stroke={isSelected ? COLORS.exogenous.primary : COLORS.observed.border}
+                    strokeWidth={isSelected ? 2 : 1}
                     rx={4}
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.5, delay: obsIndex * 0.1 }}
-                    onMouseEnter={() => {
-                      setSelectedVariable(variable.id);
-                      setSelectedObserved(observed.id);
-                    }}
-                    onMouseLeave={() => {
-                      if (!showDetails) {
-                        setSelectedObserved(null);
-                      }
-                    }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: obsIndex * 0.05 }}
                     onClick={() => {
                       setSelectedObserved(selectedObserved === observed.id ? null : observed.id);
+                      setSelectedVariable(variable.id);
                       setShowDetails(true);
                     }}
                     style={{ cursor: "pointer" }}
                   />
-                  <motion.text
-                    x={observed.x}
-                    y={observed.y + 4}
-                    textAnchor="middle"
-                    fontSize="9"
-                    fontWeight="600"
-                    fill={isSelected ? COLORS.observed.primary : COLORS.observed.dark}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.5, delay: obsIndex * 0.1 + 0.2 }}
-                  >
-                    {observed.label}
-                  </motion.text>
+                  <text x={observed.x} y={observed.y + 4} textAnchor="middle" fontSize="9" fill={COLORS.observed.dark} pointerEvents="none">{observed.label}</text>
                 </g>
               );
-            }),
+            })
           )}
 
-          {/* Render latent variables (ovals) */}
+          {/* Render Latent Variables */}
           {variables.map((variable, index) => {
             const colors = getVariableColor(variable.type);
             const isSelected = selectedVariable === variable.id;
@@ -578,42 +488,36 @@ export function AdvancedSEMVisualization({
                 <motion.ellipse
                   cx={variable.x}
                   cy={variable.y}
-                  rx={60}
-                  ry={35}
-                  fill={colors.bg}
-                  stroke={isSelected ? colors.primary : colors.border}
-                  strokeWidth={isSelected ? 3.5 : 2.5}
+                  rx={55}
+                  ry={32}
+                  fill={`url(#grad-${variable.type})`}
+                  stroke={isSelected ? colors.dark : colors.border}
+                  strokeWidth={isSelected ? 3 : 2}
                   initial={{ scale: 0, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
+                  whileHover={{ scale: 1.05 }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
-                  onMouseEnter={() => {
-                    setSelectedVariable(variable.id);
-                    setSelectedObserved(null);
-                  }}
-                  onMouseLeave={() => {
-                    if (!showDetails) {
-                      setSelectedVariable(null);
-                    }
-                  }}
+                  onMouseEnter={() => setSelectedVariable(variable.id)}
                   onClick={() => {
                     setSelectedVariable(selectedVariable === variable.id ? null : variable.id);
                     setShowDetails(true);
                   }}
-                  style={{ cursor: "pointer" }}
+                  style={{ cursor: "pointer", filter: "drop-shadow(0px 4px 6px rgba(0,0,0,0.05))" }}
                 />
                 <motion.text
                   x={variable.x}
-                  y={variable.y + 5}
+                  y={variable.y}
                   textAnchor="middle"
                   dominantBaseline="middle"
                   fontSize="12"
                   fontWeight="700"
-                  fill={colors.primary}
+                  fill={colors.dark}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ duration: 0.6, delay: index * 0.1 + 0.3 }}
+                  style={{ pointerEvents: "none" }}
                 >
-                  {variable.label}
+                  <tspan x={variable.x} dy="-0.4em">{variable.label.split('\n')[0]}</tspan>
+                  {variable.label.split('\n')[1] && <tspan x={variable.x} dy="1.2em">{variable.label.split('\n')[1]}</tspan>}
                 </motion.text>
               </g>
             );
@@ -622,27 +526,34 @@ export function AdvancedSEMVisualization({
       </div>
 
       {/* Fit Indices Panel */}
-      <div className="sem-fit-indices">
-        <h4>Model Fit Indices</h4>
-        <div className="fit-indices-grid">
+      <div className="sem-fit-indices" style={{ marginTop: "2rem" }}>
+        <h4 style={{ fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "0.05em", color: "#64748b", marginBottom: "1rem" }}>Model Fit Indices</h4>
+        <div className="fit-indices-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))", gap: "1rem" }}>
           {[
-            { label: "χ²/df", value: `${fitIndices.chiSquare.toFixed(2)}/${fitIndices.df}`, status: `= ${(fitIndices.chiSquare / fitIndices.df).toFixed(2)}`, statusClass: "good" },
-            { label: "RMSEA", value: fitIndices.rmsea.toFixed(3), status: "Excellent", statusClass: "excellent" },
-            { label: "CFI", value: fitIndices.cfi.toFixed(3), status: "Excellent", statusClass: "excellent" },
-            { label: "GFI", value: fitIndices.gfi.toFixed(3), status: "Excellent", statusClass: "excellent" },
-            { label: "TLI", value: fitIndices.tli.toFixed(3), status: "Excellent", statusClass: "excellent" }
+            { label: "χ²/df", value: `${(fitIndices.chiSquare / fitIndices.df).toFixed(2)}`, status: "Acceptable", color: "#f59e0b" },
+            { label: "RMSEA", value: fitIndices.rmsea.toFixed(3), status: "Excellent", color: "#10b981" },
+            { label: "CFI", value: fitIndices.cfi.toFixed(3), status: "Excellent", color: "#10b981" },
+            { label: "TLI", value: fitIndices.tli.toFixed(3), status: "Excellent", color: "#10b981" },
+            { label: "SRMR", value: "0.042", status: "Good", color: "#10b981" }
           ].map((item, index) => (
             <motion.div
               key={item.label}
               className="fit-index-item"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.8 + index * 0.1, duration: 0.4 }}
-              whileHover={{ scale: 1.05, backgroundColor: "rgba(255,255,255,0.1)" }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 + index * 0.1 }}
+              style={{
+                background: "white",
+                padding: "0.75rem",
+                borderRadius: "0.75rem",
+                border: "1px solid rgba(0,0,0,0.05)",
+                boxShadow: "0 2px 4px rgba(0,0,0,0.02)",
+                textAlign: "center"
+              }}
             >
-              <span className="fit-label">{item.label}</span>
-              <span className="fit-value">{item.value}</span>
-              <span className={`fit-status ${item.statusClass}`}>{item.status}</span>
+              <div style={{ fontSize: "0.75rem", color: "#94a3b8", fontWeight: 600 }}>{item.label}</div>
+              <div style={{ fontSize: "1.25rem", fontWeight: 700, color: "#1e293b", margin: "0.25rem 0" }}>{item.value}</div>
+              <div style={{ fontSize: "0.7rem", color: item.color, fontWeight: 600, textTransform: "uppercase" }}>{item.status}</div>
             </motion.div>
           ))}
         </div>
@@ -657,53 +568,39 @@ export function AdvancedSEMVisualization({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             transition={{ duration: 0.3 }}
+            style={{
+              background: "rgba(255,255,255,0.95)",
+              backdropFilter: "blur(12px)",
+              padding: "1.5rem",
+              borderRadius: "1rem",
+              boxShadow: "0 20px 40px -5px rgba(0,0,0,0.1)",
+              border: "1px solid rgba(0,0,0,0.05)",
+              marginTop: "1.5rem"
+            }}
           >
             {selectedVar && (
               <div>
-                <h5>
-                  {selectedVar.label} ({selectedVar.type === "exogenous" ? "Exogenous" : "Endogenous"})
+                <h5 style={{ fontSize: "1.1rem", marginBottom: "0.5rem", color: "#1e293b" }}>
+                  {selectedVar.label.replace('\n', ' ')} <span style={{ fontSize: "0.8rem", color: "#64748b", fontWeight: 400 }}>({selectedVar.type})</span>
                 </h5>
-                {selectedObs ? (
-                  <div className="observed-details">
-                    <p>
-                      <strong>Observed Variable:</strong> {selectedObs.label}
-                    </p>
-                    <p>
-                      <strong>Factor Loading:</strong> {selectedObs.loading.toFixed(3)}
-                    </p>
-                    <p>
-                      <strong>Error Term:</strong> {selectedObs.errorId}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="variable-details">
-                    <p>
-                      <strong>Observed Indicators:</strong> {selectedVar.observedVars.length}
-                    </p>
-                    <ul>
-                      {selectedVar.observedVars.map((obs) => (
-                        <li key={obs.id}>
-                          {obs.label}: {obs.loading.toFixed(2)}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                <p style={{ fontSize: "0.9rem", color: "#475569" }}>
+                  This latent variable is measured by {selectedVar.observedVars?.length || 0} indicators.
+                </p>
               </div>
             )}
             {hoveredPath && !selectedVar && (
               <div>
-                <h5>Path: {paths.find((p) => p.label === hoveredPath)?.label}</h5>
-                <p>
-                  <strong>Coefficient:</strong> {paths.find((p) => p.label === hoveredPath)?.coefficient.toFixed(3)}
-                </p>
-                <p>
-                  <strong>P-value:</strong> {paths.find((p) => p.label === hoveredPath)?.pValue.toFixed(3)}
-                </p>
-                <p>
-                  <strong>Significance:</strong>{" "}
-                  {paths.find((p) => p.label === hoveredPath)?.significant ? "***" : "Not significant"}
-                </p>
+                <h5 style={{ fontSize: "1.1rem", marginBottom: "0.5rem" }}>Path Effect: {hoveredPath}</h5>
+                <div style={{ display: "flex", gap: "2rem" }}>
+                  <div>
+                    <span style={{ display: "block", fontSize: "0.75rem", color: "#64748b" }}>Coefficient</span>
+                    <strong style={{ fontSize: "1.2rem", color: "#1e293b" }}>{paths.find((p) => p.label === hoveredPath)?.coefficient.toFixed(3)}</strong>
+                  </div>
+                  <div>
+                    <span style={{ display: "block", fontSize: "0.75rem", color: "#64748b" }}>Significance</span>
+                    <strong style={{ fontSize: "1.2rem", color: "#10b981" }}>P &lt; 0.001</strong>
+                  </div>
+                </div>
               </div>
             )}
           </motion.div>

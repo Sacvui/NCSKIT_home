@@ -1,0 +1,70 @@
+---
+title: "NCS101 - Bài 6: Data Analysis - SPSS Cho Người Sợ Toán"
+slug: "ncs101-bai-6-data-analysis-spss-cho-nguoi-so-toan"
+summary: "Nhìn vào màn hình SPSS/SmartPLS thấy toàn số là số, hoa cả mắt? Đừng lo. Bạn không cần phải là Ngô Bảo Châu mới chạy được mô hình. Bạn chỉ cần quan tâm đúng 3 cái bảng thôi."
+seoDescription: "Nhìn vào màn hình SPSS/SmartPLS thấy toàn số là số, hoa cả mắt? Đừng lo. Bạn không cần phải là Ngô Bảo Châu mới chạy được mô hình. Bạn chỉ cần quan tâm đúng 3 cái bảng thôi."
+date: "2024-01-22"
+author: "Le Phuc Hai"
+category: "blog-lab"
+categoryLabel: "NCS Model"
+group: "scientific"
+tags: ["SPSS", "SmartPLS", "Statistics", "NCS101"]
+featured: false
+image: "/images/blog/ncs101-6.jpg"
+---
+
+**Mô tả ngắn:** Nhìn vào màn hình SPSS/SmartPLS thấy toàn số là số, hoa cả mắt? Đừng lo. Bạn không cần phải là Ngô Bảo Châu mới chạy được mô hình. Bạn chỉ cần quan tâm đúng 3 cái bảng thôi.
+
+## NỘI DUNG CHI TIẾT:
+
+Thú thật với các bạn, hồi cấp 3 tôi dốt Toán lắm (đủ điểm qua môn thôi). Nhưng giờ tôi vẫn chạy mô hình SEM (Structural Equation Modeling) ầm ầm, dạy cả sinh viên. Vì sao?
+
+Vì chúng ta là nhà nghiên cứu ứng dụng, không phải nhà toán học. Phần mềm (như SmartPLS cho mô hình SEM, hay SPSS cho hồi quy đơn) nó làm hết các phép tính phức tạp rồi. Việc của mình là: Bấm nút và Đọc kết quả.
+
+Dưới đây là quy trình 3 bước cốt lõi khi dùng SmartPLS (với SPSS logic cũng tương tự nhưng output sẽ khác chút nhé):
+
+### Bước 1: Kiểm tra độ tin cậy (Reliability) -> Cronbach Alpha > 0.7
+
+Cái này đo lường sự "nhất quán" (Consistency) của bộ câu hỏi. Nghĩa là các câu hỏi cùng đo 1 vấn đề thì người trả lời phải trả lời xuôi chiều như nhau.
+
+Nhìn cột Cronbach's Alpha. Cứ thấy nó xanh lét (> 0.7) là cười.
+[CẢNH BÁO]: Nếu nó đỏ (< 0.7), đừng vội vàng vứt biến đi để làm đẹp số liệu! Hãy xem xét kỹ:
+1. Về mặt lý thuyết: Câu hỏi đó có quan trọng không?
+2. Về mặt thống kê: Nếu xóa nó đi, chỉ số có tăng lên đáng kể không?
+Xóa bừa bãi không có lý do lý thuyết (Theoretical Justification) là bị Reviewer "gõ đầu" đấy.
+
+### Bước 1.5: Kiểm tra Tính Giá trị (Validity) - (Bước quan trọng hay bị quên)
+
+Nhiều bạn newbie hay bỏ qua bước này. Nhưng các tạp chí xịn (Q1, Q2) họ soi rất kỹ.
+
+1. **Hội tụ (Convergent Validity)**: Các câu hỏi phải cùng quy về 1 mối. Chỉ số AVE phải > 0.5.
+2. **Phân biệt (Discriminant Validity)**: Khái niệm A phải khác khái niệm B. Chỉ số HTMT phải < 0.85 (hoặc < 0.9).
+
+Nếu Reliability là "đo chính xác", thì Validity là "đo đúng cái cần đo". Thiếu 1 trong 2 là vứt.
+
+### Bước 2: Kiểm tra sức mạnh mô hình -> R-square
+
+Nó cho biết mô hình của bạn giải thích được bao nhiêu % thực tế.
+Ví dụ R-square = 0.6. Nghĩa là các biến độc lập (X) giải thích được 60% sự thay đổi của biến phụ thuộc (Y).
+Còn 40% còn lại là do "ông trời" (các yếu tố khác chưa đưa vào mô hình).
+R-square càng cao càng tốt, nhưng 0.25 là tạm chấp nhận, 0.5 là mức trung bình khá, 0.75 là mức xuất sắc.
+
+### Bước 3: Kiểm định giả thuyết -> P-value < 0.05
+
+Nhìn cột P-value để xem mối quan hệ có "Ý nghĩa thống kê" không.
+
+- Nếu P < 0.05: Giả thuyết được chấp nhận (Duyệt!).
+- Nếu P > 0.05: Bác bỏ (Toang!).
+
+**[TƯ DUY ĐÚNG]:** Hãy tưởng tượng P-value là cái "Vé gửi xe". Có vé (P < 0.05) thì mới được vào rạp.
+Nhưng vào rạp rồi, phim có hay không (Tác động mạnh hay yếu) thì phải nhìn cột Hệ số tác động (Beta / Path Coefficient).
+- Beta = 0.1: Tác động yếu nhớt (vào rạp ngồi ngủ).
+- Beta = 0.5: Tác động cực mạnh (phim bom tấn).
+
+Đừng thần thánh hóa P-value. Nhiều ông P < 0.001 (0.1%) nhưng Beta = 0.05 thì cũng vứt, vì tác động bé như con kiến, chả có ý nghĩa thực tiễn gì.
+
+### Ghi chú thuật ngữ (Academic Glossary)
+
+- **"P-hacking"** -> Trò bẩn: Chạy thử trăm kiểu model để săn tìm P < 0.05. Đừng làm thế, thất đức lắm.
+- **"R-square"** -> Độ xịn của mô hình (Giải thích được bao nhiêu % thực tế).
+- **"Effect Size" (f2)** -> Kích thước tác động (Nhỏ, Trung bình, Lớn).
