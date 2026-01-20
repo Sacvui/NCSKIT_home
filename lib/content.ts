@@ -339,21 +339,15 @@ export const translations: Record<Locale, SiteCopy> = {
         children: navFeaturesChildren.en,
       },
       {
-        label: "Research",
-        href: "/research",
+        label: "Knowledge",
+        href: "/blog",
         children: navResearchChildren.en,
       },
       {
-        label: "Resources",
-        href: "#resources",
+        label: "About",
+        href: "/resources",
         children: navResourcesChildren.en,
       },
-      {
-        label: "Blog",
-        href: "/blog",
-        children: knowledgeNavChildren.en,
-      },
-      { label: "Contact", href: "/contact" },
     ],
     headerCtas: {
       readme: "Project README",
