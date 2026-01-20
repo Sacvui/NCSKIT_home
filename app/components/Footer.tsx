@@ -98,7 +98,7 @@ export function Footer() {
               © {currentYear} NCSKIT Research. All rights reserved.
             </p>
             <p className="footer-creator">
-              Created by <strong>Lê Phúc Hải</strong> · PhD Candidate
+              Created by <strong>Hải Rong Chơi</strong>
             </p>
           </div>
           <div className="footer-social">

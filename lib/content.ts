@@ -895,9 +895,9 @@ export const translations: Record<Locale, SiteCopy> = {
     },
     contact: {
       eyebrow: "About the founder",
-      title: "NCSKIT · Lê Phúc Hải",
+      title: "NCSKIT · Hải Rong Chơi",
       description:
-        "Created by management PhD candidate Lê Phúc Hải (Vietnam) to standardise research workflows for students, faculty, and analysts.",
+        "Created by Hải Rong Chơi (Vietnam) to standardise research workflows for students, faculty, and analysts.",
       emailLabel: "Email",
       email: "support@ncskit.org",
       websiteLabel: "Official site",
@@ -914,7 +914,7 @@ export const translations: Record<Locale, SiteCopy> = {
     },
     footer: {
       text: "© {year} NCSKIT · ncskit.org official website",
-      note: "Crafted in Vietnam by PhD candidate Lê Phúc Hải · Empowering international publications.",
+      note: "Crafted in Vietnam by Hải Rong Chơi · Empowering international publications.",
       links: [
         { label: "Home", href: "#hero" },
         { label: "Knowledge Hub", href: "/blog" },
@@ -932,7 +932,7 @@ export const translations: Record<Locale, SiteCopy> = {
       description: "A multidisciplinary team of PhD candidates, data scientists, and engineers.",
       members: [
         {
-          name: "Lê Phúc Hải",
+          name: "Hải Rong Chơi",
           role: "Lead Developer & Research Scientist",
           subtitle: "PhD Candidate in Business Administration",
           image: "/images/team/hailp.png",
@@ -1058,7 +1058,7 @@ export const translations: Record<Locale, SiteCopy> = {
       eyebrow: "Whitepaper-aligned · ncskit.org",
       title: "NCSKIT - Giá trị thực cho mọi cấp độ nghiên cứu",
       lede:
-        "NCSKIT IDE, được phát triển bởi NCS Lê Phúc Hải, tự động hóa quy trình nghiên cứu khoa học. Dìu dắt người mới để ra bài chuẩn chỉnh, giúp chuyên gia rút ngắn thời gian và nâng cao chất lượng. Đóng góp thiết thực cho cộng đồng khoa học, đặc biệt là ngành Kinh tế.",
+        "NCSKIT IDE, được phát triển bởi Hải Rong Chơi, tự động hóa quy trình nghiên cứu khoa học. Dìu dắt người mới để ra bài chuẩn chỉnh, giúp chuyên gia rút ngắn thời gian và nâng cao chất lượng. Đóng góp thiết thực cho cộng đồng khoa học, đặc biệt là ngành Kinh tế.",
       primaryCta: "Tải bản giới thiệu",
       secondaryCta: "Xem các phân hệ",
       tags: ["Nền tảng nghiên cứu No-Code", "Chuẩn APA / ISI", "Bảo mật & Cục bộ"],
@@ -1583,7 +1583,7 @@ export const translations: Record<Locale, SiteCopy> = {
     },
     contact: {
       eyebrow: "Về tác giả",
-      title: "NCSKIT · Lê Phúc Hải",
+      title: "NCSKIT · Hải Rong Chơi",
       description:
         "Được tạo bởi Nghiên cứu sinh ngành Quản lý nhằm chuẩn hoá quy trình nghiên cứu tại Việt Nam theo chuẩn ISI/Scopus.",
       emailLabel: "Email",
@@ -1602,7 +1602,7 @@ export const translations: Record<Locale, SiteCopy> = {
     },
     footer: {
       text: "© {year} NCSKIT · Website chính thức ncskit.org",
-      note: "Thực hiện tại Việt Nam bởi Nghiên cứu sinh Lê Phúc Hải · Đồng hành cùng cộng đồng nghiên cứu.",
+      note: "Thực hiện tại Việt Nam bởi Hải Rong Chơi · Đồng hành cùng cộng đồng nghiên cứu.",
       links: [
         { label: "Trang chủ", href: "#hero" },
         { label: "Blog & Kiến thức", href: "/blog" },
@@ -1620,7 +1620,7 @@ export const translations: Record<Locale, SiteCopy> = {
       description: "Một đội ngũ đa ngành gồm các nghiên cứu sinh, nhà khoa học dữ liệu và kỹ sư.",
       members: [
         {
-          name: "Lê Phúc Hải",
+          name: "Hải Rong Chơi",
           role: "Lead Developer & Research Scientist",
           subtitle: "Nghiên cứu sinh Quản trị Kinh doanh",
           image: "/images/team/hailp.png",

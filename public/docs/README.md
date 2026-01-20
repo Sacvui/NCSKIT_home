@@ -67,7 +67,7 @@ MIT License.
 
 ## ℹ️ About NCSKIT & Author
 
-- **Tác giả:** Lê Phúc Hải – Nghiên cứu sinh tiến sĩ ngành Kinh tế, người sáng lập nền tảng NCSKIT.
+- **Tác giả:** Hải Rong Chơi – Nghiên cứu sinh tiến sĩ ngành Kinh tế, người sáng lập nền tảng NCSKIT.
 - **Website:** [lehai.edu.vn](https://lehai.edu.vn) · **Email:** hello@lehai.edu.vn
 - **Sứ mệnh:** Chuẩn hóa toàn bộ hành trình nghiên cứu (Ideation → Design → Analysis → Publishing) bằng giao diện No-code thân thiện.
 - **Nhận diện thương hiệu:** Logo/biểu tượng được lưu tại `assets/` và `image/`, đồng bộ vào VS Code bằng `apply-branding.ps1`.

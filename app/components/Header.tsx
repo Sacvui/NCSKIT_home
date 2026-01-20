@@ -130,7 +130,7 @@ export function Header({ nav, headerCtas, variant = "default", backHref, backLab
   return (
     <header className={`site-header ${isBlog ? "blog-shell sticky top-0 z-40" : ""} ${variant === "article" ? "bg-white/80 backdrop-blur" : ""}`}>
       <div className="container header-inner">
-        <Link className="brand" href={isBlog ? "/blog" : "/"}>
+        <Link className="brand" href="/">
           <Image
             src="/assets/logo.png"
             alt="NCSKIT logo"

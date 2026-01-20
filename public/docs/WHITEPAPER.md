@@ -110,7 +110,7 @@ Dành cho bài báo tổng hợp, meta-analysis.
 
 - **Website:** www.ncskit.org
 - **Source Code:** [github.com/ncskit/ncskit-ide](https://github.com/ncskit/ncskit-ide)
-- **Tác giả:** Lê Phúc Hải (PhD Candidate) ( lehai.edu.vnvn)
+- **Tác giả:** Hải Rong Chơi ( lehai.edu.vnvn)
 - **Email:** support@ncskit.org
 
 > *Tài liệu này được soạn thảo ngày 25/11/2025, phục vụ cho mục đích xây dựng nội dung Website và Pitching Deck.*

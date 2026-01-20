@@ -48,8 +48,8 @@ const defaultTestimonials: Testimonial[] = [
   },
   {
     quote: "The no-code approach is perfect for researchers who want to focus on knowledge, not tooling. NCSKIT bridges the gap between ideas and published papers.",
-    author: "Lê Phúc Hải",
-    role: "Creator & PhD Candidate",
+    author: "Hải Rong Chơi",
+    role: "Creator & Rong Chơi",
     affiliation: "NCSKIT Research",
   },
 ];
@@ -67,29 +67,29 @@ export function TrustSection({
         <div className="trust-logos">
           <p className="trust-label">{title}</p>
           <div className="logos-grid">
-              {logos.map((logo, index) => (
-                <motion.div
-                  key={logo.name}
-                  className="logo-item"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  whileHover={{ scale: 1.05, y: -5 }}
-                >
-                  {logo.logo ? (
-                    <Image 
-                      src={logo.logo} 
-                      alt={logo.name} 
-                      width={120} 
-                      height={60} 
-                      className="logo-image"
-                      unoptimized
-                    />
-                  ) : (
-                    <span className="logo-text">{logo.name}</span>
-                  )}
-                </motion.div>
-              ))}
+            {logos.map((logo, index) => (
+              <motion.div
+                key={logo.name}
+                className="logo-item"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                whileHover={{ scale: 1.05, y: -5 }}
+              >
+                {logo.logo ? (
+                  <Image
+                    src={logo.logo}
+                    alt={logo.name}
+                    width={120}
+                    height={60}
+                    className="logo-image"
+                    unoptimized
+                  />
+                ) : (
+                  <span className="logo-text">{logo.name}</span>
+                )}
+              </motion.div>
+            ))}
           </div>
         </div>
 
