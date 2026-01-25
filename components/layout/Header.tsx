@@ -87,20 +87,24 @@ export default function Header({ user, profile: initialProfile, centerContent, r
         const targetUser = user || localUser
         if (!targetUser) return
 
+        // Always fetch fresh profile data to ensure NCS balance is accurate
         const fetchProfile = async () => {
-            const { data } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', targetUser.id)
-                .single()
-            if (data) setProfile(data)
+            try {
+                const { data } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', targetUser.id)
+                    .single()
+                if (data) {
+                    console.log('[Header] Fresh profile loaded, tokens:', data.tokens)
+                    setProfile(data)
+                }
+            } catch (err) {
+                console.warn('[Header] Error fetching profile:', err)
+            }
         }
 
-        if (!initialProfile) {
-            fetchProfile()
-        } else {
-            setProfile(initialProfile)
-        }
+        fetchProfile()
 
         // Subscribe to real-time changes
         const channel = supabase
