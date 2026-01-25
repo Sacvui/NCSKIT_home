@@ -51,23 +51,34 @@ function AuthCallbackContent() {
                     console.log('Phase 1 Success. User:', data.session.user.id)
                     setStatus('Xác thực thành công. Đang đồng bộ phiên...')
 
-                    // 2. Sync to Cookies
-                    // We take the session we got from LS client and force it into the Cookie client
-                    const { error: syncError } = await clientSSR.auth.setSession({
-                        access_token: data.session.access_token,
-                        refresh_token: data.session.refresh_token,
-                    })
+                    // 2. Sync to Cookies with timeout (max 5 seconds)
+                    // If this fails, we still have the localStorage session which can work
+                    try {
+                        const syncPromise = clientSSR.auth.setSession({
+                            access_token: data.session.access_token,
+                            refresh_token: data.session.refresh_token,
+                        })
 
-                    if (syncError) {
-                        console.error('Phase 2 Error:', syncError)
-                        throw syncError
+                        const timeoutPromise = new Promise((_, reject) =>
+                            setTimeout(() => reject(new Error('Cookie sync timeout')), 5000)
+                        )
+
+                        const { error: syncError } = await Promise.race([syncPromise, timeoutPromise]) as any
+
+                        if (syncError) {
+                            console.warn('Phase 2 Warning:', syncError)
+                            // Continue anyway - localStorage session is valid
+                        } else {
+                            console.log('Phase 2 Success: Session synced to cookies.')
+                        }
+                    } catch (syncErr) {
+                        console.warn('Phase 2 Timeout/Error:', syncErr)
+                        // Continue anyway - localStorage session is valid
                     }
 
-                    console.log('Phase 2 Success: Session synced to cookies.')
                     setStatus('Đăng nhập hoàn tất! Đang chuyển hướng...')
 
                     // Force a hard navigation to ensure cookies are sent freshly to the server middleware
-                    // This avoids any SPA caching issues with middleware states
                     window.location.href = next
                 }
             } catch (error: any) {
