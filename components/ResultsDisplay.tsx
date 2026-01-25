@@ -585,7 +585,7 @@ function CronbachResults({
 
             {/* Interpretation Section */}
             <TemplateInterpretation
-                analysisType="cronbach"
+                analysisType={analysisType || 'cronbach'}
                 results={results}
                 scaleName={scaleName || 'Thang đo'}
             />
@@ -617,7 +617,7 @@ function CronbachResults({
 
             {/* Template Interpretation */}
             <TemplateInterpretation
-                analysisType="cronbach"
+                analysisType={analysisType || 'cronbach'}
                 results={results}
                 scaleName={scaleName}
             />
