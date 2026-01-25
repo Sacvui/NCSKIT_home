@@ -106,13 +106,19 @@ export default function AnalyzePage() {
             }
         };
 
-        // Safety timeout in case auth hangs - reduced from 8s to 3s for faster UX
+        // Safety timeout in case auth hangs - only affects loading state, NOT auth check
+        // Auth check continues in background and will update user state when complete
         const timeoutId = setTimeout(() => {
-            console.log('[Auth] Timeout reached, proceeding without auth');
+            console.log('[Auth] Timeout reached, showing page while auth continues...');
             setLoading(false);
+            // Don't give up on auth - it will update user state when complete
         }, 3000);
 
-        checkUser().then(() => clearTimeout(timeoutId));
+        // Run auth check - will update user state even after timeout
+        checkUser().finally(() => {
+            clearTimeout(timeoutId);
+            setLoading(false);
+        });
 
         // Listen for auth changes
         const supabase = getSupabase();
