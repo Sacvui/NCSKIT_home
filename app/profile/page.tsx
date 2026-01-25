@@ -24,59 +24,92 @@ export default function ProfilePage() {
     useEffect(() => {
         const loadProfile = async () => {
             try {
-                // Check auth from localStorage client
+                // Check auth from localStorage client (Supabase Auth)
                 const { data: { user: authUser }, error } = await supabase.auth.getUser()
 
-                if (error || !authUser) {
+                if (authUser && !error) {
+                    // Supabase Auth user found
+                    setUser(authUser)
+
+                    // Fetch profile
+                    const { data: profileData } = await supabase
+                        .from('profiles')
+                        .select('*')
+                        .eq('id', authUser.id)
+                        .single()
+
+                    setProfile(profileData)
+                    await loadUserData(authUser.id, profileData)
+                } else {
+                    // Fallback: Check ORCID cookie
+                    const orcidCookie = document.cookie.split(';').find(c => c.trim().startsWith('orcid_user='))
+                    if (orcidCookie) {
+                        const profileId = orcidCookie.split('=')[1]?.trim()
+                        if (profileId) {
+                            const { data: orcidProfile } = await supabase
+                                .from('profiles')
+                                .select('*')
+                                .eq('id', profileId)
+                                .single()
+
+                            if (orcidProfile) {
+                                // Build a mock user object for ORCID
+                                const orcidUser = {
+                                    id: profileId,
+                                    email: orcidProfile.email || `${orcidProfile.orcid_id}@orcid.org`,
+                                    user_metadata: {
+                                        full_name: orcidProfile.display_name || orcidProfile.full_name,
+                                        avatar_url: orcidProfile.avatar_url
+                                    }
+                                }
+                                setUser(orcidUser)
+                                setProfile(orcidProfile)
+                                await loadUserData(profileId, orcidProfile)
+                                return
+                            }
+                        }
+                    }
+
+                    // No auth found - redirect to login
                     console.log('[Profile] No user found, redirecting to login')
                     router.push('/login?next=/profile')
                     return
                 }
-
-                setUser(authUser)
-
-                // Fetch profile
-                const { data: profileData } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', authUser.id)
-                    .single()
-
-                setProfile(profileData)
-
-                // Fetch projects count
-                const { count: pCount } = await supabase
-                    .from('projects')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('user_id', authUser.id)
-
-                setProjectsCount(pCount || 0)
-
-                // Fetch referrals count
-                if (profileData?.referral_code) {
-                    const { count: rCount } = await supabase
-                        .from('profiles')
-                        .select('*', { count: 'exact', head: true })
-                        .eq('referred_by_code', profileData.referral_code)
-
-                    setReferralsCount(rCount || 0)
-                }
-
-                // Fetch recent projects
-                const { data: projectsData } = await supabase
-                    .from('projects')
-                    .select('*')
-                    .eq('user_id', authUser.id)
-                    .order('updated_at', { ascending: false })
-                    .limit(10)
-
-                setProjects(projectsData || [])
-
             } catch (err) {
                 console.error('[Profile] Error loading profile:', err)
             } finally {
                 setLoading(false)
             }
+        }
+
+        const loadUserData = async (userId: string, profileData: any) => {
+            // Fetch projects count
+            const { count: pCount } = await supabase
+                .from('projects')
+                .select('*', { count: 'exact', head: true })
+                .eq('user_id', userId)
+
+            setProjectsCount(pCount || 0)
+
+            // Fetch referrals count
+            if (profileData?.referral_code) {
+                const { count: rCount } = await supabase
+                    .from('profiles')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('referred_by_code', profileData.referral_code)
+
+                setReferralsCount(rCount || 0)
+            }
+
+            // Fetch recent projects
+            const { data: projectsData } = await supabase
+                .from('projects')
+                .select('*')
+                .eq('user_id', userId)
+                .order('updated_at', { ascending: false })
+                .limit(10)
+
+            setProjects(projectsData || [])
         }
 
         loadProfile()
