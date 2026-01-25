@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { createClientOnly } from '@/utils/supabase/client-only'
+import { getSupabase } from '@/utils/supabase/client'
 import { Loader2 } from 'lucide-react'
 
 function AuthCallbackContent() {
@@ -30,8 +30,8 @@ function AuthCallbackContent() {
                 return
             }
 
-            // localStorage-first: Only use localStorage client for PKCE exchange
-            const clientOnly = createClientOnly()
+            // localStorage-first: Use singleton client for PKCE exchange
+            const clientOnly = getSupabase()
 
             try {
                 console.log('[Auth] Exchanging code via localStorage client...')
