@@ -1,6 +1,6 @@
 'use client'
 
-import { createClientOnly } from '@/utils/supabase/client-only'
+import { getSupabase } from '@/utils/supabase/client'
 import { useState, Suspense, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { ProjectFlowAnimation } from '@/components/login/ProjectFlowAnimation'
@@ -28,7 +28,7 @@ function LoginForm() {
         setErrorMsg(null)
 
         try {
-            const supabase = createClientOnly()
+            const supabase = getSupabase()
 
             // Simple signOut - SDK handles PKCE cleanup internally
             await supabase.auth.signOut()
