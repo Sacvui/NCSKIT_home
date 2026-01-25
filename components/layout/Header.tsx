@@ -33,9 +33,8 @@ export default function Header({ user, profile: initialProfile, centerContent, r
         if (!user && !orcidUser) {
             const checkLocalSession = async () => {
                 try {
-                    const { createClientOnly } = await import('@/utils/supabase/client-only')
-                    const localClient = createClientOnly()
-                    const { data: { user: lsUser } } = await localClient.auth.getUser()
+                    // Use singleton client to avoid multiple instance conflicts
+                    const { data: { user: lsUser } } = await supabase.auth.getUser()
                     if (lsUser) {
                         console.log('[Header] Found user in localStorage:', lsUser.id)
                         setLocalUser(lsUser)
@@ -46,7 +45,7 @@ export default function Header({ user, profile: initialProfile, centerContent, r
             }
             checkLocalSession()
         }
-    }, [user, orcidUser])
+    }, [user, orcidUser, supabase])
 
     // Effective user: Supabase user (server) OR localStorage user OR ORCID user
     const effectiveUser = user || localUser || (orcidUser ? { id: orcidUser.id, email: orcidUser.email } : null)
