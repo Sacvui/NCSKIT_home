@@ -2,7 +2,6 @@
 
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { getSupabase } from '@/utils/supabase/client'
 import { createClientOnly } from '@/utils/supabase/client-only'
 import { Loader2 } from 'lucide-react'
 
@@ -26,65 +25,30 @@ function AuthCallbackContent() {
             }
 
             if (!code) {
-                // If no code, maybe we're already logged in or it's a direct visit?
-                // Just redirect to login to be safe
                 console.log('No code found, redirecting to login')
                 router.push('/login?error=no_code_client')
                 return
             }
 
-            // 1. Initialize logic clients
-            // clientOnly: Uses localStorage, where the code_verifier was saved during login
+            // localStorage-first: Only use localStorage client for PKCE exchange
             const clientOnly = createClientOnly()
-            // clientSSR: Uses cookies, where we want to put the final session for middleware
-            const clientSSR = getSupabase()
 
             try {
-                // Client-side exchange! 
-                // Uses localStorage for PKCE verifier automatically.
-                console.log('Phase 1: Exchanging code via LocalStorage client...')
+                console.log('[Auth] Exchanging code via localStorage client...')
                 const { data, error } = await clientOnly.auth.exchangeCodeForSession(code)
 
                 if (error) throw error
 
                 if (data.session) {
-                    console.log('Phase 1 Success. User:', data.session.user.id)
-                    setStatus('Xác thực thành công. Đang đồng bộ phiên...')
+                    console.log('[Auth] Success! User:', data.session.user.id)
+                    setStatus('Đăng nhập thành công!')
 
-                    // 2. Sync to Cookies with timeout (max 5 seconds)
-                    // If this fails, we still have the localStorage session which can work
-                    try {
-                        const syncPromise = clientSSR.auth.setSession({
-                            access_token: data.session.access_token,
-                            refresh_token: data.session.refresh_token,
-                        })
-
-                        const timeoutPromise = new Promise((_, reject) =>
-                            setTimeout(() => reject(new Error('Cookie sync timeout')), 5000)
-                        )
-
-                        const { error: syncError } = await Promise.race([syncPromise, timeoutPromise]) as any
-
-                        if (syncError) {
-                            console.warn('Phase 2 Warning:', syncError)
-                            // Continue anyway - localStorage session is valid
-                        } else {
-                            console.log('Phase 2 Success: Session synced to cookies.')
-                        }
-                    } catch (syncErr) {
-                        console.warn('Phase 2 Timeout/Error:', syncErr)
-                        // Continue anyway - localStorage session is valid
-                    }
-
-                    setStatus('Đăng nhập hoàn tất! Đang chuyển hướng...')
-
-                    // Force a hard navigation to ensure cookies are sent freshly to the server middleware
+                    // Instant redirect - no cookie sync needed!
+                    // Pages will check localStorage client for session
                     window.location.href = next
                 }
             } catch (error: any) {
-                console.error('Auth Hybrid Error:', error)
-                // If it's a PKCE error, it might be due to stale cookies. 
-                // We should clear them or just ask user to try again.
+                console.error('[Auth] Error:', error)
                 router.push(`/login?error=${encodeURIComponent(error.message)}`)
             }
         }
