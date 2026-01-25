@@ -13,14 +13,14 @@ export function getSupabase() {
         }
 
         // Use standard supabase-js client with localStorage-first configuration
-        // This matches the configuration in client-only.ts and ensures session sharing
         supabaseInstance = createSupabaseClient(supabaseUrl, supabaseAnonKey, {
             auth: {
                 flowType: 'pkce',
-                detectSessionInUrl: false,
+                detectSessionInUrl: true, // AUTO-HANDLE auth codes from OAuth callbacks
                 persistSession: true,
-                storageKey: 'ncs_auth_token', // MUST match client-only.ts
+                storageKey: 'ncs_auth_token',
                 storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+                autoRefreshToken: true,
                 debug: process.env.NODE_ENV === 'development'
             }
         })

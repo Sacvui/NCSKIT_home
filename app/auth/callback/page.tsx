@@ -8,58 +8,75 @@ import { Loader2 } from 'lucide-react'
 function AuthCallbackContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
-
-    // Sometimes the code comes as a query param, sometimes hash (implicit), but for PKCE flow it's usually query
-    const code = searchParams.get('code')
     const next = searchParams.get('next') ?? '/analyze'
     const errorParam = searchParams.get('error')
 
     const [status, setStatus] = useState('Đang xử lý đăng nhập...')
 
     useEffect(() => {
-        const handleAuth = async () => {
-            if (errorParam) {
-                setStatus(`Lỗi: ${errorParam}`)
-                setTimeout(() => router.push('/login'), 2000)
-                return
-            }
+        // Handle error from OAuth provider
+        if (errorParam) {
+            setStatus(`Lỗi: ${errorParam}`)
+            setTimeout(() => router.push('/login'), 2000)
+            return
+        }
 
-            if (!code) {
-                console.log('No code found, redirecting to login')
-                router.push('/login?error=no_code_client')
-                return
-            }
+        const supabase = getSupabase()
 
-            // localStorage-first: Use singleton client for PKCE exchange
-            const clientOnly = getSupabase()
-
+        // With detectSessionInUrl: true, Supabase auto-processes the code
+        // We just need to wait for the session to be ready
+        const checkSession = async () => {
             try {
-                console.log('[Auth] Exchanging code via localStorage client...')
-                const { data, error } = await clientOnly.auth.exchangeCodeForSession(code)
+                // Give Supabase a moment to process the URL
+                await new Promise(resolve => setTimeout(resolve, 500))
 
-                if (error) throw error
+                const { data: { session }, error } = await supabase.auth.getSession()
 
-                if (data.session) {
-                    console.log('[Auth] Success! User:', data.session.user.id)
-                    // status not needed - just go
-
-                    // SPA navigation for instant feel
-                    router.replace(next)
+                if (error) {
+                    console.error('[Callback] Session error:', error)
+                    setStatus('Lỗi xác thực: ' + error.message)
+                    setTimeout(() => router.push('/login'), 2000)
+                    return
                 }
-            } catch (error: any) {
-                console.error('[Auth] Error:', error)
-                router.push(`/login?error=${encodeURIComponent(error.message)}`)
+
+                if (session) {
+                    console.log('[Callback] Session ready! User:', session.user.id)
+                    router.replace(next)
+                } else {
+                    // Session not ready yet, try listening for auth state change
+                    console.log('[Callback] Waiting for session...')
+                    setStatus('Đang hoàn tất xác thực...')
+
+                    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+                        console.log('[Callback] Auth event:', event)
+                        if (event === 'SIGNED_IN' && session) {
+                            subscription.unsubscribe()
+                            router.replace(next)
+                        }
+                    })
+
+                    // Timeout after 10 seconds
+                    setTimeout(() => {
+                        subscription.unsubscribe()
+                        setStatus('Xác thực timeout. Vui lòng thử lại.')
+                        setTimeout(() => router.push('/login'), 2000)
+                    }, 10000)
+                }
+            } catch (err: any) {
+                console.error('[Callback] Error:', err)
+                setStatus('Đã xảy ra lỗi: ' + err.message)
+                setTimeout(() => router.push('/login'), 2000)
             }
         }
 
-        handleAuth()
-    }, [code, next, errorParam, router])
+        checkSession()
+    }, [errorParam, next, router])
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#f9fafe] text-gray-600">
             <Loader2 className="w-10 h-10 animate-spin text-blue-600 mb-4" />
             <h2 className="text-xl font-semibold">{status}</h2>
-            <p className="text-sm text-gray-400 mt-2">Dữ liệu đang được xác thực trực tiếp trên trình duyệt...</p>
+            <p className="text-sm text-gray-400 mt-2">Vui lòng chờ trong giây lát...</p>
         </div>
     )
 }
