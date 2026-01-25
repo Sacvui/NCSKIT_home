@@ -8,7 +8,7 @@ import Link from 'next/link'
 import ProfileHeader from '@/components/profile/ProfileHeader'
 import ReferralCard from '@/components/profile/ReferralCard'
 import Header from '@/components/layout/Header'
-import { Loader2 } from 'lucide-react'
+import { NCSLoader } from '@/components/ui/NCSLoader'
 
 export default function ProfilePage() {
     const router = useRouter()
@@ -85,10 +85,7 @@ export default function ProfilePage() {
     if (loading) {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-                <div className="text-center">
-                    <Loader2 className="w-10 h-10 animate-spin text-blue-600 mx-auto mb-4" />
-                    <p className="text-slate-500">Đang tải hồ sơ...</p>
-                </div>
+                <NCSLoader text="Đang tải hồ sơ..." />
             </div>
         )
     }

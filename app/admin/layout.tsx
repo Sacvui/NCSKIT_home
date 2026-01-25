@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { getSupabase } from '@/utils/supabase/client'
 import Link from 'next/link'
-import { Shield, MessageSquare, ArrowLeft, Users, Loader2 } from 'lucide-react'
+import { Shield, MessageSquare, ArrowLeft, Users } from 'lucide-react'
+import { NCSLoader } from '@/components/ui/NCSLoader'
 
 export default function AdminLayout({
     children,
@@ -35,7 +36,8 @@ export default function AdminLayout({
                     .eq('id', user.id)
                     .single()
 
-                if (profile?.role !== 'admin') {
+                const userProfile = profile as any
+                if (userProfile?.role !== 'admin') {
                     router.push('/')
                     return
                 }
@@ -55,10 +57,7 @@ export default function AdminLayout({
     if (loading) {
         return (
             <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-                <div className="text-center">
-                    <Loader2 className="w-10 h-10 animate-spin text-blue-600 mx-auto mb-4" />
-                    <p className="text-slate-500">Đang xác thực quyền admin...</p>
-                </div>
+                <NCSLoader text="Đang xác thực quyền admin..." />
             </div>
         )
     }
@@ -108,8 +107,8 @@ function NavLink({ href, icon, children, active }: { href: string; icon: any; ch
         <Link
             href={href}
             className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${active
-                    ? 'bg-slate-800 text-white'
-                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                ? 'bg-slate-800 text-white'
+                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                 }`}
         >
             {icon}
