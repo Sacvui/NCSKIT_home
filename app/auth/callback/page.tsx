@@ -5,25 +5,23 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { getSupabase } from '@/utils/supabase/client'
 import { NCSLoader } from '@/components/ui/NCSLoader'
 
+// MODULE-LEVEL: Persists across React re-mounts in Strict Mode
+let authAttempted = false
+let authPromise: Promise<void> | null = null
+
 function AuthCallbackContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
 
-    // Get params
     const code = searchParams.get('code')
     const next = searchParams.get('next') ?? '/analyze'
     const errorParam = searchParams.get('error')
     const errorDesc = searchParams.get('error_description')
 
     const [status, setStatus] = useState('Đang kết nối...')
-    const [isProcessing, setIsProcessing] = useState(false)
 
     useEffect(() => {
-        // Prevent concurrent processing
-        if (isProcessing) return
-        setIsProcessing(true)
-
-        // 1. Handle explicit errors from OAuth provider
+        // Handle OAuth errors
         if (errorParam) {
             console.error('[Callback] Auth Error:', errorParam, errorDesc)
             setStatus(`Lỗi: ${errorDesc || errorParam}`)
@@ -31,23 +29,55 @@ function AuthCallbackContent() {
             return
         }
 
-        const supabase = getSupabase()
+        // If auth already in progress, wait for it
+        if (authPromise) {
+            console.log('[Callback] Auth already in progress, waiting...')
+            authPromise.then(() => {
+                // Check if we have session now
+                getSupabase().auth.getSession().then(({ data: { session } }) => {
+                    if (session) {
+                        router.replace(next)
+                    }
+                })
+            })
+            return
+        }
+
+        // If already attempted, just check session and redirect
+        if (authAttempted) {
+            console.log('[Callback] Auth already attempted, checking session...')
+            getSupabase().auth.getSession().then(({ data: { session } }) => {
+                if (session) {
+                    setStatus('Đăng nhập thành công!')
+                    router.replace(next)
+                } else {
+                    setStatus('Phiên đăng nhập đã xử lý.')
+                    setTimeout(() => router.push('/login'), 2000)
+                }
+            })
+            return
+        }
+
+        // First time - mark attempted and run auth
+        authAttempted = true
 
         const handleAuth = async () => {
+            const supabase = getSupabase()
+
             try {
-                // 2. FIRST: Check if we already have a session (auto-detect worked or previous success)
+                // 1. Check existing session first
                 const { data: { session: existingSession } } = await supabase.auth.getSession()
 
                 if (existingSession) {
-                    console.log('[Callback] Session exists! Redirecting to:', next)
+                    console.log('[Callback] Session exists! Redirecting...')
                     setStatus('Đăng nhập thành công!')
                     router.replace(next)
                     return
                 }
 
-                // 3. No session yet - try manual exchange if we have a code
+                // 2. Try manual exchange if we have code
                 if (code) {
-                    console.log('[Callback] No session, attempting exchange with code...')
+                    console.log('[Callback] Exchanging code for session...')
                     setStatus('Đang xác thực bảo mật...')
 
                     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
@@ -55,73 +85,77 @@ function AuthCallbackContent() {
                     if (error) {
                         console.error('[Callback] Exchange error:', error.message)
 
-                        // Handle "already used" - session might exist now
-                        if (error.message.includes('already been used') || error.message.includes('flow state')) {
-                            // Re-check session
-                            const { data: { session: retrySession } } = await supabase.auth.getSession()
-                            if (retrySession) {
-                                console.log('[Callback] Session found after error, redirecting...')
-                                setStatus('Đăng nhập thành công!')
-                                router.replace(next)
-                                return
-                            }
-                            setStatus('Mã xác thực đã được sử dụng. Đang thử lại...')
-                        } else {
-                            setStatus('Lỗi: ' + error.message.substring(0, 50))
+                        // Check if session was established anyway
+                        const { data: { session: retrySession } } = await supabase.auth.getSession()
+                        if (retrySession) {
+                            console.log('[Callback] Session found after error')
+                            setStatus('Đăng nhập thành công!')
+                            router.replace(next)
+                            return
                         }
+
+                        setStatus('Lỗi xác thực. Đang thử lại...')
                         setTimeout(() => router.push('/login'), 3000)
                         return
                     }
 
                     if (data.session) {
-                        console.log('[Callback] Exchange success! Redirecting to:', next)
+                        console.log('[Callback] Exchange success!')
                         setStatus('Đăng nhập thành công!')
                         router.replace(next)
                         return
                     }
                 }
 
-                // 4. No code and no session - wait a moment then check again (auto-detect delay)
-                console.log('[Callback] No immediate session, waiting for auto-detect...')
+                // 3. Wait and check again (auto-detect delay)
                 setStatus('Đang chờ xác thực...')
-
-                await new Promise(resolve => setTimeout(resolve, 2000))
+                await new Promise(r => setTimeout(r, 2000))
 
                 const { data: { session: delayedSession } } = await supabase.auth.getSession()
                 if (delayedSession) {
-                    console.log('[Callback] Session detected after delay, redirecting...')
                     setStatus('Đăng nhập thành công!')
                     router.replace(next)
                     return
                 }
 
-                // 5. Still no session - redirect to login
-                console.warn('[Callback] No session established, redirecting to login')
-                setStatus('Không tìm thấy phiên đăng nhập.')
+                // 4. Failed - redirect to login
+                setStatus('Không thể xác thực. Vui lòng thử lại.')
                 setTimeout(() => router.push('/login'), 2000)
 
             } catch (err: any) {
-                // Ignore AbortError completely - don't change state
+                // Ignore AbortError - let the second mount handle it
                 if (err.name === 'AbortError') {
-                    console.log('[Callback] AbortError ignored, letting next attempt proceed')
-                    setIsProcessing(false) // Allow retry
+                    console.log('[Callback] AbortError - will retry on next mount')
+                    authAttempted = false // Allow retry
                     return
                 }
 
-                console.error('[Callback] Unexpected error:', err)
-                setStatus('Đã xảy ra lỗi hệ thống.')
+                console.error('[Callback] Error:', err)
+                setStatus('Đã xảy ra lỗi.')
                 setTimeout(() => router.push('/login'), 2000)
             }
         }
 
-        handleAuth()
-    }, [code, next, errorParam, errorDesc, router, isProcessing])
+        authPromise = handleAuth()
+        authPromise.finally(() => {
+            authPromise = null
+        })
+
+    }, [code, next, errorParam, errorDesc, router])
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#f9fafe]">
             <NCSLoader text={status} size="lg" />
         </div>
     )
+}
+
+// Reset module state on page unload (for fresh login attempts)
+if (typeof window !== 'undefined') {
+    window.addEventListener('beforeunload', () => {
+        authAttempted = false
+        authPromise = null
+    })
 }
 
 export default function AuthCallbackPage() {
