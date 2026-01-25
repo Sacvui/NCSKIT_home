@@ -30,8 +30,14 @@ function LoginForm() {
         try {
             const supabase = createClientOnly()
 
-            // Clear any existing session first to prevent wrong user issue
+            // Clear any existing session AND localStorage auth data to prevent PKCE conflicts
             await supabase.auth.signOut()
+
+            // Also manually clear any stale PKCE verifiers in localStorage
+            const keysToRemove = Object.keys(localStorage).filter(key =>
+                key.startsWith('sb-') || key.includes('supabase') || key.includes('code_verifier')
+            )
+            keysToRemove.forEach(key => localStorage.removeItem(key))
 
             const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next || '/analyze')}`
 
