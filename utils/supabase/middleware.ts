@@ -94,11 +94,11 @@ export async function updateSession(request: NextRequest) {
             const { data: { session } } = await supabase.auth.getSession()
 
             if (!session) {
-                // No session at all -> redirect to login
-                const url = request.nextUrl.clone()
-                url.pathname = '/login'
-                url.searchParams.set('next', pathname)
-                return NextResponse.redirect(url)
+                // localStorage-first auth:
+                // Server cookies might be missing, but client localStorage has session.
+                // We allow the request to pass through and let Client Components check auth.
+                // If we redirect here, we cause a loop because server doesn't see the localStorage session.
+                return response
             }
 
             // Session exists - for most cases this is enough
@@ -110,10 +110,8 @@ export async function updateSession(request: NextRequest) {
                 // Session expiring soon, verify with server
                 const { data: { user }, error } = await supabase.auth.getUser()
                 if (error || !user) {
-                    const url = request.nextUrl.clone()
-                    url.pathname = '/login'
-                    url.searchParams.set('next', pathname)
-                    return NextResponse.redirect(url)
+                    // localStorage-first: Allow pass through
+                    return response
                 }
             }
         }
@@ -122,10 +120,8 @@ export async function updateSession(request: NextRequest) {
         // On auth error for protected routes, redirect to login
         const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route))
         if (isProtectedRoute) {
-            const url = request.nextUrl.clone()
-            url.pathname = '/login'
-            url.searchParams.set('next', pathname)
-            return NextResponse.redirect(url)
+            // localStorage-first: Allow pass through even on error
+            return response
         }
     }
 
