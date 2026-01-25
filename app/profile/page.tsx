@@ -75,7 +75,12 @@ export default function ProfilePage() {
                     router.push('/login?next=/profile')
                     return
                 }
-            } catch (err) {
+            } catch (err: any) {
+                // Ignore AbortError - React Strict Mode cleanup
+                if (err.name === 'AbortError') {
+                    console.log('[Profile] AbortError ignored')
+                    return
+                }
                 console.error('[Profile] Error loading profile:', err)
             } finally {
                 setLoading(false)

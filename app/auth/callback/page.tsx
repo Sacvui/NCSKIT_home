@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useRef, Suspense } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getSupabase } from '@/utils/supabase/client'
 import { NCSLoader } from '@/components/ui/NCSLoader'
@@ -16,17 +16,12 @@ function AuthCallbackContent() {
     const errorDesc = searchParams.get('error_description')
 
     const [status, setStatus] = useState('Đang kết nối...')
-
-    // CRITICAL: Use ref to prevent double execution in React Strict Mode
-    const hasRun = useRef(false)
+    const [isProcessing, setIsProcessing] = useState(false)
 
     useEffect(() => {
-        // Prevent double execution
-        if (hasRun.current) {
-            console.log('[Callback] Already running, skipping...')
-            return
-        }
-        hasRun.current = true
+        // Prevent concurrent processing
+        if (isProcessing) return
+        setIsProcessing(true)
 
         // 1. Handle explicit errors from OAuth provider
         if (errorParam) {
@@ -40,18 +35,19 @@ function AuthCallbackContent() {
 
         const handleAuth = async () => {
             try {
-                // 2. Check if we already have a session (Auto-detect worked)
+                // 2. FIRST: Check if we already have a session (auto-detect worked or previous success)
                 const { data: { session: existingSession } } = await supabase.auth.getSession()
 
                 if (existingSession) {
-                    console.log('[Callback] Existing session found, redirecting to:', next)
+                    console.log('[Callback] Session exists! Redirecting to:', next)
+                    setStatus('Đăng nhập thành công!')
                     router.replace(next)
                     return
                 }
 
-                // 3. If no session but we have a code, try manual exchange
+                // 3. No session yet - try manual exchange if we have a code
                 if (code) {
-                    console.log('[Callback] No session yet, attempting manual exchange...')
+                    console.log('[Callback] No session, attempting exchange with code...')
                     setStatus('Đang xác thực bảo mật...')
 
                     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
@@ -59,42 +55,57 @@ function AuthCallbackContent() {
                     if (error) {
                         console.error('[Callback] Exchange error:', error.message)
 
-                        // Handle specific errors
-                        if (error.message.includes('flow state not found') || error.message.includes('PKCE')) {
-                            setStatus('Phiên đăng nhập hết hạn. Vui lòng thử lại.')
-                        } else if (error.message.includes('already been used')) {
-                            // Code already used - check if session exists now
+                        // Handle "already used" - session might exist now
+                        if (error.message.includes('already been used') || error.message.includes('flow state')) {
+                            // Re-check session
                             const { data: { session: retrySession } } = await supabase.auth.getSession()
                             if (retrySession) {
-                                console.log('[Callback] Code used but session exists, redirecting...')
+                                console.log('[Callback] Session found after error, redirecting...')
+                                setStatus('Đăng nhập thành công!')
                                 router.replace(next)
                                 return
                             }
-                            setStatus('Mã xác thực đã được sử dụng. Vui lòng thử lại.')
+                            setStatus('Mã xác thực đã được sử dụng. Đang thử lại...')
                         } else {
-                            setStatus('Lỗi xác thực: ' + error.message)
+                            setStatus('Lỗi: ' + error.message.substring(0, 50))
                         }
                         setTimeout(() => router.push('/login'), 3000)
                         return
                     }
 
                     if (data.session) {
-                        console.log('[Callback] Manual exchange success! Redirecting to:', next)
+                        console.log('[Callback] Exchange success! Redirecting to:', next)
+                        setStatus('Đăng nhập thành công!')
                         router.replace(next)
                         return
                     }
                 }
 
-                // 4. No code and no session - redirect to login
-                console.warn('[Callback] No code and no session, redirecting to login')
+                // 4. No code and no session - wait a moment then check again (auto-detect delay)
+                console.log('[Callback] No immediate session, waiting for auto-detect...')
+                setStatus('Đang chờ xác thực...')
+
+                await new Promise(resolve => setTimeout(resolve, 2000))
+
+                const { data: { session: delayedSession } } = await supabase.auth.getSession()
+                if (delayedSession) {
+                    console.log('[Callback] Session detected after delay, redirecting...')
+                    setStatus('Đăng nhập thành công!')
+                    router.replace(next)
+                    return
+                }
+
+                // 5. Still no session - redirect to login
+                console.warn('[Callback] No session established, redirecting to login')
                 setStatus('Không tìm thấy phiên đăng nhập.')
                 setTimeout(() => router.push('/login'), 2000)
 
             } catch (err: any) {
-                // CRITICAL: Ignore AbortError - it's just React Strict Mode cleanup
+                // Ignore AbortError completely - don't change state
                 if (err.name === 'AbortError') {
-                    console.log('[Callback] AbortError ignored (React Strict Mode)')
-                    return // Do NOT redirect on AbortError
+                    console.log('[Callback] AbortError ignored, letting next attempt proceed')
+                    setIsProcessing(false) // Allow retry
+                    return
                 }
 
                 console.error('[Callback] Unexpected error:', err)
@@ -104,7 +115,7 @@ function AuthCallbackContent() {
         }
 
         handleAuth()
-    }, [code, next, errorParam, errorDesc, router])
+    }, [code, next, errorParam, errorDesc, router, isProcessing])
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#f9fafe]">
