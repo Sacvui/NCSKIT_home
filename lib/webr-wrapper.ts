@@ -229,7 +229,7 @@ export async function runCronbachAlpha(
     # omega() requires at least 3 items
     omega_result <- tryCatch({
         if (ncol(data) >= 3) {
-            om <- omega(data, nfactors = 1, plot = FALSE, warnings = FALSE)
+            om <- omega(data, nfactors = 1, plot = FALSE, warnings = FALSE, check.keys = TRUE)
             list(
                 omega_total = om$omega.tot,
                 omega_h = om$omega_h
