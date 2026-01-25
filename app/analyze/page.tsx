@@ -417,9 +417,18 @@ export default function AnalyzePage() {
             // Deduct credits on success
             if (user) {
                 const cost = await getAnalysisCost('cronbach');
-                await deductCredits(user.id, cost, `Cronbach Alpha: ${name}`);
-                await logAnalysisUsage(user.id, 'cronbach', cost);
-                setNcsBalance(prev => Math.max(0, prev - cost));
+                console.log(`[NCS] Deducting ${cost} credits for Cronbach Alpha, user: ${user.id}`);
+                const result = await deductCredits(user.id, cost, `Cronbach Alpha: ${name}`);
+                if (result.success) {
+                    await logAnalysisUsage(user.id, 'cronbach', cost);
+                    setNcsBalance(result.newBalance);
+                    console.log(`[NCS] Deduction successful. New balance: ${result.newBalance}`);
+                } else {
+                    console.warn(`[NCS] Deduction failed: ${result.error}`);
+                    showToast(`Lỗi trừ điểm: ${result.error}`, 'error');
+                }
+            } else {
+                console.warn('[NCS] User is null - cannot deduct credits. Auth may not have loaded.');
             }
 
             setResults({
