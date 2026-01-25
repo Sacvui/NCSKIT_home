@@ -5,12 +5,11 @@ import { useState, Suspense, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { ProjectFlowAnimation } from '@/components/login/ProjectFlowAnimation'
 import { Loader2 } from 'lucide-react'
-import WebRPreloader from '@/components/WebRPreloader'
-
 export default function LoginPage() {
     return (
         <Suspense fallback={<div>Loading...</div>}>
-            <WebRPreloader />
+            {/* Disabled WebR Preloader to prevent interfering with Auth flow */}
+            {/* <WebRPreloader /> */}
             <LoginForm />
         </Suspense>
     )
@@ -35,12 +34,19 @@ function LoginForm() {
 
             const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next || '/analyze')}`
 
-            const { error } = await supabase.auth.signInWithOAuth({
+            // Race OAuth call with a timeout to prevent infinite hanging
+            const authPromise = supabase.auth.signInWithOAuth({
                 provider: provider,
                 options: {
                     redirectTo: redirectTo,
                 },
             })
+
+            const timeoutPromise = new Promise<{ error: any }>((_, reject) =>
+                setTimeout(() => reject(new Error('Kết nối xác thực quá chậm. Vui lòng thử lại.')), 15000)
+            )
+
+            const { error }: any = await Promise.race([authPromise, timeoutPromise])
 
             if (error) {
                 console.error('OAuth error:', error)
