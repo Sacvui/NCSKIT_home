@@ -2475,7 +2475,7 @@ export default function AnalyzePage() {
                                         try {
                                             const cols = clusterVars.variables;
                                             const clusterData = data.map(row => cols.map(c => Number(row[c]) || 0));
-                                            const result = await runClusterAnalysis(clusterData, cols, clusterVars.k);
+                                            const result = await runClusterAnalysis(clusterData, clusterVars.k, 'kmeans', cols);
                                             // Deduct credits on success
                                             if (user) {
                                                 const cost = await getAnalysisCost('regression');
