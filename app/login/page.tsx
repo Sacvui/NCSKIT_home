@@ -29,8 +29,9 @@ function LoginForm() {
         try {
             const supabase = getSupabase()
 
-            // Simple signOut - SDK handles PKCE cleanup internally
-            await supabase.auth.signOut()
+            // Do NOT await signOut - it can hang if storage is locked
+            // supabase.auth.signOut() 
+            // Just proceed directly to signIn - Supabase SDK handles session replacement
 
             const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next || '/analyze')}`
 
