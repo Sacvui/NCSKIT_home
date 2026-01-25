@@ -29,23 +29,38 @@ export default function Header({ user, profile: initialProfile, centerContent, r
     const { orcidUser } = useOrcidUser()
 
     // Fallback: If server didn't provide user (cookies not synced), check localStorage client
+    // Fallback: If server didn't provide user (cookies not synced), check localStorage client
     useEffect(() => {
+        let mounted = true
+
         if (!user && !orcidUser) {
             const checkLocalSession = async () => {
                 try {
                     // Use singleton client to avoid multiple instance conflicts
-                    const { data: { user: lsUser } } = await supabase.auth.getUser()
-                    if (lsUser) {
-                        console.log('[Header] Found user in localStorage:', lsUser.id)
-                        setLocalUser(lsUser)
+                    const { data, error } = await supabase.auth.getUser()
+
+                    if (!mounted) return
+
+                    if (data?.user) {
+                        console.log('[Header] Found user in localStorage:', data.user.id)
+                        setLocalUser(data.user)
+                    } else if (error) {
+                        // Ignore abort errors which are harmless race conditions
+                        if (error.name !== 'AbortError') {
+                            console.warn('[Header] Failed to check localStorage session:', error)
+                        }
                     }
-                } catch (err) {
-                    console.warn('[Header] Failed to check localStorage session:', err)
+                } catch (err: any) {
+                    if (err.name !== 'AbortError') {
+                        console.warn('[Header] Unexpected error checking session:', err)
+                    }
                 }
             }
             checkLocalSession()
         }
-    }, [user, orcidUser, supabase])
+
+        return () => { mounted = false }
+    }, [user, orcidUser]) // Removed supabase from deps to ensure stability
 
     // Effective user: Supabase user (server) OR localStorage user OR ORCID user
     const effectiveUser = user || localUser || (orcidUser ? { id: orcidUser.id, email: orcidUser.email } : null)
