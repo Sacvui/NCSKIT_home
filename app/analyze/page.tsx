@@ -49,58 +49,68 @@ export default function AnalyzePage() {
     // Proper authentication - fetch real user from Supabase
     useEffect(() => {
         const checkUser = async () => {
-            const supabase = getSupabase();
+            try {
+                const supabase = getSupabase();
 
-            // 1. Check current session
-            const { data: { session } } = await supabase.auth.getSession();
+                // 1. Check current session
+                const { data: { session }, error } = await supabase.auth.getSession();
 
-            if (session?.user) {
-                setUser(session.user);
-                // Fetch profile
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', session.user.id)
-                    .single();
+                if (error) throw error;
 
-                if (profile) {
-                    setUserProfile(profile);
-                    if (profile.tokens !== undefined) setNcsBalance(profile.tokens);
-                }
-            } else {
-                // 2. Check ORCID
-                const orcidCookie = document.cookie.split(';').find(c => c.trim().startsWith('orcid_user='));
-                if (orcidCookie) {
-                    const profileId = orcidCookie.split('=')[1]?.trim();
-                    if (profileId) {
-                        const { data: profile } = await supabase
-                            .from('profiles')
-                            .select('*')
-                            .eq('id', profileId)
-                            .single();
-                        if (profile) {
-                            const orcidUser = {
-                                id: profileId,
-                                email: profile.email || `${profile.orcid_id}@orcid.org`,
-                                user_metadata: {
-                                    full_name: profile.display_name || profile.full_name,
-                                    avatar_url: profile.avatar_url
-                                }
-                            };
-                            setUser(orcidUser);
-                            setUserProfile(profile);
-                            if (profile.tokens !== undefined) setNcsBalance(profile.tokens);
-                        }
+                if (session?.user) {
+                    setUser(session.user);
+                    // Fetch profile
+                    const { data: profile } = await supabase
+                        .from('profiles')
+                        .select('*')
+                        .eq('id', session.user.id)
+                        .single();
+
+                    if (profile) {
+                        setUserProfile(profile);
+                        if (profile.tokens !== undefined) setNcsBalance(profile.tokens);
                     }
                 } else {
-                    // No user, redirect
-                    // router.push('/login?next=/analyze'); // Optional: enforce login?
+                    // 2. Check ORCID
+                    const orcidCookie = document.cookie.split(';').find(c => c.trim().startsWith('orcid_user='));
+                    if (orcidCookie) {
+                        const profileId = orcidCookie.split('=')[1]?.trim();
+                        if (profileId) {
+                            const { data: profile } = await supabase
+                                .from('profiles')
+                                .select('*')
+                                .eq('id', profileId)
+                                .single();
+                            if (profile) {
+                                const orcidUser = {
+                                    id: profileId,
+                                    email: profile.email || `${profile.orcid_id}@orcid.org`,
+                                    user_metadata: {
+                                        full_name: profile.display_name || profile.full_name,
+                                        avatar_url: profile.avatar_url
+                                    }
+                                };
+                                setUser(orcidUser);
+                                setUserProfile(profile);
+                                if (profile.tokens !== undefined) setNcsBalance(profile.tokens);
+                            }
+                        }
+                    }
                 }
+            } catch (error) {
+                console.error("Auth check failed:", error);
+                // Optionally show toast or error message
+            } finally {
+                setLoading(false);
             }
-            setLoading(false);
         };
 
-        checkUser();
+        // Safety timeout in case auth hangs
+        const timeoutId = setTimeout(() => {
+            setLoading(false);
+        }, 8000);
+
+        checkUser().then(() => clearTimeout(timeoutId));
 
         // Listen for auth changes
         const supabase = getSupabase();
