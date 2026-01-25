@@ -70,7 +70,7 @@ export function ResultsDisplay({
                 return <RegressionResults results={results} columns={results.columns || []} />;
             case 'cronbach':
             case 'omega':
-                return <CronbachResults results={results} columns={results.columns || []} onProceedToEFA={onProceedToEFA} scaleName={scaleName} />;
+                return <CronbachResults results={results} columns={results.columns || []} onProceedToEFA={onProceedToEFA} scaleName={scaleName} analysisType={analysisType} />;
             case 'efa':
                 return <EFAResults results={results} columns={results.columns || []} onProceedToCFA={onProceedToCFA} />;
             case 'cfa':
@@ -470,7 +470,19 @@ function ANOVAResults({ results, columns }: { results: any; columns: string[] })
     );
 }
 
-function CronbachResults({ results, columns, onProceedToEFA, scaleName }: { results: any; columns?: string[]; onProceedToEFA?: (goodItems: string[]) => void; scaleName?: string }) {
+function CronbachResults({
+    results,
+    columns,
+    onProceedToEFA,
+    scaleName,
+    analysisType
+}: {
+    results: any;
+    columns?: string[];
+    onProceedToEFA?: (goodItems: string[]) => void;
+    scaleName?: string;
+    analysisType?: string;
+}) {
     const alpha = results.alpha || results.rawAlpha || 0;
     const nItems = results.nItems || 'N/A';
     const itemTotalStats = results.itemTotalStats || [];
@@ -498,7 +510,7 @@ function CronbachResults({ results, columns, onProceedToEFA, scaleName }: { resu
             {/* Reliability Statistics Table */}
             <Card>
                 <CardHeader>
-                    <CardTitle>Reliability Statistics</CardTitle>
+                    <CardTitle>{analysisType === 'omega' ? 'McDonald\'s Omega Reliability' : 'Reliability Statistics'}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <table className="w-full text-left text-sm">
@@ -511,13 +523,13 @@ function CronbachResults({ results, columns, onProceedToEFA, scaleName }: { resu
                         </thead>
                         <tbody>
                             <tr className="border-b border-gray-100">
-                                <td className="py-2 pr-4 font-medium">Cronbach&apos;s Alpha</td>
-                                <td className="py-2 pr-4">{alpha.toFixed(3)}</td>
+                                <td className={`py-2 pr-4 font-medium ${analysisType !== 'omega' ? 'text-black font-bold' : 'text-gray-600'}`}>Cronbach&apos;s Alpha</td>
+                                <td className={`py-2 pr-4 ${analysisType !== 'omega' ? 'font-bold' : ''}`}>{alpha.toFixed(3)}</td>
                                 <td className="py-2 pr-4 row-span-3 align-middle border-l border-gray-100 pl-4">{nItems}</td>
                             </tr>
                             <tr className="border-b border-gray-100">
-                                <td className="py-2 pr-4 font-medium">McDonald&apos;s Omega (Total)</td>
-                                <td className="py-2 pr-4">{results.omega ? results.omega.toFixed(3) : '-'}</td>
+                                <td className={`py-2 pr-4 font-medium ${analysisType === 'omega' ? 'text-black font-bold' : 'text-gray-600'}`}>McDonald&apos;s Omega (Total)</td>
+                                <td className={`py-2 pr-4 ${analysisType === 'omega' ? 'font-bold' : ''}`}>{results.omega ? results.omega.toFixed(3) : '-'}</td>
                             </tr>
                             <tr>
                                 <td className="py-2 pr-4 font-medium text-gray-400 text-xs">Omega Hierarchical</td>

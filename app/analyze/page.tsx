@@ -46,30 +46,31 @@ export default function AnalyzePage() {
     const [loading, setLoading] = useState(true);
 
     // Proper authentication - fetch real user from Supabase
+    // Proper authentication - fetch real user from Supabase
     useEffect(() => {
-        const getUser = async () => {
+        const checkUser = async () => {
             const supabase = getSupabase();
-            const { data: { user } } = await supabase.auth.getUser();
 
-            if (user) {
-                setUser(user);
-                // Fetch user profile
+            // 1. Check current session
+            const { data: { session } } = await supabase.auth.getSession();
+
+            if (session?.user) {
+                setUser(session.user);
+                // Fetch profile
                 const { data: profile } = await supabase
                     .from('profiles')
                     .select('*')
-                    .eq('id', user.id)
+                    .eq('id', session.user.id)
                     .single();
-                setUserProfile(profile);
 
-                // Set NCS balance from profile tokens
-                if (profile?.tokens !== undefined) {
-                    setNcsBalance(profile.tokens);
+                if (profile) {
+                    setUserProfile(profile);
+                    if (profile.tokens !== undefined) setNcsBalance(profile.tokens);
                 }
             } else {
-                // Check for ORCID session cookie
+                // 2. Check ORCID
                 const orcidCookie = document.cookie.split(';').find(c => c.trim().startsWith('orcid_user='));
                 if (orcidCookie) {
-                    // ORCID user - fetch profile using the cookie value (profile ID)
                     const profileId = orcidCookie.split('=')[1]?.trim();
                     if (profileId) {
                         const { data: profile } = await supabase
@@ -77,9 +78,7 @@ export default function AnalyzePage() {
                             .select('*')
                             .eq('id', profileId)
                             .single();
-
                         if (profile) {
-                            // Create mock user object for Header/UserMenu
                             const orcidUser = {
                                 id: profileId,
                                 email: profile.email || `${profile.orcid_id}@orcid.org`,
@@ -90,22 +89,42 @@ export default function AnalyzePage() {
                             };
                             setUser(orcidUser);
                             setUserProfile(profile);
-
-                            if (profile.tokens !== undefined) {
-                                setNcsBalance(profile.tokens);
-                            }
+                            if (profile.tokens !== undefined) setNcsBalance(profile.tokens);
                         }
                     }
                 } else {
-                    // No auth at all - redirect to login
-                    router.push('/login?next=/analyze');
-                    return;
+                    // No user, redirect
+                    // router.push('/login?next=/analyze'); // Optional: enforce login?
                 }
             }
             setLoading(false);
         };
-        getUser();
-    }, [router])
+
+        checkUser();
+
+        // Listen for auth changes
+        const supabase = getSupabase();
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (session?.user) {
+                setUser(session.user);
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', session.user.id)
+                    .single();
+                if (profile) {
+                    setUserProfile(profile);
+                    if (profile.tokens !== undefined) setNcsBalance(profile.tokens);
+                }
+            } else if (event === 'SIGNED_OUT') {
+                setUser(null);
+                setUserProfile(null);
+            }
+        });
+
+        return () => subscription.unsubscribe();
+
+    }, [router]);
 
     // Session State Management
     const {
@@ -771,6 +790,7 @@ export default function AnalyzePage() {
             {/* Header with Integrated Toolbar */}
             <Header
                 user={user}
+                profile={userProfile}
                 hideNav={true}
                 centerContent={
                     <AnalysisToolbar
