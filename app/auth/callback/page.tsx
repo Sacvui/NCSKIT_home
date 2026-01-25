@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, Suspense, useCallback } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getSupabase } from '@/utils/supabase/client'
 import { NCSLoader } from '@/components/ui/NCSLoader'
@@ -15,13 +15,6 @@ function AuthCallbackContent() {
 
     const [status, setStatus] = useState('Đang xác thực...')
 
-    // Simple polling approach - let Supabase handle detectSessionInUrl automatically
-    const checkSession = useCallback(async () => {
-        const supabase = getSupabase()
-        const { data: { session } } = await supabase.auth.getSession()
-        return session
-    }, [])
-
     useEffect(() => {
         // Handle OAuth errors
         if (errorParam) {
@@ -31,55 +24,64 @@ function AuthCallbackContent() {
             return
         }
 
-        let mounted = true
-        let attempts = 0
-        const maxAttempts = 15 // 15 attempts * 1s = 15 seconds max
+        const supabase = getSupabase()
+        let redirected = false
 
-        const pollSession = async () => {
-            while (mounted && attempts < maxAttempts) {
-                attempts++
-                console.log(`[Callback] Checking session (attempt ${attempts}/${maxAttempts})...`)
+        // Use event listener - not affected by AbortController
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            console.log('[Callback] Auth event:', event, session ? 'Session exists' : 'No session')
 
-                try {
-                    const session = await checkSession()
+            if (redirected) return
 
-                    if (session) {
-                        console.log('[Callback] Session found! Redirecting to:', next)
-                        setStatus('Đăng nhập thành công!')
+            if (event === 'SIGNED_IN' && session) {
+                redirected = true
+                console.log('[Callback] SIGNED_IN detected, redirecting to:', next)
+                setStatus('Đăng nhập thành công!')
+                setTimeout(() => router.replace(next), 500)
+            } else if (event === 'TOKEN_REFRESHED' && session) {
+                redirected = true
+                console.log('[Callback] TOKEN_REFRESHED, redirecting to:', next)
+                setStatus('Đăng nhập thành công!')
+                setTimeout(() => router.replace(next), 500)
+            }
+        })
 
-                        // Small delay for UX
-                        await new Promise(r => setTimeout(r, 500))
+        // Also check immediately if session already exists (from auto-detect)
+        // Use a simple timeout to avoid AbortError
+        const checkExisting = setTimeout(async () => {
+            if (redirected) return
 
-                        if (mounted) {
-                            router.replace(next)
-                        }
-                        return
-                    }
-                } catch (err: any) {
-                    // Ignore errors, just keep polling
+            try {
+                const { data: { session } } = await supabase.auth.getSession()
+                if (session && !redirected) {
+                    redirected = true
+                    console.log('[Callback] Existing session found, redirecting to:', next)
+                    setStatus('Đăng nhập thành công!')
+                    setTimeout(() => router.replace(next), 500)
+                }
+            } catch (err: any) {
+                // Ignore AbortError - the event listener will handle it
+                if (err.name !== 'AbortError') {
                     console.log('[Callback] Session check error:', err.message)
                 }
-
-                // Wait 1 second before next attempt
-                await new Promise(r => setTimeout(r, 1000))
             }
+        }, 100)
 
-            // Max attempts reached without finding session
-            if (mounted) {
-                console.log('[Callback] Timeout - no session found')
+        // Timeout fallback
+        const timeoutId = setTimeout(() => {
+            if (!redirected) {
+                console.log('[Callback] Auth timeout')
                 setStatus('Không thể xác thực. Vui lòng thử lại.')
                 setTimeout(() => router.push('/login'), 2000)
             }
-        }
-
-        // Start polling after a small delay (let Supabase process the URL)
-        const timeoutId = setTimeout(pollSession, 500)
+        }, 15000) // 15 second timeout
 
         return () => {
-            mounted = false
+            subscription.unsubscribe()
+            clearTimeout(checkExisting)
             clearTimeout(timeoutId)
         }
-    }, [errorParam, errorDesc, router, next, checkSession])
+    }, [errorParam, errorDesc, router, next])
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#f9fafe]">
