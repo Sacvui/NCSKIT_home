@@ -22,13 +22,34 @@ export default function Header({ user, profile: initialProfile, centerContent, r
     const pathname = usePathname()
     const [profile, setProfile] = useState<any>(initialProfile)
     const [locale, setLocale] = useState<Locale>('vi')
+    const [localUser, setLocalUser] = useState<any>(null)
     const supabase = getSupabase()
 
     // ORCID session check for users who logged in via ORCID
     const { orcidUser } = useOrcidUser()
 
-    // Effective user: Supabase user OR ORCID user
-    const effectiveUser = user || (orcidUser ? { id: orcidUser.id, email: orcidUser.email } : null)
+    // Fallback: If server didn't provide user (cookies not synced), check localStorage client
+    useEffect(() => {
+        if (!user && !orcidUser) {
+            const checkLocalSession = async () => {
+                try {
+                    const { createClientOnly } = await import('@/utils/supabase/client-only')
+                    const localClient = createClientOnly()
+                    const { data: { user: lsUser } } = await localClient.auth.getUser()
+                    if (lsUser) {
+                        console.log('[Header] Found user in localStorage:', lsUser.id)
+                        setLocalUser(lsUser)
+                    }
+                } catch (err) {
+                    console.warn('[Header] Failed to check localStorage session:', err)
+                }
+            }
+            checkLocalSession()
+        }
+    }, [user, orcidUser])
+
+    // Effective user: Supabase user (server) OR localStorage user OR ORCID user
+    const effectiveUser = user || localUser || (orcidUser ? { id: orcidUser.id, email: orcidUser.email } : null)
     const effectiveProfile = profile || (orcidUser ? {
         id: orcidUser.id,
         full_name: orcidUser.full_name,
@@ -49,13 +70,14 @@ export default function Header({ user, profile: initialProfile, centerContent, r
     }, [])
 
     useEffect(() => {
-        if (!user) return
+        const targetUser = user || localUser
+        if (!targetUser) return
 
         const fetchProfile = async () => {
             const { data } = await supabase
                 .from('profiles')
                 .select('*')
-                .eq('id', user.id)
+                .eq('id', targetUser.id)
                 .single()
             if (data) setProfile(data)
         }
@@ -68,14 +90,14 @@ export default function Header({ user, profile: initialProfile, centerContent, r
 
         // Subscribe to real-time changes
         const channel = supabase
-            .channel(`profile-${user.id}`)
+            .channel(`profile-${targetUser.id}`)
             .on(
                 'postgres_changes',
                 {
                     event: '*',
                     schema: 'public',
                     table: 'profiles',
-                    filter: `id=eq.${user.id}`,
+                    filter: `id=eq.${targetUser.id}`,
                 },
                 (payload: any) => {
                     setProfile(payload.new)
@@ -86,7 +108,7 @@ export default function Header({ user, profile: initialProfile, centerContent, r
         return () => {
             supabase.removeChannel(channel)
         }
-    }, [initialProfile, user, supabase])
+    }, [initialProfile, user, localUser, supabase])
 
     return (
         <header className="bg-white/80 backdrop-blur-md shadow-sm border-b border-slate-200 sticky top-0 z-50">
