@@ -41,11 +41,10 @@ function AuthCallbackContent() {
 
                 if (data.session) {
                     console.log('[Auth] Success! User:', data.session.user.id)
-                    setStatus('Đăng nhập thành công!')
+                    // status not needed - just go
 
-                    // Instant redirect - no cookie sync needed!
-                    // Pages will check localStorage client for session
-                    window.location.href = next
+                    // SPA navigation for instant feel
+                    router.replace(next)
                 }
             } catch (error: any) {
                 console.error('[Auth] Error:', error)
