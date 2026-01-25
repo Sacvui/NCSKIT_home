@@ -1,40 +1,71 @@
-import { createClient } from '@/utils/supabase/server'
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { Shield, LayoutDashboard, MessageSquare, ArrowLeft, Users } from 'lucide-react'
+'use client'
 
-export default async function AdminLayout({
+import { useState, useEffect } from 'react'
+import { useRouter, usePathname } from 'next/navigation'
+import { getSupabase } from '@/utils/supabase/client'
+import Link from 'next/link'
+import { Shield, MessageSquare, ArrowLeft, Users, Loader2 } from 'lucide-react'
+
+export default function AdminLayout({
     children,
 }: {
     children: React.ReactNode
 }) {
-    const supabase = await createClient()
+    const router = useRouter()
+    const pathname = usePathname()
+    const supabase = getSupabase()
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
+    const [loading, setLoading] = useState(true)
+    const [isAdmin, setIsAdmin] = useState(false)
 
-    if (!user) {
-        redirect('/login')
+    useEffect(() => {
+        const checkAdmin = async () => {
+            try {
+                const { data: { user }, error } = await supabase.auth.getUser()
+
+                if (error || !user) {
+                    router.push('/login?next=' + pathname)
+                    return
+                }
+
+                // Check if user is admin
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', user.id)
+                    .single()
+
+                if (profile?.role !== 'admin') {
+                    router.push('/')
+                    return
+                }
+
+                setIsAdmin(true)
+            } catch (err) {
+                console.error('[Admin] Error checking admin:', err)
+                router.push('/login')
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        checkAdmin()
+    }, [router, pathname, supabase])
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="w-10 h-10 animate-spin text-blue-600 mx-auto mb-4" />
+                    <p className="text-slate-500">Đang xác thực quyền admin...</p>
+                </div>
+            </div>
+        )
     }
 
-    // Check if user is admin
-    // Note: We need to select the role. 
-    // If the profile doesn't exist yet (race condition on signup), this might fail or return null.
-    // Ideally, middleware handles protection, but layout is a good second layer.
-    // Check user role
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
-
-    if (profile?.role !== 'admin') {
-        // Redirect to home or 403 page
-        redirect('/')
+    if (!isAdmin) {
+        return null // Will redirect
     }
-
-
 
     return (
         <div className="min-h-screen bg-slate-50 flex">
@@ -48,11 +79,10 @@ export default async function AdminLayout({
                 </div>
 
                 <nav className="flex-1 p-4 space-y-1">
-                    <NavLink href="/admin/feedback" icon={<MessageSquare className="w-4 h-4" />}>
+                    <NavLink href="/admin/feedback" icon={<MessageSquare className="w-4 h-4" />} active={pathname?.includes('/feedback')}>
                         Phản hồi (Feedback)
                     </NavLink>
-                    {/* Future: Users management */}
-                    <NavLink href="/admin/users" icon={<Users className="w-4 h-4" />}>
+                    <NavLink href="/admin/users" icon={<Users className="w-4 h-4" />} active={pathname?.includes('/users')}>
                         Người dùng
                     </NavLink>
                 </nav>
@@ -73,13 +103,14 @@ export default async function AdminLayout({
     )
 }
 
-function NavLink({ href, icon, children }: { href: string; icon: any; children: React.ReactNode }) {
-    // Simple check for active state could be added here using usePathname if this was a client component
-    // For now, simple styling.
+function NavLink({ href, icon, children, active }: { href: string; icon: any; children: React.ReactNode; active?: boolean }) {
     return (
         <Link
             href={href}
-            className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-slate-800 hover:text-white transition-all font-medium"
+            className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all ${active
+                    ? 'bg-slate-800 text-white'
+                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                }`}
         >
             {icon}
             {children}

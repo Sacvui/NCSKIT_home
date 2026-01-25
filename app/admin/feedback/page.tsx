@@ -1,33 +1,58 @@
-import { createClient } from '@/utils/supabase/server'
-import { Download, Search, Star, MessageSquare } from 'lucide-react'
-import { redirect } from 'next/navigation'
+'use client'
+
+import { useState, useEffect } from 'react'
+import { getSupabase } from '@/utils/supabase/client'
+import { Star, MessageSquare, Loader2 } from 'lucide-react'
 import ExportButton from './export-button'
 
-export default async function AdminFeedbackPage() {
-    const supabase = await createClient()
+export default function AdminFeedbackPage() {
+    const supabase = getSupabase()
+    const [loading, setLoading] = useState(true)
+    const [feedbacks, setFeedbacks] = useState<any[]>([])
+    const [averageRating, setAverageRating] = useState('0.0')
 
-    // Fetch feedback with user profiles
-    // Note: We need to join with profiles to get user details
-    const { data: feedbacks, error } = await supabase
-        .from('feedback')
-        .select(`
-      *,
-      profiles:user_id (
-        email,
-        full_name,
-        avatar_url
-      )
-    `)
-        .order('created_at', { ascending: false })
+    useEffect(() => {
+        const loadFeedback = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('feedback')
+                    .select(`
+                        *,
+                        profiles:user_id (
+                            email,
+                            full_name,
+                            avatar_url
+                        )
+                    `)
+                    .order('created_at', { ascending: false })
 
-    if (error) {
-        console.error('Error fetching feedback:', error)
+                if (error) {
+                    console.error('Error fetching feedback:', error)
+                } else if (data) {
+                    setFeedbacks(data)
+                    // Calculate average rating
+                    const avg = data.length
+                        ? (data.reduce((acc, curr) => acc + (curr.rating || 0), 0) / data.length).toFixed(1)
+                        : '0.0'
+                    setAverageRating(avg)
+                }
+            } catch (err) {
+                console.error('[Feedback] Error:', err)
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        loadFeedback()
+    }, [supabase])
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center py-20">
+                <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            </div>
+        )
     }
-
-    // Calculate average rating
-    const averageRating = feedbacks?.length
-        ? (feedbacks!.reduce((acc, curr) => acc + (curr.rating || 0), 0) / feedbacks!.length).toFixed(1)
-        : '0.0'
 
     return (
         <div className="space-y-8">
@@ -37,9 +62,7 @@ export default async function AdminFeedbackPage() {
                     <h1 className="text-2xl font-bold text-slate-900">Quản lý Phản hồi</h1>
                     <p className="text-slate-500 text-sm mt-1">Xem và quản lý ý kiến đóng góp từ người dùng</p>
                 </div>
-
-                {/* Export Button (Client Component Wrapper or simple link if implemented) */}
-                <ExportButton feedbacks={feedbacks || []} />
+                <ExportButton feedbacks={feedbacks} />
             </div>
 
             {/* Stats Cards */}
@@ -51,7 +74,7 @@ export default async function AdminFeedbackPage() {
                         </div>
                         <div>
                             <p className="text-sm font-medium text-slate-500 uppercase">Tổng phản hồi</p>
-                            <p className="text-3xl font-bold text-slate-900">{feedbacks?.length || 0}</p>
+                            <p className="text-3xl font-bold text-slate-900">{feedbacks.length}</p>
                         </div>
                     </div>
                 </div>
@@ -81,7 +104,7 @@ export default async function AdminFeedbackPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
-                            {feedbacks?.map((item: any) => (
+                            {feedbacks.map((item: any) => (
                                 <tr key={item.id} className="hover:bg-slate-50 transition-colors">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
@@ -108,7 +131,7 @@ export default async function AdminFeedbackPage() {
                                     </td>
                                 </tr>
                             ))}
-                            {feedbacks?.length === 0 && (
+                            {feedbacks.length === 0 && (
                                 <tr>
                                     <td colSpan={4} className="px-6 py-12 text-center text-slate-500">
                                         Chưa có phản hồi nào.
