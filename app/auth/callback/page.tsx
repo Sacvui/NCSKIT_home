@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getSupabase } from '@/utils/supabase/client'
-import { Loader2 } from 'lucide-react'
+import { NCSLoader } from '@/components/ui/NCSLoader'
 
 function AuthCallbackContent() {
     const router = useRouter()
@@ -74,9 +74,7 @@ function AuthCallbackContent() {
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-[#f9fafe] text-gray-600">
-            <Loader2 className="w-10 h-10 animate-spin text-blue-600 mb-4" />
-            <h2 className="text-xl font-semibold">{status}</h2>
-            <p className="text-sm text-gray-400 mt-2">Vui lòng chờ trong giây lát...</p>
+            <NCSLoader text={status} size="lg" />
         </div>
     )
 }
@@ -84,9 +82,8 @@ function AuthCallbackContent() {
 export default function AuthCallbackPage() {
     return (
         <Suspense fallback={
-            <div className="flex flex-col items-center justify-center min-h-screen bg-[#f9fafe] text-gray-600">
-                <Loader2 className="w-10 h-10 animate-spin text-blue-600 mb-4" />
-                <h2 className="text-xl font-semibold">Đang tải...</h2>
+            <div className="flex flex-col items-center justify-center min-h-screen bg-[#f9fafe]">
+                <NCSLoader text="Đang kết nối..." size="lg" />
             </div>
         }>
             <AuthCallbackContent />

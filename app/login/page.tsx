@@ -5,6 +5,7 @@ import { useState, Suspense, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { ProjectFlowAnimation } from '@/components/login/ProjectFlowAnimation'
 import { Loader2 } from 'lucide-react'
+import { NCSLoader } from '@/components/ui/NCSLoader'
 export default function LoginPage() {
     return (
         <Suspense fallback={<div>Loading...</div>}>
@@ -206,14 +207,9 @@ function LoadingState({ context }: { context?: string }) {
     }, [texts.length])
 
     return (
-        <div className="w-full py-12 flex flex-col items-center justify-center text-center space-y-4 animate-in fade-in duration-500">
-            <div className="relative">
-                <div className="h-16 w-16 rounded-full border-4 border-blue-100 animate-pulse"></div>
-                <div className="absolute top-0 left-0 h-16 w-16 rounded-full border-4 border-blue-600 border-t-transparent animate-spin"></div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                    <Loader2 className="h-6 w-6 text-blue-600 animate-spin" />
-                </div>
-            </div>
+        <div className="w-full py-12 flex flex-col items-center justify-center text-center space-y-8 animate-in fade-in duration-500">
+            <NCSLoader size="lg" />
+
             <div className="h-8">
                 <p className="text-sm font-medium text-blue-600 animate-pulse">
                     {texts[textIndex]}
