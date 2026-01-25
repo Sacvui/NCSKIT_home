@@ -1,28 +1,54 @@
-import { createClient } from '@/utils/supabase/server'
-import { redirect } from 'next/navigation'
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClientOnly } from '@/utils/supabase/client-only'
 import AdminDashboard from '@/components/admin/AdminDashboard'
+import { Loader2 } from 'lucide-react'
 
-export default async function AdminPage() {
-    const supabase = await createClient()
+export default function AdminPage() {
+    const router = useRouter()
+    const [isLoading, setIsLoading] = useState(true)
+    const [isAuthorized, setIsAuthorized] = useState(false)
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
+    useEffect(() => {
+        const checkAuth = async () => {
+            const supabase = createClientOnly()
+            const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) {
-        redirect('/login?next=/admin')
+            if (!user) {
+                router.push('/login?next=/admin')
+                return
+            }
+
+            // Check Admin Role
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', user.id)
+                .single()
+
+            if (profile?.role !== 'admin') {
+                router.push('/')
+                return
+            }
+
+            setIsAuthorized(true)
+            setIsLoading(false)
+        }
+
+        checkAuth()
+    }, [router])
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+            </div>
+        )
     }
 
-    // Check Admin Role
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
-
-    if (profile?.role !== 'admin') {
-        redirect('/') // Or show 403 Forbidden
-    }
+    if (!isAuthorized) return null
 
     return <AdminDashboard />
 }

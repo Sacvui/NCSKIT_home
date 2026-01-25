@@ -1,12 +1,14 @@
-'use server';
+// REMOVED: 'use server' - converted to client-side fetching
+// 'use server';
 
-import { createClient } from '@/utils/supabase/server';
+import { createClientOnly } from '@/utils/supabase/client-only';
+// import { createClient } from '@/utils/supabase/server';
 import { recordTokenTransaction, recordTokenTransactionAdmin } from './token-service';
 import { POINTS_CONFIG } from './points-config';
 
-// Get admin dashboard statistics - OPTIMIZED with parallel queries
+// Get admin dashboard statistics - client side
 export async function getAdminDashboardStats() {
-    const supabase = await createClient();
+    const supabase = createClientOnly();
 
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -51,7 +53,7 @@ export async function getAdminDashboardStats() {
 
 // Get user activity chart data (logins per day)
 export async function getUserActivityChart(days = 30) {
-    const supabase = await createClient();
+    const supabase = createClientOnly();
 
     const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 
@@ -76,7 +78,7 @@ export async function getUserActivityChart(days = 30) {
 
 // Get all users with pagination
 export async function getAllUsers(page = 1, pageSize = 20, search?: string) {
-    const supabase = await createClient();
+    const supabase = createClientOnly();
 
     let query = supabase
         .from('profiles')
@@ -105,7 +107,7 @@ export async function getAllUsers(page = 1, pageSize = 20, search?: string) {
 
 // Get detailed user info
 export async function getUserDetails(userId: string) {
-    const supabase = await createClient();
+    const supabase = createClientOnly();
 
     const { data: profile, error: profileError } = await supabase
         .from('profiles')
@@ -162,7 +164,7 @@ export async function adjustUserTokens(
     amount: number,
     reason: string
 ) {
-    const supabase = await createClient();
+    const supabase = createClientOnly();
 
     // Verify caller is admin
     const { data: { user } } = await supabase.auth.getUser();
@@ -190,7 +192,7 @@ export async function adjustUserTokens(
 
 // Update user role
 export async function updateUserRole(userId: string, role: 'user' | 'researcher' | 'admin') {
-    const supabase = await createClient();
+    const supabase = createClientOnly();
 
     // Verify caller is admin
     const { data: { user } } = await supabase.auth.getUser();
@@ -220,7 +222,7 @@ export async function updateUserRole(userId: string, role: 'user' | 'researcher'
 
 // Get invitation statistics
 export async function getInvitationStats() {
-    const supabase = await createClient();
+    const supabase = createClientOnly();
 
     const { data, error } = await supabase
         .from('invitations')
@@ -244,7 +246,7 @@ export async function getInvitationStats() {
 
 // Get top inviters
 export async function getTopInviters(limit = 10) {
-    const supabase = await createClient();
+    const supabase = createClientOnly();
 
     const { data } = await supabase
         .from('invitations')
@@ -286,7 +288,7 @@ export async function getTopInviters(limit = 10) {
 
 // Get activity breakdown
 export async function getActivityBreakdown(days = 30) {
-    const supabase = await createClient();
+    const supabase = createClientOnly();
 
     const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
 
