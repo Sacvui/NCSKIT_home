@@ -11,15 +11,31 @@ interface MobileWebRFallbackProps {
 export function MobileWebRFallback({ error, onDismiss }: MobileWebRFallbackProps) {
     const [isMobile, setIsMobile] = useState(false)
     const [dismissed, setDismissed] = useState(false)
+    const [showProactiveWarning, setShowProactiveWarning] = useState(false)
 
     useEffect(() => {
         // Detect mobile browser
         const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera
         const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i
-        setIsMobile(mobileRegex.test(userAgent.toLowerCase()))
+        const isMobileBrowser = mobileRegex.test(userAgent.toLowerCase())
+        setIsMobile(isMobileBrowser)
+
+        // Proactive SharedArrayBuffer check for mobile
+        if (isMobileBrowser) {
+            try {
+                const hasSharedArrayBuffer = typeof SharedArrayBuffer !== 'undefined'
+                if (!hasSharedArrayBuffer) {
+                    console.warn('[MobileWebRFallback] SharedArrayBuffer not available on this mobile browser')
+                    setShowProactiveWarning(true)
+                }
+            } catch {
+                setShowProactiveWarning(true)
+            }
+        }
     }, [])
 
-    if (dismissed || !error) return null
+    // Show proactive warning OR error-triggered warning
+    if (dismissed || (!error && !showProactiveWarning)) return null
 
     const handleDismiss = () => {
         setDismissed(true)

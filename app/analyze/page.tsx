@@ -36,6 +36,7 @@ import { getAnalysisCost, checkBalance, deductCredits, getUserBalance } from '@/
 import { logAnalysisUsage, logExport } from '@/lib/activity-logger';
 import { InsufficientCreditsModal } from '@/components/InsufficientCreditsModal';
 import { NcsBalanceBadge } from '@/components/NcsBalanceBadge';
+import { MobileWebRFallback, useSharedArrayBufferSupport } from '@/components/MobileWebRFallback';
 
 export default function AnalyzePage() {
     const router = useRouter()
@@ -105,10 +106,11 @@ export default function AnalyzePage() {
             }
         };
 
-        // Safety timeout in case auth hangs
+        // Safety timeout in case auth hangs - reduced from 8s to 3s for faster UX
         const timeoutId = setTimeout(() => {
+            console.log('[Auth] Timeout reached, proceeding without auth');
             setLoading(false);
-        }, 8000);
+        }, 3000);
 
         checkUser().then(() => clearTimeout(timeoutId));
 
@@ -773,11 +775,15 @@ export default function AnalyzePage() {
     ];
 
     if (loading) {
+        const webRStatus = getWebRStatus();
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-50">
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-slate-600 font-medium">Đang tải dữ liệu...</p>
+                    <p className="text-slate-600 font-medium">Đang xác thực...</p>
+                    {webRStatus.isReady && (
+                        <p className="text-green-600 text-sm">✓ R Engine đã sẵn sàng</p>
+                    )}
                 </div>
             </div>
         );
@@ -787,6 +793,9 @@ export default function AnalyzePage() {
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-indigo-50">
             {/* Toast Notification */}
             {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+            {/* Mobile WebR Fallback Warning */}
+            <MobileWebRFallback />
 
             {/* Offline Warning Banner */}
             {!isOnline && (
