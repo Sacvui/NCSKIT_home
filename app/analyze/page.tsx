@@ -862,25 +862,42 @@ export default function AnalyzePage() {
             {/* Progress Steps */}
             <div className="container mx-auto px-6 py-8">
                 <div className="flex items-center justify-center gap-4 mb-8">
-                    {['upload', 'profile', 'analyze', 'results'].map((s, idx) => (
-                        <div key={s} className="flex items-center">
-                            <div
-                                className={`
-                  w-10 h-10 rounded-full flex items-center justify-center font-bold
-                  ${step === s ? 'bg-blue-600 text-white' :
-                                        ['upload', 'profile', 'analyze', 'results'].indexOf(step) > idx ?
-                                            'bg-green-500 text-white' : 'bg-gray-200 text-gray-500'}
-                `}
-                            >
-                                {idx + 1}
+                    {['upload', 'profile', 'analyze', 'results'].map((s, idx) => {
+                        const stepOrder = ['upload', 'profile', 'analyze', 'results'];
+                        const currentIdx = stepOrder.indexOf(step);
+                        const isCompleted = currentIdx > idx;
+                        const isCurrent = step === s;
+                        const isClickable = isCompleted || isCurrent;
+
+                        return (
+                            <div key={s} className="flex items-center">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        if (isClickable) {
+                                            setStep(s as AnalysisStep);
+                                        }
+                                    }}
+                                    disabled={!isClickable}
+                                    className={`
+                                        w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all
+                                        ${isCurrent ? 'bg-blue-600 text-white ring-4 ring-blue-100' :
+                                            isCompleted ? 'bg-green-500 text-white hover:bg-green-600 hover:scale-110' :
+                                                'bg-gray-200 text-gray-500 cursor-not-allowed'}
+                                        ${isClickable ? 'cursor-pointer hover:shadow-lg' : ''}
+                                    `}
+                                    title={isClickable ? `Quay lại: ${steps.find(st => st.id === s)?.label || s}` : undefined}
+                                >
+                                    {idx + 1}
+                                </button>
+                                {idx < 3 && (
+                                    <div className={`w-16 h-1 ${currentIdx > idx ?
+                                        'bg-green-500' : 'bg-gray-200'
+                                        }`} />
+                                )}
                             </div>
-                            {idx < 3 && (
-                                <div className={`w-16 h-1 ${['upload', 'profile', 'analyze', 'results'].indexOf(step) > idx ?
-                                    'bg-green-500' : 'bg-gray-200'
-                                    }`} />
-                            )}
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
 
                 {/* Content */}
