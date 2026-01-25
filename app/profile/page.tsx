@@ -1,54 +1,105 @@
-import { createClient } from '@/utils/supabase/server'
-import { redirect } from 'next/navigation'
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { getSupabase } from '@/utils/supabase/client'
 import { User, Share2, Copy, BarChart3, Database, Star, Shield } from 'lucide-react'
 import Link from 'next/link'
 import ProfileHeader from '@/components/profile/ProfileHeader'
 import ReferralCard from '@/components/profile/ReferralCard'
 import Header from '@/components/layout/Header'
+import { Loader2 } from 'lucide-react'
 
-export const dynamic = 'force-dynamic'
+export default function ProfilePage() {
+    const router = useRouter()
+    const supabase = getSupabase()
 
-export default async function ProfilePage() {
-    const supabase = await createClient()
+    const [loading, setLoading] = useState(true)
+    const [user, setUser] = useState<any>(null)
+    const [profile, setProfile] = useState<any>(null)
+    const [projects, setProjects] = useState<any[]>([])
+    const [projectsCount, setProjectsCount] = useState(0)
+    const [referralsCount, setReferralsCount] = useState(0)
 
-    const {
-        data: { user },
-    } = await supabase.auth.getUser()
+    useEffect(() => {
+        const loadProfile = async () => {
+            try {
+                // Check auth from localStorage client
+                const { data: { user: authUser }, error } = await supabase.auth.getUser()
 
-    if (!user) {
-        redirect('/login')
+                if (error || !authUser) {
+                    console.log('[Profile] No user found, redirecting to login')
+                    router.push('/login?next=/profile')
+                    return
+                }
+
+                setUser(authUser)
+
+                // Fetch profile
+                const { data: profileData } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', authUser.id)
+                    .single()
+
+                setProfile(profileData)
+
+                // Fetch projects count
+                const { count: pCount } = await supabase
+                    .from('projects')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', authUser.id)
+
+                setProjectsCount(pCount || 0)
+
+                // Fetch referrals count
+                if (profileData?.referral_code) {
+                    const { count: rCount } = await supabase
+                        .from('profiles')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('referred_by_code', profileData.referral_code)
+
+                    setReferralsCount(rCount || 0)
+                }
+
+                // Fetch recent projects
+                const { data: projectsData } = await supabase
+                    .from('projects')
+                    .select('*')
+                    .eq('user_id', authUser.id)
+                    .order('updated_at', { ascending: false })
+                    .limit(10)
+
+                setProjects(projectsData || [])
+
+            } catch (err) {
+                console.error('[Profile] Error loading profile:', err)
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        loadProfile()
+    }, [router, supabase])
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+                <div className="text-center">
+                    <Loader2 className="w-10 h-10 animate-spin text-blue-600 mx-auto mb-4" />
+                    <p className="text-slate-500">Đang tải hồ sơ...</p>
+                </div>
+            </div>
+        )
     }
 
-    // Fetch profile
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user.id)
-        .single()
-
-    // Fetch projects count
-    const { count: projectsCount } = await supabase
-        .from('projects')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user.id)
-
-    // Fetch referrals count
-    const { count: referralsCount } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true })
-        .eq('referred_by_code', profile?.referral_code)
-
-    // Fetch recent projects
-    const { data: projects } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('updated_at', { ascending: false })
-        .limit(10)
+    if (!user) {
+        return null // Will redirect
+    }
 
     return (
         <div className="min-h-screen bg-slate-50">
-            <Header user={user} />
+            <Header user={user} profile={profile} />
             <div className="py-12 container mx-auto px-4 max-w-5xl">
                 <div className="mb-8 flex items-center justify-between">
                     <h1 className="text-3xl font-bold text-slate-900">Hồ sơ cá nhân</h1>
@@ -94,13 +145,13 @@ export default async function ProfilePage() {
                             <StatCard
                                 icon={<Users className="w-5 h-5 text-blue-600" />}
                                 label="Người đã giới thiệu"
-                                value={referralsCount || 0}
+                                value={referralsCount}
                                 color="blue"
                             />
                             <StatCard
                                 icon={<Database className="w-5 h-5 text-emerald-600" />}
                                 label="Dự án nghiên cứu"
-                                value={projectsCount || 0}
+                                value={projectsCount}
                                 color="emerald"
                             />
                             <StatCard
@@ -194,7 +245,6 @@ export default async function ProfilePage() {
 }
 
 function StatCard({ icon, label, value, color }: { icon: any, label: string, value: string | number, color: string }) {
-    // Map color to classes roughly
     const bgClasses: any = {
         blue: 'bg-blue-50',
         emerald: 'bg-emerald-50',
@@ -214,7 +264,6 @@ function StatCard({ icon, label, value, color }: { icon: any, label: string, val
     )
 }
 
-// Icon Helper
 function Users({ className }: { className?: string }) {
     return (
         <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
