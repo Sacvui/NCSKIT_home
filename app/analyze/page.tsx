@@ -3,7 +3,7 @@
 // Prevent prerendering - this page requires client-side Supabase
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { FileUpload } from '@/components/FileUpload';
 import { DataProfiler } from '@/components/DataProfiler';
@@ -46,9 +46,18 @@ export default function AnalyzePage() {
     const [userProfile, setUserProfile] = useState<any>(null); // New User Profile State
     const [loading, setLoading] = useState(true);
 
-    // Proper authentication - fetch real user from Supabase
+    // CRITICAL: Use ref to prevent double execution in React Strict Mode
+    const authCheckRan = useRef(false);
+
     // Proper authentication - fetch real user from Supabase
     useEffect(() => {
+        // Prevent double execution
+        if (authCheckRan.current) {
+            console.log('[Analyze Auth] Already running, skipping...');
+            return;
+        }
+        authCheckRan.current = true;
+
         const checkUser = async () => {
             try {
                 const supabase = getSupabase();
@@ -98,9 +107,13 @@ export default function AnalyzePage() {
                         }
                     }
                 }
-            } catch (error) {
+            } catch (error: any) {
+                // CRITICAL: Ignore AbortError - it's just React Strict Mode cleanup
+                if (error.name === 'AbortError') {
+                    console.log('[Analyze Auth] AbortError ignored (React Strict Mode)');
+                    return;
+                }
                 console.error("Auth check failed:", error);
-                // Optionally show toast or error message
             } finally {
                 setLoading(false);
             }
