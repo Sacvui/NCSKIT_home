@@ -3,7 +3,14 @@ import { NextResponse } from 'next/server'
 import { redirect } from 'next/navigation'
 
 export async function GET(request: Request) {
-    const { searchParams, origin } = new URL(request.url)
+    let { searchParams, origin } = new URL(request.url)
+
+    // Enforce HTTPS in production/Vercel to ensure Secure cookies are accepted
+    if (process.env.NODE_ENV === 'production' || process.env.VERCEL === '1') {
+        if (origin.startsWith('http://')) {
+            origin = origin.replace('http://', 'https://')
+        }
+    }
     const code = searchParams.get('code')
     const next = searchParams.get('next') ?? '/analyze'
     const error = searchParams.get('error')
