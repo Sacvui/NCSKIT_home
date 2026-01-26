@@ -24,17 +24,17 @@ function LoginForm() {
 
     // Real OAuth flow with Supabase
     const handleLogin = async (provider: 'google' | 'linkedin_oidc') => {
+        console.log('Login initiated for provider:', provider)
         setLoading(provider)
         setErrorMsg(null)
 
         try {
+            console.log('Getting Supabase client...')
             const supabase = getSupabase()
-
-            // Do NOT await signOut - it can hang if storage is locked
-            // supabase.auth.signOut() 
-            // Just proceed directly to signIn - Supabase SDK handles session replacement
+            console.log('Supabase client retrieved:', !!supabase)
 
             const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next || '/analyze')}`
+            console.log('Redirecting to:', redirectTo)
 
             // Race OAuth call with a timeout to prevent infinite hanging
             const authPromise = supabase.auth.signInWithOAuth({
@@ -48,12 +48,15 @@ function LoginForm() {
                 setTimeout(() => reject(new Error('Kết nối xác thực quá chậm. Vui lòng thử lại.')), 15000)
             )
 
+            console.log('Awaiting signInWithOAuth...')
             const { error }: any = await Promise.race([authPromise, timeoutPromise])
 
             if (error) {
                 console.error('OAuth error:', error)
                 setErrorMsg(error.message)
                 setLoading(null)
+            } else {
+                console.log('OAuth initiated successfully, redirecting...')
             }
             // If no error, browser will redirect to OAuth provider
         } catch (err: any) {

@@ -1,5 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
+import { redirect } from 'next/navigation'
 
 export async function GET(request: Request) {
     const { searchParams, origin } = new URL(request.url)
@@ -8,9 +9,9 @@ export async function GET(request: Request) {
     const error = searchParams.get('error')
     const errorDescription = searchParams.get('error_description')
 
-    console.log('[Callback Route] Processing callback:', { 
-        code: code?.slice(0, 8) + '...', 
-        next, 
+    console.log('[Callback Route] Processing callback:', {
+        code: code?.slice(0, 8) + '...',
+        next,
         error,
         origin,
         userAgent: request.headers.get('user-agent')?.slice(0, 50)
@@ -30,18 +31,18 @@ export async function GET(request: Request) {
     try {
         const supabase = await createClient()
         console.log('[Callback Route] Created Supabase client, exchanging code for session')
-        
+
         const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
         if (exchangeError) {
             console.error('[Callback Route] Exchange error:', exchangeError.message, exchangeError.status)
 
             // Check if it's a "code already used" error - session might exist
-            if (exchangeError.message.includes('already been used') || 
+            if (exchangeError.message.includes('already been used') ||
                 exchangeError.message.includes('flow state') ||
                 exchangeError.message.includes('expired')) {
                 console.log('[Callback Route] Code already used/expired, checking existing session')
-                
+
                 // Check if user already has a valid session
                 const { data: { session } } = await supabase.auth.getSession()
                 if (session) {
@@ -62,16 +63,9 @@ export async function GET(request: Request) {
         console.log('[Callback Route] User:', data.session.user.email)
         console.log('[Callback Route] Session expires at:', new Date(data.session.expires_at! * 1000).toISOString())
 
-        // Create response with proper headers
-        const response = NextResponse.redirect(`${origin}${next}`)
-        
-        // Set additional headers to ensure session persistence
-        response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
-        response.headers.set('Pragma', 'no-cache')
-        response.headers.set('Expires', '0')
-
         console.log('[Callback Route] Redirecting to:', next)
-        return response
+        // Use redirect from next/navigation which handles cookies correctly
+        return redirect(`${origin}${next}`)
 
     } catch (err: any) {
         console.error('[Callback Route] Unexpected error:', err.message, err.stack)
