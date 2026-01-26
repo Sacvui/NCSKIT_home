@@ -18,6 +18,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Revalidate auth-related tags
+        /*
         const tagsToRevalidate = [
             'auth',
             'session',
@@ -28,12 +29,12 @@ export async function POST(request: NextRequest) {
         for (const tag of tagsToRevalidate) {
             revalidateTag(tag)
         }
+        */
 
         return NextResponse.json({
             success: true,
             message: 'Cache cleared successfully',
             revalidatedPaths: pathsToRevalidate,
-            revalidatedTags: tagsToRevalidate,
             timestamp: new Date().toISOString()
         })
     } catch (error: any) {

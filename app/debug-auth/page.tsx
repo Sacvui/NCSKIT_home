@@ -328,11 +328,11 @@ export default function DebugAuthPage() {
                 )}
 
                 {/* Error Analysis */}
-                {(debugInfo?.errors.length || serverDebug?.debug?.errors?.length) && (
+                {(debugInfo?.errors?.length || serverDebug?.debug?.errors?.length) && (
                     <div className="bg-red-50 border border-red-200 p-4 rounded mb-6">
                         <h2 className="font-bold text-red-800 mb-3">🚨 Error Analysis</h2>
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                            {debugInfo?.errors.length > 0 && (
+                            {debugInfo?.errors && debugInfo.errors.length > 0 && (
                                 <div>
                                     <h3 className="font-semibold text-red-700 mb-2">Client Errors</h3>
                                     <ul className="space-y-1">

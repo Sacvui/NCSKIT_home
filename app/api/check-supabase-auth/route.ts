@@ -4,19 +4,19 @@ import { createClient } from '@/utils/supabase/server'
 export async function GET(request: NextRequest) {
     try {
         const supabase = await createClient()
-        
+
         // Test 1: Basic connection
         const { data: healthCheck, error: healthError } = await supabase
             .from('profiles')
             .select('count')
             .limit(1)
-        
+
         // Test 2: Auth configuration
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-        
+
         // Test 3: User check
         const { data: { user }, error: userError } = await supabase.auth.getUser()
-        
+
         const result = {
             timestamp: new Date().toISOString(),
             environment: {
@@ -65,31 +65,31 @@ export async function GET(request: NextRequest) {
                     }
                 }) || []
             },
-            recommendations: []
+            recommendations: [] as string[]
         }
-        
+
         // Add recommendations based on test results
         if (!result.tests.databaseConnection.success) {
             result.recommendations.push('Database connection failed - check Supabase URL and keys')
         }
-        
+
         if (result.tests.sessionCheck.error) {
             result.recommendations.push('Session check failed - check auth configuration')
         }
-        
+
         if (!result.environment.hasAnonKey) {
             result.recommendations.push('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY')
         }
-        
+
         if (!result.environment.hasServiceKey) {
             result.recommendations.push('Missing SUPABASE_SERVICE_ROLE_KEY')
         }
-        
+
         const authCookies = result.cookies.parsed.filter(c => c.isAuth)
         if (authCookies.length === 0) {
             result.recommendations.push('No authentication cookies found - user may not be logged in')
         }
-        
+
         return NextResponse.json({
             success: true,
             data: result
