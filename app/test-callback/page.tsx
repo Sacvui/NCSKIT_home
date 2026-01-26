@@ -1,10 +1,18 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { getSupabase } from '@/utils/supabase/client'
 
 export default function TestCallbackPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <TestCallbackContent />
+        </Suspense>
+    )
+}
+
+function TestCallbackContent() {
     const searchParams = useSearchParams()
     const [logs, setLogs] = useState<string[]>([])
     const [sessionData, setSessionData] = useState<any>(null)

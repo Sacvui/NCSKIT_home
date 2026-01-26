@@ -152,7 +152,11 @@ function LoginForm() {
                                     return;
                                 }
                                 const redirectUri = `${window.location.origin}/auth/orcid/callback`;
-                                const state = btoa(JSON.stringify({ next: next || '/analyze' }));
+                                const csrfToken = btoa(Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15));
+                                const state = btoa(JSON.stringify({ 
+                                    next: next || '/analyze',
+                                    csrf: csrfToken
+                                }));
 
                                 const orcidAuthUrl = `https://orcid.org/oauth/authorize?` +
                                     `client_id=${clientId}&` +

@@ -39,16 +39,26 @@ export async function GET(request: NextRequest) {
         );
     }
 
-    // Parse state to get next URL
+    // Parse state to get next URL and validate CSRF
     let nextUrl = '/analyze';
+    let csrfToken = null;
     try {
         if (state) {
             const stateData = JSON.parse(atob(state));
             nextUrl = stateData.next || '/analyze';
-            console.log('[ORCID Callback] Parsed next URL from state:', nextUrl);
+            csrfToken = stateData.csrf;
+            console.log('[ORCID Callback] Parsed state - next URL:', nextUrl, 'CSRF token present:', !!csrfToken);
         }
     } catch (err) {
         console.warn('[ORCID Callback] Failed to parse state, using default next URL');
+    }
+
+    // Basic CSRF validation (check if token exists)
+    if (!csrfToken) {
+        console.warn('[ORCID Callback] Missing CSRF token in state');
+        return NextResponse.redirect(
+            new URL('/login?error=invalid_request_state', request.url)
+        );
     }
 
     const origin = request.nextUrl.origin;
@@ -107,10 +117,10 @@ export async function GET(request: NextRequest) {
                 .update({ last_active: new Date().toISOString() })
                 .eq('id', existingProfile.id);
 
-            // Create a custom session cookie
+            // Create a secure session cookie
             const response = NextResponse.redirect(new URL(nextUrl, request.url));
             response.cookies.set('orcid_user', existingProfile.id, {
-                httpOnly: false, // Allow JavaScript to read for client-side session check
+                httpOnly: true, // Secure: Prevent XSS attacks
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'lax',
                 maxAge: 60 * 60 * 24 * 7, // 1 week
@@ -133,7 +143,7 @@ export async function GET(request: NextRequest) {
             orcid: tokenData.orcid,
             name: profile.name,
             email: profile.email,
-            access_token: tokenData.access_token,
+            // access_token removed for security - will re-fetch if needed
         }), {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',

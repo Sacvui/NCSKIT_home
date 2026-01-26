@@ -119,12 +119,6 @@ export async function updateSession(request: NextRequest) {
 
             console.log('[Middleware] No ORCID cookie, checking Supabase session')
 
-            // TEMPORARY DEBUG: Skip session validation for debugging
-            if (pathname === '/analyze' && request.nextUrl.searchParams.get('debug') === 'skip') {
-                console.log('[Middleware] DEBUG MODE: Skipping session validation')
-                return response
-            }
-
             // For Supabase auth: Proper session validation
             const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 

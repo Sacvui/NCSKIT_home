@@ -44,8 +44,11 @@ envContent.split('\n').forEach(line => {
 const requiredVars = [
     'NEXT_PUBLIC_SUPABASE_URL',
     'NEXT_PUBLIC_SUPABASE_ANON_KEY',
-    'SUPABASE_SERVICE_ROLE_KEY',
     'NEXT_PUBLIC_SITE_URL'
+]
+
+const productionRequiredVars = [
+    'SUPABASE_SERVICE_ROLE_KEY'
 ]
 
 const optionalVars = [
@@ -66,6 +69,22 @@ requiredVars.forEach(varName => {
     } else if (value.includes('placeholder') || value.includes('your-')) {
         console.log(`⚠️  ${varName}: Contains placeholder value`)
         hasErrors = true
+    } else {
+        const displayValue = varName.includes('KEY') || varName.includes('SECRET') 
+            ? value.slice(0, 10) + '...' 
+            : value
+        console.log(`✅ ${varName}: ${displayValue}`)
+    }
+})
+
+console.log('\n📋 Production Required Variables:')
+productionRequiredVars.forEach(varName => {
+    const value = envVars[varName]
+    if (!value) {
+        console.log(`⚠️  ${varName}: Missing (required for production)`)
+        // Don't fail build for missing production vars in development
+    } else if (value.includes('placeholder') || value.includes('your-')) {
+        console.log(`⚠️  ${varName}: Contains placeholder value`)
     } else {
         const displayValue = varName.includes('KEY') || varName.includes('SECRET') 
             ? value.slice(0, 10) + '...' 
