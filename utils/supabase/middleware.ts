@@ -83,35 +83,58 @@ export async function updateSession(request: NextRequest) {
         const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route))
 
         if (isProtectedRoute) {
-            // Check for ORCID session cookie first
+            // Check for ORCID session cookie first (secure validation)
             const orcidUser = request.cookies.get('orcid_user')?.value
             if (orcidUser) {
-                // ORCID user is authenticated via cookie, allow access
-                return response
+                // Validate ORCID user exists in database
+                const { data: profile, error } = await supabase
+                    .from('profiles')
+                    .select('id, orcid_id, last_active')
+                    .eq('id', orcidUser)
+                    .single()
+                
+                if (profile && profile.orcid_id) {
+                    // Update last active timestamp
+                    await supabase
+                        .from('profiles')
+                        .update({ last_active: new Date().toISOString() })
+                        .eq('id', orcidUser)
+                    
+                    return response
+                } else {
+                    // Invalid ORCID cookie, clear it and redirect
+                    response.cookies.delete('orcid_user')
+                    return NextResponse.redirect(new URL('/login?error=invalid_session', request.url))
+                }
             }
 
-            // For protected routes: Use getSession first (fast, from cookie)
-            const { data: { session } } = await supabase.auth.getSession()
+            // For Supabase auth: Proper session validation
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
-            if (!session) {
-                // localStorage-first auth:
-                // Server cookies might be missing, but client localStorage has session.
-                // We allow the request to pass through and let Client Components check auth.
-                // If we redirect here, we cause a loop because server doesn't see the localStorage session.
-                return response
+            if (sessionError || !session) {
+                // No valid session, redirect to login
+                return NextResponse.redirect(new URL('/login?error=no_session', request.url))
             }
 
-            // Session exists - for most cases this is enough
-            // Only call getUser() if session is about to expire (optional extra security)
+            // Verify user still exists and is valid
+            const { data: { user }, error: userError } = await supabase.auth.getUser()
+            
+            if (userError || !user) {
+                // Invalid user, clear session and redirect
+                await supabase.auth.signOut()
+                return NextResponse.redirect(new URL('/login?error=invalid_user', request.url))
+            }
+
+            // Check session expiry and refresh if needed
             const sessionAge = session.expires_at ? (session.expires_at * 1000 - Date.now()) : Infinity
             const REFRESH_THRESHOLD = 5 * 60 * 1000 // 5 minutes
 
             if (sessionAge < REFRESH_THRESHOLD) {
-                // Session expiring soon, verify with server
-                const { data: { user }, error } = await supabase.auth.getUser()
-                if (error || !user) {
-                    // localStorage-first: Allow pass through
-                    return response
+                // Session expiring soon, attempt refresh
+                const { error: refreshError } = await supabase.auth.refreshSession()
+                if (refreshError) {
+                    console.warn('[Middleware] Session refresh failed:', refreshError)
+                    return NextResponse.redirect(new URL('/login?error=session_expired', request.url))
                 }
             }
         }
@@ -120,8 +143,7 @@ export async function updateSession(request: NextRequest) {
         // On auth error for protected routes, redirect to login
         const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route))
         if (isProtectedRoute) {
-            // localStorage-first: Allow pass through even on error
-            return response
+            return NextResponse.redirect(new URL('/login?error=auth_error', request.url))
         }
     }
 

@@ -6,13 +6,27 @@ let isInitializing = false;
 let initPromise: Promise<WebR> | null = null;
 let initProgress: string = '';
 let onProgressCallback: ((msg: string) => void) | null = null;
+let initAttempts = 0;
+const MAX_INIT_ATTEMPTS = 3;
+
+// Error recovery state
+let lastError: Error | null = null;
+let errorRecoveryInProgress = false;
 
 // Get current WebR loading status
-export function getWebRStatus(): { isReady: boolean; isLoading: boolean; progress: string } {
+export function getWebRStatus(): { 
+    isReady: boolean; 
+    isLoading: boolean; 
+    progress: string;
+    lastError: string | null;
+    canRetry: boolean;
+} {
     return {
         isReady: webRInstance !== null,
         isLoading: isInitializing,
-        progress: initProgress
+        progress: initProgress,
+        lastError: lastError?.message || null,
+        canRetry: initAttempts < MAX_INIT_ATTEMPTS && !isInitializing
     };
 }
 
@@ -21,9 +35,97 @@ export function setProgressCallback(callback: (msg: string) => void) {
     onProgressCallback = callback;
 }
 
-function updateProgress(msg: string) {
-    initProgress = msg;
-    if (onProgressCallback) onProgressCallback(msg);
+/**
+ * Reset WebR instance and clear error state
+ */
+export function resetWebR(): void {
+    webRInstance = null;
+    isInitializing = false;
+    initPromise = null;
+    initProgress = '';
+    lastError = null;
+    errorRecoveryInProgress = false;
+    initAttempts = 0;
+    updateProgress('WebR reset - ready for reinitialization');
+}
+
+/**
+ * Recover from WebR errors with exponential backoff
+ */
+async function recoverFromError(error: Error, attempt: number): Promise<void> {
+    lastError = error;
+    errorRecoveryInProgress = true;
+    
+    // Exponential backoff: 1s, 2s, 4s
+    const delay = Math.pow(2, attempt) * 1000;
+    updateProgress(`WebR error recovery... waiting ${delay/1000}s`);
+    
+    await new Promise(resolve => setTimeout(resolve, delay));
+    
+    // Clear corrupted state
+    webRInstance = null;
+    initPromise = null;
+    
+    errorRecoveryInProgress = false;
+}
+
+/**
+ * Translate R errors to user-friendly Vietnamese messages
+ */
+function translateRError(error: string): string {
+    const errorMap: Record<string, string> = {
+        'subscript out of bounds': 'Không tìm thấy biến được chọn. Kiểm tra lại tên cột.',
+        'not enough observations': 'Không đủ dữ liệu để phân tích. Cần ít nhất 30 quan sát.',
+        'singular matrix': 'Ma trận đặc dị - có đa cộng tuyến hoàn hảo hoặc biến hằng số.',
+        'computational singular': 'Lỗi tính toán - dữ liệu có vấn đề về đa cộng tuyến.',
+        'missing value': 'Dữ liệu chứa giá trị trống (NA). Hãy làm sạch dữ liệu trước.',
+        'model is not identified': 'Mô hình SEM/CFA không xác định. Cần >= 3 biến/nhân tố.',
+        'could not find function': 'Gói R chưa tải xong. Vui lòng thử lại sau 5 giây.',
+        'covariance matrix is not positive definite': 'Ma trận hiệp phương sai không xác định dương. Kiểm tra đa cộng tuyến.',
+        'object not found': 'Không tìm thấy đối tượng R. Có thể do lỗi khởi tạo.',
+        'package not available': 'Gói R không khả dụng. Đang thử cài đặt lại...'
+    };
+    
+    for (const [key, translation] of Object.entries(errorMap)) {
+        if (error.toLowerCase().includes(key.toLowerCase())) {
+            return translation;
+        }
+    }
+    
+    return `Lỗi R: ${error.substring(0, 100)}...`;
+}
+
+/**
+ * Execute R code with error recovery
+ */
+async function executeRWithRecovery(rCode: string, maxRetries: number = 2): Promise<any> {
+    const webR = await initWebR();
+    
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+            const result = await webR.evalR(rCode);
+            return result;
+        } catch (error: any) {
+            console.error(`R execution attempt ${attempt + 1} failed:`, error);
+            
+            if (attempt === maxRetries) {
+                throw new Error(translateRError(error.message || String(error)));
+            }
+            
+            // Check if WebR instance is corrupted
+            if (error.message?.includes('WebR instance') || 
+                error.message?.includes('not initialized') ||
+                !webRInstance?.evalR) {
+                
+                console.warn('WebR instance corrupted, reinitializing...');
+                webRInstance = null;
+                await initWebR();
+            }
+            
+            // Wait before retry
+            await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+        }
+    }
 }
 
 /**
@@ -65,6 +167,8 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
 
     // Retry logic wrapper
     for (let attempt = 0; attempt < maxRetries; attempt++) {
+        initAttempts = attempt + 1;
+        
         initPromise = (async () => {
             try {
                 // Mobile-friendly config: Ensure PostMessage channel and service worker
@@ -115,13 +219,15 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 webRInstance = webR;
                 isInitializing = false;
                 initPromise = null;
+                lastError = null; // Clear any previous errors
                 return webR;
             } catch (error) {
-                // If not last attempt, retry
+                console.error(`WebR init attempt ${attempt + 1} failed:`, error);
+                
+                // If not last attempt, try error recovery
                 if (attempt < maxRetries - 1) {
-                    console.warn(`WebR init attempt ${attempt + 1} failed, retrying...`);
-                    updateProgress(`R-Engine Loading... (Retry ${attempt + 1})`);
-                    await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+                    await recoverFromError(error as Error, attempt);
+                    updateProgress(`R-Engine Loading... (Retry ${attempt + 2})`);
                     throw error; // Throw to trigger retry
                 }
 
@@ -129,6 +235,7 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 isInitializing = false;
                 webRInstance = null;
                 initPromise = null;
+                lastError = error as Error;
                 updateProgress('R-Engine Error!');
                 console.error('WebR initialization error:', error);
                 throw new Error(`Failed to initialize WebR after ${maxRetries} attempts: ${error}`);
@@ -210,8 +317,6 @@ export async function runCronbachAlpha(
     }[];
     rCode: string;
 }> {
-    const webR = await initWebR();
-
     const rCode = `
     library(psych)
     raw_data <- ${arrayToRMatrix(data)}
@@ -271,7 +376,7 @@ export async function runCronbachAlpha(
     )
     `;
 
-    const result = await webR.evalR(rCode);
+    const result = await executeRWithRecovery(rCode);
     const jsResult = await result.toJs() as any;
 
     // WebR list parsing helper

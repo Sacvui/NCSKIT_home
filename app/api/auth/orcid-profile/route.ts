@@ -1,14 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { rateLimit } from '@/utils/rate-limit';
 
 // Force dynamic to prevent build-time env var access
 export const dynamic = 'force-dynamic';
 
+// Rate limiting for ORCID profile creation
+const limiter = rateLimit({
+    interval: 60 * 1000, // 1 minute
+    uniqueTokenPerInterval: 500, // Max 500 unique IPs per minute
+});
+
 /**
  * API Route để tạo/cập nhật profile cho ORCID users
  * 
- * ORCID users không có auth.users entry nên cần dùng service role
- * để insert trực tiếp vào profiles table với orcid_id
+ * ORCID users không cần auth.users entry, chỉ tạo profiles với UUID
  */
 
 // Lazy-init Supabase admin client to avoid build-time errors
@@ -35,12 +41,42 @@ function getSupabaseAdmin(): SupabaseClient {
 
 export async function POST(request: NextRequest) {
     try {
+        // Rate limiting
+        const identifier = request.ip ?? '127.0.0.1';
+        const { success } = await limiter.check(5, identifier); // 5 requests per minute per IP
+        
+        if (!success) {
+            return NextResponse.json(
+                { error: 'Quá nhiều yêu cầu. Vui lòng thử lại sau.' },
+                { status: 429 }
+            );
+        }
+
         const body = await request.json();
         const { orcid, name, email } = body;
 
+        // Input validation
         if (!orcid || !email) {
             return NextResponse.json(
                 { error: 'ORCID và email là bắt buộc' },
+                { status: 400 }
+            );
+        }
+
+        // Validate ORCID format (0000-0000-0000-0000)
+        const orcidRegex = /^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/;
+        if (!orcidRegex.test(orcid)) {
+            return NextResponse.json(
+                { error: 'ORCID ID không hợp lệ' },
+                { status: 400 }
+            );
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return NextResponse.json(
+                { error: 'Email không hợp lệ' },
                 { status: 400 }
             );
         }
@@ -129,61 +165,67 @@ export async function POST(request: NextRequest) {
             });
         }
 
-        // Create new profile for ORCID user
-        // Since profiles.id is FK to auth.users, we need to create with generated UUID
-        // This requires updating schema to allow nullable or different approach
+        // Create new profile for ORCID user - SIMPLIFIED APPROACH
+        // Use crypto.randomUUID() instead of creating dummy auth user
+        const profileId = crypto.randomUUID();
+        
+        // Get default balance for new users
+        const { data: defaultBalanceConfig } = await getSupabaseAdmin()
+            .from('system_config')
+            .select('value')
+            .eq('key', 'default_ncs_balance')
+            .single();
+        
+        const defaultBalance = defaultBalanceConfig?.value || 100000;
 
-        // For now, we'll use a separate orcid_profiles table or create temp auth user
-        // Option: Use Supabase Admin API to create a dummy auth user
-
-        const { data: authUser, error: authError } = await getSupabaseAdmin().auth.admin.createUser({
-            email: email,
-            email_confirm: true,
-            user_metadata: {
-                full_name: name,
+        // Create profile directly with UUID
+        const { data: newProfile, error: profileError } = await getSupabaseAdmin()
+            .from('profiles')
+            .insert({
+                id: profileId,
                 orcid_id: orcid,
+                email: email,
+                full_name: name,
+                display_name: name,
+                tokens: defaultBalance,
+                created_at: new Date().toISOString(),
+                last_active: new Date().toISOString(),
                 provider: 'orcid'
-            }
-        });
+            })
+            .select()
+            .single();
 
-        if (authError) {
-            console.error('Create auth user error:', authError);
+        if (profileError) {
+            console.error('Create profile error:', profileError);
             return NextResponse.json(
-                { error: 'Không thể tạo tài khoản: ' + authError.message },
+                { error: 'Không thể tạo profile: ' + profileError.message },
                 { status: 500 }
             );
         }
 
-        // The trigger will auto-create profile, but we need to add orcid_id
-        const { error: orcidUpdateError } = await getSupabaseAdmin()
-            .from('profiles')
-            .update({
-                orcid_id: orcid,
-                last_active: new Date().toISOString()
-            })
-            .eq('id', authUser.user.id);
-
-        if (orcidUpdateError) {
-            console.error('Update ORCID error:', orcidUpdateError);
-        }
-
-        // Generate magic link for auto-login
-        const { data: linkData, error: linkError } = await getSupabaseAdmin().auth.admin.generateLink({
-            type: 'magiclink',
-            email: email,
-            options: {
-                redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://stat.ncskit.org'}/analyze`
-            }
-        });
+        // Log the new user creation
+        await getSupabaseAdmin()
+            .from('activity_logs')
+            .insert({
+                user_id: profileId,
+                action: 'user_registered',
+                details: { provider: 'orcid', orcid_id: orcid },
+                created_at: new Date().toISOString()
+            });
 
         return NextResponse.json({
             success: true,
             message: 'Profile đã được tạo thành công',
-            profileId: authUser.user.id,
-            userId: authUser.user.id,
-            // Return the magic link token hash for client-side verification
-            magicLinkToken: linkData?.properties?.hashed_token,
-            verifyUrl: linkError ? null : linkData?.properties?.action_link
+            profileId: profileId,
+            userId: profileId,
+            // Return profile data for immediate use
+            profile: {
+                id: profileId,
+                orcid_id: orcid,
+                email: email,
+                full_name: name,
+                tokens: defaultBalance
+            }
         });
 
     } catch (error: any) {

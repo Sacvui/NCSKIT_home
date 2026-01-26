@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabase } from '@/utils/supabase/client'
+import { getORCIDUser } from '@/utils/cookie-helper'
 import { User, Share2, Copy, BarChart3, Database, Star, Shield } from 'lucide-react'
 import Link from 'next/link'
 import ProfileHeader from '@/components/profile/ProfileHeader'
@@ -41,23 +42,21 @@ export default function ProfilePage() {
                     setProfile(profileData)
                     await loadUserData(authUser.id, profileData)
                 } else {
-                    // Fallback: Check ORCID cookie
-                    const orcidCookie = document.cookie.split(';').find(c => c.trim().startsWith('orcid_user='))
-                    if (orcidCookie) {
-                        const profileId = orcidCookie.split('=')[1]?.trim()
-                        if (profileId) {
-                            const { data: orcidProfile } = await supabase
-                                .from('profiles')
-                                .select('*')
-                                .eq('id', profileId)
-                                .single()
+                    // Fallback: Check ORCID cookie using secure helper
+                    const orcidUserId = getORCIDUser();
+                    if (orcidUserId) {
+                        const { data: orcidProfile } = await supabase
+                            .from('profiles')
+                            .select('*')
+                            .eq('id', orcidUserId)
+                            .single()
 
-                            if (orcidProfile) {
-                                // Build a mock user object for ORCID
-                                const orcidUser = {
-                                    id: profileId,
-                                    email: orcidProfile.email || `${orcidProfile.orcid_id}@orcid.org`,
-                                    user_metadata: {
+                        if (orcidProfile) {
+                            // Build a mock user object for ORCID
+                            const orcidUser = {
+                                id: orcidUserId,
+                                email: orcidProfile.email || `${orcidProfile.orcid_id}@orcid.org`,
+                                user_metadata: {
                                         full_name: orcidProfile.display_name || orcidProfile.full_name,
                                         avatar_url: orcidProfile.avatar_url
                                     }

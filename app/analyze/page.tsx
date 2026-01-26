@@ -37,6 +37,7 @@ import { logAnalysisUsage, logExport } from '@/lib/activity-logger';
 import { InsufficientCreditsModal } from '@/components/InsufficientCreditsModal';
 import { NcsBalanceBadge } from '@/components/NcsBalanceBadge';
 import { MobileWebRFallback, useSharedArrayBufferSupport } from '@/components/MobileWebRFallback';
+import { getORCIDUser } from '@/utils/cookie-helper';
 
 export default function AnalyzePage() {
     const router = useRouter()
@@ -81,29 +82,26 @@ export default function AnalyzePage() {
                         if (profile.tokens !== undefined) setNcsBalance(profile.tokens);
                     }
                 } else {
-                    // 2. Check ORCID
-                    const orcidCookie = document.cookie.split(';').find(c => c.trim().startsWith('orcid_user='));
-                    if (orcidCookie) {
-                        const profileId = orcidCookie.split('=')[1]?.trim();
-                        if (profileId) {
-                            const { data: profile } = await supabase
-                                .from('profiles')
-                                .select('*')
-                                .eq('id', profileId)
-                                .single();
-                            if (profile) {
-                                const orcidUser = {
-                                    id: profileId,
-                                    email: profile.email || `${profile.orcid_id}@orcid.org`,
-                                    user_metadata: {
-                                        full_name: profile.display_name || profile.full_name,
-                                        avatar_url: profile.avatar_url
-                                    }
-                                };
-                                setUser(orcidUser);
-                                setUserProfile(profile);
-                                if (profile.tokens !== undefined) setNcsBalance(profile.tokens);
-                            }
+                    // 2. Check ORCID using secure cookie helper
+                    const orcidUserId = getORCIDUser();
+                    if (orcidUserId) {
+                        const { data: profile } = await supabase
+                            .from('profiles')
+                            .select('*')
+                            .eq('id', orcidUserId)
+                            .single();
+                        if (profile) {
+                            const orcidUser = {
+                                id: orcidUserId,
+                                email: profile.email || `${profile.orcid_id}@orcid.org`,
+                                user_metadata: {
+                                    full_name: profile.display_name || profile.full_name,
+                                    avatar_url: profile.avatar_url
+                                }
+                            };
+                            setUser(orcidUser);
+                            setUserProfile(profile);
+                            if (profile.tokens !== undefined) setNcsBalance(profile.tokens);
                         }
                     }
                 }

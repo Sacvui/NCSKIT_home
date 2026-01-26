@@ -3,10 +3,11 @@ const nextConfig = {
     // Headers for WebR (WASM, Service Worker)
     async headers() {
         return [
-            // Global headers for all pages to enable SharedArrayBuffer
+            // Security headers for all pages
             {
                 source: '/:path*',
                 headers: [
+                    // WebR WASM headers
                     {
                         key: 'Cross-Origin-Embedder-Policy',
                         value: 'credentialless',
@@ -14,6 +15,23 @@ const nextConfig = {
                     {
                         key: 'Cross-Origin-Opener-Policy',
                         value: 'same-origin',
+                    },
+                    // Security headers
+                    {
+                        key: 'X-Frame-Options',
+                        value: 'DENY',
+                    },
+                    {
+                        key: 'X-Content-Type-Options',
+                        value: 'nosniff',
+                    },
+                    {
+                        key: 'Referrer-Policy',
+                        value: 'strict-origin-when-cross-origin',
+                    },
+                    {
+                        key: 'Permissions-Policy',
+                        value: 'camera=(), microphone=(), geolocation=()',
                     },
                 ],
             },
@@ -53,16 +71,14 @@ const nextConfig = {
             },
         ];
     },
+    // Enable strict TypeScript checking for better code quality
     typescript: {
-        // !! WARN !!
-        // Dangerously allow production builds to successfully complete even if
-        // your project has type errors.
-        ignoreBuildErrors: true,
+        // Remove ignoreBuildErrors to catch type errors early
+        ignoreBuildErrors: false,
     },
     eslint: {
-        // Warning: This allows production builds to successfully complete even if
-        // your project has ESLint errors.
-        ignoreDuringBuilds: true,
+        // Enable ESLint during builds to maintain code quality
+        ignoreDuringBuilds: false,
     },
 };
 
