@@ -16,18 +16,26 @@ export async function GET(request: NextRequest) {
     const error = searchParams.get('error');
     const errorDescription = searchParams.get('error_description');
 
+    console.log('[ORCID Callback] Processing callback:', { 
+        code: code?.slice(0, 8) + '...', 
+        state, 
+        error,
+        origin: request.nextUrl.origin 
+    });
+
     // Handle errors from ORCID
     if (error) {
-        console.error('ORCID OAuth error:', error, errorDescription);
+        console.error('[ORCID Callback] OAuth error:', error, errorDescription);
         return NextResponse.redirect(
-            new URL(`/login?error=${encodeURIComponent(errorDescription || error)}`, request.url)
+            new URL(`/login?error=${encodeURIComponent('ORCID lỗi: ' + (errorDescription || error))}`, request.url)
         );
     }
 
     // Validate code
     if (!code) {
+        console.error('[ORCID Callback] No authorization code provided');
         return NextResponse.redirect(
-            new URL('/login?error=no_code', request.url)
+            new URL('/login?error=no_orcid_code', request.url)
         );
     }
 
@@ -37,80 +45,109 @@ export async function GET(request: NextRequest) {
         if (state) {
             const stateData = JSON.parse(atob(state));
             nextUrl = stateData.next || '/analyze';
+            console.log('[ORCID Callback] Parsed next URL from state:', nextUrl);
         }
-    } catch {
-        // State parsing failed, use default
+    } catch (err) {
+        console.warn('[ORCID Callback] Failed to parse state, using default next URL');
     }
 
     const origin = request.nextUrl.origin;
     const redirectUri = `${origin}/auth/orcid/callback`;
 
-    // Exchange code for tokens
-    const tokenData = await exchangeOrcidCode(code, redirectUri);
-    if (!tokenData) {
-        return NextResponse.redirect(
-            new URL('/login?error=orcid_token_exchange_failed', request.url)
-        );
-    }
+    try {
+        // Exchange code for tokens
+        console.log('[ORCID Callback] Exchanging code for tokens');
+        const tokenData = await exchangeOrcidCode(code, redirectUri);
+        if (!tokenData) {
+            console.error('[ORCID Callback] Token exchange failed');
+            return NextResponse.redirect(
+                new URL('/login?error=orcid_token_exchange_failed', request.url)
+            );
+        }
 
-    // Get ORCID profile
-    const profile = await getOrcidProfile(tokenData.orcid, tokenData.access_token);
-    if (!profile) {
-        return NextResponse.redirect(
-            new URL('/login?error=orcid_profile_failed', request.url)
-        );
-    }
+        console.log('[ORCID Callback] Token exchange successful, ORCID:', tokenData.orcid);
 
-    // Create or update user in Supabase
-    const supabase = await createClient();
+        // Get ORCID profile
+        console.log('[ORCID Callback] Fetching ORCID profile');
+        const profile = await getOrcidProfile(tokenData.orcid, tokenData.access_token);
+        if (!profile) {
+            console.error('[ORCID Callback] Profile fetch failed');
+            return NextResponse.redirect(
+                new URL('/login?error=orcid_profile_failed', request.url)
+            );
+        }
 
-    // Check if user already exists with this ORCID
-    const { data: existingProfile } = await supabase
-        .from('profiles')
-        .select('id, email')
-        .eq('orcid_id', tokenData.orcid)
-        .single();
+        console.log('[ORCID Callback] Profile fetched successfully:', profile.name);
 
-    if (existingProfile) {
-        // User exists, sign them in
-        // Note: For ORCID-only users, we need a custom session mechanism
-        // as Supabase doesn't natively support ORCID
+        // Create or update user in Supabase
+        const supabase = await createClient();
 
-        // Update last_active
-        await supabase
+        // Check if user already exists with this ORCID
+        console.log('[ORCID Callback] Checking for existing profile');
+        const { data: existingProfile, error: profileError } = await supabase
             .from('profiles')
-            .update({ last_active: new Date().toISOString() })
-            .eq('id', existingProfile.id);
+            .select('id, email, full_name')
+            .eq('orcid_id', tokenData.orcid)
+            .single();
 
-        // Create a custom session token (simplified - in production use proper JWT)
-        const response = NextResponse.redirect(new URL(nextUrl, request.url));
-        response.cookies.set('orcid_user', existingProfile.id, {
-            httpOnly: false, // Allow JavaScript to read for client-side session check
-            secure: true,
+        if (profileError && profileError.code !== 'PGRST116') {
+            console.error('[ORCID Callback] Database error checking profile:', profileError);
+            return NextResponse.redirect(
+                new URL('/login?error=database_error', request.url)
+            );
+        }
+
+        if (existingProfile) {
+            console.log('[ORCID Callback] Existing user found, signing in:', existingProfile.id);
+            
+            // User exists, sign them in
+            // Update last_active
+            await supabase
+                .from('profiles')
+                .update({ last_active: new Date().toISOString() })
+                .eq('id', existingProfile.id);
+
+            // Create a custom session cookie
+            const response = NextResponse.redirect(new URL(nextUrl, request.url));
+            response.cookies.set('orcid_user', existingProfile.id, {
+                httpOnly: false, // Allow JavaScript to read for client-side session check
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                maxAge: 60 * 60 * 24 * 7, // 1 week
+                path: '/',
+            });
+
+            console.log('[ORCID Callback] Session cookie set, redirecting to:', nextUrl);
+            return response;
+        }
+
+        console.log('[ORCID Callback] New user, redirecting to complete profile');
+
+        // New ORCID user - redirect to complete profile
+        // Store ORCID data temporarily for registration
+        const response = NextResponse.redirect(
+            new URL(`/auth/complete-profile?orcid=${tokenData.orcid}&name=${encodeURIComponent(profile.name)}`, request.url)
+        );
+
+        response.cookies.set('orcid_pending', JSON.stringify({
+            orcid: tokenData.orcid,
+            name: profile.name,
+            email: profile.email,
+            access_token: tokenData.access_token,
+        }), {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
-            maxAge: 60 * 60 * 24 * 7, // 1 week
+            maxAge: 60 * 10, // 10 minutes
+            path: '/',
         });
 
         return response;
+
+    } catch (error: any) {
+        console.error('[ORCID Callback] Unexpected error:', error);
+        return NextResponse.redirect(
+            new URL(`/login?error=${encodeURIComponent('Lỗi ORCID không mong muốn: ' + error.message)}`, request.url)
+        );
     }
-
-    // New ORCID user - redirect to complete profile
-    // Store ORCID data temporarily for registration
-    const response = NextResponse.redirect(
-        new URL(`/auth/complete-profile?orcid=${tokenData.orcid}&name=${encodeURIComponent(profile.name)}`, request.url)
-    );
-
-    response.cookies.set('orcid_pending', JSON.stringify({
-        orcid: tokenData.orcid,
-        name: profile.name,
-        email: profile.email,
-        access_token: tokenData.access_token,
-    }), {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'lax',
-        maxAge: 60 * 10, // 10 minutes
-    });
-
-    return response;
 }

@@ -52,6 +52,8 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const { orcid, name, email } = body;
 
+        console.log('[ORCID Profile API] Creating/updating profile:', { orcid, name, email });
+
         // Input validation
         if (!orcid || !email) {
             return NextResponse.json(
@@ -78,16 +80,29 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        const supabaseAdmin = getSupabaseAdmin();
+
         // Check if profile already exists with this email
-        const { data: existingByEmail } = await getSupabaseAdmin()
+        console.log('[ORCID Profile API] Checking for existing profile by email');
+        const { data: existingByEmail, error: emailCheckError } = await supabaseAdmin
             .from('profiles')
             .select('id, orcid_id, full_name')
             .eq('email', email)
             .single();
 
+        if (emailCheckError && emailCheckError.code !== 'PGRST116') {
+            console.error('[ORCID Profile API] Database error checking email:', emailCheckError);
+            return NextResponse.json(
+                { error: 'Lỗi cơ sở dữ liệu' },
+                { status: 500 }
+            );
+        }
+
         if (existingByEmail) {
+            console.log('[ORCID Profile API] Found existing profile by email, updating with ORCID');
+            
             // Update existing profile with ORCID
-            const { error: updateError } = await getSupabaseAdmin()
+            const { error: updateError } = await supabaseAdmin
                 .from('profiles')
                 .update({
                     orcid_id: orcid,
@@ -97,77 +112,64 @@ export async function POST(request: NextRequest) {
                 .eq('id', existingByEmail.id);
 
             if (updateError) {
-                console.error('Update profile error:', updateError);
+                console.error('[ORCID Profile API] Update profile error:', updateError);
                 return NextResponse.json(
                     { error: 'Không thể cập nhật profile' },
                     { status: 500 }
                 );
             }
 
-            // Generate magic link for auto-login (existing user by email)
-            const { data: linkData } = await getSupabaseAdmin().auth.admin.generateLink({
-                type: 'magiclink',
-                email: email,
-                options: {
-                    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://stat.ncskit.org'}/analyze`
-                }
-            });
+            console.log('[ORCID Profile API] Profile updated successfully');
 
             return NextResponse.json({
                 success: true,
                 message: 'Profile đã được cập nhật với ORCID',
                 profileId: existingByEmail.id,
-                verifyUrl: linkData?.properties?.action_link
+                isExisting: true
             });
         }
 
         // Check if profile exists with this ORCID
-        const { data: existingByOrcid } = await getSupabaseAdmin()
+        console.log('[ORCID Profile API] Checking for existing profile by ORCID');
+        const { data: existingByOrcid, error: orcidCheckError } = await supabaseAdmin
             .from('profiles')
-            .select('id')
+            .select('id, email')
             .eq('orcid_id', orcid)
             .single();
 
+        if (orcidCheckError && orcidCheckError.code !== 'PGRST116') {
+            console.error('[ORCID Profile API] Database error checking ORCID:', orcidCheckError);
+            return NextResponse.json(
+                { error: 'Lỗi cơ sở dữ liệu' },
+                { status: 500 }
+            );
+        }
+
         if (existingByOrcid) {
+            console.log('[ORCID Profile API] Found existing profile by ORCID');
+            
             // Update last_active
-            await getSupabaseAdmin()
+            await supabaseAdmin
                 .from('profiles')
                 .update({ last_active: new Date().toISOString() })
                 .eq('id', existingByOrcid.id);
-
-            // Get email for existing ORCID user to generate magic link
-            const { data: orcidProfile } = await getSupabaseAdmin()
-                .from('profiles')
-                .select('email')
-                .eq('id', existingByOrcid.id)
-                .single();
-
-            let verifyUrl = null;
-            if (orcidProfile?.email) {
-                const { data: linkData } = await getSupabaseAdmin().auth.admin.generateLink({
-                    type: 'magiclink',
-                    email: orcidProfile.email,
-                    options: {
-                        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://stat.ncskit.org'}/analyze`
-                    }
-                });
-                verifyUrl = linkData?.properties?.action_link;
-            }
 
             return NextResponse.json({
                 success: true,
                 message: 'ORCID user đã tồn tại',
                 profileId: existingByOrcid.id,
-                verifyUrl: verifyUrl
+                isExisting: true
             });
         }
+
+        console.log('[ORCID Profile API] Creating new profile for ORCID user');
 
         // Create new profile for ORCID user - SIMPLIFIED APPROACH
         // Use crypto.randomUUID() instead of creating dummy auth user
         const profileId = crypto.randomUUID();
         
         // Get default balance for new users
-        const { data: defaultBalanceConfig } = await getSupabaseAdmin()
+        const { data: defaultBalanceConfig } = await supabaseAdmin
             .from('system_config')
             .select('value')
             .eq('key', 'default_ncs_balance')
@@ -176,7 +178,7 @@ export async function POST(request: NextRequest) {
         const defaultBalance = defaultBalanceConfig?.value || 100000;
 
         // Create profile directly with UUID
-        const { data: newProfile, error: profileError } = await getSupabaseAdmin()
+        const { data: newProfile, error: profileError } = await supabaseAdmin
             .from('profiles')
             .insert({
                 id: profileId,
@@ -193,15 +195,17 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (profileError) {
-            console.error('Create profile error:', profileError);
+            console.error('[ORCID Profile API] Create profile error:', profileError);
             return NextResponse.json(
                 { error: 'Không thể tạo profile: ' + profileError.message },
                 { status: 500 }
             );
         }
 
+        console.log('[ORCID Profile API] Profile created successfully:', profileId);
+
         // Log the new user creation
-        await getSupabaseAdmin()
+        await supabaseAdmin
             .from('activity_logs')
             .insert({
                 user_id: profileId,
@@ -215,6 +219,7 @@ export async function POST(request: NextRequest) {
             message: 'Profile đã được tạo thành công',
             profileId: profileId,
             userId: profileId,
+            isExisting: false,
             // Return profile data for immediate use
             profile: {
                 id: profileId,
@@ -226,7 +231,7 @@ export async function POST(request: NextRequest) {
         });
 
     } catch (error: any) {
-        console.error('ORCID profile API error:', error);
+        console.error('[ORCID Profile API] Unexpected error:', error);
         return NextResponse.json(
             { error: error.message || 'Đã xảy ra lỗi' },
             { status: 500 }

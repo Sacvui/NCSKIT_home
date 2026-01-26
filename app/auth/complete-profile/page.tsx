@@ -44,6 +44,8 @@ function CompleteProfileForm() {
                 throw new Error('Vui lòng nhập email')
             }
 
+            console.log('[Complete Profile] Submitting profile:', { orcid, name, email });
+
             // Call server-side API to create/update ORCID profile
             const response = await fetch('/api/auth/orcid-profile', {
                 method: 'POST',
@@ -63,24 +65,32 @@ function CompleteProfileForm() {
                 throw new Error(result.error || 'Không thể tạo profile')
             }
 
+            console.log('[Complete Profile] Profile created/updated successfully:', result);
+
             // Clear ORCID pending cookie
             document.cookie = 'orcid_pending=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
 
             // Set orcid_user cookie for session management
             if (result.profileId) {
-                document.cookie = `orcid_user=${result.profileId}; path=/; max-age=${60 * 60 * 24 * 7}; secure; samesite=lax`
+                const maxAge = 60 * 60 * 24 * 7; // 1 week
+                const secure = window.location.protocol === 'https:' ? '; secure' : '';
+                document.cookie = `orcid_user=${result.profileId}; path=/; max-age=${maxAge}; samesite=lax${secure}`;
+                console.log('[Complete Profile] Session cookie set');
             }
 
-            // If we have a magic link (verifyUrl), use it for auto-login
-            if (result.verifyUrl) {
-                // Redirect through magic link for automatic session creation
-                window.location.href = result.verifyUrl
-                return
+            // Show success message briefly before redirect
+            if (!result.isExisting) {
+                // New user - show welcome message
+                console.log('[Complete Profile] New user created, redirecting to analyze');
+            } else {
+                // Existing user - show update message
+                console.log('[Complete Profile] Existing user updated, redirecting to analyze');
             }
 
-            // Fallback: redirect directly to analyze (user may need to login again)
+            // Redirect to analyze page
             router.push('/analyze')
         } catch (err: any) {
+            console.error('[Complete Profile] Error:', err);
             setError(err.message || 'Đã xảy ra lỗi')
             setIsSubmitting(false)
         }

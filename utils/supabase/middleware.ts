@@ -39,7 +39,6 @@ export async function updateSession(request: NextRequest) {
         return response
     }
 
-    const host = request.headers.get('host')
     const forwardedProto = request.headers.get('x-forwarded-proto')
     const isHttps = forwardedProto === 'https' || request.nextUrl.protocol === 'https:'
     const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1'
@@ -55,7 +54,7 @@ export async function updateSession(request: NextRequest) {
                         return request.cookies.getAll()
                     },
                     setAll(cookiesToSet) {
-                        cookiesToSet.forEach(({ name, value, options }) =>
+                        cookiesToSet.forEach(({ name, value }) =>
                             request.cookies.set(name, value)
                         )
                         response = NextResponse.next({
@@ -86,14 +85,17 @@ export async function updateSession(request: NextRequest) {
             // Check for ORCID session cookie first (secure validation)
             const orcidUser = request.cookies.get('orcid_user')?.value
             if (orcidUser) {
+                console.log('[Middleware] Found ORCID cookie, validating user:', orcidUser.slice(0, 8) + '...')
+                
                 // Validate ORCID user exists in database
-                const { data: profile, error } = await supabase
+                const { data: profile, error: profileError } = await supabase
                     .from('profiles')
                     .select('id, orcid_id, last_active')
                     .eq('id', orcidUser)
                     .single()
                 
                 if (profile && profile.orcid_id) {
+                    console.log('[Middleware] ORCID user validated successfully')
                     // Update last active timestamp
                     await supabase
                         .from('profiles')
@@ -102,40 +104,50 @@ export async function updateSession(request: NextRequest) {
                     
                     return response
                 } else {
+                    console.warn('[Middleware] Invalid ORCID cookie, clearing and redirecting:', profileError?.message)
                     // Invalid ORCID cookie, clear it and redirect
                     response.cookies.delete('orcid_user')
-                    return NextResponse.redirect(new URL('/login?error=invalid_session', request.url))
+                    return NextResponse.redirect(new URL('/login?error=invalid_orcid_session', request.url))
                 }
             }
+
+            console.log('[Middleware] No ORCID cookie, checking Supabase session')
 
             // For Supabase auth: Proper session validation
             const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
             if (sessionError || !session) {
-                // No valid session, redirect to login
+                console.log('[Middleware] No valid Supabase session found for protected route:', pathname, sessionError?.message)
                 return NextResponse.redirect(new URL('/login?error=no_session', request.url))
             }
+
+            console.log('[Middleware] Supabase session found, verifying user')
 
             // Verify user still exists and is valid
             const { data: { user }, error: userError } = await supabase.auth.getUser()
             
             if (userError || !user) {
+                console.log('[Middleware] Invalid user, clearing session:', userError?.message)
                 // Invalid user, clear session and redirect
                 await supabase.auth.signOut()
                 return NextResponse.redirect(new URL('/login?error=invalid_user', request.url))
             }
+
+            console.log('[Middleware] User validated successfully:', user.email)
 
             // Check session expiry and refresh if needed
             const sessionAge = session.expires_at ? (session.expires_at * 1000 - Date.now()) : Infinity
             const REFRESH_THRESHOLD = 5 * 60 * 1000 // 5 minutes
 
             if (sessionAge < REFRESH_THRESHOLD) {
+                console.log('[Middleware] Session expiring soon, attempting refresh')
                 // Session expiring soon, attempt refresh
                 const { error: refreshError } = await supabase.auth.refreshSession()
                 if (refreshError) {
-                    console.warn('[Middleware] Session refresh failed:', refreshError)
+                    console.warn('[Middleware] Session refresh failed:', refreshError.message)
                     return NextResponse.redirect(new URL('/login?error=session_expired', request.url))
                 }
+                console.log('[Middleware] Session refreshed successfully')
             }
         }
     } catch (error) {

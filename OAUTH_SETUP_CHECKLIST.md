@@ -106,6 +106,7 @@ Create `.env.production` file with the variables above.
 Add to your hosting platform:
 ```bash
 ORCID_CLIENT_ID=your-orcid-client-id
+NEXT_PUBLIC_ORCID_CLIENT_ID=your-orcid-client-id
 ORCID_CLIENT_SECRET=your-orcid-client-secret
 ```
 
@@ -153,6 +154,7 @@ After completing all steps:
 - [ ] SUPABASE_SERVICE_ROLE_KEY
 - [ ] NEXT_PUBLIC_SITE_URL
 - [ ] ORCID_CLIENT_ID (if using ORCID)
+- [ ] NEXT_PUBLIC_ORCID_CLIENT_ID (Same as above, for client-side)
 - [ ] ORCID_CLIENT_SECRET (if using ORCID)
 ```
 

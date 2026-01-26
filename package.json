@@ -8,7 +8,9 @@
     "test": "jest --config jest.config.cjs",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "check-env": "node scripts/check-env.js",
+    "prebuild": "npm run check-env"
   },
   "dependencies": {
     "@supabase/ssr": "^0.8.0",

@@ -141,7 +141,13 @@ function LoginForm() {
                                 setLoading('orcid');
                                 setErrorMsg(null);
 
-                                const clientId = 'APP-GIDRNEUSM0IQ6NNY';
+                                const clientId = process.env.NEXT_PUBLIC_ORCID_CLIENT_ID || '';
+                                if (!clientId) {
+                                    console.error('Missing NEXT_PUBLIC_ORCID_CLIENT_ID');
+                                    setErrorMsg('Cấu hình lỗi: Thiếu ORCID Client ID');
+                                    setLoading(null);
+                                    return;
+                                }
                                 const redirectUri = `${window.location.origin}/auth/orcid/callback`;
                                 const state = btoa(JSON.stringify({ next: next || '/analyze' }));
 
