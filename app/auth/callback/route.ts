@@ -1,6 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
 import { NextResponse } from 'next/server'
-import { redirect } from 'next/navigation'
 
 export async function GET(request: Request) {
     let { searchParams, origin } = new URL(request.url)
@@ -58,12 +57,22 @@ export async function GET(request: Request) {
                 }
             }
 
-            return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent('Lỗi trao đổi mã: ' + exchangeError.message)}`)
+            // Provide more specific error messages
+            let errorMessage = 'Lỗi trao đổi mã: ' + exchangeError.message
+            if (exchangeError.message.includes('Invalid login credentials')) {
+                errorMessage = 'Thông tin đăng nhập không hợp lệ'
+            } else if (exchangeError.message.includes('Email not confirmed')) {
+                errorMessage = 'Email chưa được xác nhận'
+            } else if (exchangeError.message.includes('flow state')) {
+                errorMessage = 'Phiên đăng nhập đã hết hạn, vui lòng thử lại'
+            }
+
+            return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(errorMessage)}`)
         }
 
         if (!data.session) {
             console.warn('[Callback Route] No session created despite successful exchange')
-            return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent('Không thể tạo phiên đăng nhập')}`)
+            return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent('Không thể tạo phiên đăng nhập - vui lòng kiểm tra cấu hình Supabase')}`)
         }
 
         console.log('[Callback Route] Session established successfully')
@@ -71,11 +80,25 @@ export async function GET(request: Request) {
         console.log('[Callback Route] Session expires at:', new Date(data.session.expires_at! * 1000).toISOString())
 
         console.log('[Callback Route] Redirecting to:', next)
-        // Use redirect from next/navigation which handles cookies correctly
-        return redirect(`${origin}${next}`)
+        // Use NextResponse.redirect for API routes - this prevents NEXT_REDIRECT error
+        return NextResponse.redirect(`${origin}${next}`)
 
     } catch (err: any) {
         console.error('[Callback Route] Unexpected error:', err.message, err.stack)
-        return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent('Lỗi không mong muốn: ' + err.message)}`)
+        
+        // Handle specific Next.js redirect errors
+        if (err.message?.includes('NEXT_REDIRECT')) {
+            console.log('[Callback Route] Handling NEXT_REDIRECT error, using NextResponse.redirect instead')
+            return NextResponse.redirect(`${origin}${next}`)
+        }
+        
+        let errorMessage = 'Lỗi không mong muốn: ' + err.message
+        if (err.message?.includes('fetch')) {
+            errorMessage = 'Lỗi kết nối mạng, vui lòng thử lại'
+        } else if (err.message?.includes('timeout')) {
+            errorMessage = 'Kết nối quá chậm, vui lòng thử lại'
+        }
+        
+        return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(errorMessage)}`)
     }
 }

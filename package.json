@@ -10,6 +10,7 @@
     "start": "next start",
     "lint": "eslint",
     "check-env": "node scripts/check-env.js",
+    "fix-auth": "node scripts/fix-supabase-config.js",
     "prebuild": "npm run check-env"
   },
   "dependencies": {
