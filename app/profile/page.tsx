@@ -77,12 +77,12 @@ export default function ProfilePage() {
             } catch (err: any) {
                 // Ignore AbortError - React Strict Mode cleanup
                 if (err.name === 'AbortError') {
-                    console.log('[Profile] AbortError ignored')
-                    return
+                    console.log('[Profile] AbortError ignored');
+                    return;
                 }
-                console.error('[Profile] Error loading profile:', err)
+                console.error('[Profile] Error loading profile:', err);
             } finally {
-                setLoading(false)
+                setLoading(false);
             }
         }
 

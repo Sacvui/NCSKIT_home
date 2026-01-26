@@ -76,10 +76,15 @@ const nextConfig = {
         // Remove ignoreBuildErrors to catch type errors early
         ignoreBuildErrors: false,
     },
-    eslint: {
-        // Enable ESLint during builds to maintain code quality
-        ignoreDuringBuilds: false,
-    },
+    // Remove deprecated eslint config - use .eslintrc.json instead
+    experimental: {
+        // Enable modern features
+        turbo: {
+            rules: {
+                // Turbopack specific rules if needed
+            }
+        }
+    }
 };
 
 export default nextConfig;
