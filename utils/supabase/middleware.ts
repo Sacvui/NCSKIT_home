@@ -133,7 +133,9 @@ export async function updateSession(request: NextRequest) {
                 hasSession: !!session,
                 sessionError: sessionError?.message,
                 sessionExpiry: session?.expires_at ? new Date(session.expires_at * 1000).toISOString() : null,
-                userEmail: session?.user?.email
+                userEmail: session?.user?.email,
+                cookieCount: allCookies.length,
+                supabaseCookies: allCookies.filter(c => c.name.includes('sb-')).length
             })
 
             if (sessionError) {
