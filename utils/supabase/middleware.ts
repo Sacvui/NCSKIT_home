@@ -84,6 +84,10 @@ export async function updateSession(request: NextRequest) {
         if (isProtectedRoute) {
             console.log('[Middleware] Checking protected route:', pathname)
             
+            // TEMPORARY DEBUG: Log all cookies
+            const allCookies = request.cookies.getAll()
+            console.log('[Middleware] All cookies:', allCookies.map(c => `${c.name}=${c.value.slice(0, 20)}...`))
+            
             // Check for ORCID session cookie first (secure validation)
             const orcidUser = request.cookies.get('orcid_user')?.value
             if (orcidUser) {
@@ -115,17 +119,30 @@ export async function updateSession(request: NextRequest) {
 
             console.log('[Middleware] No ORCID cookie, checking Supabase session')
 
+            // TEMPORARY DEBUG: Skip session validation for debugging
+            if (pathname === '/analyze' && request.nextUrl.searchParams.get('debug') === 'skip') {
+                console.log('[Middleware] DEBUG MODE: Skipping session validation')
+                return response
+            }
+
             // For Supabase auth: Proper session validation
             const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
+            console.log('[Middleware] Session check result:', {
+                hasSession: !!session,
+                sessionError: sessionError?.message,
+                sessionExpiry: session?.expires_at ? new Date(session.expires_at * 1000).toISOString() : null,
+                userEmail: session?.user?.email
+            })
+
             if (sessionError) {
                 console.log('[Middleware] Supabase session error:', sessionError.message)
-                return NextResponse.redirect(new URL('/login?error=session_error', request.url))
+                return NextResponse.redirect(new URL('/login?error=session_error&details=' + encodeURIComponent(sessionError.message), request.url))
             }
 
             if (!session) {
                 console.log('[Middleware] No Supabase session found for protected route:', pathname)
-                return NextResponse.redirect(new URL('/login?error=no_session', request.url))
+                return NextResponse.redirect(new URL('/login?error=no_session&path=' + encodeURIComponent(pathname), request.url))
             }
 
             console.log('[Middleware] Supabase session found, verifying user')
@@ -136,7 +153,7 @@ export async function updateSession(request: NextRequest) {
             if (userError) {
                 console.log('[Middleware] User verification error:', userError.message)
                 // Don't sign out immediately, might be temporary error
-                return NextResponse.redirect(new URL('/login?error=user_verification_failed', request.url))
+                return NextResponse.redirect(new URL('/login?error=user_verification_failed&details=' + encodeURIComponent(userError.message), request.url))
             }
 
             if (!user) {
