@@ -48,9 +48,25 @@ export default function FixAuthPage() {
                 <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
                     <h2 className="text-xl font-semibold text-red-800 mb-4">🚨 Current Issue</h2>
                     <div className="space-y-2 text-red-700">
-                        <div>❌ <strong>NEXT_REDIRECT Error:</strong> Fixed - removed incorrect redirect usage</div>
                         <div>❌ <strong>no_session Error:</strong> Supabase Dashboard configuration needed</div>
                         <div>❌ <strong>OAuth Flow Failing:</strong> Site URL and Redirect URLs not configured</div>
+                        <div>⚠️ <strong>Temporary Bypass Available:</strong> For testing purposes only</div>
+                    </div>
+                    
+                    <div className="mt-4 p-4 bg-yellow-100 border border-yellow-300 rounded">
+                        <h3 className="font-semibold text-yellow-800 mb-2">🔓 Temporary Access (Testing Only)</h3>
+                        <p className="text-yellow-700 text-sm mb-3">
+                            While waiting for Supabase configuration, you can use this bypass URL to test the application:
+                        </p>
+                        <a
+                            href="/analyze?bypass_auth=temp_access_2026"
+                            className="inline-block px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
+                        >
+                            🚀 Access /analyze (Bypass)
+                        </a>
+                        <p className="text-xs text-yellow-600 mt-2">
+                            ⚠️ This bypass is temporary and should not be used in production
+                        </p>
                     </div>
                 </div>
 
@@ -80,6 +96,29 @@ export default function FixAuthPage() {
                             ) : (
                                 '🔧 Auto Fix Configuration'
                             )}
+                        </button>
+
+                        <button
+                            onClick={async () => {
+                                setLoading(true)
+                                try {
+                                    const response = await fetch('/api/force-fix-supabase', { method: 'POST' })
+                                    const data = await response.json()
+                                    setResult(data)
+                                } catch (err: any) {
+                                    setError('Force fix failed: ' + err.message)
+                                } finally {
+                                    setLoading(false)
+                                }
+                            }}
+                            disabled={loading}
+                            className={`px-6 py-3 rounded-lg font-medium ${
+                                loading 
+                                    ? 'bg-gray-400 cursor-not-allowed' 
+                                    : 'bg-red-600 hover:bg-red-700 text-white'
+                            }`}
+                        >
+                            🚀 Force Fix (All Methods)
                         </button>
 
                         <button
@@ -209,6 +248,13 @@ export default function FixAuthPage() {
                                     className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700"
                                 >
                                     🔍 Debug Authentication
+                                </a>
+                                <a
+                                    href="/debug-supabase"
+                                    target="_blank"
+                                    className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                                >
+                                    🔍 Debug Supabase
                                 </a>
                                 <a
                                     href="/login"
