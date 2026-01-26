@@ -9,10 +9,32 @@ export default function TestAuthPage() {
     const [session, setSession] = useState<SessionInfo | null>(null)
     const [loading, setLoading] = useState(true)
     const [testResults, setTestResults] = useState<string[]>([])
+    const [supabaseConfig, setSupabaseConfig] = useState<any>(null)
 
     useEffect(() => {
         checkAuth()
+        checkSupabaseConfig()
     }, [])
+
+    const checkSupabaseConfig = async () => {
+        addTestResult('Checking Supabase configuration...')
+        try {
+            const response = await fetch('/api/test-supabase-config')
+            const result = await response.json()
+            setSupabaseConfig(result)
+            
+            if (result.success) {
+                addTestResult(`✅ Supabase config loaded`)
+                addTestResult(`Site URL: ${result.config.siteUrl}`)
+                addTestResult(`Supabase URL: ${result.config.supabaseUrl}`)
+                addTestResult(`Database connection: ${result.config.databaseConnection ? '✅' : '❌'}`)
+            } else {
+                addTestResult(`❌ Supabase config error: ${result.error}`)
+            }
+        } catch (error: any) {
+            addTestResult(`❌ Config check failed: ${error.message}`)
+        }
+    }
 
     const checkAuth = async () => {
         setLoading(true)
@@ -108,7 +130,40 @@ export default function TestAuthPage() {
                     )}
                 </div>
 
-                {/* Test Actions */}
+                {/* Supabase Configuration */}
+                <div className="bg-white rounded-lg shadow p-6 mb-6">
+                    <h2 className="text-xl font-semibold mb-4">Supabase Configuration</h2>
+                    {supabaseConfig ? (
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <span className="text-gray-600">Database Connection:</span>
+                                    <span className={`ml-2 ${supabaseConfig.config?.databaseConnection ? 'text-green-600' : 'text-red-600'}`}>
+                                        {supabaseConfig.config?.databaseConnection ? '✅ Connected' : '❌ Failed'}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className="text-gray-600">Site URL:</span>
+                                    <span className="ml-2 font-mono text-xs">{supabaseConfig.config?.siteUrl}</span>
+                                </div>
+                            </div>
+                            
+                            <div className="bg-blue-50 p-4 rounded">
+                                <h3 className="font-semibold text-blue-800 mb-2">Required Supabase Settings:</h3>
+                                <div className="text-sm text-blue-700 space-y-1">
+                                    <div>1. Site URL: <code className="bg-blue-100 px-1 rounded">{supabaseConfig.config?.siteUrl}</code></div>
+                                    <div>2. Redirect URLs:</div>
+                                    {supabaseConfig.config?.expectedCallbacks?.map((url: string, i: number) => (
+                                        <div key={i} className="ml-4">• <code className="bg-blue-100 px-1 rounded">{url}</code></div>
+                                    ))}
+                                    <div>3. OAuth Provider Callback: <code className="bg-blue-100 px-1 rounded">{supabaseConfig.config?.supabaseCallback}</code></div>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="text-gray-500">Loading configuration...</div>
+                    )}
+                </div>
                 <div className="bg-white rounded-lg shadow p-6 mb-6">
                     <h2 className="text-xl font-semibold mb-4">Test Actions</h2>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

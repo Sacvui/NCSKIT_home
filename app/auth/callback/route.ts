@@ -8,42 +8,73 @@ export async function GET(request: Request) {
     const error = searchParams.get('error')
     const errorDescription = searchParams.get('error_description')
 
-    console.log('[Callback Route] Processing callback:', { code: code?.slice(0, 8) + '...', next, error })
+    console.log('[Callback Route] Processing callback:', { 
+        code: code?.slice(0, 8) + '...', 
+        next, 
+        error,
+        origin,
+        userAgent: request.headers.get('user-agent')?.slice(0, 50)
+    })
 
     // Handle OAuth errors
     if (error) {
         console.error('[Callback Route] OAuth error:', error, errorDescription)
-        return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(errorDescription || error)}`)
+        return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent('OAuth lỗi: ' + (errorDescription || error))}`)
     }
 
-    if (code) {
-        try {
-            const supabase = await createClient()
-            const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+    if (!code) {
+        console.error('[Callback Route] No authorization code provided')
+        return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent('Thiếu mã xác thực')}`)
+    }
 
-            if (exchangeError) {
-                console.error('[Callback Route] Exchange error:', exchangeError.message)
+    try {
+        const supabase = await createClient()
+        console.log('[Callback Route] Created Supabase client, exchanging code for session')
+        
+        const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
-                // Check if it's a "code already used" error - session might exist
-                if (exchangeError.message.includes('already been used') || exchangeError.message.includes('flow state')) {
-                    console.log('[Callback Route] Code already used, redirecting anyway')
+        if (exchangeError) {
+            console.error('[Callback Route] Exchange error:', exchangeError.message, exchangeError.status)
+
+            // Check if it's a "code already used" error - session might exist
+            if (exchangeError.message.includes('already been used') || 
+                exchangeError.message.includes('flow state') ||
+                exchangeError.message.includes('expired')) {
+                console.log('[Callback Route] Code already used/expired, checking existing session')
+                
+                // Check if user already has a valid session
+                const { data: { session } } = await supabase.auth.getSession()
+                if (session) {
+                    console.log('[Callback Route] Found existing session, redirecting to:', next)
                     return NextResponse.redirect(`${origin}${next}`)
                 }
-
-                return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(exchangeError.message)}`)
             }
 
-            if (data.session) {
-                console.log('[Callback Route] Session established, redirecting to:', next)
-                return NextResponse.redirect(`${origin}${next}`)
-            }
-        } catch (err: any) {
-            console.error('[Callback Route] Unexpected error:', err.message)
-            return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent('Unexpected authentication error')}`)
+            return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent('Lỗi trao đổi mã: ' + exchangeError.message)}`)
         }
-    }
 
-    // No code provided, redirect to login
-    console.warn('[Callback Route] No code provided, redirecting to login')
-    return NextResponse.redirect(`${origin}/login`)
+        if (!data.session) {
+            console.warn('[Callback Route] No session created despite successful exchange')
+            return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent('Không thể tạo phiên đăng nhập')}`)
+        }
+
+        console.log('[Callback Route] Session established successfully')
+        console.log('[Callback Route] User:', data.session.user.email)
+        console.log('[Callback Route] Session expires at:', new Date(data.session.expires_at! * 1000).toISOString())
+
+        // Create response with proper headers
+        const response = NextResponse.redirect(`${origin}${next}`)
+        
+        // Set additional headers to ensure session persistence
+        response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+        response.headers.set('Pragma', 'no-cache')
+        response.headers.set('Expires', '0')
+
+        console.log('[Callback Route] Redirecting to:', next)
+        return response
+
+    } catch (err: any) {
+        console.error('[Callback Route] Unexpected error:', err.message, err.stack)
+        return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent('Lỗi không mong muốn: ' + err.message)}`)
+    }
 }

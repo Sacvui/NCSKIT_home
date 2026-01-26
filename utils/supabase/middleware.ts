@@ -82,6 +82,8 @@ export async function updateSession(request: NextRequest) {
         const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route))
 
         if (isProtectedRoute) {
+            console.log('[Middleware] Checking protected route:', pathname)
+            
             // Check for ORCID session cookie first (secure validation)
             const orcidUser = request.cookies.get('orcid_user')?.value
             if (orcidUser) {
@@ -116,8 +118,13 @@ export async function updateSession(request: NextRequest) {
             // For Supabase auth: Proper session validation
             const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
-            if (sessionError || !session) {
-                console.log('[Middleware] No valid Supabase session found for protected route:', pathname, sessionError?.message)
+            if (sessionError) {
+                console.log('[Middleware] Supabase session error:', sessionError.message)
+                return NextResponse.redirect(new URL('/login?error=session_error', request.url))
+            }
+
+            if (!session) {
+                console.log('[Middleware] No Supabase session found for protected route:', pathname)
                 return NextResponse.redirect(new URL('/login?error=no_session', request.url))
             }
 
@@ -126,9 +133,15 @@ export async function updateSession(request: NextRequest) {
             // Verify user still exists and is valid
             const { data: { user }, error: userError } = await supabase.auth.getUser()
             
-            if (userError || !user) {
-                console.log('[Middleware] Invalid user, clearing session:', userError?.message)
-                // Invalid user, clear session and redirect
+            if (userError) {
+                console.log('[Middleware] User verification error:', userError.message)
+                // Don't sign out immediately, might be temporary error
+                return NextResponse.redirect(new URL('/login?error=user_verification_failed', request.url))
+            }
+
+            if (!user) {
+                console.log('[Middleware] No user found, clearing session')
+                // Clear session and redirect
                 await supabase.auth.signOut()
                 return NextResponse.redirect(new URL('/login?error=invalid_user', request.url))
             }
@@ -139,16 +152,19 @@ export async function updateSession(request: NextRequest) {
             const sessionAge = session.expires_at ? (session.expires_at * 1000 - Date.now()) : Infinity
             const REFRESH_THRESHOLD = 5 * 60 * 1000 // 5 minutes
 
-            if (sessionAge < REFRESH_THRESHOLD) {
+            if (sessionAge < REFRESH_THRESHOLD && sessionAge > 0) {
                 console.log('[Middleware] Session expiring soon, attempting refresh')
                 // Session expiring soon, attempt refresh
                 const { error: refreshError } = await supabase.auth.refreshSession()
                 if (refreshError) {
                     console.warn('[Middleware] Session refresh failed:', refreshError.message)
-                    return NextResponse.redirect(new URL('/login?error=session_expired', request.url))
+                    // Don't redirect immediately, let user continue with current session
+                    console.log('[Middleware] Continuing with current session despite refresh failure')
                 }
-                console.log('[Middleware] Session refreshed successfully')
+                console.log('[Middleware] Session refresh completed')
             }
+
+            console.log('[Middleware] All checks passed, allowing access to:', pathname)
         }
     } catch (error) {
         console.error('[Middleware] Auth error:', error)
