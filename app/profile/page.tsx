@@ -26,21 +26,21 @@ export default function ProfilePage() {
         const loadProfile = async () => {
             try {
                 // Check auth from localStorage client (Supabase Auth)
-                const { data: { user: authUser }, error } = await supabase.auth.getUser()
+                const { data: { user: authUser }, error } = await supabase.auth.getUser();
 
                 if (authUser && !error) {
                     // Supabase Auth user found
-                    setUser(authUser)
+                    setUser(authUser);
 
                     // Fetch profile
                     const { data: profileData } = await supabase
                         .from('profiles')
                         .select('*')
                         .eq('id', authUser.id)
-                        .single()
+                        .single();
 
-                    setProfile(profileData)
-                    await loadUserData(authUser.id, profileData)
+                    setProfile(profileData);
+                    await loadUserData(authUser.id, profileData);
                 } else {
                     // Fallback: Check ORCID cookie using secure helper
                     const orcidUserId = getORCIDUser();
@@ -49,7 +49,7 @@ export default function ProfilePage() {
                             .from('profiles')
                             .select('*')
                             .eq('id', orcidUserId)
-                            .single()
+                            .single();
 
                         if (orcidProfile) {
                             // Build a mock user object for ORCID
@@ -57,24 +57,24 @@ export default function ProfilePage() {
                                 id: orcidUserId,
                                 email: orcidProfile.email || `${orcidProfile.orcid_id}@orcid.org`,
                                 user_metadata: {
-                                        full_name: orcidProfile.display_name || orcidProfile.full_name,
-                                        avatar_url: orcidProfile.avatar_url
-                                    }
+                                    full_name: orcidProfile.display_name || orcidProfile.full_name,
+                                    avatar_url: orcidProfile.avatar_url
                                 }
-                                setUser(orcidUser)
-                                setProfile(orcidProfile)
-                                await loadUserData(profileId, orcidProfile)
-                                return
+                            };
+                            setUser(orcidUser);
+                            setProfile(orcidProfile);
+                            await loadUserData(orcidUserId, orcidProfile);
+                            return;
                             }
                         }
                     }
 
                     // No auth found - redirect to login
-                    console.log('[Profile] No user found, redirecting to login')
-                    router.push('/login?next=/profile')
-                    return
+                    console.log('[Profile] No user found, redirecting to login');
+                    router.push('/login?next=/profile');
+                    return;
                 }
-            } catch (err: any) {
+            } catch (err) {
                 // Ignore AbortError - React Strict Mode cleanup
                 if (err.name === 'AbortError') {
                     console.log('[Profile] AbortError ignored');

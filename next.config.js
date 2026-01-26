@@ -75,15 +75,6 @@ const nextConfig = {
     typescript: {
         // Remove ignoreBuildErrors to catch type errors early
         ignoreBuildErrors: false,
-    },
-    // Remove deprecated eslint config - use .eslintrc.json instead
-    experimental: {
-        // Enable modern features
-        turbo: {
-            rules: {
-                // Turbopack specific rules if needed
-            }
-        }
     }
 };
 
