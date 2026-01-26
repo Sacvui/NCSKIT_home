@@ -133,7 +133,7 @@ export default function AnalyzePage() {
 
         // Listen for auth changes
         const supabase = getSupabase();
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: any, session) => {
             if (session?.user) {
                 setUser(session.user);
                 const { data: profile } = await supabase

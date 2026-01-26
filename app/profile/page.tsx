@@ -24,9 +24,8 @@ export default function ProfilePage() {
 
     useEffect(() => {
         const loadProfile = async () => {
-            try {
-                // Check auth from localStorage client (Supabase Auth)
-                const { data: { user: authUser }, error } = await supabase.auth.getUser();
+            // Check auth from localStorage client (Supabase Auth)
+            const { data: { user: authUser }, error } = await supabase.auth.getUser();
 
                 if (authUser && !error) {
                     // Supabase Auth user found
@@ -65,25 +64,19 @@ export default function ProfilePage() {
                             setProfile(orcidProfile);
                             await loadUserData(orcidUserId, orcidProfile);
                             return;
+                            }
                         }
                     }
-                }
 
-                // No auth found - redirect to login
-                console.log('[Profile] No user found, redirecting to login');
-                router.push('/login?next=/profile');
-                return;
-            } catch (err) {
-                // Ignore AbortError - React Strict Mode cleanup
-                if (err.name === 'AbortError') {
-                    console.log('[Profile] AbortError ignored');
+                    // No auth found - redirect to login
+                    console.log('[Profile] No user found, redirecting to login');
+                    router.push('/login?next=/profile');
                     return;
                 }
-                console.error('[Profile] Error loading profile:', err);
-            } finally {
+                
                 setLoading(false);
             }
-        }
+        };
 
         const loadUserData = async (userId: string, profileData: any) => {
             // Fetch projects count
