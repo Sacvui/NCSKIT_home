@@ -7,9 +7,8 @@ import { submitFeedback } from '@/app/actions/submit-feedback'
 import { Star, X, MessageSquare, Loader2, CheckCircle } from 'lucide-react'
 
 const initialState = {
+    success: false,
     message: '',
-    error: '',
-    success: false
 }
 
 export default function FeedbackModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {

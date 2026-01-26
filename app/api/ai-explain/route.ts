@@ -5,8 +5,8 @@ import { sanitizeInput } from '@/utils/security';
 export async function POST(req: NextRequest) {
     try {
         // 1. Rate Limiting Protection
-        const ip = req.headers.get('x-forwarded-for') || 'unknown';
-        if (!checkRateLimit(ip, 20, 60000)) { // 20 reqs/min per IP
+        const rateLimitResult = await checkRateLimit(req, 20);
+        if (!rateLimitResult.success) {
             return NextResponse.json(
                 { error: 'Quá nhiều yêu cầu. Vui lòng thử lại sau 1 phút.' },
                 { status: 429 }

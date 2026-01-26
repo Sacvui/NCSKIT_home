@@ -1,15 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { rateLimit } from '@/utils/rate-limit';
+import { strictRateLimit, getClientIP } from '@/utils/rate-limit';
 
 // Force dynamic to prevent build-time env var access
 export const dynamic = 'force-dynamic';
 
-// Rate limiting for ORCID profile creation
-const limiter = rateLimit({
-    interval: 60 * 1000, // 1 minute
-    uniqueTokenPerInterval: 500, // Max 500 unique IPs per minute
-});
+// Rate limiting for ORCID profile creation - use strict limiter
+const limiter = strictRateLimit;
 
 /**
  * API Route để tạo/cập nhật profile cho ORCID users
@@ -42,7 +39,7 @@ function getSupabaseAdmin(): SupabaseClient {
 export async function POST(request: NextRequest) {
     try {
         // Rate limiting
-        const identifier = request.ip ?? '127.0.0.1';
+        const identifier = getClientIP(request);
         const { success } = await limiter.check(5, identifier); // 5 requests per minute per IP
         
         if (!success) {

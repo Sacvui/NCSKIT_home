@@ -133,7 +133,7 @@ export default function AnalyzePage() {
 
         // Listen for auth changes
         const supabase = getSupabase();
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: any, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: any, session: any) => {
             if (session?.user) {
                 setUser(session.user);
                 const { data: profile } = await supabase
@@ -2272,9 +2272,19 @@ export default function AnalyzePage() {
                                         }
 
                                         try {
-                                            const cols = [moderationVars.y, moderationVars.x, moderationVars.w];
-                                            const modData = data.map(row => cols.map(c => Number(row[c]) || 0));
-                                            const result = await runModerationAnalysis(modData, cols);
+                                            // Extract data for each variable
+                                            const xData = data.map(row => Number(row[moderationVars.x]) || 0);
+                                            const yData = data.map(row => Number(row[moderationVars.y]) || 0);
+                                            const wData = data.map(row => Number(row[moderationVars.w]) || 0);
+                                            
+                                            const result = await runModerationAnalysis(
+                                                xData, 
+                                                yData, 
+                                                wData,
+                                                moderationVars.x,
+                                                moderationVars.y,
+                                                moderationVars.w
+                                            );
                                             // Deduct credits on success
                                             if (user) {
                                                 const cost = await getAnalysisCost('moderation');
@@ -2283,6 +2293,7 @@ export default function AnalyzePage() {
                                                 setNcsBalance(prev => Math.max(0, prev - cost));
                                             }
 
+                                            const cols = [moderationVars.y, moderationVars.x, moderationVars.w];
                                             setResults({ type: 'moderation', data: result, columns: cols });
                                             setStep('results');
                                             showToast('Phân tích Moderation hoàn thành!', 'success');
@@ -2341,7 +2352,7 @@ export default function AnalyzePage() {
                                             onChange={(e) => setTwoWayAnovaVars({ ...twoWayAnovaVars, factor1: e.target.value })}
                                         >
                                             <option value="">Chọn biến...</option>
-                                            {profile?.columns?.map((col: any) => (
+                                            {Array.isArray(profile?.columns) && profile.columns.map((col: any) => (
                                                 <option key={col.name} value={col.name} disabled={twoWayAnovaVars.y === col.name || twoWayAnovaVars.factor2 === col.name}>{col.name}</option>
                                             ))}
                                         </select>
@@ -2356,7 +2367,7 @@ export default function AnalyzePage() {
                                             onChange={(e) => setTwoWayAnovaVars({ ...twoWayAnovaVars, factor2: e.target.value })}
                                         >
                                             <option value="">Chọn biến...</option>
-                                            {profile?.columns?.map((col: any) => (
+                                            {Array.isArray(profile?.columns) && profile.columns.map((col: any) => (
                                                 <option key={col.name} value={col.name} disabled={twoWayAnovaVars.y === col.name || twoWayAnovaVars.factor1 === col.name}>{col.name}</option>
                                             ))}
                                         </select>
@@ -2390,13 +2401,19 @@ export default function AnalyzePage() {
                                         }
 
                                         try {
-                                            const cols = [twoWayAnovaVars.y, twoWayAnovaVars.factor1, twoWayAnovaVars.factor2];
-                                            const anovaData = data.map(row => [
-                                                Number(row[twoWayAnovaVars.y]) || 0,
-                                                String(row[twoWayAnovaVars.factor1] || ''),
-                                                String(row[twoWayAnovaVars.factor2] || '')
-                                            ]);
-                                            const result = await runTwoWayANOVA(anovaData, cols);
+                                            // Extract data for each variable
+                                            const yData = data.map(row => Number(row[twoWayAnovaVars.y]) || 0);
+                                            const factor1Data = data.map(row => String(row[twoWayAnovaVars.factor1] || ''));
+                                            const factor2Data = data.map(row => String(row[twoWayAnovaVars.factor2] || ''));
+                                            
+                                            const result = await runTwoWayANOVA(
+                                                yData,
+                                                factor1Data,
+                                                factor2Data,
+                                                twoWayAnovaVars.factor1,
+                                                twoWayAnovaVars.factor2,
+                                                twoWayAnovaVars.y
+                                            );
                                             // Deduct credits on success
                                             if (user) {
                                                 const cost = await getAnalysisCost('anova');
@@ -2405,6 +2422,7 @@ export default function AnalyzePage() {
                                                 setNcsBalance(prev => Math.max(0, prev - cost));
                                             }
 
+                                            const cols = [twoWayAnovaVars.y, twoWayAnovaVars.factor1, twoWayAnovaVars.factor2];
                                             setResults({ type: 'twoway-anova', data: result, columns: cols });
                                             setStep('results');
                                             showToast('Phân tích Two-Way ANOVA hoàn thành!', 'success');
@@ -2625,9 +2643,12 @@ export default function AnalyzePage() {
                                         }
 
                                         try {
-                                            const cols = [mediationVars.x, mediationVars.m, mediationVars.y];
-                                            const medData = data.map(row => cols.map(c => Number(row[c]) || 0));
-                                            const result = await runMediationAnalysis(medData, cols);
+                                            // Extract data for each variable
+                                            const xData = data.map(row => Number(row[mediationVars.x]) || 0);
+                                            const mData = data.map(row => Number(row[mediationVars.m]) || 0);
+                                            const yData = data.map(row => Number(row[mediationVars.y]) || 0);
+                                            
+                                            const result = await runMediationAnalysis(xData, mData, yData);
                                             // Deduct credits on success
                                             if (user) {
                                                 const cost = await getAnalysisCost('regression');
@@ -2636,6 +2657,7 @@ export default function AnalyzePage() {
                                                 setNcsBalance(prev => Math.max(0, prev - cost));
                                             }
 
+                                            const cols = [mediationVars.x, mediationVars.m, mediationVars.y];
                                             setResults({ type: 'mediation', data: result, columns: cols });
                                             setStep('results');
                                             showToast('Phân tích Mediation hoàn thành!', 'success');

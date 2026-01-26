@@ -73,8 +73,7 @@ const nextConfig = {
     },
     // Enable strict TypeScript checking for better code quality
     typescript: {
-        // Temporarily disable to fix Turbopack issues
-        ignoreBuildErrors: true,
+        ignoreBuildErrors: false,
     }
 };
 

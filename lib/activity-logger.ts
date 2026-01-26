@@ -183,13 +183,13 @@ export async function getActivityStats(fromDate?: Date, toDate?: Date): Promise<
         return { totalLogins: 0, uniqueUsers: 0, totalAnalyses: 0, totalExports: 0 };
     }
 
-    const uniqueUserIds = new Set(data.map(d => d.user_id));
+    const uniqueUserIds = new Set(data.map((d: any) => d.user_id));
 
     return {
-        totalLogins: data.filter(d => d.action_type === 'login').length,
+        totalLogins: data.filter((d: any) => d.action_type === 'login').length,
         uniqueUsers: uniqueUserIds.size,
-        totalAnalyses: data.filter(d => d.action_type === 'analysis').length,
-        totalExports: data.filter(d => d.action_type === 'export').length
+        totalAnalyses: data.filter((d: any) => d.action_type === 'analysis').length,
+        totalExports: data.filter((d: any) => d.action_type === 'export').length
     };
 }
 

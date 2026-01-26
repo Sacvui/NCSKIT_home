@@ -36,6 +36,16 @@ export function setProgressCallback(callback: (msg: string) => void) {
 }
 
 /**
+ * Internal helper to update progress
+ */
+function updateProgress(msg: string): void {
+    initProgress = msg;
+    if (onProgressCallback) {
+        onProgressCallback(msg);
+    }
+}
+
+/**
  * Reset WebR instance and clear error state
  */
 export function resetWebR(): void {

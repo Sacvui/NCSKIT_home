@@ -24,8 +24,9 @@ export default function ProfilePage() {
 
     useEffect(() => {
         const loadProfile = async () => {
-            // Check auth from localStorage client (Supabase Auth)
-            const { data: { user: authUser }, error } = await supabase.auth.getUser();
+            try {
+                // Check auth from localStorage client (Supabase Auth)
+                const { data: { user: authUser }, error } = await supabase.auth.getUser();
 
                 if (authUser && !error) {
                     // Supabase Auth user found
@@ -63,8 +64,8 @@ export default function ProfilePage() {
                             setUser(orcidUser);
                             setProfile(orcidProfile);
                             await loadUserData(orcidUserId, orcidProfile);
+                            setLoading(false);
                             return;
-                            }
                         }
                     }
 
@@ -74,6 +75,9 @@ export default function ProfilePage() {
                     return;
                 }
                 
+                setLoading(false);
+            } catch (err: any) {
+                console.error('[Profile] Error loading profile:', err);
                 setLoading(false);
             }
         };
