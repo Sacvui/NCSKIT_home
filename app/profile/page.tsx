@@ -65,15 +65,14 @@ export default function ProfilePage() {
                             setProfile(orcidProfile);
                             await loadUserData(orcidUserId, orcidProfile);
                             return;
-                            }
                         }
                     }
-
-                    // No auth found - redirect to login
-                    console.log('[Profile] No user found, redirecting to login');
-                    router.push('/login?next=/profile');
-                    return;
                 }
+
+                // No auth found - redirect to login
+                console.log('[Profile] No user found, redirecting to login');
+                router.push('/login?next=/profile');
+                return;
             } catch (err) {
                 // Ignore AbortError - React Strict Mode cleanup
                 if (err.name === 'AbortError') {

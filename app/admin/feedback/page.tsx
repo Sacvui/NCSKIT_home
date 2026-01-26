@@ -33,8 +33,8 @@ export default function AdminFeedbackPage() {
                     setFeedbacks(data)
                     // Calculate average rating
                     const avg = data.length
-                        ? (data.reduce((acc, curr) => acc + (curr.rating || 0), 0) / data.length).toFixed(1)
-                        : '0.0'
+                        ? (data.reduce((acc: number, curr: any) => acc + (curr.rating || 0), 0) / data.length).toFixed(1)
+                        : '0.0';
                     setAverageRating(avg)
                 }
             } catch (err) {
