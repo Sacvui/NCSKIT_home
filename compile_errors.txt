@@ -1,0 +1,25 @@
+app/analyze/page.tsx(2422,49): error TS2554: Expected 5 arguments, but got 6.
+app/analyze/page.tsx(2839,132): error TS2339: Property 'm' does not exist on type '{ y: string; x: string; w: string; }'.
+app/analyze/page.tsx(2854,132): error TS2339: Property 'm' does not exist on type '{ y: string; x: string; w: string; }'.
+app/analyze/page.tsx(2864,67): error TS2339: Property 'm' does not exist on type '{ y: string; x: string; w: string; }'.
+app/analyze/page.tsx(2865,101): error TS2353: Object literal may only specify known properties, and 'm' does not exist in type 'SetStateAction<{ y: string; x: string; w: string; }>'.
+app/analyze/page.tsx(2877,82): error TS2339: Property 'm' does not exist on type '{ y: string; x: string; w: string; }'.
+app/analyze/page.tsx(2898,110): error TS2339: Property 'm' does not exist on type '{ y: string; x: string; w: string; }'.
+app/analyze/page.tsx(2901,136): error TS2339: Property 'm' does not exist on type '{ y: string; x: string; w: string; }'.
+app/analyze/page.tsx(2906,165): error TS2339: Property 'm' does not exist on type '{ y: string; x: string; w: string; }'.
+app/analyze/page.tsx(2966,72): error TS2339: Property 'f1' does not exist on type '{ y: string; factor1: string; factor2: string; }'.
+app/analyze/page.tsx(2967,107): error TS2353: Object literal may only specify known properties, and 'f1' does not exist in type 'SetStateAction<{ y: string; factor1: string; factor2: string; }>'.
+app/analyze/page.tsx(2971,93): error TS2304: Cannot find name 'twoWayVars'.
+app/analyze/page.tsx(2981,72): error TS2339: Property 'f2' does not exist on type '{ y: string; factor1: string; factor2: string; }'.
+app/analyze/page.tsx(2982,107): error TS2353: Object literal may only specify known properties, and 'f2' does not exist in type 'SetStateAction<{ y: string; factor1: string; factor2: string; }>'.
+app/analyze/page.tsx(2986,93): error TS2304: Cannot find name 'twoWayVars'.
+app/analyze/page.tsx(2998,84): error TS2339: Property 'f1' does not exist on type '{ y: string; factor1: string; factor2: string; }'.
+app/analyze/page.tsx(2998,107): error TS2339: Property 'f2' does not exist on type '{ y: string; factor1: string; factor2: string; }'.
+app/analyze/page.tsx(3020,103): error TS2339: Property 'f1' does not exist on type '{ y: string; factor1: string; factor2: string; }'.
+app/analyze/page.tsx(3021,103): error TS2339: Property 'f2' does not exist on type '{ y: string; factor1: string; factor2: string; }'.
+app/analyze/page.tsx(3023,120): error TS2339: Property 'f1' does not exist on type '{ y: string; factor1: string; factor2: string; }'.
+app/analyze/page.tsx(3023,140): error TS2339: Property 'f2' does not exist on type '{ y: string; factor1: string; factor2: string; }'.
+app/analyze/page.tsx(3028,141): error TS2339: Property 'f1' does not exist on type '{ y: string; factor1: string; factor2: string; }'.
+app/analyze/page.tsx(3028,163): error TS2339: Property 'f2' does not exist on type '{ y: string; factor1: string; factor2: string; }'.
+app/analyze/page.tsx(3033,139): error TS2339: Property 'f1' does not exist on type '{ y: string; factor1: string; factor2: string; }'.
+app/analyze/page.tsx(3033,159): error TS2339: Property 'f2' does not exist on type '{ y: string; factor1: string; factor2: string; }'.

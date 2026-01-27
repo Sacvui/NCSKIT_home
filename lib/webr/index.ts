@@ -11,4 +11,6 @@ export * from './analyses/descriptive';
 export * from './analyses/hypothesis';
 export * from './analyses/regression';
 export * from './analyses/reliability';
+export * from './analyses/mediation';
+export * from './analyses/multivariate';
 export * from './analyses/upcoming';

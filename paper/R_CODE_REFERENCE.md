@@ -1,16 +1,16 @@
 # ncsStat R Code Documentation
 
 Tài liệu này liệt kê tất cả các lệnh R được sử dụng trong ncsStat để phân tích thống kê.
-Mỗi phần bao gồm: mô tả phương pháp, R packages cần thiết, và code chi tiết.
+Mỗi phần bao gồm: mô tả phương pháp, R packages cần thiết, và code tương đương với implementation thực tế.
 
 ---
 
 ## 📦 R Packages Sử Dụng
 
 ```r
-library(psych)        # Cronbach's Alpha, EFA, CFA, Correlation, Descriptive
+library(psych)        # Correlation, Alpha, EFA, CFA, Mediation, Descriptive
+library(cluster)      # Cluster Analysis
 library(GPArotation)  # Factor rotation methods
-library(corrplot)     # Correlation visualization
 ```
 
 ---
@@ -19,36 +19,25 @@ library(corrplot)     # Correlation visualization
 
 **Function:** `runCronbachAlpha()`
 
-**Mục đích:** Đánh giá độ tin cậy nội tại của thang đo Likert
+**Mục đích:** Đánh giá độ tin cậy nội tại của thang đo Likert hoặc biến liên tục.
 
 **R Code:**
 ```r
 library(psych)
 
-# DATA CLEANING: Clamp outliers to valid Likert range (configurable)
-valid_min <- 1   # Có thể đổi thành 0, 1, etc.
-valid_max <- 5   # Có thể đổi thành 7, 10, etc.
+# DATA CLEANING: Clamp outliers to valid Likert range
 data <- pmax(pmin(raw_data, valid_max), valid_min)
 
-# Run Cronbach's Alpha with auto key checking for reversed items
+# Run Cronbach's Alpha with auto key checking
 result <- alpha(data, check.keys = TRUE)
 
-# Extract item-total statistics
-item_stats <- result$item.stats
-alpha_drop <- result$alpha.drop
-n_items <- ncol(data)
-
-# Results
-list(
-    raw_alpha = result$total$raw_alpha,          # Alpha thô
-    std_alpha = result$total$std.alpha,          # Alpha chuẩn hóa
-    scale_mean_deleted = alpha_drop$mean,        # Mean nếu xóa item
-    scale_var_deleted = alpha_drop$sd^2,         # Variance nếu xóa item
-    corrected_item_total = item_stats$r.drop,    # Item-total correlation
-    alpha_if_deleted = alpha_drop$raw_alpha,     # Alpha nếu xóa item
-    average_r = result$total$average_r           # Inter-item correlation TB
-)
+# Extract statistics
+# result$total$raw_alpha: Raw Cronbach's Alpha
+# result$total$std.alpha: Standardized Alpha
+# result$alpha.drop: Item-total statistics (if item deleted)
 ```
+
+**Note:** Hệ thống tự động tính **McDonald's Omega** kèm theo (xem Mục 16).
 
 ---
 
@@ -56,33 +45,18 @@ list(
 
 **Function:** `runCorrelation()`
 
-**Mục đích:** Tính ma trận tương quan với 3 phương pháp
+**Mục đích:** Tính ma trận tương quan (Pearson, Spearman, Kendall).
 
 **R Code:**
 ```r
 library(psych)
 
-df <- as.data.frame(data_mat)
-colnames(df) <- paste0("V", 1:ncol(df))
-
 # method = "pearson" | "spearman" | "kendall"
-method_name <- "pearson"
+ct <- corr.test(df, use = "pairwise", method = "pearson", adjust = "none")
 
-# corr.test() cho cả r và p-value
-ct <- corr.test(df, use = "pairwise", method = method_name, adjust = "none")
-
-list(
-    correlation = as.vector(ct$r),   # Correlation matrix
-    p_values = as.vector(ct$p),      # P-values matrix
-    n_cols = ncol(df),
-    method = method_name
-)
+# ct$r: Correlation Matrix
+# ct$p: P-values Matrix
 ```
-
-**Giải thích:**
-- **Pearson:** Tương quan tuyến tính (dữ liệu phân phối chuẩn)
-- **Spearman:** Tương quan xếp hạng (phi tham số)
-- **Kendall:** Concordance xếp hạng (robust hơn Spearman, tốt cho mẫu nhỏ)
 
 ---
 
@@ -90,29 +64,13 @@ list(
 
 **Function:** `runDescriptiveStats()`
 
-**Mục đích:** Tính các thống kê cơ bản (Mean, SD, Skewness, Kurtosis...)
+**Mục đích:** Tính Mean, SD, Skewness, Kurtosis.
 
 **R Code:**
 ```r
 library(psych)
-
-df <- as.data.frame(data_mat)
-colnames(df) <- paste0("V", 1:ncol(df))
-
-# describe() cung cấp đầy đủ thống kê
 desc <- describe(df)
-
-list(
-    mean = desc$mean,
-    sd = desc$sd,
-    min = desc$min,
-    max = desc$max,
-    median = desc$median,
-    n = desc$n,
-    skew = desc$skew,       # Độ lệch
-    kurtosis = desc$kurtosis, # Độ nhọn
-    se = desc$se            # Standard Error
-)
+# Returns: mean, sd, min, max, skew, kurtosis, se
 ```
 
 ---
@@ -121,169 +79,75 @@ list(
 
 **Function:** `runTTestIndependent()`
 
-**Mục đích:** So sánh trung bình 2 nhóm độc lập
+**Mục đích:** So sánh trung bình 2 nhóm độc lập.
 
 **R Code:**
 ```r
-# === ASSUMPTION TESTS ===
+# 1. Normality Check (Shapiro-Wilk)
+shapiro_p1 <- shapiro.test(group1)$p.value
+shapiro_p2 <- shapiro.test(group2)$p.value
 
-# 1. Shapiro-Wilk Normality Test cho từng nhóm
-shapiro_p1 <- tryCatch({
-    if (length(group1) >= 3 && length(group1) <= 5000) {
-        shapiro.test(group1)$p.value
-    } else { NA }
-}, error = function(e) NA)
+# 2. Homogeneity of Variance (Levene/Brown-Forsythe)
+# Using oneway.test logic manually or car::leveneTest
+# ncsStat uses Brown-Forsythe logic (median-based) internally via oneway.test on deviations
+med1 <- median(group1); med2 <- median(group2)
+z <- c(abs(group1 - med1), abs(group2 - med2))
+g <- factor(c(rep(1,length(group1)), rep(2,length(group2))))
+levene_p <- oneway.test(z ~ g, var.equal=TRUE)$p.value
 
-shapiro_p2 <- tryCatch({
-    if (length(group2) >= 3 && length(group2) <= 5000) {
-        shapiro.test(group2)$p.value
-    } else { NA }
-}, error = function(e) NA)
-
-# 2. Levene's Test (Brown-Forsythe - Median)
-med1 <- median(group1)
-med2 <- median(group2)
-z1 <- abs(group1 - med1)
-z2 <- abs(group2 - med2)
-z_val <- c(z1, z2)
-g_fac <- factor(c(rep(1, length(z1)), rep(2, length(z2))))
-levene_test <- oneway.test(z_val ~ g_fac, var.equal = TRUE)
-levene_p <- levene_test$p.value
-
-# Auto-select Welch's or Student's based on Levene
+# 3. T-Test (Auto-switch based on Levene)
 var_equal <- levene_p > 0.05
+test <- t.test(group1, group2, var.equal = var_equal)
 
-# === MAIN T-TEST ===
-result <- t.test(group1, group2, var.equal = var_equal)
-
-# Cohen's d Effect Size
-pooledSD <- sqrt(((length(group1) - 1) * sd(group1)^2 + 
-                  (length(group2) - 1) * sd(group2)^2) / 
-                 (length(group1) + length(group2) - 2))
-cohensD <- (mean(group1) - mean(group2)) / pooledSD
-
-list(
-    t = result$statistic,
-    df = result$parameter,
-    pValue = result$p.value,
-    mean1 = mean(group1),
-    mean2 = mean(group2),
-    meanDiff = mean(group1) - mean(group2),
-    ci95Lower = result$conf.int[1],
-    ci95Upper = result$conf.int[2],
-    effectSize = cohensD,
-    leveneP = levene_p,
-    normalityP1 = shapiro_p1,
-    normalityP2 = shapiro_p2
-)
+# 4. Effect Size (Cohen's d)
+pooled_sd <- sqrt(((n1-1)*sd1^2 + (n2-1)*sd2^2)/(n1+n2-2))
+d <- (mean1 - mean2) / pooled_sd
 ```
 
 ---
 
-## 5. Paired T-Test (So sánh 2 nhóm ghép cặp)
+## 5. Paired T-Test (So sánh cặp)
 
 **Function:** `runTTestPaired()`
 
-**Mục đích:** So sánh pre-post trong cùng nhóm
+**Mục đích:** So sánh trước-sau hoặc cặp đôi.
 
 **R Code:**
 ```r
-# Calculate difference scores
+# Normality of DIFFERENCES
 diffs <- before - after
+shapiro_p <- shapiro.test(diffs)$p.value
 
-# === ASSUMPTION TEST ===
-# Normality of DIFFERENCE scores (key assumption)
-shapiro_diff_p <- tryCatch({
-    if (length(diffs) >= 3 && length(diffs) <= 5000) {
-        shapiro.test(diffs)$p.value
-    } else { NA }
-}, error = function(e) NA)
+# T-Test
+test <- t.test(before, after, paired = TRUE)
 
-# === MAIN T-TEST ===
-result <- t.test(before, after, paired = TRUE)
-
-# Cohen's d for Paired Samples: d = MeanDiff / SD_diff
-mean_diff <- mean(diffs)
-sd_diff <- sd(diffs)
-cohens_d <- mean_diff / sd_diff
-
-list(
-    t = result$statistic,
-    df = result$parameter,
-    pValue = result$p.value,
-    meanBefore = mean(before),
-    meanAfter = mean(after),
-    meanDiff = mean_diff,
-    ci95Lower = result$conf.int[1],
-    ci95Upper = result$conf.int[2],
-    effectSize = cohens_d,
-    normalityDiffP = shapiro_diff_p
-)
+# Effect Size (Cohen's d for paired)
+d <- mean(diffs) / sd(diffs)
 ```
 
 ---
 
-## 6. One-Way ANOVA
+## 6. One-Way ANOVA & Welch ANOVA
 
 **Function:** `runOneWayANOVA()`
 
-**Mục đích:** So sánh trung bình 3+ nhóm
+**Mục đích:** So sánh trung bình 3+ nhóm.
 
 **R Code:**
 ```r
-# Create data with group labels
-values <- c(group1, group2, group3, ...)
-groups <- factor(c(rep(1, n1), rep(2, n2), rep(3, n3), ...))
-
-# === ASSUMPTION TESTS ===
-
 # 1. Levene's Test (Brown-Forsythe)
-group_medians <- tapply(values, groups, median)
-deviations <- numeric(length(values))
-for(i in 1:length(values)) {
-    g_idx <- as.numeric(groups)[i]
-    deviations[i] <- abs(values[i] - group_medians[g_idx])
+# ... see logic in #4 ...
+
+if (levene_p > 0.05) {
+    # Equal Variance -> Classic ANOVA + Tukey HSD
+    model <- aov(values ~ groups)
+    summary(model)
+    TukeyHSD(model)
+} else {
+    # Unequal Variance -> Welch ANOVA + Games-Howell
+    oneway.test(values ~ groups, var.equal = FALSE)
+    # Games-Howell post-hoc implemented manually in ncsStat
 }
-levene_model <- aov(deviations ~ groups)
-levene_p <- summary(levene_model)[[1]][1, 5]
-
-# === MAIN ANOVA ===
-model <- aov(values ~ groups)
-result <- summary(model)[[1]]
-
-# 2. Normality of Residuals
-resids <- residuals(model)
-shapiro_resid_p <- tryCatch({
-    if (length(resids) >= 3 && length(resids) <= 5000) {
-        shapiro.test(resids)$p.value
-    } else { NA }
-}, error = function(e) NA)
-
-# Eta Squared
-ssb <- result[1, 2]  # Sum of squares between
-sst <- ssb + result[2, 2]  # Total sum of squares
-etaSquared <- ssb / sst
-
-# === POST-HOC: Tukey HSD ===
-tukey_result <- TukeyHSD(model)$groups
-tukey_comparisons <- rownames(tukey_result)
-tukey_diffs <- tukey_result[, "diff"]
-tukey_padj <- tukey_result[, "p adj"]
-
-list(
-    F = result[1, 4],
-    dfBetween = result[1, 1],
-    dfWithin = result[2, 1],
-    pValue = result[1, 5],
-    groupMeans = as.numeric(tapply(values, groups, mean)),
-    grandMean = mean(values),
-    etaSquared = etaSquared,
-    leveneP = levene_p,
-    normalityResidP = shapiro_resid_p,
-    tukeyComparisons = tukey_comparisons,
-    tukeyDiffs = tukey_diffs,
-    tukeyPAdj = tukey_padj
-)
 ```
 
 ---
@@ -292,83 +156,36 @@ list(
 
 **Function:** `runEFA()`
 
-**Mục đích:** Khám phá cấu trúc nhân tố
+**Mục đích:** Khám phá cấu trúc nhân tố.
 
 **R Code:**
 ```r
 library(psych)
 
-# 1. Clean Data
-df_clean <- na.omit(df)
-df_clean <- df_clean[apply(df_clean, 1, function(x) all(is.finite(x))), ]
+# 1. Parallel Analysis (Gold standard for n_factors)
+pa <- fa.parallel(df, fm="pa", fa="fa", n.iter=20, plot=FALSE)
+n_factors <- pa$nfact
 
-# 2. Correlation Matrix & Eigenvalues
-cor_mat <- cor(df_clean)
-eigenvalues <- eigen(cor_mat)$values
+# 2. Run EFA (Principal Axis Factoring + Varimax/Promax)
+fit <- fa(df, nfactors=n_factors, rotate="varimax", fm="pa")
 
-# 3. Auto-detect number of factors (Kaiser criterion)
-n_factors_run <- sum(eigenvalues > 1)
-if (n_factors_run < 1) n_factors_run <- 1
-
-# 4. KMO and Bartlett
-kmo_result <- KMO(df_clean)
-bartlett_result <- cortest.bartlett(cor_mat, n = nrow(df_clean))
-
-# 5. Run EFA
-# fm = "pa" (Principal Axis), "ml" (Maximum Likelihood), "minres", etc.
-# rotate = "varimax" (orthogonal), "oblimin" (oblique), "promax"
-efa_result <- fa(df_clean, nfactors = n_factors_run, rotate = "varimax", fm = "pa")
-
-list(
-    kmo = kmo_result$MSA[1],
-    bartlett_p = bartlett_result$p.value,
-    loadings = efa_result$loadings,
-    communalities = efa_result$communalities,
-    structure = efa_result$Structure,
-    eigenvalues = eigenvalues,
-    n_factors_used = n_factors_run
-)
+# fit$loadings, fit$communalities, fit$Structure
 ```
 
 ---
 
-## 8. Confirmatory Factor Analysis (CFA)
+## 8. Confirmatory Factor Analysis (CFA Proxy)
 
 **Function:** `runCFA()`
 
-**Mục đích:** Xác nhận cấu trúc nhân tố đã định nghĩa
-
-**Note:** Sử dụng `psych::fa()` thay cho `lavaan` vì lavaan cần `quadprog` không có trên WebR WASM
+**Mục đích:** Mô phỏng CFA bằng EFA với fixed loading (tạm thời, chưa phải SEM-CFA).
 
 **R Code:**
 ```r
 library(psych)
-
-# Run FA with ML estimation
-fa_result <- fa(df, nfactors = n_factors, rotate = "oblimin", fm = "ml")
-
-# Extract Fit Measures
-chi_sq <- fa_result$STATISTIC
-df_val <- fa_result$dof
-p_val <- fa_result$PVAL
-rmsea_val <- fa_result$RMSEA[1]
-
-# Calculate CFI and TLI
-null_chisq <- fa_result$null.chisq
-null_df <- fa_result$null.dof
-
-tli_val <- ((null_chisq/null_df) - (chi_sq/df_val)) / ((null_chisq/null_df) - 1)
-cfi_val <- 1 - max(chi_sq - df_val, 0) / max(null_chisq - null_df, chi_sq - df_val, 0)
-
-list(
-    cfi = cfi_val,
-    tli = tli_val,
-    rmsea = rmsea_val,
-    srmr = fa_result$rms,
-    chisq = chi_sq,
-    df = df_val,
-    pvalue = p_val
-)
+# Proxy CFA using fa() with ML estimation and specific factor number
+fit <- fa(df, nfactors=k, rotate="oblimin", fm="ml")
+# Use fit statistics (RMSEA, TLI, CFI) from fa output
 ```
 
 ---
@@ -377,515 +194,177 @@ list(
 
 **Function:** `runLinearRegression()`
 
-**Mục đích:** Hồi quy tuyến tính đa biến
+**Mục đích:** Hồi quy tuyến tính.
 
 **R Code:**
 ```r
-# Formula: First column ~ all others
-y_name <- colnames(df)[1]
-f_str <- paste(sprintf("`%s`", y_name), "~ .")
-f <- as.formula(f_str)
+model <- lm(y ~ ., data=df)
+summary(model)
 
-model <- lm(f, data = df)
-s <- summary(model)
-
-# Coefficients
-coefs <- coef(s)
-
-# F-statistic p-value
-fstat <- s$fstatistic
-f_p_value <- pf(fstat[1], fstat[2], fstat[3], lower.tail = FALSE)
-
-# === VIF (Manual calculation) ===
-x_data <- df[, -1, drop = FALSE]
-n_vars <- ncol(x_data)
-vifs <- numeric(n_vars)
-
-for (i in 1:n_vars) {
-    r_model <- lm(x_data[, i] ~ ., data = x_data[, -i, drop = FALSE])
-    r2 <- summary(r_model)$r.squared
-    vifs[i] <- 1 / (1 - r2)
-}
-
-# Normality of Residuals
-normality_p <- shapiro.test(residuals(model))$p.value
-
-list(
-    coef_names = rownames(coefs),
-    estimates = coefs[, 1],
-    std_errors = coefs[, 2],
-    t_values = coefs[, 3],
-    p_values = coefs[, 4],
-    
-    r_squared = s$r.squared,
-    adj_r_squared = s$adj.r.squared,
-    f_stat = fstat[1],
-    f_p_value = f_p_value,
-    sigma = s$sigma,
-    
-    fitted_values = fitted(model),
-    residuals = residuals(model),
-    vifs = vifs,
-    normality_p = normality_p
-)
+# VIF (Variance Inflation Factor)
+# ncsStat calculates VIF manually: 1 / (1 - R_squared_i) for each predictor
 ```
 
 ---
 
-## 10. Mann-Whitney U Test (Phi tham số)
+## 10. Mann-Whitney U Test
 
 **Function:** `runMannWhitneyU()`
 
-**Mục đích:** So sánh 2 nhóm độc lập khi vi phạm giả định phân phối chuẩn
+**Mục đích:** So sánh 2 nhóm (phi tham số).
 
 **R Code:**
 ```r
-# Wilcoxon Rank Sum Test (= Mann-Whitney U)
-test <- wilcox.test(g1, g2, conf.int = TRUE)
+# Wilcoxon Rank Sum Test
+test <- wilcox.test(g1, g2, conf.int=TRUE)
 
-n1 <- length(g1)
-n2 <- length(g2)
-N <- n1 + n2
+# Effect Size (r)
+r <- abs(qnorm(test$p.value/2)) / sqrt(n1+n2)
 
-# Effect Size: r = Z / sqrt(N)
-z_score <- qnorm(test$p.value / 2)
-effect_r <- abs(z_score) / sqrt(N)
-
-list(
-    statistic = test$statistic,
-    p_value = test$p.value,
-    median1 = median(g1),
-    median2 = median(g2),
-    effect_size = effect_r
-)
+# Check Distribution Shape (Skewness)
+library(psych)
+skew1 <- skew(g1); skew2 <- skew(g2)
+# If sign(skew1) == sign(skew2) & abs(diff) < 1 -> Similar shape -> Compare Medians
 ```
 
 ---
 
-## 11. Chi-Square Test (Kiểm định độc lập)
+## 11. Chi-Square Test
 
 **Function:** `runChiSquare()`
 
-**Mục đích:** Kiểm tra mối quan hệ giữa 2 biến định danh
+**Mục đích:** Kiểm định độc lập cho biến định danh.
 
 **R Code:**
 ```r
-# Create contingency table
-tbl <- table(df_raw[,1], df_raw[,2])
-
-# Chi-Square Test
+tbl <- table(var1, var2)
 test <- chisq.test(tbl)
 
-# Cramer's V Effect Size
-chisq_val <- test$statistic
+# Effect Size (Cramer's V)
 n <- sum(tbl)
-k <- min(nrow(tbl), ncol(tbl))
-cramers_v <- sqrt(chisq_val / (n * (min(dim(tbl)) - 1)))
+V <- sqrt(test$statistic / (n * (min(dim(tbl)) - 1)))
 
-list(
-    statistic = test$statistic,
-    parameter = test$parameter,  # df
-    p_value = test$p.value,
-    observed = as.matrix(test$observed),
-    expected = as.matrix(test$expected),
-    cramers_v = cramers_v
-)
+# 2x2 Specifics
+if(nrow==2 && ncol==2) {
+    fisher.test(tbl)$estimate # Odds Ratio
+    phi <- sqrt(test$statistic / n)
+}
 ```
 
 ---
 
-## 📚 Tài liệu tham khảo
-
-1. **psych package:** https://cran.r-project.org/package=psych
-2. **R Statistics Documentation:** https://www.rdocumentation.org/
-3. **SPSS to R Mappings:** Cronbach's Alpha, T-tests, ANOVA, EFA, Regression
-
----
-
-## 12. Logistic Regression (Hồi quy nhị phân)
+## 12. Logistic Regression
 
 **Function:** `runLogisticRegression()`
 
-**Mục đích:** Dự đoán biến phụ thuộc nhị phân (0/1)
+**Mục đích:** Hồi quy nhị phân (Binary Outcome).
 
 **R Code:**
 ```r
-# DV phải là 0/1
-y_name <- colnames(df)[1]
-df[[y_name]] <- as.factor(df[[y_name]])
+# Family = Binomial (Logit)
+model <- glm(y ~ ., data=df, family=binomial(link="logit"))
 
-# Formula
-f <- as.formula(paste(y_name, "~ ."))
+# Odds Ratios
+exp(coef(model))
 
-# Fit Logistic Regression
-model <- glm(f, data = df, family = binomial(link = "logit"))
-s <- summary(model)
-
-# Coefficients & Odds Ratios
-coefs <- s$coefficients
-odds_ratios <- exp(coefs[, 1])
-
-# McFadden's Pseudo R²
-null_dev <- model$null.deviance
-resid_dev <- model$deviance
-pseudo_r2 <- 1 - (resid_dev / null_dev)
-
-# Confusion Matrix
-probs <- predict(model, type = "response")
-preds <- ifelse(probs > 0.5, 1, 0)
-actual <- as.numeric(as.character(df[[y_name]]))
-
-tp <- sum(preds == 1 & actual == 1)
-tn <- sum(preds == 0 & actual == 0)
-fp <- sum(preds == 1 & actual == 0)
-fn <- sum(preds == 0 & actual == 1)
-accuracy <- (tp + tn) / length(actual)
+# McFadden's Pseudo R2
+1 - (model$deviance / model$null.deviance)
 ```
 
 ---
 
-## 13. Kruskal-Wallis Test (Phi tham số ANOVA)
-
-**Function:** `runKruskalWallis()`
-
-**Mục đích:** So sánh 3+ nhóm khi vi phạm giả định phân phối chuẩn
-
-**R Code:**
-```r
-# Kruskal-Wallis Test
-test <- kruskal.test(values ~ groups)
-
-# Group Medians
-groupMedians <- tapply(values, groups, median)
-
-# Effect Size: Epsilon squared
-n <- length(values)
-epsilon_sq <- test$statistic / (n - 1)
-
-list(
-    statistic = test$statistic,  # Chi-squared
-    df = test$parameter,
-    p_value = test$p.value,
-    group_medians = as.numeric(groupMedians),
-    effect_size = epsilon_sq
-)
-```
-
----
-
-## 14. Wilcoxon Signed-Rank Test (Phi tham số ghép cặp)
-
-**Function:** `runWilcoxonSignedRank()`
-
-**Mục đích:** So sánh cặp khi vi phạm phân phối chuẩn
-
-**R Code:**
-```r
-# Wilcoxon Signed-Rank Test (paired)
-test <- wilcox.test(before, after, paired = TRUE, conf.int = TRUE)
-
-# Effect Size: r = Z / sqrt(N)
-n <- length(before)
-z_score <- qnorm(test$p.value / 2)
-effect_r <- abs(z_score) / sqrt(n)
-
-# Difference
-diffs <- before - after
-
-list(
-    statistic = test$statistic,  # V
-    p_value = test$p.value,
-    median_before = median(before),
-    median_after = median(after),
-    median_diff = median(diffs),
-    effect_size = effect_r
-)
-```
-
----
-
-## 15. Mediation Analysis (Phân tích trung gian)
-
-**Function:** `runMediationAnalysis()`
-
-**Mục đích:** Kiểm tra liệu M có trung gian hóa mối quan hệ X → Y
-
-**Model:** X → M → Y (với direct effect X → Y)
-
-**R Code:**
-```r
-# === BARON & KENNY STEPS ===
-
-# Step 1: Path c (Total Effect) - X predicts Y
-model_c <- lm(y ~ x)
-path_c <- coef(summary(model_c))[2, 1]
-
-# Step 2: Path a - X predicts M
-model_a <- lm(m ~ x)
-path_a <- coef(summary(model_a))[2, 1]
-
-# Step 3: Paths b and c' - M predicts Y controlling for X
-model_bc <- lm(y ~ x + m)
-path_b <- coef(summary(model_bc))[3, 1]      # M coefficient
-path_cprime <- coef(summary(model_bc))[2, 1] # Direct effect
-
-# === INDIRECT EFFECT ===
-indirect_effect <- path_a * path_b
-total_effect <- path_c
-direct_effect <- path_cprime
-
-# Proportion mediated
-prop_mediated <- indirect_effect / total_effect
-
-# === SOBEL TEST ===
-sobel_se <- sqrt(path_b^2 * se_a^2 + path_a^2 * se_b^2)
-sobel_z <- indirect_effect / sobel_se
-sobel_p <- 2 * (1 - pnorm(abs(sobel_z)))
-
-# === BOOTSTRAP CI (1000 iterations) ===
-n_boot <- 1000
-boot_indirect <- numeric(n_boot)
-
-for (i in 1:n_boot) {
-    idx <- sample(1:n, n, replace = TRUE)
-    a_b <- coef(lm(m[idx] ~ x[idx]))[2]
-    b_b <- coef(lm(y[idx] ~ x[idx] + m[idx]))[3]
-    boot_indirect[i] <- a_b * b_b
-}
-
-boot_ci_lower <- quantile(boot_indirect, 0.025)
-boot_ci_upper <- quantile(boot_indirect, 0.975)
-
-# Mediation Type
-# Full: c' not significant, indirect significant
-# Partial: both c' and indirect significant
-# None: indirect not significant
-```
-
----
-
-## 16. McDonald's Omega (Độ tin cậy)
-
-**Thêm vào `runCronbachAlpha()`**
-
-**Mục đích:** Omega robust hơn Alpha cho multidimensional scales
-
-**R Code:**
-```r
-library(psych)
-
-# omega() requires at least 3 items
-omega_result <- omega(data, nfactors = 1, plot = FALSE)
-
-list(
-    omega_total = omega_result$omega.tot,   # Total Omega
-    omega_h = omega_result$omega_h          # Hierarchical Omega
-)
-```
-
----
-
-## 17. Welch ANOVA (Auto-switch)
-
-**Cập nhật `runOneWayANOVA()`**
-
-**Mục đích:** Khi Levene p < 0.05, tự động dùng Welch ANOVA thay Classic
-
-**R Code:**
-```r
-if (levene_p < 0.05) {
-    # Variance NOT homogeneous -> Use Welch ANOVA
-    welch_result <- oneway.test(values ~ groups, var.equal = FALSE)
-    f_stat <- welch_result$statistic
-    df_between <- welch_result$parameter[1]
-    df_within <- welch_result$parameter[2]
-    p_val <- welch_result$p.value
-    method_used <- "Welch ANOVA"
-} else {
-    # Classic ANOVA
-    model <- aov(values ~ groups)
-    method_used <- "Classic ANOVA"
-}
-```
-
----
-
-## 18. Parallel Analysis cho EFA
-
-**Cập nhật `runEFA()`**
-
-**Mục đích:** Parallel Analysis tốt hơn Kaiser criterion (eigenvalue > 1)
-
-**R Code:**
-```r
-library(psych)
-
-# Parallel Analysis - Gold Standard
-pa <- fa.parallel(df_clean, fm = "pa", fa = "fa", plot = FALSE, 
-                  n.iter = 20, quant = 0.95)
-n_factors_suggested <- pa$nfact
-
-# Kaiser criterion as fallback
-n_factors_kaiser <- sum(eigenvalues > 1)
-
-# Prefer Parallel Analysis
-if (!is.na(n_factors_suggested)) {
-    n_factors_run <- n_factors_suggested
-    factor_method <- "parallel"
-} else {
-    n_factors_run <- n_factors_kaiser
-    factor_method <- "kaiser"
-}
-```
-
----
-
-## 17. Moderation Analysis (Phân tích điều tiết)
-
-**Function:** `runModerationAnalysis()`
-
-**Mục đích:** Kiểm tra xem biến W có điều tiết mối quan hệ giữa X và Y không 
-
-**R Code:**
-```r
-# Moderation Analysis with Hierarchical Regression
-x <- c(...)  # Independent variable
-y <- c(...)  # Dependent variable
-w <- c(...)  # Moderator variable
-
-# Center predictors (recommended for moderation)
-x_c <- scale(x, center = TRUE, scale = FALSE)[,1]
-w_c <- scale(w, center = TRUE, scale = FALSE)[,1]
-
-# Create interaction term
-xw_c <- x_c * w_c
-
-# Model 1: X only
-model1 <- lm(y ~ x_c)
-
-# Model 2: X + W
-model2 <- lm(y ~ x_c + w_c)
-
-# Model 3: X + W + Interaction
-model3 <- lm(y ~ x_c + w_c + xw_c)
-m3_sum <- summary(model3)
-
-# R² change for interaction
-r2_change <- m3_sum$r.squared - summary(model2)$r.squared
-
-# Cohen's f² effect size
-f2_interaction <- r2_change / (1 - m3_sum$r.squared)
-
-# Simple slopes at ±1 SD of W
-w_sd <- sd(w)
-slope_low  <- b_x + b_xw * (-w_sd)   # Low W
-slope_mean <- b_x + b_xw * 0         # Mean W  
-slope_high <- b_x + b_xw * w_sd      # High W
-```
-
-**Giải thích:**
-- Moderator có ý nghĩa khi p-value của interaction < 0.05
-- Cohen's f² < 0.02: negligible, 0.02-0.15: small, 0.15-0.35: medium, >0.35: large
-- Simple slopes cho thấy tác động của X lên Y ở các mức khác nhau của W
-
----
-
-## 18. Two-Way ANOVA (ANOVA 2 yếu tố)
-
-**Function:** `runTwoWayANOVA()`
-
-**Mục đích:** Phân tích tác động chính và tương tác của 2 nhân tố phân loại lên biến phụ thuộc
-
-**R Code:**
-```r
-# Two-Way ANOVA
-y <- c(...)           # Dependent variable
-f1 <- factor(c(...))  # Factor 1
-f2 <- factor(c(...))  # Factor 2
-df <- data.frame(y = y, f1 = f1, f2 = f2)
-
-# Fit ANOVA model  
-model <- aov(y ~ f1 * f2, data = df)
-anova_table <- summary(model)[[1]]
-
-# Extract results
-ss <- anova_table[, 'Sum Sq']        # Sums of Squares
-dfs <- anova_table[, 'Df']           # Degrees of Freedom
-ms <- anova_table[, 'Mean Sq']       # Mean Squares
-f_vals <- anova_table[, 'F value']   # F statistics
-p_vals <- anova_table[, 'Pr(>F)']    # P-values
-
-# Eta squared effect sizes
-ss_total <- sum(ss)
-eta_f1 <- ss[1] / ss_total           # Factor 1
-eta_f2 <- ss[2] / ss_total           # Factor 2
-eta_int <- ss[3] / ss_total          # Interaction
-
-# Cell means
-cell_means <- aggregate(y ~ f1 + f2, data = df, 
-                        FUN = function(x) c(mean = mean(x), sd = sd(x), n = length(x)))
-
-# Levene's test for homogeneity
-levene_test <- car::leveneTest(y ~ f1 * f2, data = df)
-```
-
-**Giải thích:**
-- **Main Effect F1/F2:** Tác động chính của từng yếu tố
-- **Interaction:** Tương tác giữa 2 yếu tố (nếu có ý nghĩa, cần phân tích simple effects)
-- **Eta² (η²):** Tỷ lệ variance được giải thích (effect size)
-
----
-
-## 19. Cluster Analysis (Phân tích cụm)
+## 13. Cluster Analysis (K-Means)
 
 **Function:** `runClusterAnalysis()`
 
-**Mục đích:** Phân nhóm/phân khúc đối tượng dựa trên sự tương đồng của các biến
+**Mục đích:** Phân cụm dữ liệu.
 
 **R Code:**
 ```r
-# Cluster Analysis (K-Means)
-data_mat <- matrix(c(...), nrow = n, byrow = TRUE)
-colnames(data_mat) <- c("V1", "V2", ...)
-
-# Standardize data
-data_scaled <- scale(data_mat)
-
-# K-Means clustering
-set.seed(123)
-k <- 3  # Number of clusters
-km <- kmeans(data_scaled, centers = k, nstart = 25)
-
-# Results
-clusters <- km$cluster    # Cluster assignment
-centers <- km$centers     # Cluster centers (standardized)
-sizes <- km$size          # Cluster sizes
-within_ss <- km$withinss  # Within-cluster SS
-between_ss <- km$betweenss
-total_ss <- km$totss
-
-# Silhouette score
 library(cluster)
-sil <- silhouette(km$cluster, dist(data_scaled))
-sil_avg <- mean(sil[, 3])
 
-# Elbow method for optimal k
-wss <- numeric(10)
-for (i in 1:10) {
-    wss[i] <- sum(kmeans(data_scaled, centers = i, nstart = 10)$withinss)
-}
+# Scale data first!
+df_scaled <- scale(df)
 
-# Cluster profiles (original scale means)
-profile_means <- aggregate(data_mat, by = list(cluster = clusters), FUN = mean)
-profile_sds <- aggregate(data_mat, by = list(cluster = clusters), FUN = sd)
+# K-Means
+set.seed(123)
+km <- kmeans(df_scaled, centers=k, nstart=25)
+
+# Metrics
+km$tot.withinss # Total Within SS
+km$betweenss    # Between SS
 ```
-
-**Giải thích:**
-- **Silhouette Score:** >0.7: strong structure, 0.5-0.7: reasonable, 0.25-0.5: weak, <0.25: no structure
-- **Elbow Method:** Chọn k tại điểm "elbow" của đồ thị WSS
-- **Cluster Profiles:** Đặc điểm trung bình của từng cụm
 
 ---
 
-*Tài liệu này được tạo tự động từ mã nguồn `lib/webr-wrapper.ts`*
-*Cập nhật lần cuối: 2026-01-25*
+## 14. Mediation Analysis
+
+**Function:** `runMediationAnalysis()`
+
+**Mục đích:** Phân tích trung gian (X -> M -> Y).
+
+**R Code:**
+```r
+library(psych)
+
+# Uses psych::mediate for robust bootstrapping
+# Model: Y ~ X + (M)
+model <- mediate(y ~ x + (m), data=df, n.iter=1000, plot=FALSE)
+
+# Effects
+model$total    # Total Effect (c)
+model$direct   # Direct Effect (c')
+model$indirect # Indirect Effect (ab)
+model$boot     # Bootstrapped CI for indirect effect
+```
+
+---
+
+## 15. Moderation Analysis
+
+**Function:** `runModerationAnalysis()`
+
+**Mục đích:** Phân tích điều tiết (Interaction Effect).
+
+**R Code:**
+```r
+# Manual centering and interaction
+x_c <- scale(x, scale=FALSE)
+m_c <- scale(m, scale=FALSE)
+model <- lm(y ~ x_c * m_c) # Includes x_c, m_c, and x_c:m_c
+
+# Simple Slopes (at Mean, -1SD, +1SD)
+# Calculated by checking slope of X at different levels of M
+```
+
+---
+
+## 16. McDonald's Omega
+
+**Function:** Part of `runCronbachAlpha()`
+
+**Mục đích:** Độ tin cậy tổng hợp (tốt hơn Alpha).
+
+**R Code:**
+```r
+library(psych)
+omega(df, nfactors=1)
+```
+
+---
+
+## 17. Two-Way ANOVA
+
+**Function:** `runTwoWayANOVA()`
+
+**Mục đích:** ANOVA 2 yếu tố với tương tác.
+
+**R Code:**
+```r
+# Model with Interaction
+model <- aov(y ~ f1 * f2, data=df)
+summary(model)
+
+# Interaction Means for Plotting
+aggregate(y ~ f1 + f2, data=df, mean)
+```
