@@ -65,8 +65,8 @@ function CallbackContent() {
                 // Exchange code logic with strong timeout and error handling
                 // We wrap the promise to ensure it never throws "Uncaught (in promise)"
                 const exchangePromise = supabase.auth.exchangeCodeForSession(code)
-                    .then(res => ({ data: res.data, error: res.error, timeout: false }))
-                    .catch(e => ({ data: null, error: e, timeout: false }));
+                    .then((res: any) => ({ data: res.data, error: res.error, timeout: false }))
+                    .catch((e: any) => ({ data: null, error: e, timeout: false }));
 
                 const timeoutPromise = new Promise<{ data: any, error: any, timeout: boolean }>((resolve) => {
                     setTimeout(() => resolve({ data: null, error: new Error('Exchange Timeout'), timeout: true }), 15000);
