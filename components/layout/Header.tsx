@@ -109,10 +109,10 @@ export default function Header({ user, profile: initialProfile, centerContent, r
                         return prev
                     })
                 } else if (error) {
-                    console.error('[Header] Fetch profile error:', error)
+                    console.error('[Header] Fetch profile error data:', error)
                 }
             } catch (err) {
-                console.error('[Header] Fetch profile exception:', err)
+                console.error('[Header] Fetch profile exception:', JSON.stringify(err, Object.getOwnPropertyNames(err)))
             }
         }
 
