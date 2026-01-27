@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClientOnly } from '@/utils/supabase/client-only'
+import { getSupabase } from '@/utils/supabase/client'
 import AdminDashboard from '@/components/admin/AdminDashboard'
 import { Loader2 } from 'lucide-react'
 
@@ -13,7 +13,7 @@ export default function AdminPage() {
 
     useEffect(() => {
         const checkAuth = async () => {
-            const supabase = createClientOnly()
+            const supabase = getSupabase()
             const { data: { user } } = await supabase.auth.getUser()
 
             if (!user) {
