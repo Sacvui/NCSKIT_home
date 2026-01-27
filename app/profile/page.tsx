@@ -26,7 +26,8 @@ export default function ProfilePage() {
         let isMounted = true;
 
         // Helper: Retry logic for flaky operations
-        const safeAuthCall = async<T>(fn: () => Promise<T>, retries = 3): Promise<T | null > => {
+        // Helper: Retry logic for flaky operations
+        async function safeAuthCall<T>(fn: () => Promise<T>, retries = 3): Promise<T | null> {
             try {
                 return await fn();
             } catch (e: any) {
@@ -38,7 +39,7 @@ export default function ProfilePage() {
                 console.error('[ProfilePage] Auth call failed:', e);
                 return null;
             }
-        };
+        }
 
         const loadProfile = async () => {
             if (!isMounted) return;
