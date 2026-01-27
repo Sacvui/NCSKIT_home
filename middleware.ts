@@ -1,8 +1,10 @@
-import { type NextRequest } from 'next/server'
-import { updateSession } from '@/utils/supabase/middleware'
+import { NextResponse, type NextRequest } from 'next/server'
+// import { updateSession } from '@/utils/supabase/middleware'
 
 export async function middleware(request: NextRequest) {
-    return await updateSession(request)
+    // PASS-THROUGH: Rely on Client-Side Auth Checks
+    // We are disabling server-side middleware checks to avoid cookie persistence issues.
+    return NextResponse.next()
 }
 
 export const config = {

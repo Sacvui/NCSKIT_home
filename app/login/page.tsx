@@ -30,7 +30,12 @@ function LoginForm() {
 
         try {
             const supabase = getSupabase()
-            const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next || '/profile')}`
+            // Prefer window.origin for localhost to avoid forcing production redirect during dev
+            const origin = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+                ? window.location.origin
+                : (process.env.NEXT_PUBLIC_SITE_URL || window.location.origin)
+
+            const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(next || '/profile')}`
             console.log('Redirecting to:', redirectTo)
 
             const { data, error } = await supabase.auth.signInWithOAuth({

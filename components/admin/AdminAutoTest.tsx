@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { Play, CheckCircle, XCircle, Clock, Loader2, FileSpreadsheet, Settings, BarChart3, RefreshCw } from 'lucide-react';
-import { TEST_DATA_SCALES, ANALYSIS_CONFIGS, DEFAULT_CFA_MODEL, DEFAULT_SEM_MODEL, AUTO_TEST_WORKFLOW } from '@/lib/auto-test-config';
-import { runCronbachAlpha, runDescriptiveStats, runCorrelation, runEFA, runCFA, runSEM, initWebR, getWebRStatus } from '@/lib/webr-wrapper';
+import { TEST_DATA_SCALES, ANALYSIS_CONFIGS, DEFAULT_CFA_MODEL, DEFAULT_SEM_MODEL, AUTO_TEST_WORKFLOW, DEFAULT_REGRESSION_CONFIG } from '@/lib/auto-test-config';
+import { runCronbachAlpha, runDescriptiveStats, runCorrelation, runEFA, runCFA, runSEM, runLinearRegression, initWebR, getWebRStatus } from '@/lib/webr-wrapper';
 
 interface TestResult {
     analysisId: string;
@@ -215,8 +215,14 @@ export function AdminAutoTest({ onTestComplete }: AdminAutoTestProps) {
                         break;
 
                     case 'regression':
-                        // Skip for now - needs dependent variable
-                        result = { skipped: true, reason: 'Requires dependent variable configuration' };
+                        // Run Linear Regression using default config
+                        const depVar = DEFAULT_REGRESSION_CONFIG.dependent;
+                        const indepVars = DEFAULT_REGRESSION_CONFIG.independents;
+
+                        // Extract data: Dependent variable (Y) is column 0, Independents (X) are columns 1..N
+                        const regVars = [depVar, ...indepVars];
+                        const regMatrix = extractColumnsAsMatrix(data, regVars);
+                        result = await runLinearRegression(regMatrix, regVars);
                         break;
 
                     case 'sem':
