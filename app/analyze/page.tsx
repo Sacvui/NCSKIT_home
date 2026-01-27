@@ -169,7 +169,6 @@ export default function AnalyzePage() {
         analysisType, setAnalysisType,
         results, setResults,
         multipleResults, setMultipleResults,
-        scaleName, setScaleName,
         scaleName, setScaleName
     } = useAnalysisSession();
 
