@@ -223,14 +223,20 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
 }
 
 /**
- * Execute R code with error recovery
+ * Execute R code with error recovery and timeout protection
  */
-export async function executeRWithRecovery(rCode: string, maxRetries: number = 2): Promise<any> {
+export async function executeRWithRecovery(rCode: string, maxRetries: number = 2, timeoutMs: number = 60000): Promise<any> {
     const webR = await initWebR();
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
-            const result = await webR.evalR(rCode);
+            // Wrap evalR in a timeout to prevent infinite hangs
+            const result = await Promise.race([
+                webR.evalR(rCode),
+                new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error(`R execution timeout after ${timeoutMs / 1000}s`)), timeoutMs)
+                )
+            ]);
             return result;
         } catch (error: any) {
             console.error(`R execution attempt ${attempt + 1} failed:`, error);
@@ -239,12 +245,13 @@ export async function executeRWithRecovery(rCode: string, maxRetries: number = 2
                 throw new Error(translateRError(error.message || String(error)));
             }
 
-            // Check if WebR instance is corrupted
+            // Check if WebR instance is corrupted or timed out
             if (error.message?.includes('WebR instance') ||
                 error.message?.includes('not initialized') ||
+                error.message?.includes('timeout') ||
                 !webRInstance?.evalR) {
 
-                console.warn('WebR instance corrupted, reinitializing...');
+                console.warn('WebR instance corrupted or timed out, reinitializing...');
                 webRInstance = null;
                 await initWebR();
             }

@@ -112,10 +112,35 @@ export async function runTwoWayANOVA(
     }[];
     rCode: string;
 }> {
+    // Validate inputs
+    if (y.length === 0 || f1.length === 0 || f2.length === 0) {
+        throw new Error('Dữ liệu trống. Vui lòng kiểm tra lại các biến đã chọn.');
+    }
+    if (y.length !== f1.length || y.length !== f2.length) {
+        throw new Error('Độ dài các biến không khớp nhau.');
+    }
+
+    // Sanitize factor values (remove quotes and special characters)
+    const sanitize = (s: string) => String(s).replace(/[\"\'\\]/g, '').replace(/\s+/g, '_').trim() || 'NA';
+    const f1Clean = f1.map(sanitize);
+    const f2Clean = f2.map(sanitize);
+
+    // Check for valid numeric Y values
+    const yValid = y.filter(v => !isNaN(v) && isFinite(v));
+    if (yValid.length < 3) {
+        throw new Error('Cần ít nhất 3 giá trị số hợp lệ cho biến phụ thuộc (Y).');
+    }
+
+    console.log('[Two-Way ANOVA] Running with:', {
+        yLength: y.length,
+        f1Levels: [...new Set(f1Clean)].length,
+        f2Levels: [...new Set(f2Clean)].length
+    });
+
     const rCode = `
     y <- c(${y.join(',')})
-    f1 <- factor(c(${f1.map(v => `"${v}"`).join(',')}))
-    f2 <- factor(c(${f2.map(v => `"${v}"`).join(',')}))
+    f1 <- factor(c(${f1Clean.map(v => `"${v}"`).join(',')}))
+    f2 <- factor(c(${f2Clean.map(v => `"${v}"`).join(',')}))
     
     df <- data.frame(y=y, f1=f1, f2=f2)
     colnames(df) <- c("y", "f1", "f2")
@@ -145,6 +170,7 @@ export async function runTwoWayANOVA(
         int_y = int_means$y
     )
     `;
+
 
     const result = await executeRWithRecovery(rCode);
     const jsResult = await result.toJs() as any;

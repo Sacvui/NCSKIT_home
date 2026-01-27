@@ -548,3 +548,83 @@ export async function runChiSquare(data: any[][]): Promise<{
         rCode
     };
 }
+
+/**
+ * Run Kruskal-Wallis Test (Non-parametric One-Way ANOVA)
+ */
+export async function runKruskalWallis(
+    groups: number[][]
+): Promise<{
+    statistic: number;
+    df: number;
+    pValue: number;
+    medians: number[];
+    method: string;
+    rCode: string;
+}> {
+    const rCode = `
+    values <- c(${groups.map(g => g.join(',')).join(',')})
+    groups <- factor(c(${groups.map((g, i) => g.map(() => i + 1).join(',')).join(',')}))
+    
+    test <- kruskal.test(values ~ groups)
+    group_medians <- tapply(values, groups, median)
+    
+    list(
+        statistic = test$statistic,
+        df = test$parameter,
+        p_value = test$p.value,
+        medians = as.numeric(group_medians),
+        method = test$method
+    )
+    `;
+    const result = await executeRWithRecovery(rCode);
+    const jsResult = await result.toJs() as any;
+    const getValue = parseWebRResult(jsResult);
+    return {
+        statistic: getValue('statistic')?.[0] || 0,
+        df: getValue('df')?.[0] || 0,
+        pValue: getValue('p_value')?.[0] || 0,
+        medians: getValue('medians') || [],
+        method: getValue('method')?.[0] || "Kruskal-Wallis rank sum test",
+        rCode
+    };
+}
+
+/**
+ * Run Wilcoxon Signed Rank Test (Non-parametric Paired T-test)
+ */
+export async function runWilcoxonSignedRank(
+    before: number[],
+    after: number[]
+): Promise<{
+    statistic: number;
+    pValue: number;
+    medianDiff: number;
+    method: string;
+    rCode: string;
+}> {
+    const rCode = `
+    v_before <- c(${before.join(',')})
+    v_after <- c(${after.join(',')})
+    
+    # Wilcoxon signed rank test with continuity correction
+    test <- wilcox.test(v_before, v_after, paired = TRUE, conf.int = TRUE)
+    
+    list(
+        statistic = test$statistic,
+        p_value = test$p.value,
+        median_diff = if(!is.null(test$estimate)) test$estimate else median(v_before - v_after),
+        method = test$method
+    )
+    `;
+    const result = await executeRWithRecovery(rCode);
+    const jsResult = await result.toJs() as any;
+    const getValue = parseWebRResult(jsResult);
+    return {
+        statistic: getValue('statistic')?.[0] || 0,
+        pValue: getValue('p_value')?.[0] || 0,
+        medianDiff: getValue('median_diff')?.[0] || 0,
+        method: getValue('method')?.[0] || "Wilcoxon signed rank test",
+        rCode
+    };
+}

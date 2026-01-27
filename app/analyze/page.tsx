@@ -10,7 +10,7 @@ import { DataProfiler } from '@/components/DataProfiler';
 import { ResultsDisplay } from '@/components/ResultsDisplay';
 import { SmartGroupSelector, VariableSelector, AISettings } from '@/components/VariableSelector'; // Keep if used elsewhere or remove if grep confirmed unused. Grep said unused.
 import { profileData, DataProfile } from '@/lib/data-profiler';
-import { runDescriptiveStats, runTTestIndependent, runTTestPaired, runOneWayANOVA, runChiSquare, runMannWhitneyU, runCorrelation, initWebR, getWebRStatus, setProgressCallback } from '@/lib/webr-wrapper';
+import { runDescriptiveStats, runTTestIndependent, runTTestPaired, runOneWayANOVA, runChiSquare, runMannWhitneyU, runCorrelation, runKruskalWallis, runWilcoxonSignedRank, initWebR, getWebRStatus, setProgressCallback } from '@/lib/webr-wrapper';
 import { BarChart3, FileText, Shield, Trash2, Eye, EyeOff, Wifi, WifiOff, RotateCcw, XCircle } from 'lucide-react';
 import { Toast } from '@/components/ui/Toast';
 import { WebRStatus } from '@/components/WebRStatus';
@@ -106,6 +106,27 @@ export default function AnalyzePage() {
     const [showRestoreBanner, setShowRestoreBanner] = useState(false);
 
     // Check availability of saved data on mount
+    // Safety check: if step requires data/profile but they are missing, redirect
+    useEffect(() => {
+        if (loading) return; // Wait until auth loading completes
+
+        // If data is lost, always go back to upload
+        if (data.length === 0 && step !== 'upload') {
+            setStep('upload');
+            return;
+        }
+
+        // If at profile step but no profile exists, try to recreate it or go back
+        if (step === 'profile' && !profile && data.length > 0) {
+            const prof = profileData(data);
+            if (prof) {
+                setProfile(prof);
+            } else {
+                setStep('upload');
+            }
+        }
+    }, [step, data.length, profile, loading, setStep, setProfile]);
+
     useEffect(() => {
         if (hasSavedData && data.length === 0) {
             setShowRestoreBanner(true);
@@ -674,9 +695,18 @@ export default function AnalyzePage() {
                 <div className="flex items-center justify-center gap-4 mb-8">
                     {['upload', 'profile', 'analyze', 'results'].map((s, idx) => {
                         const stepOrder = ['upload', 'profile', 'analyze', 'results'];
-                        const currentIdx = stepOrder.indexOf(step);
+
+                        // Map sub-steps to their main steps for UI consistency
+                        const getMainStep = (current: string) => {
+                            if (stepOrder.includes(current)) return current;
+                            if (current.endsWith('-select')) return 'analyze';
+                            return current;
+                        };
+
+                        const effectiveStep = getMainStep(step);
+                        const currentIdx = stepOrder.indexOf(effectiveStep);
                         const isCompleted = currentIdx > idx;
-                        const isCurrent = step === s;
+                        const isCurrent = effectiveStep === s;
                         const isClickable = isCompleted || isCurrent;
 
                         return (
@@ -685,7 +715,11 @@ export default function AnalyzePage() {
                                     type="button"
                                     onClick={() => {
                                         if (isClickable) {
-                                            setStep(s as AnalysisStep);
+                                            if (s === 'analyze' && step.endsWith('-select')) {
+                                                setStep('analyze'); // Go back to selector
+                                            } else {
+                                                setStep(s as AnalysisStep);
+                                            }
                                         }
                                     }}
                                     disabled={!isClickable}
@@ -1423,7 +1457,7 @@ export default function AnalyzePage() {
                         </div>
                     )}
 
-                    {/* Mann-Whitney U Selection - NEW */}
+                    {/* Mann-Whitney U Selection */}
                     {step === 'mannwhitney-select' && (
                         <div className="max-w-2xl mx-auto space-y-6">
                             <div className="text-center mb-8">
@@ -1431,20 +1465,20 @@ export default function AnalyzePage() {
                                     Mann-Whitney U Test
                                 </h2>
                                 <p className="text-gray-600">
-                                    So sánh trung bình 2 nhóm độc lập (Phi tham số - Non-parametric)
+                                    So sánh trung vị giữa 2 nhóm độc lập (Phi tham số)
                                 </p>
                             </div>
 
                             <div className="bg-white rounded-xl shadow-lg p-6 border">
-                                <p className="text-sm text-gray-600 mb-4">
-                                    Chọn 2 biến số để so sánh:
+                                <p className="text-sm text-gray-600 mb-4 font-medium">
+                                    Chọn 2 biến định lượng để so sánh:
                                 </p>
-                                <div className="grid grid-cols-2 gap-4 mb-4">
+                                <div className="grid grid-cols-2 gap-4 mb-6">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Nhóm 1</label>
                                         <select
                                             id="mw-group1"
-                                            className="w-full px-3 py-2 border rounded-lg"
+                                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none transition-all"
                                             defaultValue=""
                                         >
                                             <option value="">Chọn biến...</option>
@@ -1457,7 +1491,7 @@ export default function AnalyzePage() {
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Nhóm 2</label>
                                         <select
                                             id="mw-group2"
-                                            className="w-full px-3 py-2 border rounded-lg"
+                                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-cyan-500 outline-none transition-all"
                                             defaultValue=""
                                         >
                                             <option value="">Chọn biến...</option>
@@ -1476,12 +1510,12 @@ export default function AnalyzePage() {
                                         if (g1 === g2) { showToast('Vui lòng chọn 2 biến khác nhau', 'error'); return; }
 
                                         setIsAnalyzing(true);
-                                        setAnalysisType('mann-whitney'); // Matches ResultsDisplay 'mann-whitney' case
+                                        setAnalysisType('mann-whitney');
 
                                         // NCS Credit Check
+                                        const cost = await getAnalysisCost('mann-whitney');
                                         if (user) {
-                                            const cost = await getAnalysisCost('mann-whitney');
-                                            const hasEnough = await checkBalance(user.id, cost);
+                                            const { hasEnough } = await checkBalance(user.id, cost);
                                             if (!hasEnough) {
                                                 setRequiredCredits(cost);
                                                 setCurrentAnalysisCost(cost);
@@ -1494,11 +1528,9 @@ export default function AnalyzePage() {
                                         try {
                                             const group1Data = data.map(row => Number(row[g1]) || 0);
                                             const group2Data = data.map(row => Number(row[g2]) || 0);
-                                            // The generic runMannWhitneyU in webr-wrapper likely takes 2 arrays (like t-test).
                                             const result = await runMannWhitneyU(group1Data, group2Data);
-                                            // Deduct credits on success
+
                                             if (user) {
-                                                const cost = await getAnalysisCost('mann-whitney');
                                                 await deductCredits(user.id, cost, `Mann-Whitney U: ${g1} vs ${g2}`);
                                                 await logAnalysisUsage(user.id, 'mann-whitney', cost);
                                                 setNcsBalance(prev => Math.max(0, prev - cost));
@@ -1506,12 +1538,15 @@ export default function AnalyzePage() {
 
                                             setResults({ type: 'mann-whitney', data: result, columns: [g1, g2] });
                                             setStep('results');
-                                            showToast('Phân tích Mann-Whitney U hoàn thành!', 'success');
-                                        } catch (err) { showToast('Lỗi: ' + err, 'error'); }
-                                        finally { setIsAnalyzing(false); }
+                                            showToast('Phân tích Mann-Whitney U thành công!', 'success');
+                                        } catch (err: any) {
+                                            showToast('Lỗi: ' + (err.message || err), 'error');
+                                        } finally {
+                                            setIsAnalyzing(false);
+                                        }
                                     }}
                                     disabled={isAnalyzing}
-                                    className="w-full py-3 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-lg"
+                                    className="w-full py-3 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all"
                                 >
                                     {isAnalyzing ? 'Đang phân tích...' : 'Chạy Mann-Whitney U'}
                                 </button>
@@ -1519,9 +1554,224 @@ export default function AnalyzePage() {
 
                             <button
                                 onClick={() => setStep('analyze')}
-                                className="w-full py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg"
+                                className="w-full py-3 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold rounded-lg transition-all"
                             >
-                                ← Quay lại
+                                ← Quay lại chọn phương pháp
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Kruskal-Wallis Selection */}
+                    {step === 'kruskalwallis-select' && (
+                        <div className="max-w-2xl mx-auto space-y-6">
+                            <div className="text-center mb-8">
+                                <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                                    Kruskal-Wallis Test
+                                </h2>
+                                <p className="text-gray-600">
+                                    So sánh trung vị giữa nhiều nhóm (Phi tham số)
+                                </p>
+                            </div>
+
+                            <div className="bg-white rounded-xl shadow-lg p-6 border">
+                                <div className="flex justify-between items-center mb-4">
+                                    <p className="text-sm text-gray-600 font-medium">
+                                        Chọn các biến để so sánh (mỗi biến là 1 nhóm):
+                                    </p>
+                                    <div className="space-x-2">
+                                        <button
+                                            onClick={() => {
+                                                const cbs = document.querySelectorAll('.kw-checkbox') as NodeListOf<HTMLInputElement>;
+                                                cbs.forEach(c => c.checked = true);
+                                            }}
+                                            className="text-xs text-blue-600 font-medium hover:underline"
+                                        >
+                                            Chọn hết
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                const cbs = document.querySelectorAll('.kw-checkbox') as NodeListOf<HTMLInputElement>;
+                                                cbs.forEach(c => c.checked = false);
+                                            }}
+                                            className="text-xs text-gray-500 font-medium hover:underline"
+                                        >
+                                            Bỏ chọn
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1 mb-6 max-h-48 overflow-y-auto p-2 border rounded-lg bg-gray-50">
+                                    {getNumericColumns().map(col => (
+                                        <label key={col} className="flex items-center gap-3 p-2 hover:bg-white hover:shadow-sm rounded-md transition-all cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                value={col}
+                                                className="kw-checkbox w-4 h-4 text-amber-600 rounded"
+                                            />
+                                            <span className="text-sm text-gray-700">{col}</span>
+                                        </label>
+                                    ))}
+                                </div>
+
+                                <button
+                                    onClick={async () => {
+                                        const cbs = document.querySelectorAll('.kw-checkbox:checked') as NodeListOf<HTMLInputElement>;
+                                        const selectedCols = Array.from(cbs).map(cb => cb.value);
+
+                                        if (selectedCols.length < 3) {
+                                            showToast('Cần chọn ít nhất 3 biến (3 nhóm) để so sánh', 'error');
+                                            return;
+                                        }
+
+                                        setIsAnalyzing(true);
+                                        setAnalysisType('kruskal-wallis');
+
+                                        const cost = await getAnalysisCost('kruskal-wallis');
+                                        if (user) {
+                                            const { hasEnough } = await checkBalance(user.id, cost);
+                                            if (!hasEnough) {
+                                                setRequiredCredits(cost);
+                                                setCurrentAnalysisCost(cost);
+                                                setShowInsufficientCredits(true);
+                                                setIsAnalyzing(false);
+                                                return;
+                                            }
+                                        }
+
+                                        try {
+                                            const groups = selectedCols.map(col => data.map(row => Number(row[col]) || 0));
+                                            const result = await runKruskalWallis(groups);
+
+                                            if (user) {
+                                                await deductCredits(user.id, cost, `Kruskal-Wallis: ${selectedCols.length} groups`);
+                                                await logAnalysisUsage(user.id, 'kruskal-wallis', cost);
+                                                setNcsBalance(prev => Math.max(0, prev - cost));
+                                            }
+
+                                            setResults({ type: 'kruskal-wallis', data: result, columns: selectedCols });
+                                            setStep('results');
+                                            showToast('Phân tích Kruskal-Wallis thành công!', 'success');
+                                        } catch (err: any) {
+                                            showToast('Lỗi: ' + (err.message || err), 'error');
+                                        } finally {
+                                            setIsAnalyzing(false);
+                                        }
+                                    }}
+                                    disabled={isAnalyzing}
+                                    className="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all"
+                                >
+                                    {isAnalyzing ? 'Đang phân tích...' : 'Chạy Kruskal-Wallis'}
+                                </button>
+                            </div>
+
+                            <button
+                                onClick={() => setStep('analyze')}
+                                className="w-full py-3 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold rounded-lg transition-all"
+                            >
+                                ← Quay lại chọn phương pháp
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Wilcoxon Signed Rank Selection */}
+                    {step === 'wilcoxon-select' && (
+                        <div className="max-w-2xl mx-auto space-y-6">
+                            <div className="text-center mb-8">
+                                <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                                    Wilcoxon Signed Rank Test
+                                </h2>
+                                <p className="text-gray-600">
+                                    So sánh cặp trước-sau (Phi tham số)
+                                </p>
+                            </div>
+
+                            <div className="bg-white rounded-xl shadow-lg p-6 border">
+                                <p className="text-sm text-gray-600 mb-4 font-medium">
+                                    Chọn biến Trước và Sau (Ví dụ: Pre-test vs Post-test):
+                                </p>
+                                <div className="grid grid-cols-2 gap-4 mb-6">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Trước (Before)</label>
+                                        <select
+                                            id="wilcox-before"
+                                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 outline-none transition-all"
+                                            defaultValue=""
+                                        >
+                                            <option value="">Chọn biến...</option>
+                                            {getNumericColumns().map(col => (
+                                                <option key={col} value={col}>{col}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Sau (After)</label>
+                                        <select
+                                            id="wilcox-after"
+                                            className="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 outline-none transition-all"
+                                            defaultValue=""
+                                        >
+                                            <option value="">Chọn biến...</option>
+                                            {getNumericColumns().map(col => (
+                                                <option key={col} value={col}>{col}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={async () => {
+                                        const before = (document.getElementById('wilcox-before') as HTMLSelectElement).value;
+                                        const after = (document.getElementById('wilcox-after') as HTMLSelectElement).value;
+
+                                        if (!before || !after) { showToast('Vui lòng chọn đủ 2 biến', 'error'); return; }
+                                        if (before === after) { showToast('Hãy chọn 2 biến khác nhau', 'error'); return; }
+
+                                        setIsAnalyzing(true);
+                                        setAnalysisType('wilcoxon');
+
+                                        const cost = await getAnalysisCost('wilcoxon');
+                                        if (user) {
+                                            const { hasEnough } = await checkBalance(user.id, cost);
+                                            if (!hasEnough) {
+                                                setRequiredCredits(cost);
+                                                setCurrentAnalysisCost(cost);
+                                                setShowInsufficientCredits(true);
+                                                setIsAnalyzing(false);
+                                                return;
+                                            }
+                                        }
+
+                                        try {
+                                            const beforeData = data.map(row => Number(row[before]) || 0);
+                                            const afterData = data.map(row => Number(row[after]) || 0);
+                                            const result = await runWilcoxonSignedRank(beforeData, afterData);
+
+                                            if (user) {
+                                                await deductCredits(user.id, cost, `Wilcoxon: ${before} vs ${after}`);
+                                                await logAnalysisUsage(user.id, 'wilcoxon', cost);
+                                                setNcsBalance(prev => Math.max(0, prev - cost));
+                                            }
+
+                                            setResults({ type: 'wilcoxon', data: result, columns: [before, after] });
+                                            setStep('results');
+                                            showToast('Phân tích Wilcoxon thành công!', 'success');
+                                        } catch (err: any) {
+                                            showToast('Lỗi: ' + (err.message || err), 'error');
+                                        } finally {
+                                            setIsAnalyzing(false);
+                                        }
+                                    }}
+                                    disabled={isAnalyzing}
+                                    className="w-full py-3 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all"
+                                >
+                                    {isAnalyzing ? 'Đang phân tích...' : 'Chạy Wilcoxon Test'}
+                                </button>
+                            </div>
+
+                            <button
+                                onClick={() => setStep('analyze')}
+                                className="w-full py-3 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-semibold rounded-lg transition-all"
+                            >
+                                ← Quay lại chọn phương pháp
                             </button>
                         </div>
                     )}
@@ -1601,6 +1851,9 @@ export default function AnalyzePage() {
                                     {analysisType === 'mediation' && "Mediation Analysis"}
                                     {analysisType === 'moderation' && "Moderation Analysis"}
                                     {analysisType === 'cluster' && "Cluster Analysis (K-Means)"}
+                                    {analysisType === 'mann-whitney' && "Mann-Whitney U Test"}
+                                    {analysisType === 'kruskal-wallis' && "Kruskal-Wallis Test"}
+                                    {analysisType === 'wilcoxon' && "Wilcoxon Signed Rank Test"}
                                 </p>
                             </div>
 

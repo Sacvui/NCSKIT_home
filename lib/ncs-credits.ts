@@ -26,6 +26,8 @@ export const ANALYSIS_TYPES = {
     regression: 'Hồi quy',
     chisquare: 'Chi-Square',
     'mann-whitney': 'Mann-Whitney U',
+    'kruskal-wallis': 'Kruskal-Wallis',
+    'wilcoxon': 'Wilcoxon Signed Rank',
     ai_explain: 'AI Giải thích',
     export_pdf: 'Xuất PDF'
 } as const;
@@ -261,6 +263,8 @@ function getDefaultCosts(): Record<string, number> {
         regression: 800,
         chisquare: 400,
         'mann-whitney': 400,
+        'kruskal-wallis': 600,
+        'wilcoxon': 400,
         ai_explain: 1500,
         export_pdf: 200
     };
