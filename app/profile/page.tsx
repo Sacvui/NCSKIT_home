@@ -23,98 +23,133 @@ export default function ProfilePage() {
     const [referralsCount, setReferralsCount] = useState(0)
 
     useEffect(() => {
+        let isMounted = true;
         const loadProfile = async () => {
+            if (!isMounted) return;
+            console.log('[ProfilePage] Starting authentication check...');
+
+            // Shared logic to load data once ID is found
+            const loadUserData = async (userId: string, profileData: any) => {
+                try {
+                    console.log('[ProfilePage] Loading auxiliary data for:', userId);
+                    // Fetch projects count
+                    const { count: pCount } = await supabase
+                        .from('projects')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('user_id', userId);
+                    if (isMounted) setProjectsCount(pCount || 0);
+
+                    // Fetch referrals count
+                    if (profileData?.referral_code) {
+                        const { count: rCount } = await supabase
+                            .from('profiles')
+                            .select('*', { count: 'exact', head: true })
+                            .eq('referred_by_code', profileData.referral_code);
+                        if (isMounted) setReferralsCount(rCount || 0);
+                    }
+
+                    // Fetch recent projects
+                    const { data: projectsData } = await supabase
+                        .from('projects')
+                        .select('*')
+                        .eq('user_id', userId)
+                        .order('updated_at', { ascending: false })
+                        .limit(10);
+                    if (isMounted) setProjects(projectsData || []);
+                } catch (e) {
+                    console.error('[ProfilePage] Auxiliary data load error:', e);
+                }
+            };
+
             try {
-                // Check auth using getSession (handles token refresh better)
-                const { data: { session }, error } = await supabase.auth.getSession();
-                const authUser = session?.user;
+                // 1. Check Supabase Session
+                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                console.log('[ProfilePage] Session check result:', {
+                    hasSession: !!session,
+                    userId: session?.user?.id,
+                    error: sessionError
+                });
 
-                if (authUser && !error) {
-                    // Supabase Auth user found
-                    setUser(authUser);
+                if (session?.user && !sessionError) {
+                    if (!isMounted) return;
+                    console.log('[ProfilePage] User authenticated via Supabase.');
+                    setUser(session.user);
 
-                    // Fetch profile
-                    const { data: profileData } = await supabase
+                    const { data: profileData, error: profileError } = await supabase
                         .from('profiles')
                         .select('*')
-                        .eq('id', authUser.id)
+                        .eq('id', session.user.id)
                         .single();
 
-                    setProfile(profileData);
-                    await loadUserData(authUser.id, profileData);
-                } else {
-                    // Fallback: Check ORCID cookie using secure helper
-                    const orcidUserId = getORCIDUser();
-                    if (orcidUserId) {
-                        const { data: orcidProfile } = await supabase
-                            .from('profiles')
-                            .select('*')
-                            .eq('id', orcidUserId)
-                            .single();
+                    if (profileError) console.error('[ProfilePage] Profile fetch error:', profileError);
 
-                        if (orcidProfile) {
-                            // Build a mock user object for ORCID
-                            const orcidUser = {
-                                id: orcidUserId,
-                                email: orcidProfile.email || `${orcidProfile.orcid_id}@orcid.org`,
-                                user_metadata: {
-                                    full_name: orcidProfile.display_name || orcidProfile.full_name,
-                                    avatar_url: orcidProfile.avatar_url
-                                }
-                            };
+                    if (isMounted) {
+                        setProfile(profileData);
+                        await loadUserData(session.user.id, profileData);
+                        setLoading(false);
+                    }
+                    return;
+                }
+
+                // 2. Check ORCID Fallback
+                const orcidUserId = getORCIDUser();
+                console.log('[ProfilePage] ORCID check result:', orcidUserId);
+
+                if (orcidUserId) {
+                    if (!isMounted) return;
+                    console.log('[ProfilePage] User authenticated via ORCID cookie.');
+
+                    const { data: orcidProfile, error: orcidError } = await supabase
+                        .from('profiles')
+                        .select('*')
+                        .eq('id', orcidUserId)
+                        .single();
+
+                    if (orcidError) console.error('[ProfilePage] ORCID profile fetch error:', orcidError);
+
+                    if (orcidProfile) {
+                        const orcidUser = {
+                            id: orcidUserId,
+                            email: orcidProfile.email || `${orcidProfile.orcid_id}@orcid.org`,
+                            user_metadata: {
+                                full_name: orcidProfile.display_name || orcidProfile.full_name,
+                                avatar_url: orcidProfile.avatar_url
+                            }
+                        };
+
+                        if (isMounted) {
                             setUser(orcidUser);
                             setProfile(orcidProfile);
                             await loadUserData(orcidUserId, orcidProfile);
                             setLoading(false);
-                            return;
                         }
+                        return;
                     }
-
-                    // No auth found - redirect to login
-                    console.log('[Profile] No user found, redirecting to login');
-                    router.push('/login?next=/profile');
-                    return;
                 }
 
-                setLoading(false);
+                // 3. No User Found
+                console.warn('[ProfilePage] No active session found. Initiating redirect countdown.');
+                if (isMounted) {
+                    // Force loading false so we can show "Not Logged In" UI if redirect hangs
+                    setLoading(false);
+                    setTimeout(() => {
+                        if (isMounted && !user) { // Check user again in case logic was racing
+                            console.log('[ProfilePage] Executing redirect to /login');
+                            router.push('/login?next=/profile');
+                        }
+                    }, 2000);
+                }
+
             } catch (err: any) {
-                console.error('[Profile] Error loading profile:', err);
-                setLoading(false);
+                console.error('[ProfilePage] Fatal error during initialization:', err);
+                if (isMounted) setLoading(false);
             }
         };
 
-        const loadUserData = async (userId: string, profileData: any) => {
-            // Fetch projects count
-            const { count: pCount } = await supabase
-                .from('projects')
-                .select('*', { count: 'exact', head: true })
-                .eq('user_id', userId)
+        loadProfile();
 
-            setProjectsCount(pCount || 0)
-
-            // Fetch referrals count
-            if (profileData?.referral_code) {
-                const { count: rCount } = await supabase
-                    .from('profiles')
-                    .select('*', { count: 'exact', head: true })
-                    .eq('referred_by_code', profileData.referral_code)
-
-                setReferralsCount(rCount || 0)
-            }
-
-            // Fetch recent projects
-            const { data: projectsData } = await supabase
-                .from('projects')
-                .select('*')
-                .eq('user_id', userId)
-                .order('updated_at', { ascending: false })
-                .limit(10)
-
-            setProjects(projectsData || [])
-        }
-
-        loadProfile()
-    }, [router, supabase])
+        return () => { isMounted = false; };
+    }, [router, supabase]);
 
     if (loading) {
         return (
@@ -125,7 +160,23 @@ export default function ProfilePage() {
     }
 
     if (!user) {
-        return null // Will redirect
+        return (
+            <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+                <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full text-center">
+                    <Shield className="w-12 h-12 text-amber-500 mx-auto mb-4" />
+                    <h2 className="text-2xl font-bold text-gray-800 mb-2">Chưa đăng nhập</h2>
+                    <p className="text-gray-600 mb-6">
+                        Bạn cần đăng nhập để xem trang cá nhân. Đang chuyển hướng...
+                    </p>
+                    <Link
+                        href="/login?next=/profile"
+                        className="inline-block w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+                    >
+                        Đăng nhập ngay
+                    </Link>
+                </div>
+            </div>
+        );
     }
 
     return (
