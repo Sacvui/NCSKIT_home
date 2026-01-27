@@ -20,7 +20,7 @@ export async function runLogisticRegression(data: number[][], names: string[]): 
 /**
  * Placeholder for Cluster Analysis
  */
-export async function runClusterAnalysis(data: number[][], k: number): Promise<any> {
+export async function runClusterAnalysis(data: number[][], k: number, method: string = 'kmeans', columns: string[] = []): Promise<any> {
     console.warn('runClusterAnalysis is not yet implemented.');
     return {
         clusters: [],
@@ -33,7 +33,7 @@ export async function runClusterAnalysis(data: number[][], k: number): Promise<a
 /**
  * Placeholder for Two-Way ANOVA
  */
-export async function runTwoWayANOVA(data: any): Promise<any> {
+export async function runTwoWayANOVA(y: number[], f1: string[], f2: string[], f1Name: string, f2Name: string, yName: string): Promise<any> {
     console.warn('runTwoWayANOVA is not yet implemented.');
     return {
         results: [],
@@ -44,7 +44,7 @@ export async function runTwoWayANOVA(data: any): Promise<any> {
 /**
  * Placeholder for Mediation Analysis
  */
-export async function runMediationAnalysis(data: any): Promise<any> {
+export async function runMediationAnalysis(x: number[], m: number[], y: number[]): Promise<any> {
     console.warn('runMediationAnalysis is not yet implemented.');
     return {
         effects: {},
@@ -55,7 +55,7 @@ export async function runMediationAnalysis(data: any): Promise<any> {
 /**
  * Placeholder for Moderation Analysis
  */
-export async function runModerationAnalysis(data: any): Promise<any> {
+export async function runModerationAnalysis(x: number[], y: number[], w: number[], xName: string, yName: string, wName: string): Promise<any> {
     console.warn('runModerationAnalysis is not yet implemented.');
     return {
         interactions: [],
@@ -67,7 +67,7 @@ export async function runModerationAnalysis(data: any): Promise<any> {
  * Placeholder for SEM (Structural Equation Modeling)
  * Note: runCFA is implemented, but full SEM is complex.
  */
-export async function runSEM(data: number[][], modelAsString: string): Promise<any> {
+export async function runSEM(data: number[][], columns: string[], modelAsString: string): Promise<any> {
     console.warn('runSEM is not yet implemented. Using Stub.');
     return {
         fitMeasures: { cfi: 0, tli: 0, rmsea: 0, srmr: 0, chisq: 0, df: 0, pvalue: 0 },
