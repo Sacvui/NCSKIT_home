@@ -25,8 +25,9 @@ export default function ProfilePage() {
     useEffect(() => {
         const loadProfile = async () => {
             try {
-                // Check auth from localStorage client (Supabase Auth)
-                const { data: { user: authUser }, error } = await supabase.auth.getUser();
+                // Check auth using getSession (handles token refresh better)
+                const { data: { session }, error } = await supabase.auth.getSession();
+                const authUser = session?.user;
 
                 if (authUser && !error) {
                     // Supabase Auth user found

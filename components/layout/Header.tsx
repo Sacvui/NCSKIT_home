@@ -83,41 +83,54 @@ export default function Header({ user, profile: initialProfile, centerContent, r
         }
     }, [])
 
+    // Reliable Profile Fetching & Realtime Sync
     useEffect(() => {
-        const targetUser = user || localUser
-        if (!targetUser) return
+        if (!effectiveUser?.id) return
 
-        // Always fetch fresh profile data to ensure NCS balance is accurate
+        const userId = effectiveUser.id
+        console.log('[Header] Setting up profile sync for:', userId)
+
+        // 1. Immediate Fetch
         const fetchProfile = async () => {
             try {
-                const { data } = await supabase
+                const { data, error } = await supabase
                     .from('profiles')
                     .select('*')
-                    .eq('id', targetUser.id)
+                    .eq('id', userId)
                     .single()
+
                 if (data) {
-                    console.log('[Header] Fresh profile loaded, tokens:', data.tokens)
-                    setProfile(data)
+                    // Only update if data is different to avoid re-renders
+                    setProfile((prev: any) => {
+                        if (JSON.stringify(prev) !== JSON.stringify(data)) {
+                            console.log('[Header] Profile updated from fetch:', data.tokens)
+                            return data
+                        }
+                        return prev
+                    })
+                } else if (error) {
+                    console.error('[Header] Fetch profile error:', error)
                 }
             } catch (err) {
-                console.warn('[Header] Error fetching profile:', err)
+                console.error('[Header] Fetch profile exception:', err)
             }
         }
 
         fetchProfile()
 
-        // Subscribe to real-time changes
+        // 2. Real-time Subscription
         const channel = supabase
-            .channel(`profile-${targetUser.id}`)
+            .channel(`header-profile-${userId}`)
             .on(
                 'postgres_changes',
                 {
-                    event: '*',
+                    event: 'UPDATE', // Listen specifically for updates
                     schema: 'public',
                     table: 'profiles',
-                    filter: `id=eq.${targetUser.id}`,
+                    filter: `id=eq.${userId}`,
                 },
                 (payload: any) => {
+                    console.log('[Header] Realtime profile update:', payload.new.tokens)
                     setProfile(payload.new)
                 }
             )
@@ -126,7 +139,7 @@ export default function Header({ user, profile: initialProfile, centerContent, r
         return () => {
             supabase.removeChannel(channel)
         }
-    }, [initialProfile, user, localUser, supabase])
+    }, [effectiveUser?.id, supabase]) // Depend on ID specifically
 
     return (
         <header className="bg-white/80 backdrop-blur-md shadow-sm border-b border-slate-200 sticky top-0 z-50">
