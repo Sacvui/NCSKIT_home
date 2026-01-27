@@ -78,7 +78,11 @@ export function ResultsDisplay({
             case 'sem':
                 return <SEMResults results={results} />;
             case 'mann-whitney':
-                return <MannWhitneyResults results={results} columns={results.columns || []} />;
+                return <MannWhitneyResultsView results={results} columns={results.columns || []} />;
+            case 'kruskal-wallis':
+                return <KruskalWallisResultsView results={results} />;
+            case 'wilcoxon':
+                return <WilcoxonResultsView results={results} />;
             case 'chisquare':
                 return <ChiSquareResults results={results} />;
             case 'descriptive':
@@ -2247,6 +2251,179 @@ function LogisticResults({ results, columns }: { results: any; columns: string[]
                     )}
                 </CardContent>
             </Card>
+        </div>
+    );
+}
+
+// Mann-Whitney U Test Results Component
+function MannWhitneyResultsView({ results, columns }: { results: any; columns: string[] }) {
+    const pValue = results.pValue;
+    const significant = pValue < 0.05;
+
+    return (
+        <div className="space-y-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Mann-Whitney U Test Results</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <table className="w-full text-sm">
+                        <tbody>
+                            <tr className="border-b border-gray-200">
+                                <td className="py-2 font-medium">Group 1 Median ({columns[0]})</td>
+                                <td className="py-2 text-right">{results.median1?.toFixed(3)} (Skew: {results.skew1?.toFixed(3)})</td>
+                            </tr>
+                            <tr className="border-b border-gray-200">
+                                <td className="py-2 font-medium">Group 2 Median ({columns[1]})</td>
+                                <td className="py-2 text-right">{results.median2?.toFixed(3)} (Skew: {results.skew2?.toFixed(3)})</td>
+                            </tr>
+                            <tr className="border-b border-gray-200">
+                                <td className="py-2 font-medium">U Statistic</td>
+                                <td className="py-2 text-right">{results.statistic?.toFixed(1)}</td>
+                            </tr>
+                            <tr className="border-b border-gray-200">
+                                <td className="py-2 font-medium">p-value (2-tailed)</td>
+                                <td className={`py-2 text-right font-bold ${significant ? 'text-green-600' : 'text-gray-600'}`}>
+                                    {pValue?.toFixed(4)} {significant && '***'}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td className="py-2 font-medium">Effect Size (r)</td>
+                                <td className="py-2 text-right">{results.effectSize?.toFixed(3)}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </CardContent>
+            </Card>
+
+            <div className="bg-gray-50 border border-gray-200 p-6 rounded-lg">
+                <h4 className="font-bold mb-4 text-gray-800 uppercase text-xs tracking-wider">Kết luận</h4>
+                <p className="text-sm text-gray-800 mb-2">
+                    <strong>Phân phối:</strong> {results.distShapeRun}.
+                </p>
+                <p className="text-sm text-gray-800">
+                    {significant
+                        ? `Có sự khác biệt có ý nghĩa thống kê giữa hai nhóm (U = ${results.statistic?.toFixed(1)}, p = ${pValue?.toFixed(4)} < 0.05). Kích thước hiệu ứng r = ${results.effectSize?.toFixed(2)} (${Math.abs(results.effectSize) > 0.5 ? 'lớn' : Math.abs(results.effectSize) > 0.3 ? 'trung bình' : 'nhỏ'}).`
+                        : `Không có sự khác biệt có ý nghĩa thống kê giữa hai nhóm (U = ${results.statistic?.toFixed(1)}, p = ${pValue?.toFixed(4)} >= 0.05).`
+                    }
+                </p>
+            </div>
+        </div>
+    );
+}
+
+// Kruskal-Wallis Test Results Component
+function KruskalWallisResultsView({ results }: { results: any }) {
+    const pValue = results.pValue;
+    const significant = pValue < 0.05;
+
+    return (
+        <div className="space-y-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Kruskal-Wallis Test Results</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <table className="w-full text-sm">
+                        <tbody>
+                            <tr className="border-b border-gray-200">
+                                <td className="py-2 font-medium">Chi-Square Statistic</td>
+                                <td className="py-2 text-right">{results.statistic?.toFixed(3)}</td>
+                            </tr>
+                            <tr className="border-b border-gray-200">
+                                <td className="py-2 font-medium">Degrees of Freedom (df)</td>
+                                <td className="py-2 text-right">{results.df}</td>
+                            </tr>
+                            <tr className="border-b border-gray-200">
+                                <td className="py-2 font-medium">p-value</td>
+                                <td className={`py-2 text-right font-bold ${significant ? 'text-green-600' : 'text-gray-600'}`}>
+                                    {pValue?.toFixed(4)} {significant && '***'}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td className="py-2 font-medium">Method</td>
+                                <td className="py-2 text-right">{results.method}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Group Medians</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="grid grid-cols-2 gap-4">
+                        {results.medians?.map((median: number, idx: number) => (
+                            <div key={idx} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                <span className="font-medium text-gray-700">Group {idx + 1}</span>
+                                <span className="font-bold text-gray-900">{median.toFixed(3)}</span>
+                            </div>
+                        ))}
+                    </div>
+                </CardContent>
+            </Card>
+
+            <div className="bg-gray-50 border border-gray-200 p-6 rounded-lg">
+                <h4 className="font-bold mb-4 text-gray-800 uppercase text-xs tracking-wider">Kết luận</h4>
+                <p className="text-sm text-gray-800">
+                    {significant
+                        ? `Có sự khác biệt có ý nghĩa thống kê giữa các nhóm (Chi-square(${results.df}) = ${results.statistic?.toFixed(3)}, p = ${pValue?.toFixed(4)} < 0.05).`
+                        : `Không có sự khác biệt có ý nghĩa thống kê giữa các nhóm (Chi-square(${results.df}) = ${results.statistic?.toFixed(3)}, p = ${pValue?.toFixed(4)} >= 0.05).`
+                    }
+                </p>
+            </div>
+        </div>
+    );
+}
+
+// Wilcoxon Signed Rank Test Results Component
+function WilcoxonResultsView({ results }: { results: any }) {
+    const pValue = results.pValue;
+    const significant = pValue < 0.05;
+
+    return (
+        <div className="space-y-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Wilcoxon Signed Rank Test Results</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <table className="w-full text-sm">
+                        <tbody>
+                            <tr className="border-b border-gray-200">
+                                <td className="py-2 font-medium">V Statistic</td>
+                                <td className="py-2 text-right">{results.statistic?.toFixed(1)}</td>
+                            </tr>
+                            <tr className="border-b border-gray-200">
+                                <td className="py-2 font-medium">Median Difference</td>
+                                <td className="py-2 text-right">{results.medianDiff?.toFixed(3)}</td>
+                            </tr>
+                            <tr className="border-b border-gray-200">
+                                <td className="py-2 font-medium">p-value</td>
+                                <td className={`py-2 text-right font-bold ${significant ? 'text-green-600' : 'text-gray-600'}`}>
+                                    {pValue?.toFixed(4)} {significant && '***'}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td className="py-2 font-medium">Method</td>
+                                <td className="py-2 text-right">{results.method}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </CardContent>
+            </Card>
+
+            <div className="bg-gray-50 border border-gray-200 p-6 rounded-lg">
+                <h4 className="font-bold mb-4 text-gray-800 uppercase text-xs tracking-wider">Kết luận</h4>
+                <p className="text-sm text-gray-800">
+                    {significant
+                        ? `Có sự khác biệt có ý nghĩa thống kê giữa hai điều kiện (V = ${results.statistic?.toFixed(1)}, p = ${pValue?.toFixed(4)} < 0.05).`
+                        : `Không có sự khác biệt có ý nghĩa thống kê giữa hai điều kiện (V = ${results.statistic?.toFixed(1)}, p = ${pValue?.toFixed(4)} >= 0.05).`
+                    }
+                </p>
+            </div>
         </div>
     );
 }

@@ -28,6 +28,18 @@ function CallbackContent() {
                 return
             }
 
+            const supabase = getSupabase()
+
+            // FAST PATH: Check if we already have a session (avoid unnecessary exchange)
+            const { data: existingSession } = await supabase.auth.getSession();
+            if (existingSession?.session) {
+                console.log('[AuthCallback] Session already exists, redirecting immediately...');
+                if (isMounted) {
+                    router.replace(next);
+                }
+                return;
+            }
+
             // Prevent double-firing in Strict Mode
             if (code && (processedCode.current === code)) {
                 console.log('[AuthCallback] Code already processing or processed, skipping...');
@@ -35,25 +47,27 @@ function CallbackContent() {
             }
             if (code) processedCode.current = code;
 
-            const supabase = getSupabase()
-
-            // 1. No Code: Just check session and redirect
+            // 1. No Code: Just redirect to login
             if (!code) {
-                const { data } = await supabase.auth.getSession()
-                if (data?.session) {
-                    if (isMounted) router.replace(next)
-                } else {
-                    if (isMounted) router.replace('/login')
-                }
+                if (isMounted) router.replace('/login')
                 return
             }
 
-            // 2. Exchange Code
+            // 2. Exchange Code with timeout
             try {
-                setStatus('Đang xác thực bảo mật...')
+                setStatus('Đang xác thực...')
                 console.log('[AuthCallback] Exchanging code for session...');
 
-                const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+                // Add timeout to prevent hanging
+                const exchangePromise = supabase.auth.exchangeCodeForSession(code);
+                const timeoutPromise = new Promise((_, reject) =>
+                    setTimeout(() => reject(new Error('Exchange timeout')), 10000)
+                );
+
+                const { data, error: exchangeError } = await Promise.race([
+                    exchangePromise,
+                    timeoutPromise
+                ]) as any;
 
                 if (exchangeError) {
                     // Check if it's already been exchanged (common with rapid refreshes)
@@ -71,9 +85,8 @@ function CallbackContent() {
 
                 if (data?.session) {
                     console.log('[AuthCallback] Exchange successful');
-                    setStatus('Đăng nhập thành công! Đang vào ứng dụng...')
+                    setStatus('Đăng nhập thành công!')
                     if (isMounted) {
-                        router.refresh()
                         router.replace(next)
                     }
                 } else {
@@ -81,17 +94,20 @@ function CallbackContent() {
                 }
 
             } catch (err: any) {
-                // If the error is an AbortError, it might be because the component unmounted 
-                // or React Strict Mode killed the first request. 
-                // We should check if we actually have a session before showing error.
-                if (err.name === 'AbortError') {
-                    console.warn('[AuthCallback] Exchange aborted, checking if session exists anyway...');
+                // If the error is an AbortError or timeout, check session and redirect
+                if (err.name === 'AbortError' || err.message === 'Exchange timeout') {
+                    console.warn('[AuthCallback] Exchange aborted/timeout, checking session...');
                     const { data } = await supabase.auth.getSession();
                     if (data?.session && isMounted) {
+                        console.log('[AuthCallback] Found session after abort, redirecting...');
                         router.replace(next);
                         return;
                     }
-                    return; // Don't redirect yet, let another effect/attempt handle it
+                    // If no session after abort, redirect to login
+                    if (isMounted) {
+                        router.replace('/login?error=' + encodeURIComponent('Hết thời gian xác thực'));
+                    }
+                    return;
                 }
 
                 console.error('[AuthCallback] Exchange failed:', err)
@@ -101,18 +117,15 @@ function CallbackContent() {
                 if (recovery?.session) {
                     console.log('[AuthCallback] Found session after error, redirecting...');
                     if (isMounted) {
-                        router.refresh()
                         router.replace(next)
                     }
                     return
                 }
 
-                // If truly failed and not aborted
+                // If truly failed
                 if (isMounted) {
-                    setStatus('Đăng nhập thất bại. Đang chuyển hướng...')
-                    setTimeout(() => {
-                        if (isMounted) router.push(`/login?error=${encodeURIComponent(err.message || 'Lỗi đăng nhập')}`)
-                    }, 1500)
+                    setStatus('Đăng nhập thất bại')
+                    router.push(`/login?error=${encodeURIComponent(err.message || 'Lỗi đăng nhập')}`)
                 }
             }
         }
