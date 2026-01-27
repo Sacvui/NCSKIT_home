@@ -29,36 +29,33 @@ function LoginForm() {
         setErrorMsg(null)
 
         try {
-            console.log('Getting Supabase client...')
             const supabase = getSupabase()
-            console.log('Supabase client retrieved:', !!supabase)
-
-            const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next || '/analyze')}`
+            const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next || '/profile')}`
             console.log('Redirecting to:', redirectTo)
 
-            // Race OAuth call with a timeout to prevent infinite hanging
-            const authPromise = supabase.auth.signInWithOAuth({
+            const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: provider,
                 options: {
                     redirectTo: redirectTo,
+                    queryParams: {
+                        access_type: 'offline',
+                        prompt: 'consent',
+                    },
                 },
             })
-
-            const timeoutPromise = new Promise<{ error: any }>((_, reject) =>
-                setTimeout(() => reject(new Error('Kết nối xác thực quá chậm. Vui lòng thử lại.')), 15000)
-            )
-
-            console.log('Awaiting signInWithOAuth...')
-            const { error }: any = await Promise.race([authPromise, timeoutPromise])
 
             if (error) {
                 console.error('OAuth error:', error)
                 setErrorMsg(error.message)
                 setLoading(null)
             } else {
-                console.log('OAuth initiated successfully, redirecting...')
+                console.log('OAuth initiated successfully', data)
+                // Manually redirect if data.url is provided (sometimes needed for specific browser behaviors)
+                if (data.url) {
+                    console.log('Manual redirecting to:', data.url)
+                    window.location.href = data.url
+                }
             }
-            // If no error, browser will redirect to OAuth provider
         } catch (err: any) {
             console.error('Login error:', err)
             setErrorMsg(err.message || 'Đã xảy ra lỗi khi đăng nhập')
@@ -153,7 +150,7 @@ function LoginForm() {
                                 }
                                 const redirectUri = `${window.location.origin}/auth/orcid/callback`;
                                 const csrfToken = btoa(Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15));
-                                const state = btoa(JSON.stringify({ 
+                                const state = btoa(JSON.stringify({
                                     next: next || '/analyze',
                                     csrf: csrfToken
                                 }));
