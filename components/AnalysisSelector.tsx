@@ -16,6 +16,8 @@ interface AnalysisOption {
     action: 'select' | 'run';
     recommended?: boolean;
     costType?: string; // Maps to analysis cost type
+    disabled?: boolean;
+    badge?: string;
 }
 
 interface AnalysisCategory {
@@ -66,7 +68,7 @@ export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing }: Analy
                     { id: 'ttest-select', title: 'Independent T-test', desc: 'Compare 2 independent groups', icon: GitCompare, action: 'select', costType: 'ttest-indep' },
                     { id: 'ttest-paired-select', title: 'Paired T-test', desc: 'Compare before-after (paired)', icon: Users, action: 'select', costType: 'ttest-paired' },
                     { id: 'anova-select', title: 'One-Way ANOVA / Welch', desc: 'Compare multiple groups', icon: Layers, action: 'select', costType: 'anova' },
-                    { id: 'twoway-anova-select', title: 'Two-Way ANOVA', desc: 'Factorial ANOVA with interaction', icon: Grid3x3, action: 'select', costType: 'anova' },
+                    { id: 'twoway-anova-select', title: 'Two-Way ANOVA', desc: 'Factorial ANOVA with interaction', icon: Grid3x3, action: 'select', costType: 'anova', disabled: true, badge: 'Coming Soon' },
                     { id: 'mannwhitney-select', title: 'Mann-Whitney U', desc: 'Non-parametric 2 groups', icon: Activity, action: 'select', costType: 'mann-whitney' },
                     { id: 'kruskalwallis-select', title: 'Kruskal-Wallis H', desc: 'Non-parametric multiple groups', icon: Layers, action: 'select', costType: 'anova' },
                     { id: 'wilcoxon-select', title: 'Wilcoxon Signed-Rank', desc: 'Non-parametric paired comparison', icon: ArrowRightLeft, action: 'select', costType: 'ttest-paired' },
@@ -84,9 +86,9 @@ export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing }: Analy
                 options: [
                     { id: 'correlation', title: 'Correlation Matrix', desc: 'Pearson/Spearman correlation', icon: Network, action: 'run', costType: 'correlation' },
                     { id: 'regression-select', title: 'Linear Regression', desc: 'Multiple linear regression with β', icon: TrendingUp, action: 'select', costType: 'regression' },
-                    { id: 'logistic-select', title: 'Logistic Regression', desc: 'Binary outcome prediction', icon: Binary, action: 'select', costType: 'regression' },
-                    { id: 'mediation-select', title: 'Mediation Analysis', desc: 'Baron & Kenny + Sobel test', icon: Target, action: 'select', costType: 'regression' },
-                    { id: 'moderation-select', title: 'Moderation Analysis', desc: 'Interaction effect with simple slopes', icon: Shuffle, action: 'select', costType: 'regression' },
+                    { id: 'logistic-select', title: 'Logistic Regression', desc: 'Binary outcome prediction', icon: Binary, action: 'select', costType: 'regression', disabled: true, badge: 'Coming Soon' },
+                    { id: 'mediation-select', title: 'Mediation Analysis', desc: 'Baron & Kenny + Sobel test', icon: Target, action: 'select', costType: 'regression', disabled: true, badge: 'Coming Soon' },
+                    { id: 'moderation-select', title: 'Moderation Analysis', desc: 'Interaction effect with simple slopes', icon: Shuffle, action: 'select', costType: 'regression', disabled: true, badge: 'Coming Soon' },
                 ]
             }
         },
@@ -100,8 +102,8 @@ export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing }: Analy
                 borderColor: 'border-orange-200',
                 options: [
                     { id: 'efa-select', title: 'EFA', desc: 'Exploratory Factor Analysis + Parallel Analysis', icon: Grid3x3, action: 'select', recommended: true, costType: 'efa' },
-                    { id: 'cfa-select', title: 'CFA', desc: 'Confirmatory Factor Analysis', icon: Network, action: 'select', costType: 'cfa' },
-                    { id: 'sem-select', title: 'SEM', desc: 'Structural Equation Modeling', icon: Layers, action: 'select', costType: 'sem' },
+                    { id: 'cfa-select', title: 'CFA', desc: 'Confirmatory Factor Analysis', icon: Network, action: 'select', costType: 'cfa', disabled: true, badge: 'Coming Soon' },
+                    { id: 'sem-select', title: 'SEM', desc: 'Structural Equation Modeling', icon: Layers, action: 'select', costType: 'sem', disabled: true, badge: 'Coming Soon' },
                 ]
             }
         },
@@ -128,7 +130,7 @@ export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing }: Analy
                 bgColor: 'bg-pink-50',
                 borderColor: 'border-pink-200',
                 options: [
-                    { id: 'cluster-select', title: 'Cluster Analysis', desc: 'K-Means clustering with profiles', icon: CircleDot, action: 'select', costType: 'efa' },
+                    { id: 'cluster-select', title: 'Cluster Analysis', desc: 'K-Means clustering with profiles', icon: CircleDot, action: 'select', costType: 'efa', disabled: true, badge: 'Coming Soon' },
                 ]
             }
         }
@@ -192,20 +194,33 @@ export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing }: Analy
                                         <button
                                             key={opt.id}
                                             onClick={() => opt.action === 'run' ? onRunAnalysis(opt.id) : onSelect(opt.id)}
-                                            disabled={isAnalyzing}
-                                            className={`group relative p-4 bg-slate-50 rounded-lg border border-slate-200 hover:border-slate-400 hover:bg-white hover:shadow-md transition-all text-left disabled:opacity-50 disabled:cursor-not-allowed`}
+                                            disabled={isAnalyzing || opt.disabled}
+                                            className={`group relative p-4 bg-slate-50 rounded-lg border border-slate-200 
+                                                ${opt.disabled
+                                                    ? 'opacity-60 cursor-not-allowed grayscale-[0.5]'
+                                                    : 'hover:border-slate-400 hover:bg-white hover:shadow-md'
+                                                } 
+                                                transition-all text-left`}
                                         >
-                                            {opt.recommended && (
+                                            {opt.recommended && !opt.disabled && (
                                                 <div className="absolute -top-2 -right-2">
                                                     <Star className="w-5 h-5 text-amber-500 fill-current drop-shadow" />
                                                 </div>
                                             )}
+                                            {opt.badge && (
+                                                <div className="absolute -top-2 -right-2 z-10">
+                                                    <span className={`px-2 py-0.5 text-[10px] uppercase font-bold rounded-full shadow-sm ${opt.badge === 'Coming Soon' ? 'bg-gray-600 text-white' : 'bg-blue-600 text-white'
+                                                        }`}>
+                                                        {opt.badge}
+                                                    </span>
+                                                </div>
+                                            )}
                                             <div className="flex items-start gap-3">
-                                                <div className="p-2 rounded-lg bg-white border border-slate-200 text-slate-600 group-hover:scale-110 transition-transform shrink-0">
+                                                <div className={`p-2 rounded-lg bg-white border border-slate-200 text-slate-600 ${!opt.disabled && 'group-hover:scale-110'} transition-transform shrink-0`}>
                                                     <Icon className="w-5 h-5" />
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <h4 className="font-semibold text-slate-800 text-sm leading-tight">
+                                                    <h4 className="font-semibold text-slate-800 text-sm leading-tight flex items-center gap-2">
                                                         {opt.title}
                                                     </h4>
                                                     <p className="text-xs text-slate-500 mt-1 line-clamp-2">

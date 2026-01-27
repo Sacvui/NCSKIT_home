@@ -11,7 +11,7 @@ import { ResultsDisplay } from '@/components/ResultsDisplay';
 import { SmartGroupSelector, VariableSelector, AISettings } from '@/components/VariableSelector';
 import { profileData, DataProfile } from '@/lib/data-profiler';
 import { runCronbachAlpha, runCorrelation, runDescriptiveStats, runTTestIndependent, runTTestPaired, runOneWayANOVA, runEFA, runLinearRegression, runChiSquare, runMannWhitneyU, runModerationAnalysis, runTwoWayANOVA, runClusterAnalysis, runMediationAnalysis, runLogisticRegression, initWebR, getWebRStatus, setProgressCallback } from '@/lib/webr-wrapper';
-import { BarChart3, FileText, Shield, Trash2, Eye, EyeOff, Wifi, WifiOff } from 'lucide-react';
+import { BarChart3, FileText, Shield, Trash2, Eye, EyeOff, Wifi, WifiOff, RotateCcw, XCircle } from 'lucide-react';
 import { Toast } from '@/components/ui/Toast';
 import { WebRStatus } from '@/components/WebRStatus';
 import { AnalysisSelector } from '@/components/AnalysisSelector';
@@ -38,6 +38,7 @@ import { InsufficientCreditsModal } from '@/components/InsufficientCreditsModal'
 import { NcsBalanceBadge } from '@/components/NcsBalanceBadge';
 import { MobileWebRFallback, useSharedArrayBufferSupport } from '@/components/MobileWebRFallback';
 import { getORCIDUser } from '@/utils/cookie-helper';
+import { useAnalysisPersistence } from '@/hooks/useAnalysisPersistence';
 
 export default function AnalyzePage() {
     const router = useRouter()
@@ -200,7 +201,61 @@ export default function AnalyzePage() {
     const [requiredCredits, setRequiredCredits] = useState(0);
     const [currentAnalysisCost, setCurrentAnalysisCost] = useState(0);
 
-    // Persist workflow state to sessionStorage
+    // Auto-Save / Persistence Hook
+    const { saveWorkspace, loadWorkspace, hasSavedData, clearWorkspace } = useAnalysisPersistence();
+    const [showRestoreBanner, setShowRestoreBanner] = useState(false);
+
+    // Check availability of saved data on mount
+    useEffect(() => {
+        if (hasSavedData && data.length === 0) {
+            setShowRestoreBanner(true);
+        } else {
+            setShowRestoreBanner(false);
+        }
+    }, [hasSavedData, data.length]);
+
+    // Auto-Save Effect (Debounced 3s)
+    useEffect(() => {
+        if (data.length > 0) {
+            const timer = setTimeout(() => {
+                saveWorkspace({
+                    data,
+                    columns: getNumericColumns(),
+                    fileName: filename,
+                    currentStep: step,
+                    results,
+                    analysisType,
+                });
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [data, step, results, analysisType, filename, saveWorkspace]);
+
+    // Handle Restoration
+    const handleRestore = async () => {
+        const saved = await loadWorkspace();
+        if (saved) {
+            setData(saved.data);
+            setFilename(saved.fileName);
+            // Re-profile data to ensure consistency
+            const prof = profileData(saved.data);
+            setProfile(prof);
+
+            setStep(saved.currentStep);
+            setResults(saved.results);
+            setAnalysisType(saved.analysisType);
+            showToast('Đã khôi phục phiên làm việc trước đó!', 'success');
+            setShowRestoreBanner(false);
+        }
+    };
+
+    const discardSaved = async () => {
+        await clearWorkspace();
+        setShowRestoreBanner(false);
+        showToast('Đã xóa dữ liệu đã lưu.', 'info');
+    };
+
+    // Persist workflow state to sessionStorage (Legacy - Keeping for now)
     useEffect(() => {
         if (previousAnalysis) {
             sessionStorage.setItem('workflow_state', JSON.stringify(previousAnalysis));
@@ -842,6 +897,35 @@ export default function AnalyzePage() {
                     </div>
                 </div>
             )}
+
+            {/* Restore Session Banner */}
+            {showRestoreBanner && (
+                <div className="bg-amber-50 border-b border-amber-200 py-3 relative z-30">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                            <RotateCcw className="w-5 h-5 text-amber-600" />
+                            <p className="text-sm text-amber-800">
+                                <span className="font-bold">Khôi phục phiên làm việc:</span> Chúng tôi tìm thấy dữ liệu chưa lưu từ phiên làm việc trước.
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={handleRestore}
+                                className="px-4 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
+                            >
+                                Khôi phục ngay
+                            </button>
+                            <button
+                                onClick={discardSaved}
+                                className="px-3 py-1.5 text-amber-700 hover:bg-amber-100 text-sm font-medium rounded-lg transition-colors"
+                            >
+                                Bỏ qua
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
 
             {/* Header with Integrated Toolbar */}
             <Header
@@ -2276,10 +2360,10 @@ export default function AnalyzePage() {
                                             const xData = data.map(row => Number(row[moderationVars.x]) || 0);
                                             const yData = data.map(row => Number(row[moderationVars.y]) || 0);
                                             const wData = data.map(row => Number(row[moderationVars.w]) || 0);
-                                            
+
                                             const result = await runModerationAnalysis(
-                                                xData, 
-                                                yData, 
+                                                xData,
+                                                yData,
                                                 wData,
                                                 moderationVars.x,
                                                 moderationVars.y,
@@ -2405,7 +2489,7 @@ export default function AnalyzePage() {
                                             const yData = data.map(row => Number(row[twoWayAnovaVars.y]) || 0);
                                             const factor1Data = data.map(row => String(row[twoWayAnovaVars.factor1] || ''));
                                             const factor2Data = data.map(row => String(row[twoWayAnovaVars.factor2] || ''));
-                                            
+
                                             const result = await runTwoWayANOVA(
                                                 yData,
                                                 factor1Data,
@@ -2647,7 +2731,7 @@ export default function AnalyzePage() {
                                             const xData = data.map(row => Number(row[mediationVars.x]) || 0);
                                             const mData = data.map(row => Number(row[mediationVars.m]) || 0);
                                             const yData = data.map(row => Number(row[mediationVars.y]) || 0);
-                                            
+
                                             const result = await runMediationAnalysis(xData, mData, yData);
                                             // Deduct credits on success
                                             if (user) {
