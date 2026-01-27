@@ -35,7 +35,7 @@ function LoginForm() {
                 ? window.location.origin
                 : (process.env.NEXT_PUBLIC_SITE_URL || window.location.origin)
 
-            const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(next || '/profile')}`
+            const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(next || '/analyze')}`
             console.log('Redirecting to:', redirectTo)
 
             const { data, error } = await supabase.auth.signInWithOAuth({

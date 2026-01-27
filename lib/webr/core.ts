@@ -152,12 +152,20 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     throw new Error('WebR initialized but evalR is not available');
                 }
 
-                // Step 2: Install required packages (psych-based CFA/SEM - no lavaan needed)
+                // Step 2: Install required packages
                 updateProgress('R-Engine Loading...');
                 try {
-                    await webR.installPackages(['psych', 'corrplot', 'GPArotation']);
+                    // Stage 1 & 2 packages
+                    await webR.installPackages(['psych', 'corrplot', 'GPArotation', 'car']);
+
+                    // Stage 3 packages (Experimental SEM)
+                    try {
+                        await webR.installPackages(['lavaan', 'quadprog']);
+                    } catch (semPkgError) {
+                        console.warn('SEM Packages (lavaan) failed to install - structural models will be disabled:', semPkgError);
+                    }
                 } catch (pkgError) {
-                    console.warn('Package install warning:', pkgError);
+                    console.warn('Core Package install warning:', pkgError);
                 }
 
                 // Step 3 & 4: Load packages and integrity check
@@ -165,6 +173,14 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
 
                 await webR.evalR('library(psych)');
                 await webR.evalR('library(GPArotation)');
+
+                // Attempt to load lavaan if installed
+                try {
+                    await webR.evalR('library(lavaan)');
+                    console.log('SEM Engine (lavaan) successfully loaded');
+                } catch (e) {
+                    console.warn('SEM Engine (lavaan) not available');
+                }
 
                 updateProgress('R-Engine Ready');
                 webRInstance = webR;

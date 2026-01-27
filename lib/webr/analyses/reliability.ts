@@ -3,6 +3,7 @@
  */
 import { initWebR, executeRWithRecovery } from '../core';
 import { parseWebRResult, parseMatrix, arrayToRMatrix } from '../utils';
+import { runLavaanAnalysis } from './sem';
 
 /**
  * Run Cronbach's Alpha analysis with SPSS-style Item-Total Statistics
@@ -227,60 +228,48 @@ export async function runEFA(data: number[][], nFactors: number, rotation: strin
 /**
  * Run Confirmatory Factor Analysis (CFA) using lavaan emulation via psych
  */
-export async function runCFA(
-    data: number[][],
-    columns: string[],
-    modelSyntax: string
-): Promise<{
-    fitMeasures: {
-        cfi: number;
-        tli: number;
-        rmsea: number;
-        srmr: number;
-        chisq: number;
-        df: number;
-        pvalue: number;
-    };
-    estimates: {
-        lhs: string;
-        op: string;
-        rhs: string;
-        est: number;
-        std: number;
-        pvalue: number;
-        se: number;
-    }[];
-    rCode: string;
-    warning?: string;
-}> {
-    const webR = await initWebR();
+/**
+ * Confirmatory Factor Analysis (CFA)
+ * Upgraded to use true SEM engine (lavaan)
+ */
+export async function runCFA(data: number[][], columns: string[], modelSyntax: string): Promise<any> {
+    try {
+        // Try running true CFA with lavaan
+        const result = await runLavaanAnalysis(data, columns, modelSyntax);
 
+        if (result.error) {
+            console.warn("Lavaan failed or not ready, falling back to simulated CFA:", result.error);
+        } else {
+            return {
+                ...result,
+                warning: "Phân tích CFA thành công bằng thư viện lavaan chuyên sâu."
+            };
+        }
+    } catch (e) {
+        console.warn("Lavaan not available or failed, falling back to simulated CFA:", e);
+    }
+
+    // --- FALLBACK: Simulated CFA using psych::fa ---
+    const webR = await initWebR();
+    const flatData = data.flat();
     const factorDefs = modelSyntax.split('\n').filter(line => line.includes('=~'));
-    const nFactors = factorDefs.length;
+    const nFactors = factorDefs.length || 1;
 
     const rCode = `
     library(psych)
+    df <- data.frame(matrix(c(${flatData.join(',')}), ncol=${columns.length}, byrow=TRUE))
+    colnames(df) <- ${JSON.stringify(columns)}
     
-    data_mat <- ${arrayToRMatrix(data)}
-    df <- as.data.frame(data_mat)
-    colnames(df) <- c(${columns.map(c => `"${c}"`).join(',')})
-    
-    # Run Factor Analysis (psych::fa) as CFA approximation
     fa_result <- fa(df, nfactors = ${nFactors}, rotate = "oblimin", fm = "ml")
     
-    fits <- fa_result$fit.stats
-    n <- nrow(df)
-    p <- ncol(df)
     chi_sq <- fa_result$STATISTIC
     df_val <- fa_result$dof
     p_val <- fa_result$PVAL
-    
     rmsea_val <- fa_result$RMSEA[1]
-    
     null_chisq <- fa_result$null.chisq
     null_df <- fa_result$null.dof
     
-    tli_val <- if(!is.null(null_chisq) && !is.null(null_df) && null_df > 0 && df_val > 0) {
+    tli_val <- if(!is.null(null_chisq) && null_df > 0 && df_val > 0) {
         ((null_chisq/null_df) - (chi_sq/df_val)) / ((null_chisq/null_df) - 1)
     } else { NA }
     
@@ -288,26 +277,19 @@ export async function runCFA(
         1 - max(chi_sq - df_val, 0) / max(null_chisq - null_df, chi_sq - df_val, 0)
     } else { NA }
     
-    loadings_mat <- fa_result$loadings
-    loadings_df <- as.data.frame(unclass(loadings_mat))
-    
-    estimates_list <- list()
-    idx <- 1
+    loadings_df <- as.data.frame(unclass(fa_result$loadings))
     factor_names <- colnames(loadings_df)
     var_names <- rownames(loadings_df)
     
+    estimates_list <- list()
+    idx <- 1
     for(f in 1:ncol(loadings_df)) {
         for(v in 1:nrow(loadings_df)) {
             loading <- loadings_df[v, f]
             if(abs(loading) > 0.001) { 
                 estimates_list[[idx]] <- list(
-                    lhs = factor_names[f],
-                    op = "=~",
-                    rhs = var_names[v],
-                    est = loading,
-                    std = loading,
-                    se = NA,
-                    pvalue = NA
+                    lhs = factor_names[f], op = "=~", rhs = var_names[v],
+                    est = loading, std = loading, se = NA, pvalue = NA
                 )
                 idx <- idx + 1
             }
@@ -315,15 +297,15 @@ export async function runCFA(
     }
     
     list(
-        cfi = if(is.na(cfi_val)) 0 else as.numeric(cfi_val),
-        tli = if(is.na(tli_val)) 0 else as.numeric(tli_val),
-        rmsea = if(is.na(rmsea_val)) 0 else as.numeric(rmsea_val),
-        srmr = if(!is.null(fa_result$rms)) as.numeric(fa_result$rms) else 0,
-        chisq = if(is.na(chi_sq)) 0 else as.numeric(chi_sq),
-        df = if(is.na(df_val)) 0 else as.numeric(df_val),
-        pvalue = if(is.na(p_val)) 0 else as.numeric(p_val),
-        
-        n_ests = length(estimates_list),
+        fit = list(
+            cfi = if(is.na(cfi_val)) 0 else as.numeric(cfi_val),
+            tli = if(is.na(tli_val)) 0 else as.numeric(tli_val),
+            rmsea = if(is.na(rmsea_val)) 0 else as.numeric(rmsea_val),
+            srmr = if(!is.null(fa_result$rms)) as.numeric(fa_result$rms) else 0,
+            chisq = if(is.na(chi_sq)) 0 else as.numeric(chi_sq),
+            df = if(is.na(df_val)) 0 else as.numeric(df_val),
+            pvalue = if(is.na(p_val)) 0 else as.numeric(p_val)
+        ),
         estimates = estimates_list
     )
     `;
@@ -332,34 +314,29 @@ export async function runCFA(
         const result = await webR.evalR(rCode);
         const jsResult = await result.toJs() as any;
         const getValue = parseWebRResult(jsResult);
+        const fit = getValue('fit');
+        const estimatesRaw = getValue('estimates');
 
         const fitMeasures = {
-            cfi: getValue('cfi')?.[0] || 0,
-            tli: getValue('tli')?.[0] || 0,
-            rmsea: getValue('rmsea')?.[0] || 0,
-            srmr: getValue('srmr')?.[0] || 0,
-            chisq: getValue('chisq')?.[0] || 0,
-            df: getValue('df')?.[0] || 0,
-            pvalue: getValue('pvalue')?.[0] || 0,
+            cfi: fit?.cfi?.[0] || 0, tli: fit?.tli?.[0] || 0,
+            rmsea: fit?.rmsea?.[0] || 0, srmr: fit?.srmr?.[0] || 0,
+            chisq: fit?.chisq?.[0] || 0, df: fit?.df?.[0] || 0,
+            pvalue: fit?.pvalue?.[0] || 0,
         };
 
         const estimates: any[] = [];
-        const estimatesRaw = getValue('estimates');
-
-        if (estimatesRaw && Array.isArray(estimatesRaw)) {
+        if (Array.isArray(estimatesRaw)) {
             for (const est of estimatesRaw) {
-                if (est && est.values) {
-                    const estValues = parseWebRResult(est);
-                    estimates.push({
-                        lhs: estValues('lhs')?.[0] || '',
-                        op: estValues('op')?.[0] || '=~',
-                        rhs: estValues('rhs')?.[0] || '',
-                        est: estValues('est')?.[0] || 0,
-                        std: estValues('std')?.[0] || 0,
-                        se: estValues('se')?.[0] || 0,
-                        pvalue: estValues('pvalue')?.[0] || 0
-                    });
-                }
+                const estValues = parseWebRResult(est);
+                estimates.push({
+                    lhs: estValues('lhs')?.[0] || '',
+                    op: estValues('op')?.[0] || '=~',
+                    rhs: estValues('rhs')?.[0] || '',
+                    est: estValues('est')?.[0] || 0,
+                    std: estValues('std')?.[0] || 0,
+                    se: estValues('se')?.[0] || 0,
+                    pvalue: estValues('pvalue')?.[0] || 0
+                });
             }
         }
 
@@ -367,11 +344,10 @@ export async function runCFA(
             fitMeasures,
             estimates,
             rCode,
-            warning: "Lưu ý: Đây là mô phỏng CFA (dạng EFA cố định số nhân tố). Kết quả này chỉ mang tính chất tham khảo, không phải là CFA thực thụ (không thể cố định loading = 0 cho các biến chéo, không có Modification Indices)."
+            warning: "Lưu ý: Đây là mô phỏng CFA (dạng EFA). Kết quả chỉ mang tính chất tham khảo do lavaan không khả dụng."
         };
-
     } catch (e: any) {
-        console.error('CFA/EFA Validation Error:', e);
+        console.error('CFA Fallback Error:', e);
         throw e;
     }
 }

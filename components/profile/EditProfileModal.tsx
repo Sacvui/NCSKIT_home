@@ -7,17 +7,7 @@ import { X, Save, Calendar, GraduationCap, Building2, Phone, BookOpen } from 'lu
 import { useRouter } from 'next/navigation'
 import { getAvatarUrl } from '@/utils/avatarHelper'
 
-type Profile = {
-    id: string
-    full_name: string | null
-    avatar_url: string | null
-    role?: string
-    phone_number?: string | null
-    date_of_birth?: string | null
-    academic_level?: string | null
-    research_field?: string | null
-    organization?: string | null
-}
+import { Profile, useAuth } from '@/context/AuthContext'
 
 export default function EditProfileModal({
     user,
@@ -32,6 +22,7 @@ export default function EditProfileModal({
     onClose: () => void,
     onSuccess?: () => void
 }) {
+    const { refreshProfile } = useAuth()
     const supabase = getSupabase()
     const router = useRouter()
     const [loading, setLoading] = useState(false)
@@ -93,6 +84,7 @@ export default function EditProfileModal({
             }
 
             if (onSuccess) onSuccess()
+            await refreshProfile()
             setMessage({ text: 'Cập nhật hồ sơ thành công!', type: 'success' })
             router.refresh()
 

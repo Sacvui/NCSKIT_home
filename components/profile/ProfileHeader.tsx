@@ -7,19 +7,7 @@ import { getAvatarUrl } from '@/utils/avatarHelper'
 import { getSupabase } from '@/utils/supabase/client'
 import { getOrCreateReferralCode, getReferralStats } from '@/lib/referral'
 
-type Profile = {
-    id: string
-    full_name: string | null
-    avatar_url: string | null
-    role?: string
-    referral_code?: string
-    email?: string
-    phone_number?: string | null
-    date_of_birth?: string | null
-    academic_level?: string | null
-    research_field?: string | null
-    organization?: string | null
-}
+import { Profile } from '@/context/AuthContext'
 
 export default function ProfileHeader({ user, profile: initialProfile, onUpdate }: { user: any, profile: Profile | null, onUpdate?: () => void }) {
     const [isEditOpen, setIsEditOpen] = useState(false)
@@ -153,8 +141,8 @@ export default function ProfileHeader({ user, profile: initialProfile, onUpdate 
                             <button
                                 onClick={copyReferralCode}
                                 className={`p-2 rounded-lg transition-all ${copied
-                                        ? 'bg-green-100 text-green-600'
-                                        : 'bg-slate-100 text-slate-500 hover:bg-blue-100 hover:text-blue-600'
+                                    ? 'bg-green-100 text-green-600'
+                                    : 'bg-slate-100 text-slate-500 hover:bg-blue-100 hover:text-blue-600'
                                     }`}
                                 title={copied ? 'Đã sao chép!' : 'Sao chép mã'}
                             >

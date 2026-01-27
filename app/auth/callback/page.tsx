@@ -17,7 +17,7 @@ function CallbackContent() {
 
         const handleAuthCallback = async () => {
             const code = searchParams.get('code')
-            const next = searchParams.get('next') || '/profile'
+            const next = searchParams.get('next') || '/analyze'
             const error = searchParams.get('error')
             const errorDescription = searchParams.get('error_description')
 
@@ -84,7 +84,7 @@ function CallbackContent() {
                 setStatus('Đăng nhập thất bại. Đang thử lại...')
                 if (isMounted) {
                     setTimeout(() => {
-                        router.push(`/login?error=${encodeURIComponent(err.message || 'Lỗi đăng nhập')}`)
+                        router.push(`/login?error=${encodeURIComponent(err.message || 'Lỗi đăng nhập')}&next=${encodeURIComponent(next || '/analyze')}`)
                     }, 2000)
                 }
             }

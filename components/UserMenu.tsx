@@ -6,12 +6,15 @@ import { getSupabase } from '@/utils/supabase/client'
 import { User, LogOut, Settings, ChevronDown, MessageSquare, Database } from 'lucide-react'
 import FeedbackModal from './FeedbackModal'
 import { getAvatarUrl } from '@/utils/avatarHelper'
-import { clearOrcidSession } from '@/hooks/useOrcidSession'
+import { useAuth } from '@/context/AuthContext'
 
-export default function UserMenu({ user, profile, isOrcidUser = false }: { user: any, profile?: any, isOrcidUser?: boolean }) {
+export default function UserMenu() {
+    const { user, profile, isOrcidUser } = useAuth()
     const [isOpen, setIsOpen] = useState(false)
     const [isFeedbackOpen, setIsFeedbackOpen] = useState(false)
     const menuRef = useRef<HTMLDivElement>(null)
+
+    if (!user) return null
 
     // Close menu when clicking outside
     useEffect(() => {
@@ -25,18 +28,14 @@ export default function UserMenu({ user, profile, isOrcidUser = false }: { user:
     }, [])
 
     const initial = user.email ? user.email[0].toUpperCase() : 'U'
-    const displayName = profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'
+    const userMetaName = user.user_metadata?.full_name || user.user_metadata?.name || user.user_metadata?.display_name;
+    const displayName = profile?.full_name || userMetaName || user.email?.split('@')[0] || 'User'
+
+    const { signOut } = useAuth()
 
     // Handle logout for both Supabase and ORCID users
     const handleLogout = async () => {
-        if (isOrcidUser) {
-            clearOrcidSession()
-            window.location.href = '/login'
-        } else {
-            // Submit form for Supabase signout
-            const form = document.getElementById('signout-form') as HTMLFormElement
-            form?.submit()
-        }
+        await signOut()
     }
 
     return (
@@ -97,7 +96,6 @@ export default function UserMenu({ user, profile, isOrcidUser = false }: { user:
                         </div>
 
                         <div className="border-t border-slate-100 py-1">
-                            <form id="signout-form" action="/auth/signout" method="post" className="hidden" />
                             <button
                                 type="button"
                                 onClick={handleLogout}

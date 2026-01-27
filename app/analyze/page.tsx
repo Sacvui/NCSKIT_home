@@ -40,123 +40,27 @@ import { InsufficientCreditsModal } from '@/components/InsufficientCreditsModal'
 import { NcsBalanceBadge } from '@/components/NcsBalanceBadge';
 import { MobileWebRFallback, useSharedArrayBufferSupport } from '@/components/MobileWebRFallback';
 import { getORCIDUser } from '@/utils/cookie-helper';
+import { useAuth } from '@/context/AuthContext';
 import { useAnalysisPersistence } from '@/hooks/useAnalysisPersistence';
 
 export default function AnalyzePage() {
     const router = useRouter()
-
-    // Auth State
-    const [user, setUser] = useState<any>(null);
-    const [userProfile, setUserProfile] = useState<any>(null); // New User Profile State
+    const { user, profile: userProfile, loading: authLoading } = useAuth();
     const [loading, setLoading] = useState(true);
 
-    // CRITICAL: Use ref to prevent double execution in React Strict Mode
-    const authCheckRan = useRef(false);
-
-    // Proper authentication - fetch real user from Supabase
+    // Synchronize balance with profile tokens
     useEffect(() => {
-        // Prevent double execution
-        if (authCheckRan.current) {
-            console.log('[Analyze Auth] Already running, skipping...');
-            return;
+        if (userProfile?.tokens !== undefined) {
+            setNcsBalance(userProfile.tokens);
         }
-        authCheckRan.current = true;
+    }, [userProfile?.tokens]);
 
-        const checkUser = async () => {
-            try {
-                const supabase = getSupabase();
-
-                // 1. Check current session
-                const { data: { session }, error } = await supabase.auth.getSession();
-
-                if (error) throw error;
-
-                if (session?.user) {
-                    setUser(session.user);
-                    // Fetch profile
-                    const { data: profile } = await supabase
-                        .from('profiles')
-                        .select('*')
-                        .eq('id', session.user.id)
-                        .single();
-
-                    if (profile) {
-                        setUserProfile(profile);
-                        if (profile.tokens !== undefined) setNcsBalance(profile.tokens);
-                    }
-                } else {
-                    // 2. Check ORCID using secure cookie helper
-                    const orcidUserId = getORCIDUser();
-                    if (orcidUserId) {
-                        const { data: profile } = await supabase
-                            .from('profiles')
-                            .select('*')
-                            .eq('id', orcidUserId)
-                            .single();
-                        if (profile) {
-                            const orcidUser = {
-                                id: orcidUserId,
-                                email: profile.email || `${profile.orcid_id}@orcid.org`,
-                                user_metadata: {
-                                    full_name: profile.display_name || profile.full_name,
-                                    avatar_url: profile.avatar_url
-                                }
-                            };
-                            setUser(orcidUser);
-                            setUserProfile(profile);
-                            if (profile.tokens !== undefined) setNcsBalance(profile.tokens);
-                        }
-                    }
-                }
-            } catch (error: any) {
-                // CRITICAL: Ignore AbortError - it's just React Strict Mode cleanup
-                if (error.name === 'AbortError') {
-                    console.log('[Analyze Auth] AbortError ignored (React Strict Mode)');
-                    return;
-                }
-                console.error("Auth check failed:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        // Safety timeout in case auth hangs - only affects loading state, NOT auth check
-        // Auth check continues in background and will update user state when complete
-        const timeoutId = setTimeout(() => {
-            console.log('[Auth] Timeout reached, showing page while auth continues...');
+    // Overall loading state - follow auth context
+    useEffect(() => {
+        if (!authLoading) {
             setLoading(false);
-            // Don't give up on auth - it will update user state when complete
-        }, 3000);
-
-        // Run auth check - will update user state even after timeout
-        checkUser().finally(() => {
-            clearTimeout(timeoutId);
-            setLoading(false);
-        });
-
-        // Listen for auth changes
-        const supabase = getSupabase();
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: any, session: any) => {
-            if (session?.user) {
-                setUser(session.user);
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', session.user.id)
-                    .single();
-                if (profile) {
-                    setUserProfile(profile);
-                    if (profile.tokens !== undefined) setNcsBalance(profile.tokens);
-                }
-            } else if (event === 'SIGNED_OUT') {
-                setUser(null);
-                setUserProfile(null);
-            }
-        });
-
-        return () => subscription.unsubscribe();
-
-    }, [router]);
+        }
+    }, [authLoading]);
 
     // Session State Management
     const {

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { getSupabase } from '@/utils/supabase/client'
-import { getORCIDUser } from '@/utils/cookie-helper'
+import { useAuth } from '@/context/AuthContext'
 import { User, Share2, Copy, BarChart3, Database, Star, Shield } from 'lucide-react'
 import Link from 'next/link'
 import ProfileHeader from '@/components/profile/ProfileHeader'
@@ -14,171 +14,55 @@ import { NCSLoader } from '@/components/ui/NCSLoader'
 export default function ProfilePage() {
     const router = useRouter()
     const supabase = getSupabase()
+    const { user, profile, loading: authLoading } = useAuth()
 
     const [loading, setLoading] = useState(true)
-    const [user, setUser] = useState<any>(null)
-    const [profile, setProfile] = useState<any>(null)
     const [projects, setProjects] = useState<any[]>([])
     const [projectsCount, setProjectsCount] = useState(0)
     const [referralsCount, setReferralsCount] = useState(0)
 
     useEffect(() => {
-        let isMounted = true;
-
-        // Helper: Retry logic for flaky operations
-        // Helper: Retry logic for flaky operations
-        async function safeAuthCall<T>(fn: () => Promise<T>, retries = 3): Promise<T | null> {
-            try {
-                return await fn();
-            } catch (e: any) {
-                if ((e.name === 'AbortError' || e.message?.includes('aborted')) && retries > 0) {
-                    console.warn(`[ProfilePage] Operation aborted, retrying... (${retries})`);
-                    await new Promise(r => setTimeout(r, 500));
-                    return safeAuthCall(fn, retries - 1);
-                }
-                console.error('[ProfilePage] Auth call failed:', e);
-                return null;
-            }
+        if (!authLoading && !user) {
+            router.push('/login?next=/profile')
+            return
         }
 
-        const loadProfile = async () => {
-            if (!isMounted) return;
-            console.log('[ProfilePage] Starting authentication check...');
-
-            // Shared logic to load data once ID is found
-            const loadUserData = async (userId: string, profileData: any) => {
+        if (user && profile) {
+            const loadData = async () => {
                 try {
-                    console.log('[ProfilePage] Loading auxiliary data for:', userId);
                     // Fetch projects count
                     const { count: pCount } = await supabase
                         .from('projects')
                         .select('*', { count: 'exact', head: true })
-                        .eq('user_id', userId);
-                    if (isMounted) setProjectsCount(pCount || 0);
+                        .eq('user_id', user.id);
+                    setProjectsCount(pCount || 0);
 
                     // Fetch referrals count
-                    if (profileData?.referral_code) {
+                    if (profile?.referral_code) {
                         const { count: rCount } = await supabase
                             .from('profiles')
                             .select('*', { count: 'exact', head: true })
-                            .eq('referred_by_code', profileData.referral_code);
-                        if (isMounted) setReferralsCount(rCount || 0);
+                            .eq('referred_by_code', profile.referral_code);
+                        setReferralsCount(rCount || 0);
                     }
 
                     // Fetch recent projects
                     const { data: projectsData } = await supabase
                         .from('projects')
                         .select('*')
-                        .eq('user_id', userId)
+                        .eq('user_id', user.id)
                         .order('updated_at', { ascending: false })
                         .limit(10);
-                    if (isMounted) setProjects(projectsData || []);
+                    setProjects(projectsData || []);
                 } catch (e) {
                     console.error('[ProfilePage] Auxiliary data load error:', e);
+                } finally {
+                    setLoading(false);
                 }
             };
-
-            try {
-                // 1. Check Supabase Session with Retry
-                const sessionResult = await safeAuthCall(() => supabase.auth.getSession()) as any;
-                const session = sessionResult?.data?.session;
-                const sessionError = sessionResult?.error;
-
-                console.log('[ProfilePage] Session check result check:', {
-                    hasSession: !!session,
-                    userId: session?.user?.id,
-                    error: sessionError
-                });
-
-                if (session?.user && !sessionError) {
-                    if (!isMounted) return;
-                    console.log('[ProfilePage] User authenticated via Supabase.');
-                    setUser(session.user);
-
-                    // Retry profile fetch
-                    const profileResult = await safeAuthCall(() => supabase
-                        .from('profiles')
-                        .select('*')
-                        .eq('id', session.user.id)
-                        .single()
-                    ) as any;
-
-                    const profileData = profileResult?.data;
-                    const profileError = profileResult?.error;
-
-                    if (profileError) console.error('[ProfilePage] Profile fetch error:', profileError);
-
-                    if (isMounted) {
-                        setProfile(profileData);
-                        await loadUserData(session.user.id, profileData);
-                        setLoading(false);
-                    }
-                    return;
-                }
-
-                // 2. Check ORCID Fallback
-                const orcidUserId = getORCIDUser();
-                console.log('[ProfilePage] ORCID check result:', orcidUserId);
-
-                if (orcidUserId) {
-                    if (!isMounted) return;
-                    console.log('[ProfilePage] User authenticated via ORCID cookie.');
-
-                    const orcidProfileResult = await safeAuthCall(() => supabase
-                        .from('profiles')
-                        .select('*')
-                        .eq('id', orcidUserId)
-                        .single()
-                    ) as any;
-
-                    const orcidProfile = orcidProfileResult?.data;
-                    const orcidError = orcidProfileResult?.error;
-
-                    if (orcidError) console.error('[ProfilePage] ORCID profile fetch error:', orcidError);
-
-                    if (orcidProfile) {
-                        const orcidUser = {
-                            id: orcidUserId,
-                            email: orcidProfile.email || `${orcidProfile.orcid_id}@orcid.org`,
-                            user_metadata: {
-                                full_name: orcidProfile.display_name || orcidProfile.full_name,
-                                avatar_url: orcidProfile.avatar_url
-                            }
-                        };
-
-                        if (isMounted) {
-                            setUser(orcidUser);
-                            setProfile(orcidProfile);
-                            await loadUserData(orcidUserId, orcidProfile);
-                            setLoading(false);
-                        }
-                        return;
-                    }
-                }
-
-                // 3. No User Found
-                console.warn('[ProfilePage] No active session found. Initiating redirect countdown.');
-                if (isMounted) {
-                    // Force loading false so we can show "Not Logged In" UI if redirect hangs
-                    setLoading(false);
-                    setTimeout(() => {
-                        if (isMounted && !user) { // Check user again in case logic was racing
-                            console.log('[ProfilePage] Executing redirect to /login');
-                            router.push('/login?next=/profile');
-                        }
-                    }, 2000);
-                }
-
-            } catch (err: any) {
-                console.error('[ProfilePage] Fatal error during initialization:', err);
-                if (isMounted) setLoading(false);
-            }
-        };
-
-        loadProfile();
-
-        return () => { isMounted = false; };
-    }, [router, supabase]);
+            loadData();
+        }
+    }, [user, profile, authLoading, router, supabase]);
 
     if (loading) {
         return (

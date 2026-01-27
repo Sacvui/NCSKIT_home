@@ -6,71 +6,25 @@ import LanguageSwitcher from '@/components/LanguageSwitcher'
 import { NcsBalanceBadge } from '@/components/NcsBalanceBadge'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { getSupabase } from '@/utils/supabase/client'
 import { getStoredLocale, t, type Locale } from '@/lib/i18n'
-import { useOrcidUser } from '@/hooks/useOrcidSession'
+import { useAuth } from '@/context/AuthContext'
 
 interface HeaderProps {
-    user: any
+    user?: any
     profile?: any
     centerContent?: React.ReactNode
     rightActions?: React.ReactNode
     hideNav?: boolean
 }
 
-export default function Header({ user, profile: initialProfile, centerContent, rightActions, hideNav = false }: HeaderProps) {
+export default function Header({ centerContent, rightActions, hideNav = false, user: propUser, profile: propProfile }: HeaderProps) {
     const pathname = usePathname()
-    const [profile, setProfile] = useState<any>(initialProfile)
+    const { user: authUser, profile: authProfile, loading } = useAuth()
+
+    // Use auth context if loaded, otherwise fallback to props to reduce flicker
+    const user = !loading ? authUser : (propUser || authUser);
+    const profile = !loading ? authProfile : (propProfile || authProfile);
     const [locale, setLocale] = useState<Locale>('vi')
-    const [localUser, setLocalUser] = useState<any>(null)
-    const supabase = getSupabase()
-
-    // ORCID session check for users who logged in via ORCID
-    const { orcidUser } = useOrcidUser()
-
-    // Fallback: If server didn't provide user (cookies not synced), check localStorage client
-    // Fallback: If server didn't provide user (cookies not synced), check localStorage client
-    useEffect(() => {
-        let mounted = true
-
-        if (!user && !orcidUser) {
-            const checkLocalSession = async () => {
-                try {
-                    // Use singleton client to avoid multiple instance conflicts
-                    const { data, error } = await supabase.auth.getUser()
-
-                    if (!mounted) return
-
-                    if (data?.user) {
-                        console.log('[Header] Found user in localStorage:', data.user.id)
-                        setLocalUser(data.user)
-                    } else if (error) {
-                        // Ignore abort errors which are harmless race conditions
-                        if (error.name !== 'AbortError') {
-                            console.warn('[Header] Failed to check localStorage session:', error)
-                        }
-                    }
-                } catch (err: any) {
-                    if (err.name !== 'AbortError') {
-                        console.warn('[Header] Unexpected error checking session:', err)
-                    }
-                }
-            }
-            checkLocalSession()
-        }
-
-        return () => { mounted = false }
-    }, [user, orcidUser]) // Removed supabase from deps to ensure stability
-
-    // Effective user: Supabase user (server) OR localStorage user OR ORCID user
-    const effectiveUser = user || localUser || (orcidUser ? { id: orcidUser.id, email: orcidUser.email } : null)
-    const effectiveProfile = profile || (orcidUser ? {
-        id: orcidUser.id,
-        full_name: orcidUser.full_name,
-        email: orcidUser.email,
-        tokens: orcidUser.tokens,
-        orcid_id: orcidUser.orcid_id
-    } : null)
 
     useEffect(() => {
         setLocale(getStoredLocale())
@@ -82,64 +36,6 @@ export default function Header({ user, profile: initialProfile, centerContent, r
             window.removeEventListener('localeChange', handleStorageChange)
         }
     }, [])
-
-    // Reliable Profile Fetching & Realtime Sync
-    useEffect(() => {
-        if (!effectiveUser?.id) return
-
-        const userId = effectiveUser.id
-        console.log('[Header] Setting up profile sync for:', userId)
-
-        // 1. Immediate Fetch
-        const fetchProfile = async () => {
-            try {
-                const { data, error } = await supabase
-                    .from('profiles')
-                    .select('*')
-                    .eq('id', userId)
-                    .single()
-
-                if (data) {
-                    // Only update if data is different to avoid re-renders
-                    setProfile((prev: any) => {
-                        if (JSON.stringify(prev) !== JSON.stringify(data)) {
-                            console.log('[Header] Profile updated from fetch:', data.tokens)
-                            return data
-                        }
-                        return prev
-                    })
-                } else if (error) {
-                    console.error('[Header] Fetch profile error data:', error)
-                }
-            } catch (err) {
-                console.error('[Header] Fetch profile exception:', JSON.stringify(err, Object.getOwnPropertyNames(err)))
-            }
-        }
-
-        fetchProfile()
-
-        // 2. Real-time Subscription
-        const channel = supabase
-            .channel(`header-profile-${userId}`)
-            .on(
-                'postgres_changes',
-                {
-                    event: 'UPDATE', // Listen specifically for updates
-                    schema: 'public',
-                    table: 'profiles',
-                    filter: `id=eq.${userId}`,
-                },
-                (payload: any) => {
-                    console.log('[Header] Realtime profile update:', payload.new.tokens)
-                    setProfile(payload.new)
-                }
-            )
-            .subscribe()
-
-        return () => {
-            supabase.removeChannel(channel)
-        }
-    }, [effectiveUser?.id, supabase]) // Depend on ID specifically
 
     return (
         <header className="bg-white/80 backdrop-blur-md shadow-sm border-b border-slate-200 sticky top-0 z-50">
@@ -154,7 +50,7 @@ export default function Header({ user, profile: initialProfile, centerContent, r
                     {!hideNav && !centerContent && (
                         <nav className="hidden md:flex items-center gap-1">
                             <NavLink href="/analyze" active={pathname?.startsWith('/analyze')}>{t(locale, 'nav.analyze')}</NavLink>
-                            {effectiveUser && (
+                            {user && (
                                 <NavLink href="/profile" active={pathname?.startsWith('/profile')}>{t(locale, 'nav.profile')}</NavLink>
                             )}
                         </nav>
@@ -178,15 +74,15 @@ export default function Header({ user, profile: initialProfile, centerContent, r
                     {rightActions && <div className="h-6 w-px bg-slate-200 mx-1 hidden sm:block" />}
 
                     {/* NCS Balance Badge - show when user is logged in */}
-                    {effectiveUser && (
-                        <NcsBalanceBadge balance={effectiveProfile?.tokens || 0} size="sm" />
+                    {user && (
+                        <NcsBalanceBadge balance={profile?.tokens || 0} size="sm" />
                     )}
 
                     {/* Language Switcher */}
                     <LanguageSwitcher compact />
 
-                    {effectiveUser ? (
-                        <UserMenu user={effectiveUser} profile={effectiveProfile} isOrcidUser={!!orcidUser} />
+                    {user ? (
+                        <UserMenu />
                     ) : (
                         <Link href="/login" className="px-5 py-2 text-sm font-medium text-white bg-slate-900 rounded-lg hover:bg-slate-800 transition-all shadow-sm">
                             Login
