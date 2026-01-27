@@ -179,8 +179,10 @@ export async function deductCredits(
         amount: -amount,
         type: 'spend_analysis',
         description: reason,
-        metadata: analysisType ? { analysis_type: analysisType } : {}
-    }).then(() => { });
+        balance_after: newBalance
+    }).then(({ error }: any) => {
+        if (error) console.warn('Failed to log transaction silently:', error);
+    });
 
     return { success: true, newBalance };
 }

@@ -349,6 +349,12 @@ export default function AnalyzePage() {
             .map(([name, _]) => name);
     };
 
+    // Get all column names from profile
+    const getAllColumns = () => {
+        if (!profile) return [];
+        return Object.keys(profile.columnStats);
+    };
+
 
 
     const runAnalysis = async (type: string) => {
@@ -1532,13 +1538,13 @@ export default function AnalyzePage() {
                             step={step}
                             data={data}
                             columns={getNumericColumns()} // For Cluster (numeric)
-                            profile={profile} // For Two-Way ANOVA (factors)
+                            allColumns={getAllColumns()} // For Two-Way ANOVA (factors)
+                            profile={profile}
                             user={user}
                             setResults={setResults}
                             setStep={setStep}
                             setNcsBalance={setNcsBalance}
                             showToast={showToast}
-
                             setAnalysisType={setAnalysisType}
                             setRequiredCredits={setRequiredCredits}
                             setCurrentAnalysisCost={setCurrentAnalysisCost}

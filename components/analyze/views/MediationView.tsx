@@ -8,6 +8,7 @@ interface MediationViewProps {
     step: AnalysisStep;
     data: any[];
     columns: string[];
+    allColumns?: string[];
     user: any;
     setResults: (results: any) => void;
     setStep: (step: AnalysisStep) => void;
@@ -26,6 +27,7 @@ export const MediationView: React.FC<MediationViewProps> = ({
     step,
     data,
     columns,
+    allColumns = [],
     user,
     setResults,
     setStep,
@@ -36,6 +38,7 @@ export const MediationView: React.FC<MediationViewProps> = ({
     setShowInsufficientCredits,
     setAnalysisType
 }) => {
+    const varsForFactors = allColumns.length > 0 ? allColumns : columns;
     const [isAnalyzing, setIsAnalyzing] = useState(false);
 
     // Internal State
@@ -67,7 +70,7 @@ export const MediationView: React.FC<MediationViewProps> = ({
                                 onChange={(e) => setMediationVars({ ...mediationVars, x: e.target.value })}
                             >
                                 <option value="">Chọn biến...</option>
-                                {columns.map(col => (
+                                {varsForFactors.map(col => (
                                     <option key={col} value={col} disabled={mediationVars.m === col || mediationVars.y === col}>{col}</option>
                                 ))}
                             </select>
@@ -82,7 +85,7 @@ export const MediationView: React.FC<MediationViewProps> = ({
                                 onChange={(e) => setMediationVars({ ...mediationVars, m: e.target.value })}
                             >
                                 <option value="">Chọn biến...</option>
-                                {columns.map(col => (
+                                {varsForFactors.map(col => (
                                     <option key={col} value={col} disabled={mediationVars.x === col || mediationVars.y === col}>{col}</option>
                                 ))}
                             </select>
@@ -97,7 +100,7 @@ export const MediationView: React.FC<MediationViewProps> = ({
                                 onChange={(e) => setMediationVars({ ...mediationVars, y: e.target.value })}
                             >
                                 <option value="">Chọn biến...</option>
-                                {columns.map(col => (
+                                {varsForFactors.map(col => (
                                     <option key={col} value={col} disabled={mediationVars.x === col || mediationVars.m === col}>{col}</option>
                                 ))}
                             </select>
@@ -187,7 +190,7 @@ export const MediationView: React.FC<MediationViewProps> = ({
                                 onChange={(e) => setModerationVars({ ...moderationVars, y: e.target.value })}
                             >
                                 <option value="">Chọn biến...</option>
-                                {columns.map(col => (
+                                {varsForFactors.map(col => (
                                     <option key={col} value={col} disabled={moderationVars.x === col || moderationVars.w === col}>{col}</option>
                                 ))}
                             </select>
@@ -202,7 +205,7 @@ export const MediationView: React.FC<MediationViewProps> = ({
                                 onChange={(e) => setModerationVars({ ...moderationVars, x: e.target.value })}
                             >
                                 <option value="">Chọn biến...</option>
-                                {columns.map(col => (
+                                {varsForFactors.map(col => (
                                     <option key={col} value={col} disabled={moderationVars.y === col || moderationVars.w === col}>{col}</option>
                                 ))}
                             </select>
@@ -217,7 +220,7 @@ export const MediationView: React.FC<MediationViewProps> = ({
                                 onChange={(e) => setModerationVars(prev => ({ ...prev, w: e.target.value }))}
                             >
                                 <option value="">Chọn biến...</option>
-                                {columns.map(col => (
+                                {varsForFactors.map(col => (
                                     <option key={col} value={col} disabled={moderationVars.y === col || moderationVars.x === col}>{col}</option>
                                 ))}
                             </select>

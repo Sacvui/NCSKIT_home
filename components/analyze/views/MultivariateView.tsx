@@ -8,6 +8,7 @@ interface MultivariateViewProps {
     step: AnalysisStep;
     data: any[];
     columns: string[];
+    allColumns?: string[];
     user: any;
     profile: any;
     setResults: (results: any) => void;
@@ -27,6 +28,7 @@ export const MultivariateView: React.FC<MultivariateViewProps> = ({
     step,
     data,
     columns,
+    allColumns = [],
     user,
     profile,
     setResults,
@@ -38,6 +40,7 @@ export const MultivariateView: React.FC<MultivariateViewProps> = ({
     setShowInsufficientCredits,
     setAnalysisType
 }) => {
+    const varsForFactors = allColumns.length > 0 ? allColumns : columns;
     const [isAnalyzing, setIsAnalyzing] = useState(false);
 
     // Internal State
@@ -197,8 +200,8 @@ export const MultivariateView: React.FC<MultivariateViewProps> = ({
                                     onChange={(e) => setTwoWayAnovaVars(prev => ({ ...prev, factor1: e.target.value }))}
                                 >
                                     <option value="">Chọn biến...</option>
-                                    {Array.isArray(profile?.columns) && profile.columns.map((col: any) => (
-                                        <option key={col.name} value={col.name} disabled={twoWayAnovaVars.factor2 === col.name}>{col.name}</option>
+                                    {varsForFactors.map(col => (
+                                        <option key={col} value={col} disabled={twoWayAnovaVars.factor2 === col}>{col}</option>
                                     ))}
                                 </select>
                             </div>
@@ -212,8 +215,8 @@ export const MultivariateView: React.FC<MultivariateViewProps> = ({
                                     onChange={(e) => setTwoWayAnovaVars(prev => ({ ...prev, factor2: e.target.value }))}
                                 >
                                     <option value="">Chọn biến...</option>
-                                    {Array.isArray(profile?.columns) && profile.columns.map((col: any) => (
-                                        <option key={col.name} value={col.name} disabled={twoWayAnovaVars.factor1 === col.name}>{col.name}</option>
+                                    {varsForFactors.map(col => (
+                                        <option key={col} value={col} disabled={twoWayAnovaVars.factor1 === col}>{col}</option>
                                     ))}
                                 </select>
                             </div>
