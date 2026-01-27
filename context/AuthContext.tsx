@@ -116,7 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         initializeAuth();
 
         // Check for immediate session if possible (to avoid flicker)
-        supabase.auth.getSession().then(({ data: { session } }) => {
+        supabase.auth.getSession().then(({ data: { session } }: { data: { session: Session | null }, error: any }) => {
             if (session?.user) {
                 setUser(session.user);
                 // Also trigger profile fetch if not already done
