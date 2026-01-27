@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, Suspense, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getSupabase } from '@/utils/supabase/client'
 import { Loader2 } from 'lucide-react'
@@ -10,6 +10,8 @@ function CallbackContent() {
     const searchParams = useSearchParams()
     const [status, setStatus] = useState('Processing authentication...')
 
+    const processedCode = useRef<string | null>(null);
+
     useEffect(() => {
         const handleAuthCallback = async () => {
             const code = searchParams.get('code')
@@ -17,42 +19,58 @@ function CallbackContent() {
             const error = searchParams.get('error')
             const errorDescription = searchParams.get('error_description')
 
+            // Prevent double processing in Strict Mode
+            if (code && processedCode.current === code) {
+                console.log('Code already processing/processed, skipping.');
+                return;
+            }
+            if (code) processedCode.current = code;
+
             if (error) {
                 console.error('Auth error:', error, errorDescription)
                 router.push(`/login?error=${encodeURIComponent(errorDescription || error)}`)
                 return
             }
 
-            if (!code) {
-                // If no code, check if we already have a session (implicit flow or existing session)
-                const supabase = getSupabase()
-                const { data: { session } } = await supabase.auth.getSession()
+            const supabase = getSupabase()
 
+            if (!code) {
+                // Check if session exists (implicit/recovery)
+                const { data: { session } } = await supabase.auth.getSession()
                 if (session) {
-                    console.log('Session found, redirecting to:', next)
+                    console.log('Session found (no code), redirecting to:', next)
                     router.push(next)
                 } else {
                     console.warn('No code or session found')
-                    // Just redirect to login if nothing present
                     router.push('/login')
                 }
                 return
             }
 
             try {
-                const supabase = getSupabase()
                 console.log('Exchanging code for session...')
                 const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
                 if (exchangeError) {
                     console.error('Session exchange error:', exchangeError)
 
-                    // Check if code was used but session exists
+                    // Robust check: If session exists, ignore the error (possibly double-invoke race)
                     const { data: { session } } = await supabase.auth.getSession()
                     if (session) {
-                        console.log('Session exists despite error, proceeding.')
+                        console.log('Session valid despite exchange error. Proceeding.')
+                        router.refresh()
                         router.push(next)
                         return
+                    }
+
+                    // Special handling for AbortError/Signal Aborted
+                    if (exchangeError.message?.includes('aborted') || exchangeError.name === 'AbortError') {
+                        console.warn('Request aborted, likely navigation or race. Checking session one last time.')
+                        const { data: { session: retrySession } } = await supabase.auth.getSession()
+                        if (retrySession) {
+                            router.push(next)
+                            return
+                        }
                     }
 
                     router.push(`/login?error=${encodeURIComponent(exchangeError.message)}`)
@@ -60,11 +78,17 @@ function CallbackContent() {
                 }
 
                 console.log('Session established, redirecting to:', next)
-                router.refresh() // Refresh to update any server components if mixed
+                router.refresh()
                 router.push(next)
 
             } catch (err: any) {
                 console.error('Unexpected auth error:', err)
+                // Just in case, check session again before failing hard
+                const { data: { session } } = await supabase.auth.getSession()
+                if (session) {
+                    router.push(next)
+                    return
+                }
                 router.push(`/login?error=${encodeURIComponent(err.message)}`)
             }
         }
