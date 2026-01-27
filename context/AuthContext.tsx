@@ -104,29 +104,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     }
                 }
             }
-        } catch (err) {
-            console.error('[AuthProvider] Init error:', err);
+        } catch (err: any) {
+            // Silence harmless AbortError commonly caused by React Strict Mode or rapid navigation
+            if (err.name !== 'AbortError') {
+                console.error('[AuthProvider] Init error:', err);
+            }
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        // Run initialization
+        // Run deep initialization
         initializeAuth();
-
-        // Check for immediate session if possible (to avoid flicker)
-        supabase.auth.getSession().then(({ data: { session } }: { data: { session: Session | null }, error: any }) => {
-            if (session?.user) {
-                setUser(session.user);
-                // Also trigger profile fetch if not already done
-                if (!lastUserRef.current) {
-                    lastUserRef.current = session.user.id;
-                    fetchProfile(session.user.id);
-                }
-                setLoading(false);
-            }
-        });
 
         // Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
@@ -144,20 +134,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                         console.log(`[AuthProvider] User changed/detected: ${userId}`);
                         lastUserRef.current = userId;
                         sessionStartRef.current = new Date();
-                        await logLogin(userId).catch(e => console.error('Log login fail', e));
-                        await fetchProfile(userId);
+                        // Call non-critical async tasks without blocking
+                        logLogin(userId).catch(e => console.warn('Log login fail', e));
+                        fetchProfile(userId);
                     } else if (!profile) {
                         // If same user but profile is missing, try fetching it
-                        await fetchProfile(userId);
+                        fetchProfile(userId);
                     }
                     setLoading(false);
                 } else if (event === 'INITIAL_SESSION') {
+                    // No session on initial load, ensure loading is stopped
                     setLoading(false);
                 }
             } else if (event === 'SIGNED_OUT') {
                 console.log('[AuthProvider] User signed out');
                 if (lastUserRef.current) {
-                    await logLogout(lastUserRef.current, sessionStartRef.current || undefined).catch(e => console.error('Log logout fail', e));
+                    logLogout(lastUserRef.current, sessionStartRef.current || undefined).catch(e => console.warn('Log logout fail', e));
                 }
                 setUser(null);
                 setProfile(null);
