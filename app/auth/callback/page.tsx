@@ -29,8 +29,8 @@ function CallbackContent() {
             }
 
             // Prevent double-firing in Strict Mode
-            if (code && processedCode.current === code) {
-                console.log('[AuthCallback] Code already processing, skipping...')
+            if (code && (processedCode.current === code)) {
+                console.log('[AuthCallback] Code already processing or processed, skipping...');
                 return;
             }
             if (code) processedCode.current = code;
@@ -41,9 +41,9 @@ function CallbackContent() {
             if (!code) {
                 const { data } = await supabase.auth.getSession()
                 if (data?.session) {
-                    if (isMounted) router.push(next)
+                    if (isMounted) router.replace(next)
                 } else {
-                    if (isMounted) router.push('/login')
+                    if (isMounted) router.replace('/login')
                 }
                 return
             }
@@ -51,28 +51,55 @@ function CallbackContent() {
             // 2. Exchange Code
             try {
                 setStatus('Đang xác thực bảo mật...')
+                console.log('[AuthCallback] Exchanging code for session...');
 
-                // Direct exchange - simpler and faster
                 const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
-                if (exchangeError) throw exchangeError
+                if (exchangeError) {
+                    // Check if it's already been exchanged (common with rapid refreshes)
+                    if (exchangeError.message?.includes('both use and code_challenge') ||
+                        exchangeError.message?.includes('already been used')) {
+                        console.log('[AuthCallback] Code already used, checking for existing session...');
+                        const { data: sessionData } = await supabase.auth.getSession();
+                        if (sessionData?.session && isMounted) {
+                            router.replace(next);
+                            return;
+                        }
+                    }
+                    throw exchangeError;
+                }
 
                 if (data?.session) {
+                    console.log('[AuthCallback] Exchange successful');
                     setStatus('Đăng nhập thành công! Đang vào ứng dụng...')
                     if (isMounted) {
-                        router.refresh() // Clear cache
-                        router.replace(next) // Go to destination immediately
+                        router.refresh()
+                        router.replace(next)
                     }
                 } else {
-                    throw new Error('Phiên đăng nhập không hợp lệ (No session)')
+                    throw new Error('Không có phiên đăng nhập khả dụng')
                 }
 
             } catch (err: any) {
+                // If the error is an AbortError, it might be because the component unmounted 
+                // or React Strict Mode killed the first request. 
+                // We should check if we actually have a session before showing error.
+                if (err.name === 'AbortError') {
+                    console.warn('[AuthCallback] Exchange aborted, checking if session exists anyway...');
+                    const { data } = await supabase.auth.getSession();
+                    if (data?.session && isMounted) {
+                        router.replace(next);
+                        return;
+                    }
+                    return; // Don't redirect yet, let another effect/attempt handle it
+                }
+
                 console.error('[AuthCallback] Exchange failed:', err)
 
-                // Quick Recovery: Maybe session was set despite error?
+                // Quick session check fallback
                 const { data: recovery } = await supabase.auth.getSession()
                 if (recovery?.session) {
+                    console.log('[AuthCallback] Found session after error, redirecting...');
                     if (isMounted) {
                         router.refresh()
                         router.replace(next)
@@ -80,12 +107,12 @@ function CallbackContent() {
                     return
                 }
 
-                // If truly failed
-                setStatus('Đăng nhập thất bại. Đang thử lại...')
+                // If truly failed and not aborted
                 if (isMounted) {
+                    setStatus('Đăng nhập thất bại. Đang chuyển hướng...')
                     setTimeout(() => {
-                        router.push(`/login?error=${encodeURIComponent(err.message || 'Lỗi đăng nhập')}&next=${encodeURIComponent(next || '/analyze')}`)
-                    }, 2000)
+                        if (isMounted) router.push(`/login?error=${encodeURIComponent(err.message || 'Lỗi đăng nhập')}`)
+                    }, 1500)
                 }
             }
         }
