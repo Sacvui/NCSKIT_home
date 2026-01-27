@@ -69,7 +69,7 @@ export default function EditProfileModal({
 
             if (error) throw error
 
-            // Try to update extended fields separately (may fail if columns don't exist)
+            // Try to update extended fields separately (may fail if columns don't exist in older schemas)
             try {
                 const extendedUpdates: Record<string, any> = {
                     phone_number: phoneNumber,
@@ -79,13 +79,17 @@ export default function EditProfileModal({
                     organization: organization,
                 }
 
-                await supabase
+                const { error: extError } = await supabase
                     .from('profiles')
                     .update(extendedUpdates)
                     .eq('id', user.id)
-            } catch (extErr) {
-                console.warn('Extended fields update failed (schema cache issue?):', extErr)
-                // Continue anyway - basic fields were saved
+
+                if (extError) throw extError
+            } catch (extErr: any) {
+                // If the error is regarding missing columns, we can ignore it (backward compatibility)
+                // But if it's other db errors, we should know.
+                // For now, we log it and proceed so user isn't blocked.
+                console.warn('Extended fields update warning:', extErr.message || extErr)
             }
 
             if (onSuccess) onSuccess()

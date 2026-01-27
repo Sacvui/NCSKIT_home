@@ -14,46 +14,35 @@ function CallbackContent() {
 
     useEffect(() => {
         let isMounted = true;
+
         const handleAuthCallback = async () => {
             const code = searchParams.get('code')
             const next = searchParams.get('next') || '/profile'
-
-            // Helper: Retry logic for flaky operations
-            async function safeSupabaseCall<T>(fn: () => Promise<T>, retries = 3): Promise<T | null> {
-                try {
-                    return await fn();
-                } catch (e: any) {
-                    if ((e.name === 'AbortError' || e.message?.includes('aborted')) && retries > 0) {
-                        console.warn(`[AuthCallback] Operation aborted, retrying... (${retries})`);
-                        await new Promise(r => setTimeout(r, 500));
-                        return safeSupabaseCall(fn, retries - 1);
-                    }
-                    console.error('[AuthCallback] Supabase call failed:', e);
-                    return null; // Return null on failure instead of throwing
-                }
-            }
-
-            if (code && processedCode.current === code) return;
-            if (code) processedCode.current = code;
-
             const error = searchParams.get('error')
             const errorDescription = searchParams.get('error_description')
+
+            // Handle URL-based errors
             if (error) {
-                console.error('Auth error:', error, errorDescription)
+                console.error('[AuthCallback] URL Error:', error, errorDescription)
                 if (isMounted) router.push(`/login?error=${encodeURIComponent(errorDescription || error)}`)
                 return
             }
 
+            // Prevent double-firing in Strict Mode
+            if (code && processedCode.current === code) {
+                console.log('[AuthCallback] Code already processing, skipping...')
+                return;
+            }
+            if (code) processedCode.current = code;
+
             const supabase = getSupabase()
 
-            // 1. If NO Code: Check Session
+            // 1. No Code: Just check session and redirect
             if (!code) {
-                const sessionResult = await safeSupabaseCall(() => supabase.auth.getSession()) as any;
-                if (sessionResult?.data?.session) {
-                    console.log('Session found (no code), redirecting to:', next)
+                const { data } = await supabase.auth.getSession()
+                if (data?.session) {
                     if (isMounted) router.push(next)
                 } else {
-                    console.warn('No code or session found')
                     if (isMounted) router.push('/login')
                 }
                 return
@@ -61,60 +50,42 @@ function CallbackContent() {
 
             // 2. Exchange Code
             try {
-                console.log('Exchanging code for session...')
-                let exchangeData = null;
-                let exchangeError = null;
+                setStatus('Đang xác thực bảo mật...')
 
-                // Manual retry loop for specific exchange call to capture error
-                for (let i = 0; i < 3; i++) {
-                    try {
-                        const res = await supabase.auth.exchangeCodeForSession(code);
-                        exchangeData = res.data;
-                        exchangeError = res.error;
-                        if (!exchangeError || i === 2) break; // Success or last attempt
-                        if (exchangeError.message?.includes('aborted')) throw exchangeError; // Force retry logic
-                    } catch (e) {
-                        console.warn(`Retry attempt ${i + 1} for exchange:`, e);
-                        await new Promise(r => setTimeout(r, 500));
+                // Direct exchange - simpler and faster
+                const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+
+                if (exchangeError) throw exchangeError
+
+                if (data?.session) {
+                    setStatus('Đăng nhập thành công! Đang vào ứng dụng...')
+                    if (isMounted) {
+                        router.refresh() // Clear cache
+                        router.replace(next) // Go to destination immediately
                     }
-                }
-
-                if (exchangeError) {
-                    console.error('Session exchange error:', exchangeError)
-                    // Recovery: Check if session exists anyway
-                    const sessionResult = await safeSupabaseCall(() => supabase.auth.getSession()) as any;
-                    if (sessionResult?.data?.session) {
-                        console.log('Session valid despite exchange error. Proceeding.')
-                        if (isMounted) {
-                            router.refresh()
-                            router.push(next)
-                        }
-                        return
-                    }
-
-                    if (isMounted) router.push(`/login?error=${encodeURIComponent(exchangeError.message)}`)
-                    return
-                }
-
-                console.log('Session established, redirecting to:', next)
-                if (isMounted) {
-                    router.refresh()
-                    router.push(next)
+                } else {
+                    throw new Error('Phiên đăng nhập không hợp lệ (No session)')
                 }
 
             } catch (err: any) {
-                console.error('Unexpected auth error:', err)
-                try {
-                    // Safe recovery check
-                    const sessionResult = await safeSupabaseCall(() => supabase.auth.getSession()) as any;
-                    if (sessionResult?.data?.session) {
-                        if (isMounted) router.push(next)
-                    } else {
-                        if (isMounted) router.push(`/login?error=${encodeURIComponent(err.message || 'Unknown error')}`)
+                console.error('[AuthCallback] Exchange failed:', err)
+
+                // Quick Recovery: Maybe session was set despite error?
+                const { data: recovery } = await supabase.auth.getSession()
+                if (recovery?.session) {
+                    if (isMounted) {
+                        router.refresh()
+                        router.replace(next)
                     }
-                } catch (innerErr) {
-                    console.error('Fatal recovery error:', innerErr);
-                    if (isMounted) router.push('/login')
+                    return
+                }
+
+                // If truly failed
+                setStatus('Đăng nhập thất bại. Đang thử lại...')
+                if (isMounted) {
+                    setTimeout(() => {
+                        router.push(`/login?error=${encodeURIComponent(err.message || 'Lỗi đăng nhập')}`)
+                    }, 2000)
                 }
             }
         }

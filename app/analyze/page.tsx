@@ -522,6 +522,20 @@ export default function AnalyzePage() {
             }
         }
 
+        // NCS Credit Check (Batch)
+        if (user) {
+            const singleCost = await getAnalysisCost('cronbach');
+            const totalCost = singleCost * groups.length;
+            const hasEnough = await checkBalance(user.id, totalCost);
+
+            if (!hasEnough) {
+                setRequiredCredits(totalCost);
+                setCurrentAnalysisCost(totalCost);
+                setShowInsufficientCredits(true);
+                return;
+            }
+        }
+
         setIsAnalyzing(true);
         setAnalysisType('cronbach-batch');
         setResults(null);
@@ -540,8 +554,20 @@ export default function AnalyzePage() {
                     data: result
                 });
             }
+
+            // Deduct credits on success (Batch)
+            if (user) {
+                const singleCost = await getAnalysisCost('cronbach');
+                const totalCost = singleCost * groups.length;
+                await deductCredits(user.id, totalCost, `Batch Cronbach: ${groups.length} scales`);
+                await logAnalysisUsage(user.id, 'cronbach-batch', totalCost);
+                setNcsBalance(prev => Math.max(0, prev - totalCost));
+            }
+
             setMultipleResults(allResults);
             setStep('results');
+            // Wait for 100ms
+            await new Promise(r => setTimeout(r, 100));
             showToast(`Phân tích ${allResults.length} thang đo hoàn thành!`, 'success');
         } catch (error) {
             handleAnalysisError(error);
@@ -614,6 +640,20 @@ export default function AnalyzePage() {
             }
         }
 
+        // NCS Credit Check (Batch Omega)
+        if (user) {
+            const singleCost = await getAnalysisCost('omega');
+            const totalCost = singleCost * groups.length;
+            const hasEnough = await checkBalance(user.id, totalCost);
+
+            if (!hasEnough) {
+                setRequiredCredits(totalCost);
+                setCurrentAnalysisCost(totalCost);
+                setShowInsufficientCredits(true);
+                return;
+            }
+        }
+
         setIsAnalyzing(true);
         setAnalysisType('omega-batch'); // Different from cronbach-batch
         setResults(null);
@@ -632,8 +672,20 @@ export default function AnalyzePage() {
                     data: result
                 });
             }
+
+            // Deduct credits on success (Batch Omega)
+            if (user) {
+                const singleCost = await getAnalysisCost('omega');
+                const totalCost = singleCost * groups.length;
+                await deductCredits(user.id, totalCost, `Batch Omega: ${groups.length} scales`);
+                await logAnalysisUsage(user.id, 'omega-batch', totalCost);
+                setNcsBalance(prev => Math.max(0, prev - totalCost));
+            }
+
             setMultipleResults(allResults);
             setStep('results');
+            // Wait for 100ms
+            await new Promise(r => setTimeout(r, 100));
             showToast(`Phân tích Omega ${allResults.length} thang đo hoàn thành!`, 'success');
         } catch (error) {
             handleAnalysisError(error);
@@ -2712,8 +2764,7 @@ export default function AnalyzePage() {
                                         setIsAnalyzing(true);
                                         setAnalysisType('mediation');
 
-                                        // NCS Credit Check - Mediation is complex, maybe SEM cost? or Regression? 
-                                        // Let's use 'regression' cost.
+                                        // NCS Credit Check
                                         if (user) {
                                             const cost = await getAnalysisCost('regression');
                                             const hasEnough = await checkBalance(user.id, cost);
@@ -2727,12 +2778,12 @@ export default function AnalyzePage() {
                                         }
 
                                         try {
-                                            // Extract data for each variable
-                                            const xData = data.map(row => Number(row[mediationVars.x]) || 0);
-                                            const mData = data.map(row => Number(row[mediationVars.m]) || 0);
-                                            const yData = data.map(row => Number(row[mediationVars.y]) || 0);
+                                            const cols = [mediationVars.x, mediationVars.m, mediationVars.y];
+                                            // Matrix: Rows x Cols
+                                            const mediationData = data.map(row => cols.map(c => Number(row[c]) || 0));
 
-                                            const result = await runMediationAnalysis(xData, mData, yData);
+                                            const result = await runMediationAnalysis(mediationData, cols, mediationVars.x, mediationVars.m, mediationVars.y);
+
                                             // Deduct credits on success
                                             if (user) {
                                                 const cost = await getAnalysisCost('regression');
@@ -2741,7 +2792,6 @@ export default function AnalyzePage() {
                                                 setNcsBalance(prev => Math.max(0, prev - cost));
                                             }
 
-                                            const cols = [mediationVars.x, mediationVars.m, mediationVars.y];
                                             setResults({ type: 'mediation', data: result, columns: cols });
                                             setStep('results');
                                             showToast('Phân tích Mediation hoàn thành!', 'success');
@@ -2752,6 +2802,244 @@ export default function AnalyzePage() {
                                     className="mt-6 w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg"
                                 >
                                     {isAnalyzing ? 'Đang phân tích...' : 'Chạy Mediation Analysis'}
+                                </button>
+                            </div>
+
+                            <button onClick={() => setStep('analyze')} className="w-full py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg">
+                                ← Quay lại
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Moderation Analysis Selection */}
+                    {step === 'moderation-select' && (
+                        <div className="max-w-2xl mx-auto space-y-6">
+                            <div className="text-center mb-8">
+                                <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                                    Phân tích Điều tiết (Moderation)
+                                </h2>
+                                <p className="text-gray-600">
+                                    Kiểm tra xem biến W có làm thay đổi mối quan hệ giữa X và Y không.
+                                </p>
+                            </div>
+
+                            <div className="bg-white rounded-xl shadow-lg p-6 border">
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Biến phụ thuộc (Y - Outcome)
+                                        </label>
+                                        <select
+                                            className="w-full px-3 py-2 border rounded-lg"
+                                            value={moderationVars.y}
+                                            onChange={(e) => setModerationVars({ ...moderationVars, y: e.target.value })}
+                                        >
+                                            <option value="">Chọn biến...</option>
+                                            {getNumericColumns().map(col => (
+                                                <option key={col} value={col} disabled={moderationVars.x === col || moderationVars.m === col}>{col}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Biến độc lập (X - Predictor)
+                                        </label>
+                                        <select
+                                            className="w-full px-3 py-2 border rounded-lg"
+                                            value={moderationVars.x}
+                                            onChange={(e) => setModerationVars({ ...moderationVars, x: e.target.value })}
+                                        >
+                                            <option value="">Chọn biến...</option>
+                                            {getNumericColumns().map(col => (
+                                                <option key={col} value={col} disabled={moderationVars.y === col || moderationVars.m === col}>{col}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Biến điều tiết (W - Moderator)
+                                        </label>
+                                        <select
+                                            className="w-full px-3 py-2 border rounded-lg"
+                                            value={moderationVars.m}
+                                            onChange={(e) => setModerationVars({ ...moderationVars, m: e.target.value })}
+                                        >
+                                            <option value="">Chọn biến...</option>
+                                            {getNumericColumns().map(col => (
+                                                <option key={col} value={col} disabled={moderationVars.y === col || moderationVars.x === col}>{col}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={async () => {
+                                        if (!moderationVars.x || !moderationVars.m || !moderationVars.y) {
+                                            showToast('Vui lòng chọn đủ 3 biến (Y, X, W)', 'error');
+                                            return;
+                                        }
+                                        setIsAnalyzing(true);
+                                        setAnalysisType('moderation');
+
+                                        // NCS Credit Check
+                                        if (user) {
+                                            const cost = await getAnalysisCost('regression');
+                                            const hasEnough = await checkBalance(user.id, cost);
+                                            if (!hasEnough) {
+                                                setRequiredCredits(cost);
+                                                setCurrentAnalysisCost(cost);
+                                                setShowInsufficientCredits(true);
+                                                setIsAnalyzing(false);
+                                                return;
+                                            }
+                                        }
+
+                                        try {
+                                            const cols = [moderationVars.y, moderationVars.x, moderationVars.m];
+                                            const modData = data.map(row => cols.map(c => Number(row[c]) || 0));
+
+                                            const result = await runModerationAnalysis(modData, cols, moderationVars.x, moderationVars.m, moderationVars.y);
+
+                                            // Deduct credits on success
+                                            if (user) {
+                                                const cost = await getAnalysisCost('regression');
+                                                await deductCredits(user.id, cost, `Moderation Analysis: ${moderationVars.y} ~ ${moderationVars.x}*${moderationVars.m}`);
+                                                await logAnalysisUsage(user.id, 'moderation', cost);
+                                                setNcsBalance(prev => Math.max(0, prev - cost));
+                                            }
+
+                                            setResults({ type: 'moderation', data: result, columns: cols });
+                                            setStep('results');
+                                            showToast('Phân tích Moderation hoàn thành!', 'success');
+                                        } catch (err) { handleAnalysisError(err); }
+                                        finally { setIsAnalyzing(false); }
+                                    }}
+                                    disabled={isAnalyzing}
+                                    className="mt-6 w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg"
+                                >
+                                    {isAnalyzing ? 'Đang phân tích...' : 'Chạy Moderation Analysis'}
+                                </button>
+                            </div>
+
+                            <button onClick={() => setStep('analyze')} className="w-full py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg">
+                                ← Quay lại
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Two-Way ANOVA Selection */}
+                    {step === 'twoway-anova-select' && (
+                        <div className="max-w-2xl mx-auto space-y-6">
+                            <div className="text-center mb-8">
+                                <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                                    Two-Way ANOVA
+                                </h2>
+                                <p className="text-gray-600">
+                                    Phân tích phương sai 2 nhân tố (có xét tương tác)
+                                </p>
+                            </div>
+
+                            <div className="bg-white rounded-xl shadow-lg p-6 border">
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            Biến phụ thuộc (Y - Metric)
+                                        </label>
+                                        <select
+                                            className="w-full px-3 py-2 border rounded-lg"
+                                            value={twoWayAnovaVars.y}
+                                            onChange={(e) => setTwoWayAnovaVars({ ...twoWayAnovaVars, y: e.target.value })}
+                                        >
+                                            <option value="">Chọn biến...</option>
+                                            {getNumericColumns().map(col => (
+                                                <option key={col} value={col}>{col}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Nhân tố 1 (Factor 1)
+                                            </label>
+                                            <select
+                                                className="w-full px-3 py-2 border rounded-lg"
+                                                value={twoWayAnovaVars.f1}
+                                                onChange={(e) => setTwoWayAnovaVars({ ...twoWayAnovaVars, f1: e.target.value })}
+                                            >
+                                                <option value="">Chọn biến...</option>
+                                                {getNumericColumns().map(col => (
+                                                    <option key={col} value={col} disabled={twoWayVars.f2 === col}>{col}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                Nhân tố 2 (Factor 2)
+                                            </label>
+                                            <select
+                                                className="w-full px-3 py-2 border rounded-lg"
+                                                value={twoWayAnovaVars.f2}
+                                                onChange={(e) => setTwoWayAnovaVars({ ...twoWayAnovaVars, f2: e.target.value })}
+                                            >
+                                                <option value="">Chọn biến...</option>
+                                                {getNumericColumns().map(col => (
+                                                    <option key={col} value={col} disabled={twoWayVars.f1 === col}>{col}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-gray-500 italic">
+                                        Lưu ý: Hai nhân tố nên là biến định danh (categorical) với số lượng nhóm không quá lớn (ví dụ: Giới tính, Nhóm tuổi).
+                                    </p>
+                                </div>
+
+                                <button
+                                    onClick={async () => {
+                                        if (!twoWayAnovaVars.y || !twoWayAnovaVars.f1 || !twoWayAnovaVars.f2) {
+                                            showToast('Vui lòng chọn đủ 3 biến', 'error');
+                                            return;
+                                        }
+                                        setIsAnalyzing(true);
+                                        setAnalysisType('anova'); // Or 'twoway-anova'
+
+                                        // NCS Credit Check
+                                        if (user) {
+                                            const cost = await getAnalysisCost('anova');
+                                            const hasEnough = await checkBalance(user.id, cost);
+                                            if (!hasEnough) {
+                                                setRequiredCredits(cost);
+                                                setCurrentAnalysisCost(cost);
+                                                setShowInsufficientCredits(true);
+                                                setIsAnalyzing(false);
+                                                return;
+                                            }
+                                        }
+
+                                        try {
+                                            const yData = data.map(row => Number(row[twoWayAnovaVars.y]) || 0);
+                                            const f1Data = data.map(row => String(row[twoWayAnovaVars.f1]));
+                                            const f2Data = data.map(row => String(row[twoWayAnovaVars.f2]));
+
+                                            const result = await runTwoWayANOVA(yData, f1Data, f2Data, twoWayAnovaVars.f1, twoWayAnovaVars.f2, twoWayAnovaVars.y);
+
+                                            // Deduct credits on success
+                                            if (user) {
+                                                const cost = await getAnalysisCost('anova');
+                                                await deductCredits(user.id, cost, `Two-Way ANOVA: ${twoWayAnovaVars.y} ~ ${twoWayAnovaVars.f1}*${twoWayAnovaVars.f2}`);
+                                                await logAnalysisUsage(user.id, 'anova', cost);
+                                                setNcsBalance(prev => Math.max(0, prev - cost));
+                                            }
+
+                                            setResults({ type: 'twoway-anova', data: result, columns: [twoWayAnovaVars.y, twoWayAnovaVars.f1, twoWayAnovaVars.f2] });
+                                            setStep('results');
+                                            showToast('Phân tích Two-Way ANOVA hoàn thành!', 'success');
+                                        } catch (err) { handleAnalysisError(err); }
+                                        finally { setIsAnalyzing(false); }
+                                    }}
+                                    disabled={isAnalyzing}
+                                    className="mt-6 w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg"
+                                >
+                                    {isAnalyzing ? 'Đang phân tích...' : 'Chạy Two-Way ANOVA'}
                                 </button>
                             </div>
 
@@ -2893,6 +3181,11 @@ export default function AnalyzePage() {
                                     {analysisType === 'anova' && "One-Way ANOVA"}
                                     {analysisType === 'efa' && "Exploratory Factor Analysis"}
                                     {analysisType === 'regression' && "Multiple Linear Regression"}
+                                    {analysisType === 'logistic' && "Logistic Regression"}
+                                    {analysisType === 'twoway-anova' && "Two-Way ANOVA"}
+                                    {analysisType === 'mediation' && "Mediation Analysis"}
+                                    {analysisType === 'moderation' && "Moderation Analysis"}
+                                    {analysisType === 'cluster' && "Cluster Analysis (K-Means)"}
                                 </p>
                             </div>
 

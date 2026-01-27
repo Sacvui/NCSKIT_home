@@ -68,7 +68,7 @@ export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing }: Analy
                     { id: 'ttest-select', title: 'Independent T-test', desc: 'Compare 2 independent groups', icon: GitCompare, action: 'select', costType: 'ttest-indep' },
                     { id: 'ttest-paired-select', title: 'Paired T-test', desc: 'Compare before-after (paired)', icon: Users, action: 'select', costType: 'ttest-paired' },
                     { id: 'anova-select', title: 'One-Way ANOVA / Welch', desc: 'Compare multiple groups', icon: Layers, action: 'select', costType: 'anova' },
-                    { id: 'twoway-anova-select', title: 'Two-Way ANOVA', desc: 'Factorial ANOVA with interaction', icon: Grid3x3, action: 'select', costType: 'anova', disabled: true, badge: 'Coming Soon' },
+                    { id: 'twoway-anova-select', title: 'Two-Way ANOVA', desc: 'Factorial ANOVA with interaction', icon: Grid3x3, action: 'select', costType: 'anova' },
                     { id: 'mannwhitney-select', title: 'Mann-Whitney U', desc: 'Non-parametric 2 groups', icon: Activity, action: 'select', costType: 'mann-whitney' },
                     { id: 'kruskalwallis-select', title: 'Kruskal-Wallis H', desc: 'Non-parametric multiple groups', icon: Layers, action: 'select', costType: 'anova' },
                     { id: 'wilcoxon-select', title: 'Wilcoxon Signed-Rank', desc: 'Non-parametric paired comparison', icon: ArrowRightLeft, action: 'select', costType: 'ttest-paired' },
@@ -86,9 +86,9 @@ export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing }: Analy
                 options: [
                     { id: 'correlation', title: 'Correlation Matrix', desc: 'Pearson/Spearman correlation', icon: Network, action: 'run', costType: 'correlation' },
                     { id: 'regression-select', title: 'Linear Regression', desc: 'Multiple linear regression with β', icon: TrendingUp, action: 'select', costType: 'regression' },
-                    { id: 'logistic-select', title: 'Logistic Regression', desc: 'Binary outcome prediction', icon: Binary, action: 'select', costType: 'regression', disabled: true, badge: 'Coming Soon' },
-                    { id: 'mediation-select', title: 'Mediation Analysis', desc: 'Baron & Kenny + Sobel test', icon: Target, action: 'select', costType: 'regression', disabled: true, badge: 'Coming Soon' },
-                    { id: 'moderation-select', title: 'Moderation Analysis', desc: 'Interaction effect with simple slopes', icon: Shuffle, action: 'select', costType: 'regression', disabled: true, badge: 'Coming Soon' },
+                    { id: 'logistic-select', title: 'Logistic Regression', desc: 'Binary outcome prediction', icon: Binary, action: 'select', costType: 'regression' },
+                    { id: 'mediation-select', title: 'Mediation Analysis', desc: 'Baron & Kenny + Sobel test', icon: Target, action: 'select', costType: 'regression' },
+                    { id: 'moderation-select', title: 'Moderation Analysis', desc: 'Interaction effect with simple slopes', icon: Shuffle, action: 'select', costType: 'regression' },
                 ]
             }
         },
@@ -102,8 +102,8 @@ export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing }: Analy
                 borderColor: 'border-orange-200',
                 options: [
                     { id: 'efa-select', title: 'EFA', desc: 'Exploratory Factor Analysis + Parallel Analysis', icon: Grid3x3, action: 'select', recommended: true, costType: 'efa' },
-                    { id: 'cfa-select', title: 'CFA', desc: 'Confirmatory Factor Analysis', icon: Network, action: 'select', costType: 'cfa', disabled: true, badge: 'Coming Soon' },
-                    { id: 'sem-select', title: 'SEM', desc: 'Structural Equation Modeling', icon: Layers, action: 'select', costType: 'sem', disabled: true, badge: 'Coming Soon' },
+                    { id: 'cfa-select', title: 'CFA', desc: 'Confirmatory Factor Analysis', icon: Network, action: 'select', costType: 'cfa' },
+                    { id: 'sem-select', title: 'SEM', desc: 'Structural Equation Modeling', icon: Layers, action: 'select', costType: 'sem' },
                 ]
             }
         },
@@ -130,7 +130,7 @@ export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing }: Analy
                 bgColor: 'bg-pink-50',
                 borderColor: 'border-pink-200',
                 options: [
-                    { id: 'cluster-select', title: 'Cluster Analysis', desc: 'K-Means clustering with profiles', icon: CircleDot, action: 'select', costType: 'efa', disabled: true, badge: 'Coming Soon' },
+                    { id: 'cluster-select', title: 'Cluster Analysis', desc: 'K-Means clustering with profiles', icon: CircleDot, action: 'select', costType: 'efa' },
                 ]
             }
         }

@@ -214,7 +214,7 @@ export async function updateAnalysisCosts(costs: Record<string, number>): Promis
             key: 'analysis_costs',
             value: costs,
             updated_at: new Date().toISOString()
-        });
+        }, { onConflict: 'key' });
 
     if (!error) {
         // Clear cache
@@ -235,7 +235,7 @@ export async function updateDefaultBalance(balance: number): Promise<boolean> {
             key: 'default_ncs_balance',
             value: balance,
             updated_at: new Date().toISOString()
-        });
+        }, { onConflict: 'key' });
 
     return !error;
 }
@@ -303,7 +303,7 @@ export async function updateReferralReward(amount: number): Promise<boolean> {
             key: 'referral_reward',
             value: amount,
             updated_at: new Date().toISOString()
-        });
+        }, { onConflict: 'key' });
 
     return !error;
 }

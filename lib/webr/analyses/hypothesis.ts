@@ -400,21 +400,37 @@ export async function runMannWhitneyU(
     median1: number;
     median2: number;
     effectSize: number;
+    skew1: number;
+    skew2: number;
+    distShapeRun: string;
     rCode: string;
 }> {
     const rCode = `
+    library(psych)
     g1 <- c(${group1.join(',')})
     g2 <- c(${group2.join(',')})
+    
     test <- wilcox.test(g1, g2, conf.int = TRUE)
     z_score <- qnorm(test$p.value / 2)
     effect_r <- abs(z_score) / sqrt(length(g1) + length(g2))
+    
+    # Check distribution shapes using Skewness
+    sk1 <- skew(g1)
+    sk2 <- skew(g2)
+    
+    # Heuristic: If skewness signs are same and diff < 1, shapes are "similar"
+    similar_shape <- sign(sk1) == sign(sk2) && abs(sk1 - sk2) < 1.0
+    dist_msg <- if(similar_shape) "Phân phối tương đồng (kiểm định Trung vị)" else "Phân phối khác biệt (kiểm định Mean Rank)"
     
     list(
         statistic = test$statistic,
         p_value = test$p.value,
         median1 = median(g1),
         median2 = median(g2),
-        effect_size = effect_r
+        effect_size = effect_r,
+        skew1 = sk1,
+        skew2 = sk2,
+        dist_msg = dist_msg
     )
     `;
     const result = await executeRWithRecovery(rCode);
@@ -426,6 +442,9 @@ export async function runMannWhitneyU(
         median1: getValue('median1')?.[0] || 0,
         median2: getValue('median2')?.[0] || 0,
         effectSize: getValue('effect_size')?.[0] || 0,
+        skew1: getValue('skew1')?.[0] || 0,
+        skew2: getValue('skew2')?.[0] || 0,
+        distShapeRun: getValue('dist_msg')?.[0] || "Unknown",
         rCode
     };
 }
@@ -440,6 +459,8 @@ export async function runChiSquare(data: any[][]): Promise<{
     observed: { data: number[][]; rows: string[]; cols: string[] };
     expected: { data: number[][]; rows: string[]; cols: string[] };
     cramersV: number;
+    phi: number; // For 2x2
+    oddsRatio: number | null; // For 2x2
     fisherPValue: number | null;
     warning: string;
     rCode: string;
@@ -454,12 +475,24 @@ export async function runChiSquare(data: any[][]): Promise<{
     test <- chisq.test(tbl)
     
     pct_cells_below_5 <- sum(test$expected < 5) / length(test$expected) * 100
-    warning_msg <- if (pct_cells_below_5 > 20) paste0("Cảnh báo: ", round(pct_cells_below_5, 1), "% ô < 5.") else ""
+    warning_msg <- if (pct_cells_below_5 > 20) paste0("Cảnh báo: ", round(pct_cells_below_5, 1), "% ô < 5. Nên dùng Fisher Exact.") else ""
     
     fisher_p <- NA
-    if (nrow(tbl) == 2 && ncol(tbl) == 2) fisher_p <- tryCatch(fisher.test(tbl)$p.value, error = function(e) NA)
+    odds_ratio <- NA
+    phi_val <- NA
     
     n <- sum(tbl)
+    
+    # 2x2 Specific Metrics
+    if (nrow(tbl) == 2 && ncol(tbl) == 2) {
+        ft <- fisher.test(tbl)
+        fisher_p <- ft$p.value
+        odds_ratio <- ft$estimate # Conditional MLE Odds Ratio
+        
+        # Phi Coefficient
+        phi_val <- sqrt(test$statistic / n)
+    }
+    
     cramers_v <- if(min(dim(tbl)) > 1) sqrt(test$statistic / (n * (min(dim(tbl)) - 1))) else 0
     
     list(
@@ -469,6 +502,8 @@ export async function runChiSquare(data: any[][]): Promise<{
        observed = as.matrix(test$observed),
        expected = as.matrix(test$expected),
        cramers_v = cramers_v,
+       phi = if(is.na(phi_val)) 0 else phi_val,
+       odds_ratio = if(is.na(odds_ratio)) -1 else odds_ratio,
        fisher_p = fisher_p,
        warning_msg = warning_msg,
        row_names = rownames(tbl),
@@ -506,6 +541,8 @@ export async function runChiSquare(data: any[][]): Promise<{
         observed: { data: reconstruct(obsVals, nR, nC), rows: getValue('row_names'), cols: getValue('col_names') },
         expected: { data: reconstruct(expVals, nR, nC), rows: getValue('row_names'), cols: getValue('col_names') },
         cramersV: getValue('cramers_v')?.[0] || 0,
+        phi: getValue('phi')?.[0] || 0,
+        oddsRatio: getValue('odds_ratio')?.[0] === -1 ? null : getValue('odds_ratio')?.[0],
         fisherPValue: getValue('fisher_p')?.[0] ?? null,
         warning: getValue('warning_msg')?.[0] || '',
         rCode

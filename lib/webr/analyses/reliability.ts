@@ -251,6 +251,7 @@ export async function runCFA(
         se: number;
     }[];
     rCode: string;
+    warning?: string;
 }> {
     const webR = await initWebR();
 
@@ -362,7 +363,12 @@ export async function runCFA(
             }
         }
 
-        return { fitMeasures, estimates, rCode };
+        return {
+            fitMeasures,
+            estimates,
+            rCode,
+            warning: "Lưu ý: Đây là mô phỏng CFA (dạng EFA cố định số nhân tố). Kết quả này chỉ mang tính chất tham khảo, không phải là CFA thực thụ (không thể cố định loading = 0 cho các biến chéo, không có Modification Indices)."
+        };
 
     } catch (e: any) {
         console.error('CFA/EFA Validation Error:', e);

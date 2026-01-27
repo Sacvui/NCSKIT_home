@@ -48,13 +48,17 @@ export function TemplateInterpretation({
             let result: InterpretationResult;
 
             switch (analysisType) {
+                case 'omega': // Explicitly handle 'omega' type
                 case 'cronbach':
                 case 'cronbach_alpha':
+                case 'cronbach-batch': // Handle batch types if they reach here
+                case 'omega-batch':
                     result = interpretCronbachAlpha({
                         scaleName: scaleName,
                         nItems: results.nItems || results.itemStats?.length || 0,
                         alpha: results.rawAlpha || results.alpha || 0,
-                        omega: results.omega,
+                        // Only show Omega if specifically requested (analysisType is omega)
+                        omega: (analysisType.includes('omega')) ? results.omega : undefined,
                         badItems: results.itemStats
                             ?.filter((item: any) => item.correctedItemTotal < 0.3)
                             ?.map((item: any) => item.variable) || []
