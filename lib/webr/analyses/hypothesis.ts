@@ -224,6 +224,57 @@ export async function runOneWayANOVA(groups: number[][]): Promise<{
     values <- c(${groups.map(g => g.join(',')).join(',')})
     groups <- factor(c(${groups.map((g, i) => g.map(() => i + 1).join(',')).join(',')}))
     
+    # === Helper: Games-Howell Function ===
+    # Calculates pairwise comparisons without assuming equal variances
+    run_games_howell <- function(vals, grps) {
+        # Prepare statistics
+        means <- tapply(vals, grps, mean)
+        vars <- tapply(vals, grps, var)
+        ns <- tapply(vals, grps, length)
+        grps_unique <- levels(grps)
+        k <- length(grps_unique)
+        
+        # Create combinations
+        combs <- combn(k, 2)
+        n_pairs <- ncol(combs)
+        
+        comparisons <- character(n_pairs)
+        diffs <- numeric(n_pairs)
+        p_adjs <- numeric(n_pairs)
+        
+        for (i in 1:n_pairs) {
+            idx1 <- combs[1, i]
+            idx2 <- combs[2, i]
+            
+            # Group specific stats
+            m1 <- means[idx1]; m2 <- means[idx2]
+            v1 <- vars[idx1]; v2 <- vars[idx2]
+            n1 <- ns[idx1]; n2 <- ns[idx2]
+            
+            # Welch t-statistic components
+            mean_diff <- m1 - m2
+            se <- sqrt(v1/n1 + v2/n2)
+            t_val <- abs(mean_diff) / se
+            
+            # Welch-Satterthwaite Degrees of Freedom
+            df_num <- (v1/n1 + v2/n2)^2
+            df_denom <- (v1/n1)^2/(n1-1) + (v2/n2)^2/(n2-1)
+            df <- df_num / df_denom
+            
+            # Games-Howell uses Studentized Range (q = t * sqrt(2))
+            q_val <- t_val * sqrt(2)
+            
+            # P-value from Studentized Range distribution
+            p_val <- ptukey(q_val, k, df, lower.tail = FALSE)
+            
+            comparisons[i] <- paste0(grps_unique[idx1], "-", grps_unique[idx2])
+            diffs[i] <- mean_diff
+            p_adjs[i] <- p_val
+        }
+        
+        list(comparisons = comparisons, diffs = diffs, p_adjs = p_adjs)
+    }
+
     # Levene's Test (Brown-Forsythe)
     group_medians <- tapply(values, groups, median)
     deviations <- numeric(length(values))
@@ -232,8 +283,13 @@ export async function runOneWayANOVA(groups: number[][]): Promise<{
     levene_model <- aov(deviations ~ groups)
     levene_p <- summary(levene_model)[[1]][1, 5]
     
+    ph_comparisons <- c()
+    ph_diffs <- c()
+    ph_padj <- c()
+    posthoc_warning <- ""
+    
     if (levene_p < 0.05) {
-        # Welch ANOVA
+        # === UNEQUAL VARIANCE -> WELCH ANOVA + GAMES-HOWELL ===
         welch_result <- oneway.test(values ~ groups, var.equal = FALSE)
         f_stat <- welch_result$statistic
         df_between <- welch_result$parameter[1]
@@ -242,11 +298,19 @@ export async function runOneWayANOVA(groups: number[][]): Promise<{
         method_used <- "Welch ANOVA"
         
         eta_squared <- (f_stat * df_between) / (f_stat * df_between + df_within)
-        model <- aov(values ~ groups)
+        
+        # Run Games-Howell
+        gh <- run_games_howell(values, groups)
+        ph_comparisons <- gh$comparisons
+        ph_diffs <- gh$diffs
+        ph_padj <- gh$p_adjs
+        posthoc_warning <- "Variance unequal (Levene p < 0.05). Used Welch ANOVA & Games-Howell Post-hoc."
+        
+        model <- aov(values ~ groups) # Just for residuals
         resids <- residuals(model)
-        posthoc_warning <- "Cảnh báo: Tukey HSD không tối ưu cho Welch ANOVA. Nên dùng Games-Howell (Chưa hỗ trợ)."
+        
     } else {
-        # Classic ANOVA
+        # === EQUAL VARIANCE -> CLASSIC ANOVA + TUKEY HSD ===
         model <- aov(values ~ groups)
         result_sum <- summary(model)[[1]]
         f_stat <- result_sum[1, 4]
@@ -259,7 +323,13 @@ export async function runOneWayANOVA(groups: number[][]): Promise<{
         sst <- ssb + result_sum[2, 2]
         eta_squared <- ssb / sst
         resids <- residuals(model)
-        posthoc_warning <- ""
+        
+        # Run Tukey HSD
+        tukey_result <- TukeyHSD(model)$groups
+        ph_comparisons <- rownames(tukey_result)
+        ph_diffs <- tukey_result[, "diff"]
+        ph_padj <- tukey_result[, "p adj"]
+        posthoc_warning <- "Variance equal. Used Classic ANOVA & Tukey HSD."
     }
     
     shapiro_resid_p <- tryCatch({
@@ -267,9 +337,6 @@ export async function runOneWayANOVA(groups: number[][]): Promise<{
     }, error = function(e) NA)
     
     groupMeans <- tapply(values, groups, mean)
-    
-    model_for_tukey <- aov(values ~ groups)
-    tukey_result <- TukeyHSD(model_for_tukey)$groups
     
     list(
         F = f_stat,
@@ -283,9 +350,9 @@ export async function runOneWayANOVA(groups: number[][]): Promise<{
         normalityResidP = if(is.na(shapiro_resid_p)) -1 else shapiro_resid_p,
         methodUsed = method_used,
         postHocWarning = posthoc_warning,
-        tukeyComparisons = rownames(tukey_result),
-        tukeyDiffs = tukey_result[, "diff"],
-        tukeyPAdj = tukey_result[, "p adj"]
+        tukeyComparisons = ph_comparisons,
+        tukeyDiffs = ph_diffs,
+        tukeyPAdj = ph_padj
     )
     `;
 
@@ -297,7 +364,10 @@ export async function runOneWayANOVA(groups: number[][]): Promise<{
     const diffs = getValue('tukeyDiffs') || [];
     const pAdjs = getValue('tukeyPAdj') || [];
     const postHoc = [];
-    for (let i = 0; i < comparisons.length; i++) {
+
+    // Safety check for array lengths
+    const len = Math.min(comparisons.length, diffs.length, pAdjs.length);
+    for (let i = 0; i < len; i++) {
         postHoc.push({ comparison: comparisons[i], diff: diffs[i], pAdj: pAdjs[i] });
     }
 
