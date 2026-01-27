@@ -8,8 +8,13 @@ import FeedbackModal from './FeedbackModal'
 import { getAvatarUrl } from '@/utils/avatarHelper'
 import { useAuth } from '@/context/AuthContext'
 
-export default function UserMenu() {
-    const { user, profile, isOrcidUser } = useAuth()
+export default function UserMenu({ user: propUser, profile: propProfile }: { user?: any, profile?: any }) {
+    const { user: authUser, profile: authProfile, loading } = useAuth()
+
+    // Support server-side fallbacks during client-side hydration
+    const user = authUser || propUser
+    const profile = authProfile || propProfile
+
     const [isOpen, setIsOpen] = useState(false)
     const [isFeedbackOpen, setIsFeedbackOpen] = useState(false)
     const menuRef = useRef<HTMLDivElement>(null)

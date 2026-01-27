@@ -22,8 +22,8 @@ export default function Header({ centerContent, rightActions, hideNav = false, u
     const { user: authUser, profile: authProfile, loading } = useAuth()
 
     // Use auth context if loaded, otherwise fallback to props to reduce flicker
-    const user = !loading ? authUser : (propUser || authUser);
-    const profile = !loading ? authProfile : (propProfile || authProfile);
+    const user = authUser || propUser;
+    const profile = authProfile || propProfile;
     const [locale, setLocale] = useState<Locale>('vi')
 
     useEffect(() => {
@@ -82,7 +82,7 @@ export default function Header({ centerContent, rightActions, hideNav = false, u
                     <LanguageSwitcher compact />
 
                     {user ? (
-                        <UserMenu />
+                        <UserMenu user={user} profile={profile} />
                     ) : (
                         <Link href="/login" className="px-5 py-2 text-sm font-medium text-white bg-slate-900 rounded-lg hover:bg-slate-800 transition-all shadow-sm">
                             Login
