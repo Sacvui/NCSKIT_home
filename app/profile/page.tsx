@@ -24,6 +24,22 @@ export default function ProfilePage() {
 
     useEffect(() => {
         let isMounted = true;
+
+        // Helper: Retry logic for flaky operations
+        const safeAuthCall = async<T>(fn: () => Promise<T>, retries = 3): Promise<T | null > => {
+            try {
+                return await fn();
+            } catch (e: any) {
+                if ((e.name === 'AbortError' || e.message?.includes('aborted')) && retries > 0) {
+                    console.warn(`[ProfilePage] Operation aborted, retrying... (${retries})`);
+                    await new Promise(r => setTimeout(r, 500));
+                    return safeAuthCall(fn, retries - 1);
+                }
+                console.error('[ProfilePage] Auth call failed:', e);
+                return null;
+            }
+        };
+
         const loadProfile = async () => {
             if (!isMounted) return;
             console.log('[ProfilePage] Starting authentication check...');
@@ -62,9 +78,12 @@ export default function ProfilePage() {
             };
 
             try {
-                // 1. Check Supabase Session
-                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-                console.log('[ProfilePage] Session check result:', {
+                // 1. Check Supabase Session with Retry
+                const sessionResult = await safeAuthCall(() => supabase.auth.getSession()) as any;
+                const session = sessionResult?.data?.session;
+                const sessionError = sessionResult?.error;
+
+                console.log('[ProfilePage] Session check result check:', {
                     hasSession: !!session,
                     userId: session?.user?.id,
                     error: sessionError
@@ -75,11 +94,16 @@ export default function ProfilePage() {
                     console.log('[ProfilePage] User authenticated via Supabase.');
                     setUser(session.user);
 
-                    const { data: profileData, error: profileError } = await supabase
+                    // Retry profile fetch
+                    const profileResult = await safeAuthCall(() => supabase
                         .from('profiles')
                         .select('*')
                         .eq('id', session.user.id)
-                        .single();
+                        .single()
+                    ) as any;
+
+                    const profileData = profileResult?.data;
+                    const profileError = profileResult?.error;
 
                     if (profileError) console.error('[ProfilePage] Profile fetch error:', profileError);
 
@@ -99,11 +123,15 @@ export default function ProfilePage() {
                     if (!isMounted) return;
                     console.log('[ProfilePage] User authenticated via ORCID cookie.');
 
-                    const { data: orcidProfile, error: orcidError } = await supabase
+                    const orcidProfileResult = await safeAuthCall(() => supabase
                         .from('profiles')
                         .select('*')
                         .eq('id', orcidUserId)
-                        .single();
+                        .single()
+                    ) as any;
+
+                    const orcidProfile = orcidProfileResult?.data;
+                    const orcidError = orcidProfileResult?.error;
 
                     if (orcidError) console.error('[ProfilePage] ORCID profile fetch error:', orcidError);
 
