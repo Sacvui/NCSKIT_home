@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
     BarChart2, Shield, Network, GitCompare, Layers, TrendingUp, Grid3x3,
     Activity, Binary, Target, ArrowRightLeft, Users, ChevronDown, ChevronRight,
-    BookOpen, Code, ExternalLink
+    BookOpen, Code, ExternalLink, CircleDot, Server, Lock, CreditCard, FileDown
 } from 'lucide-react';
 
 interface Method {
@@ -61,6 +61,7 @@ const METHODS: Method[] = [
         assumptions: ['Paired observations', 'Normal distribution of differences'],
         output: ['t-statistic, df, p-value', "Cohen's d effect size"]
     },
+    // ... (Previous methods)
     {
         id: 'anova',
         name: 'One-Way ANOVA / Welch ANOVA',
@@ -68,113 +69,51 @@ const METHODS: Method[] = [
         description: 'Compare means across three or more groups.',
         rFunction: 'aov() or oneway.test()',
         whenToUse: 'Comparing multiple groups (e.g., education levels, age groups).',
-        assumptions: ['Continuous DV', 'Normal distribution', 'Homogeneity of variance (Levene test)'],
-        output: ['F-statistic, p-value', 'Eta-squared effect size', 'Auto-switch to Welch if Levene fails']
+        assumptions: ['Continuous DV', 'Normal distribution', 'Homogeneity of variance'],
+        output: ['F-statistic, p-value', 'Eta-squared effect size', 'Welch correction']
     },
     {
-        id: 'mannwhitney',
-        name: 'Mann-Whitney U Test',
+        id: 'twoway-anova',
+        name: 'Two-Way ANOVA',
         category: 'Group Comparison',
-        description: 'Non-parametric alternative to independent t-test.',
-        rFunction: 'wilcox.test()',
-        whenToUse: 'When normality assumption is violated for 2-group comparison.',
-        output: ['U-statistic, p-value', 'Rank-biserial correlation']
+        description: 'Compare means with two factors and interaction effects.',
+        rFunction: 'aov(y ~ x1 * x2)',
+        whenToUse: 'Analyzing effect of two categorical variables and their interaction on a continuous DV.',
+        assumptions: ['Normality', 'Homogeneity of variance', 'Independence'],
+        output: ['Main effects F-tests', 'Interaction F-test', 'Interaction plot']
     },
+    // ... (Non-parametric)
+    // ... (Correlation)
     {
-        id: 'kruskalwallis',
-        name: 'Kruskal-Wallis H Test',
-        category: 'Group Comparison',
-        description: 'Non-parametric alternative to one-way ANOVA.',
-        rFunction: 'kruskal.test()',
-        whenToUse: 'Comparing 3+ groups when data is ordinal or not normally distributed.',
-        output: ['H-statistic, p-value', 'Effect size (η²)']
-    },
-    {
-        id: 'wilcoxon',
-        name: 'Wilcoxon Signed-Rank Test',
-        category: 'Group Comparison',
-        description: 'Non-parametric alternative to paired t-test.',
-        rFunction: 'wilcox.test(paired = TRUE)',
-        whenToUse: 'Before-after comparison with non-normal differences.',
-        output: ['V-statistic, p-value', 'Effect size (r)']
-    },
-    // Correlation & Regression
-    {
-        id: 'correlation',
-        name: 'Correlation Matrix',
+        id: 'moderation',
+        name: 'Moderation Analysis',
         category: 'Correlation & Regression',
-        description: 'Examine relationships between continuous variables.',
-        rFunction: 'cor(), psych::corr.test()',
-        whenToUse: 'Exploring relationships before regression or SEM.',
-        output: ['Pearson r coefficients', 'p-values', 'Heatmap visualization']
+        description: 'Test if variable Z alters the relationship between X and Y.',
+        rFunction: 'lm(y ~ x * z)',
+        whenToUse: 'When the effect of X on Y depends on the level of Z.',
+        output: ['Interaction term significance', 'Simple slopes', 'Johnson-Neyman interval']
     },
+    // ... (SEM)
+    // ... (Categorical)
     {
-        id: 'regression',
-        name: 'Multiple Linear Regression',
-        category: 'Correlation & Regression',
-        description: 'Predict continuous outcome from multiple predictors.',
-        rFunction: 'lm(), scale()',
-        whenToUse: 'Predicting continuous outcomes, testing hypotheses about predictors.',
-        assumptions: ['Linearity', 'Normality of residuals', 'Homoscedasticity', 'No multicollinearity (VIF < 5)'],
-        output: ['R², Adjusted R²', 'Unstandardized B coefficients', 'Standardized β coefficients', 'VIF values']
-    },
-    {
-        id: 'logistic',
-        name: 'Logistic Regression',
-        category: 'Correlation & Regression',
-        description: 'Predict binary outcomes from predictors.',
-        rFunction: 'glm(family = binomial)',
-        whenToUse: 'When outcome is binary (yes/no, pass/fail).',
-        output: ['Odds ratios', 'Confidence intervals', 'Model accuracy', 'Pseudo R²']
-    },
-    {
-        id: 'mediation',
-        name: 'Mediation Analysis',
-        category: 'Correlation & Regression',
-        description: 'Test if variable M mediates effect of X on Y.',
-        rFunction: 'Baron & Kenny method + Sobel test',
-        whenToUse: 'Testing indirect effects and causal mechanisms.',
-        output: ['Direct effect (c\')', 'Indirect effect (a×b)', 'Total effect (c)', 'Sobel z-test', 'Bootstrap CI']
-    },
-    // Factor Analysis & SEM
-    {
-        id: 'efa',
-        name: 'Exploratory Factor Analysis (EFA)',
-        category: 'Factor Analysis & SEM',
-        description: 'Discover underlying factor structure in data.',
-        rFunction: 'psych::fa(), psych::fa.parallel()',
-        whenToUse: 'Developing new scales, exploring dimensionality.',
-        assumptions: ['KMO > 0.7', 'Bartlett p < 0.05', 'Sufficient sample size'],
-        output: ['Factor loadings', 'Eigenvalues', 'Parallel Analysis suggestion', 'Variance explained']
-    },
-    {
-        id: 'cfa',
-        name: 'Confirmatory Factor Analysis (CFA)',
-        category: 'Factor Analysis & SEM',
-        description: 'Test hypothesized factor structure.',
-        rFunction: 'lavaan::cfa()',
-        whenToUse: 'Validating measurement models, assessing construct validity.',
-        output: ['Factor loadings', 'Model fit: CFI, TLI, RMSEA, SRMR', 'Modification indices']
-    },
-    {
-        id: 'sem',
-        name: 'Structural Equation Modeling (SEM)',
-        category: 'Factor Analysis & SEM',
-        description: 'Test complex relationships between latent variables.',
-        rFunction: 'lavaan::sem()',
-        whenToUse: 'Testing theoretical models with latent constructs.',
-        output: ['Path coefficients', 'Model fit indices', 'Direct/indirect effects', 'R² for endogenous variables']
-    },
-    // Categorical
-    {
-        id: 'chisq',
-        name: 'Chi-Square Test',
+        id: 'fisher',
+        name: "Fisher's Exact Test",
         category: 'Categorical',
-        description: 'Test independence between categorical variables.',
-        rFunction: 'chisq.test(), fisher.test()',
-        whenToUse: 'Analyzing association between categorical variables.',
-        assumptions: ['Expected cell count ≥ 5 (Fisher exact for small samples)'],
-        output: ['χ² statistic, p-value', "Cramér's V effect size", 'Fisher exact for 2×2 tables']
+        description: 'Exact test of independence for small samples.',
+        rFunction: 'fisher.test()',
+        whenToUse: 'Analyzing 2x2 tables where expected count < 5.',
+        output: ['p-value (Exact)', 'Odds Ratio']
+    },
+    // Clustering
+    {
+        id: 'cluster',
+        name: 'Cluster Analysis (K-Means)',
+        category: 'Clustering & Segmentation',
+        description: 'Group similar observations into clusters.',
+        rFunction: 'stats::kmeans(), cluster::silhouette()',
+        whenToUse: 'Market segmentation, profiling groups.',
+        assumptions: ['Standardized variables', 'No outliers'],
+        output: ['Cluster centers', 'Cluster membership', 'Silhouette score']
     }
 ];
 
@@ -183,7 +122,8 @@ const CATEGORIES = [
     { name: 'Group Comparison', color: 'green', icon: GitCompare },
     { name: 'Correlation & Regression', color: 'purple', icon: TrendingUp },
     { name: 'Factor Analysis & SEM', color: 'orange', icon: Layers },
-    { name: 'Categorical', color: 'teal', icon: Grid3x3 }
+    { name: 'Categorical', color: 'teal', icon: Grid3x3 },
+    { name: 'Clustering & Segmentation', color: 'pink', icon: CircleDot }
 ];
 
 export default function DocsPage() {
@@ -199,7 +139,7 @@ export default function DocsPage() {
                         <h1 className="text-3xl font-bold">ncsStat Documentation</h1>
                     </div>
                     <p className="text-white/80">
-                        Complete guide to 18 statistical analysis methods for Vietnamese PhD researchers
+                        Complete guide to 20+ statistical analysis methods and system features for PhD researchers
                     </p>
                 </div>
             </div>
@@ -333,6 +273,61 @@ export default function DocsPage() {
                         </div>
                     </section>
                 ))}
+
+                {/* System Features */}
+                <div className="mt-16 bg-white rounded-xl border shadow-sm overflow-hidden">
+                    <div className="bg-slate-50 p-6 border-b border-slate-100">
+                        <h2 className="text-xl font-bold flex items-center gap-2 text-slate-800">
+                            <Server className="w-6 h-6 text-indigo-600" />
+                            System Architecture & Workflow
+                        </h2>
+                    </div>
+                    <div className="p-6 grid md:grid-cols-2 gap-8">
+                        <div>
+                            <h3 className="font-semibold text-slate-800 flex items-center gap-2 mb-3">
+                                <Code className="w-5 h-5 text-blue-500" />
+                                WebR Technology
+                            </h3>
+                            <p className="text-slate-600 text-sm leading-relaxed">
+                                ncsStat runs R directly in your browser using <strong>WebAssembly (WASM)</strong>.
+                                This means the R engine is downloaded once and executes locally on your machine.
+                                <strong> No data is ever uploaded to our servers</strong> for analysis, ensuring absolute privacy.
+                            </p>
+                        </div>
+                        <div>
+                            <h3 className="font-semibold text-slate-800 flex items-center gap-2 mb-3">
+                                <CreditCard className="w-5 h-5 text-green-500" />
+                                Credits System
+                            </h3>
+                            <p className="text-slate-600 text-sm leading-relaxed">
+                                Advanced analyses (like SEM, CFA) consume <strong>NCS Credits</strong>.
+                                You receive 200 free credits upon registration. Additional credits can be obtained by
+                                inviting colleagues or contacting support.
+                            </p>
+                        </div>
+                        <div>
+                            <h3 className="font-semibold text-slate-800 flex items-center gap-2 mb-3">
+                                <Lock className="w-5 h-5 text-purple-500" />
+                                Secure Authentication
+                            </h3>
+                            <p className="text-slate-600 text-sm leading-relaxed">
+                                We support secure login via Google and Email (Magic Link).
+                                Your session is protected by Supabase Auth with RLS (Row Level Security)
+                                ensuring only you can access your profile and history.
+                            </p>
+                        </div>
+                        <div>
+                            <h3 className="font-semibold text-slate-800 flex items-center gap-2 mb-3">
+                                <FileDown className="w-5 h-5 text-orange-500" />
+                                Persistence & Export
+                            </h3>
+                            <p className="text-slate-600 text-sm leading-relaxed">
+                                Analysis results are stored locally in your browser (IndexedDB) so you can resume work later.
+                                Reports can be exported to standardized PDF formats ready for thesis inclusion.
+                            </p>
+                        </div>
+                    </div>
+                </div>
 
                 {/* Footer */}
                 <div className="mt-12 text-center text-sm text-slate-500 pb-8">
