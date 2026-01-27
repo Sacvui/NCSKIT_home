@@ -74,7 +74,7 @@ export default function ProfilePage() {
                     router.push('/login?next=/profile');
                     return;
                 }
-                
+
                 setLoading(false);
             } catch (err: any) {
                 console.error('[Profile] Error loading profile:', err);
@@ -186,8 +186,8 @@ export default function ProfilePage() {
                             />
                             <StatCard
                                 icon={<Star className="w-5 h-5 text-amber-600" />}
-                                label="Điểm tin cậy"
-                                value="100%"
+                                label="Điểm NCS"
+                                value={`${profile?.tokens || 0} Point`}
                                 color="amber"
                             />
                         </div>
