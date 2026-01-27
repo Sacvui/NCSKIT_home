@@ -156,7 +156,7 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 updateProgress('R-Engine Loading...');
                 try {
                     // Stage 1 & 2 packages
-                    await webR.installPackages(['psych', 'corrplot', 'GPArotation', 'car']);
+                    await webR.installPackages(['psych', 'corrplot', 'GPArotation', 'car', 'cluster']);
 
                     // Stage 3 packages (Experimental SEM)
                     try {
