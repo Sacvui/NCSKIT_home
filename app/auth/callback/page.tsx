@@ -8,8 +8,9 @@ import { Loader2 } from 'lucide-react'
 function CallbackContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
-    const [status, setStatus] = useState('Processing authentication...')
+    const [status, setStatus] = useState('Đang xử lý đăng nhập...')
 
+    // Use ref to track processed code to prevent double execution in Strict Mode
     const processedCode = useRef<string | null>(null);
 
     useEffect(() => {
@@ -21,62 +22,75 @@ function CallbackContent() {
             const error = searchParams.get('error')
             const errorDescription = searchParams.get('error_description')
 
-            // Handle URL-based errors
+            console.log('[AuthCallback] v2.1 init - code:', code ? 'present' : 'missing');
+
             if (error) {
                 console.error('[AuthCallback] URL Error:', error, errorDescription)
-                if (isMounted) router.push(`/login?error=${encodeURIComponent(errorDescription || error)}`)
+                if (isMounted) window.location.href = `/login?error=${encodeURIComponent(errorDescription || error)}`
                 return
             }
 
-            const supabase = getSupabase()
-
-            // FAST PATH: Check if we already have a session (avoid unnecessary exchange)
-            const { data: existingSession } = await supabase.auth.getSession();
-            if (existingSession?.session) {
-                console.log('[AuthCallback] Session already exists, redirecting immediately...');
-                if (isMounted) {
-                    router.replace(next);
-                }
-                return;
-            }
-
-            // Prevent double-firing in Strict Mode
-            if (code && (processedCode.current === code)) {
-                console.log('[AuthCallback] Code already processing or processed, skipping...');
-                return;
-            }
-            if (code) processedCode.current = code;
-
-            // 1. No Code: Just redirect to login
             if (!code) {
-                if (isMounted) router.replace('/login')
+                // If no code, check session directly
+                const supabase = getSupabase()
+                const { data } = await supabase.auth.getSession()
+                if (data?.session) {
+                    if (isMounted) window.location.href = next
+                } else {
+                    if (isMounted) window.location.href = '/login'
+                }
                 return
             }
 
-            // 2. Exchange Code with timeout
+            // Prevent double processing
+            if (processedCode.current === code) {
+                console.log('[AuthCallback] Code already processed, skipping...');
+                return;
+            }
+            processedCode.current = code;
+
+            const supabase = getSupabase();
+
+            // FAST CHECK: Local session might exist
+            const { data: existing } = await supabase.auth.getSession();
+            if (existing?.session) {
+                console.log('[AuthCallback] Existing session found, redirecting...');
+                if (isMounted) window.location.href = next;
+                return;
+            }
+
             try {
-                setStatus('Đang xác thực...')
-                console.log('[AuthCallback] Exchanging code for session...');
+                if (isMounted) setStatus('Đang xác thực bảo mật...');
 
-                // Add timeout to prevent hanging
-                const exchangePromise = supabase.auth.exchangeCodeForSession(code);
-                const timeoutPromise = new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error('Exchange timeout')), 10000)
-                );
+                // Exchange code logic with strong timeout and error handling
+                // We wrap the promise to ensure it never throws "Uncaught (in promise)"
+                const exchangePromise = supabase.auth.exchangeCodeForSession(code)
+                    .then(res => ({ data: res.data, error: res.error, timeout: false }))
+                    .catch(e => ({ data: null, error: e, timeout: false }));
 
-                const { data, error: exchangeError } = await Promise.race([
-                    exchangePromise,
-                    timeoutPromise
-                ]) as any;
+                const timeoutPromise = new Promise<{ data: any, error: any, timeout: boolean }>((resolve) => {
+                    setTimeout(() => resolve({ data: null, error: new Error('Exchange Timeout'), timeout: true }), 15000);
+                });
+
+                // Race logic
+                const result = await Promise.race([exchangePromise, timeoutPromise]);
+                const { data, error: exchangeError, timeout } = result;
+
+                if (timeout) {
+                    console.warn('[AuthCallback] Timeout occurred during exchange');
+                    throw new Error('Exchange Timeout');
+                }
 
                 if (exchangeError) {
-                    // Check if it's already been exchanged (common with rapid refreshes)
-                    if (exchangeError.message?.includes('both use and code_challenge') ||
-                        exchangeError.message?.includes('already been used')) {
-                        console.log('[AuthCallback] Code already used, checking for existing session...');
-                        const { data: sessionData } = await supabase.auth.getSession();
-                        if (sessionData?.session && isMounted) {
-                            router.replace(next);
+                    // Start checking for session recovery if code was used (common issue)
+                    if (exchangeError.message?.includes('code_challenge') || exchangeError.message?.includes('already been used')) {
+                        console.warn('[AuthCallback] Code issue, checking session recovery...');
+                        // Wait a moment for potential BG sync
+                        await new Promise(r => setTimeout(r, 1000));
+                        const { data: recovery } = await supabase.auth.getSession();
+                        if (recovery?.session) {
+                            console.log('[AuthCallback] Session recovered!');
+                            if (isMounted) window.location.href = next;
                             return;
                         }
                     }
@@ -84,55 +98,42 @@ function CallbackContent() {
                 }
 
                 if (data?.session) {
-                    console.log('[AuthCallback] Exchange successful');
-                    setStatus('Đăng nhập thành công!')
+                    console.log('[AuthCallback] Exchange successful!');
                     if (isMounted) {
-                        router.replace(next)
+                        setStatus('Đăng nhập thành công!');
+                        // Use window.location to force full reload and clean state
+                        window.location.href = next;
                     }
                 } else {
-                    throw new Error('Không có phiên đăng nhập khả dụng')
+                    throw new Error('No session returned');
                 }
 
             } catch (err: any) {
-                // If the error is an AbortError or timeout, check session and redirect
-                if (err.name === 'AbortError' || err.message === 'Exchange timeout') {
-                    console.warn('[AuthCallback] Exchange aborted/timeout, checking session...');
-                    const { data } = await supabase.auth.getSession();
-                    if (data?.session && isMounted) {
-                        console.log('[AuthCallback] Found session after abort, redirecting...');
-                        router.replace(next);
+                console.error('[AuthCallback] Critical processing error:', err);
+
+                // FINAL ATTEMPT: Check session one last time
+                try {
+                    const { data: finalCheck } = await supabase.auth.getSession();
+                    if (finalCheck?.session) {
+                        console.log('[AuthCallback] Session found in final check');
+                        if (isMounted) window.location.href = next;
                         return;
                     }
-                    // If no session after abort, redirect to login
-                    if (isMounted) {
-                        router.replace('/login?error=' + encodeURIComponent('Hết thời gian xác thực'));
-                    }
-                    return;
-                }
+                } catch (e) { /* ignore */ }
 
-                console.error('[AuthCallback] Exchange failed:', err)
-
-                // Quick session check fallback
-                const { data: recovery } = await supabase.auth.getSession()
-                if (recovery?.session) {
-                    console.log('[AuthCallback] Found session after error, redirecting...');
-                    if (isMounted) {
-                        router.replace(next)
-                    }
-                    return
-                }
-
-                // If truly failed
                 if (isMounted) {
-                    setStatus('Đăng nhập thất bại')
-                    router.push(`/login?error=${encodeURIComponent(err.message || 'Lỗi đăng nhập')}`)
+                    setStatus('Đăng nhập thất bại. Đang chuyển hướng...');
+                    setTimeout(() => {
+                        window.location.href = `/login?error=${encodeURIComponent(err.message || 'Login Failed')}`;
+                    }, 1500);
                 }
             }
-        }
+        };
 
-        handleAuthCallback()
-        return () => { isMounted = false }
-    }, [router, searchParams])
+        handleAuthCallback();
+
+        return () => { isMounted = false };
+    }, [router, searchParams]);
 
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50">
