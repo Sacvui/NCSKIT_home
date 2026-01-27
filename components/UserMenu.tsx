@@ -14,8 +14,6 @@ export default function UserMenu() {
     const [isFeedbackOpen, setIsFeedbackOpen] = useState(false)
     const menuRef = useRef<HTMLDivElement>(null)
 
-    if (!user) return null
-
     // Close menu when clicking outside
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -26,6 +24,8 @@ export default function UserMenu() {
         document.addEventListener('mousedown', handleClickOutside)
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [])
+
+    if (!user) return null
 
     const initial = user.email ? user.email[0].toUpperCase() : 'U'
     const userMetaName = user.user_metadata?.full_name || user.user_metadata?.name || user.user_metadata?.display_name;
