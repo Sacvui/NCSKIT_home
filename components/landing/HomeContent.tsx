@@ -56,6 +56,24 @@ export default function HomeContent() {
 
     return (
         <>
+            {/* Beta Warning Banner */}
+            <div className="bg-orange-600 text-white px-4 py-3 relative z-20">
+                <div className="container mx-auto flex items-start md:items-center justify-between gap-4">
+                    <div className="flex items-start gap-3">
+                        <div className="bg-white/20 p-1.5 rounded-lg mt-0.5 md:mt-0">
+                            <Sparkles className="w-4 h-4 text-white" />
+                        </div>
+                        <p className="text-sm font-medium leading-relaxed">
+                            <span className="font-bold uppercase tracking-wide bg-white/20 text-white px-2 py-0.5 rounded text-[10px] mr-2 align-middle">Beta Phase</span>
+                            {t(locale, 'beta.warning') || "Hệ thống đang trong giai đoạn thử nghiệm (Beta). Vui lòng kiểm tra lại kết quả trước khi sử dụng cho các công bố chính thức."}
+                        </p>
+                    </div>
+                    <Link href="/legal/disclaimer" className="whitespace-nowrap text-xs font-bold underline hover:text-orange-100 flex-shrink-0">
+                        {t(locale, 'beta.learnMore') || "Xem miễn trừ trách nhiệm →"}
+                    </Link>
+                </div>
+            </div>
+
             {/* Hero Section */}
             <div className="container mx-auto px-6 py-24 text-center">
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold mb-8 uppercase tracking-wide">

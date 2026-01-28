@@ -31,6 +31,7 @@ export default function Footer({ locale = 'vi' }: FooterProps) {
                             <div className="flex flex-col gap-2 text-sm text-slate-500">
                                 <Link href="/docs" className="hover:text-indigo-600 transition-colors">{t(locale, 'footer.docs')}</Link>
                                 <Link href="/terms" className="hover:text-indigo-600 transition-colors">{t(locale, 'footer.terms')}</Link>
+                                <Link href="/legal/disclaimer" className="hover:text-orange-600 transition-colors font-medium text-orange-700/80">Disclaimer (Beta)</Link>
                                 <Link href="/privacy" className="hover:text-indigo-600 transition-colors">{t(locale, 'footer.privacy')}</Link>
                             </div>
                         </div>

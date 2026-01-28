@@ -44,6 +44,7 @@ export default function Header({ centerContent, rightActions, hideNav = false, u
                 <div className="flex items-center gap-8">
                     <Link href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
                         <img src="/logo.svg" alt="ncsStat" className="h-9 w-auto" />
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-orange-100 text-orange-700 border border-orange-200 uppercase tracking-wide">Beta</span>
                     </Link>
 
                     {/* Desktop Nav */}
