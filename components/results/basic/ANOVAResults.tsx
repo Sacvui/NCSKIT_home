@@ -12,7 +12,7 @@ interface ANOVAResultsProps {
  * One-Way ANOVA Results Component
  * Displays ANOVA table and group means
  */
-export function ANOVAResults({ results, columns }: ANOVAResultsProps) {
+export const ANOVAResults = React.memo(function ANOVAResults({ results, columns }: ANOVAResultsProps) {
     const pValue = results.pValue;
     const significant = pValue < 0.05;
 
@@ -100,6 +100,4 @@ export function ANOVAResults({ results, columns }: ANOVAResultsProps) {
             </div>
         </div>
     );
-}
-
-export default ANOVAResults;
+});\r\n\r\nexport default ANOVAResults;

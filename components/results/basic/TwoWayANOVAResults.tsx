@@ -12,7 +12,7 @@ interface TwoWayANOVAResultsProps {
  * Two-Way ANOVA Results Component
  * Displays two-way ANOVA table with main effects and interaction
  */
-export function TwoWayANOVAResults({ results, columns }: TwoWayANOVAResultsProps) {
+export const TwoWayANOVAResults = React.memo(function TwoWayANOVAResults({ results, columns }: TwoWayANOVAResultsProps) {
     return (
         <div className="space-y-6">
             <Card>
@@ -102,6 +102,4 @@ export function TwoWayANOVAResults({ results, columns }: TwoWayANOVAResultsProps
             </div>
         </div>
     );
-}
-
-export default TwoWayANOVAResults;
+});\r\n\r\nexport default TwoWayANOVAResults;

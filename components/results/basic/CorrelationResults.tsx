@@ -11,7 +11,7 @@ interface CorrelationResultsProps {
  * Correlation Matrix Results Component
  * Displays correlation matrix with color-coded heatmap
  */
-export function CorrelationResults({ results, columns }: CorrelationResultsProps) {
+export const CorrelationResults = React.memo(function CorrelationResults({ results, columns }: CorrelationResultsProps) {
     const matrix = results.correlationMatrix;
 
     return (
@@ -85,6 +85,4 @@ export function CorrelationResults({ results, columns }: CorrelationResultsProps
             <p className="text-xs text-gray-500 italic mt-1">* Màu sắc đậm nhạt thể hiện mức độ tương quan.</p>
         </div>
     );
-}
-
-export default CorrelationResults;
+});\r\n\r\nexport default CorrelationResults;

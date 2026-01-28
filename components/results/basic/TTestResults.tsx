@@ -11,8 +11,9 @@ interface TTestResultsProps {
 /**
  * Independent Samples T-Test Results Component
  * Displays t-test results with effect size and confidence intervals
+ * Memoized to prevent unnecessary re-renders
  */
-export function TTestResults({ results, columns }: TTestResultsProps) {
+export const TTestResults = React.memo(function TTestResults({ results, columns }: TTestResultsProps) {
     const pValue = results.pValue;
     const significant = pValue < 0.05;
 
@@ -91,6 +92,6 @@ export function TTestResults({ results, columns }: TTestResultsProps) {
             </div>
         </div>
     );
-}
+});
 
 export default TTestResults;

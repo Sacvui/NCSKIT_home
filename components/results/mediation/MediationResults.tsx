@@ -12,7 +12,7 @@ interface MediationResultsProps {
  * Mediation Analysis Results Component
  * Displays Baron & Kenny mediation analysis with path coefficients
  */
-export function MediationResults({ results, columns }: MediationResultsProps) {
+export const MediationResults = React.memo(function MediationResults({ results, columns }: MediationResultsProps) {
     // columns: [X, M, Y]
     const sobelP = results.sobelP;
     const significant = sobelP < 0.05;
@@ -88,6 +88,4 @@ export function MediationResults({ results, columns }: MediationResultsProps) {
             </div>
         </div>
     );
-}
-
-export default MediationResults;
+});\r\n\r\nexport default MediationResults;

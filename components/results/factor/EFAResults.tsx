@@ -13,7 +13,7 @@ interface EFAResultsProps {
  * Exploratory Factor Analysis (EFA) Results Component
  * Displays KMO, Bartlett's test, factor loadings, and communalities
  */
-export function EFAResults({ results, columns, onProceedToCFA }: EFAResultsProps) {
+export const EFAResults = React.memo(function EFAResults({ results, columns, onProceedToCFA }: EFAResultsProps) {
     const kmo = results.kmo || 0;
     const bartlettP = results.bartlettP || 1;
     const kmoAcceptable = kmo >= 0.6;
@@ -224,6 +224,4 @@ export function EFAResults({ results, columns, onProceedToCFA }: EFAResultsProps
             )}
         </div>
     );
-}
-
-export default EFAResults;
+});\r\n\r\nexport default EFAResults;

@@ -13,7 +13,7 @@ interface RegressionResultsProps {
  * Linear Regression Results Component
  * Displays model summary, coefficients, assumption checks, and actual vs predicted chart
  */
-export function RegressionResults({ results, columns }: RegressionResultsProps) {
+export const RegressionResults = React.memo(function RegressionResults({ results, columns }: RegressionResultsProps) {
     if (!results || !results.modelFit) return null;
 
     const { modelFit, coefficients, equation } = results;
@@ -216,6 +216,4 @@ export function RegressionResults({ results, columns }: RegressionResultsProps) 
             )}
         </div>
     );
-}
-
-export default RegressionResults;
+});\r\n\r\nexport default RegressionResults;

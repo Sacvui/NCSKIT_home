@@ -12,7 +12,7 @@ interface ModerationResultsProps {
  * Moderation Analysis Results Component
  * Displays moderation analysis with interaction effects
  */
-export function ModerationResults({ results, columns }: ModerationResultsProps) {
+export const ModerationResults = React.memo(function ModerationResults({ results, columns }: ModerationResultsProps) {
     const interactionP = results.interactionP;
     const significant = interactionP < 0.05;
 
@@ -94,6 +94,4 @@ export function ModerationResults({ results, columns }: ModerationResultsProps) 
             </div>
         </div>
     );
-}
-
-export default ModerationResults;
+});\r\n\r\nexport default ModerationResults;

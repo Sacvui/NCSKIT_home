@@ -12,7 +12,7 @@ interface CFAResultsProps {
  * Confirmatory Factor Analysis (CFA) Results Component
  * Displays model fit indices, factor loadings, and covariances
  */
-export function CFAResults({ results, onProceedToSEM }: CFAResultsProps) {
+export const CFAResults = React.memo(function CFAResults({ results, onProceedToSEM }: CFAResultsProps) {
     if (!results) return null;
     const { fitMeasures, estimates } = results;
 
@@ -185,6 +185,4 @@ export function CFAResults({ results, onProceedToSEM }: CFAResultsProps) {
             )}
         </div>
     );
-}
-
-export default CFAResults;
+});\r\n\r\nexport default CFAResults;

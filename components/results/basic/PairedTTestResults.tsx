@@ -12,7 +12,7 @@ interface PairedTTestResultsProps {
  * Paired Samples T-Test Results Component
  * Displays paired t-test results for before/after comparisons
  */
-export function PairedTTestResults({ results, columns }: PairedTTestResultsProps) {
+export const PairedTTestResults = React.memo(function PairedTTestResults({ results, columns }: PairedTTestResultsProps) {
     const pValue = results.pValue;
     const significant = pValue < 0.05;
 
@@ -75,6 +75,4 @@ export function PairedTTestResults({ results, columns }: PairedTTestResultsProps
             </div>
         </div>
     );
-}
-
-export default PairedTTestResults;
+});\r\n\r\nexport default PairedTTestResults;

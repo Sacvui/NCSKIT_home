@@ -12,7 +12,7 @@ interface MannWhitneyResultsProps {
  * Mann-Whitney U Test Results Component
  * Displays Mann-Whitney U test results with median comparison
  */
-export function MannWhitneyResults({ results, columns }: MannWhitneyResultsProps) {
+export const MannWhitneyResults = React.memo(function MannWhitneyResults({ results, columns }: MannWhitneyResultsProps) {
     if (!results) return null;
     const { statistic, pValue, median1, median2, effectSize } = results;
     const significant = pValue < 0.05;
@@ -69,6 +69,4 @@ export function MannWhitneyResults({ results, columns }: MannWhitneyResultsProps
             </div>
         </div>
     );
-}
-
-export default MannWhitneyResults;
+});\r\n\r\nexport default MannWhitneyResults;

@@ -11,7 +11,7 @@ interface WilcoxonResultsProps {
  * Wilcoxon Signed Rank Test Results Component
  * Displays Wilcoxon test results with median difference
  */
-export function WilcoxonResults({ results }: WilcoxonResultsProps) {
+export const WilcoxonResults = React.memo(function WilcoxonResults({ results }: WilcoxonResultsProps) {
     const pValue = results.pValue;
     const significant = pValue < 0.05;
 
@@ -57,6 +57,4 @@ export function WilcoxonResults({ results }: WilcoxonResultsProps) {
             </div>
         </div>
     );
-}
-
-export default WilcoxonResults;
+});\r\n\r\nexport default WilcoxonResults;

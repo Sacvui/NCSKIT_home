@@ -12,7 +12,7 @@ interface SEMResultsProps {
  * Structural Equation Modeling (SEM) Results Component
  * Displays path diagram, fit indices, structural paths, and measurement model
  */
-export function SEMResults({ results }: SEMResultsProps) {
+export const SEMResults = React.memo(function SEMResults({ results }: SEMResultsProps) {
     if (!results) return null;
     const { fitMeasures, estimates } = results;
 
@@ -196,6 +196,4 @@ export function SEMResults({ results }: SEMResultsProps) {
             )}
         </div>
     );
-}
-
-export default SEMResults;
+});\r\n\r\nexport default SEMResults;

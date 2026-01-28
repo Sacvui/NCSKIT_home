@@ -12,7 +12,7 @@ interface ClusterResultsProps {
  * Cluster Analysis Results Component
  * Displays K-Means clustering results with cluster centers
  */
-export function ClusterResults({ results, columns }: ClusterResultsProps) {
+export const ClusterResults = React.memo(function ClusterResults({ results, columns }: ClusterResultsProps) {
     const k = results.k || 3;
     const clusterSizes = results.clusterSizes || [];
     const centers = results.centers || [];
@@ -90,6 +90,4 @@ export function ClusterResults({ results, columns }: ClusterResultsProps) {
             </div>
         </div>
     );
-}
-
-export default ClusterResults;
+});\r\n\r\nexport default ClusterResults;

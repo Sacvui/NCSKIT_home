@@ -11,7 +11,7 @@ interface KruskalWallisResultsProps {
  * Kruskal-Wallis Test Results Component
  * Displays Kruskal-Wallis test results with group medians
  */
-export function KruskalWallisResults({ results }: KruskalWallisResultsProps) {
+export const KruskalWallisResults = React.memo(function KruskalWallisResults({ results }: KruskalWallisResultsProps) {
     const pValue = results.pValue;
     const significant = pValue < 0.05;
 
@@ -73,6 +73,4 @@ export function KruskalWallisResults({ results }: KruskalWallisResultsProps) {
             </div>
         </div>
     );
-}
-
-export default KruskalWallisResults;
+});\r\n\r\nexport default KruskalWallisResults;

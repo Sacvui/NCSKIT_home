@@ -11,7 +11,7 @@ interface ChiSquareResultsProps {
  * Chi-Square Test Results Component
  * Displays chi-square test results with observed and expected frequencies
  */
-export function ChiSquareResults({ results }: ChiSquareResultsProps) {
+export const ChiSquareResults = React.memo(function ChiSquareResults({ results }: ChiSquareResultsProps) {
     if (!results) return null;
 
     const { statistic, df, pValue, observed, expected } = results;
@@ -107,6 +107,4 @@ export function ChiSquareResults({ results }: ChiSquareResultsProps) {
             </div>
         </div>
     );
-}
-
-export default ChiSquareResults;
+});\r\n\r\nexport default ChiSquareResults;

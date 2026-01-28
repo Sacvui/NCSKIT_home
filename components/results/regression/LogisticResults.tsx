@@ -12,7 +12,7 @@ interface LogisticResultsProps {
  * Logistic Regression Results Component
  * Displays logistic regression with odds ratios and confusion matrix
  */
-export function LogisticResults({ results, columns }: LogisticResultsProps) {
+export const LogisticResults = React.memo(function LogisticResults({ results, columns }: LogisticResultsProps) {
     // columns: [Y, X1, X2...]
 
     return (
@@ -95,6 +95,4 @@ export function LogisticResults({ results, columns }: LogisticResultsProps) {
             </Card>
         </div>
     );
-}
-
-export default LogisticResults;
+});\r\n\r\nexport default LogisticResults;

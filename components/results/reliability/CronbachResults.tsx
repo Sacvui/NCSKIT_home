@@ -16,7 +16,7 @@ interface CronbachResultsProps {
  * Cronbach's Alpha Reliability Results Component
  * Displays reliability statistics and item-total correlations
  */
-export function CronbachResults({
+export const CronbachResults = React.memo(function CronbachResults({
     results,
     columns,
     onProceedToEFA,
@@ -146,6 +146,4 @@ export function CronbachResults({
             />
         </div>
     );
-}
-
-export default CronbachResults;
+});\r\n\r\nexport default CronbachResults;

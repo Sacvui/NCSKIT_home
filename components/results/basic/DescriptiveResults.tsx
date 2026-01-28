@@ -13,7 +13,7 @@ interface DescriptiveResultsProps {
  * Descriptive Statistics Results Component
  * Displays descriptive statistics table and mean comparison chart
  */
-export function DescriptiveResults({ results, columns }: DescriptiveResultsProps) {
+export const DescriptiveResults = React.memo(function DescriptiveResults({ results, columns }: DescriptiveResultsProps) {
     return (
         <div className="space-y-8">
             <Card>
@@ -99,6 +99,4 @@ export function DescriptiveResults({ results, columns }: DescriptiveResultsProps
             </Card>
         </div>
     );
-}
-
-export default DescriptiveResults;
+});\r\n\r\nexport default DescriptiveResults;
