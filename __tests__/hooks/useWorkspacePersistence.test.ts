@@ -221,7 +221,7 @@ describe('useWorkspacePersistence', () => {
         test('should handle save errors gracefully', async () => {
             mockSet.mockRejectedValue(new Error('IndexedDB error'));
 
-            const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+            const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
 
             renderHook(() => useWorkspacePersistence(mockProps));
 
@@ -242,7 +242,7 @@ describe('useWorkspacePersistence', () => {
         test('should handle restore errors gracefully', async () => {
             mockGet.mockRejectedValue(new Error('IndexedDB error'));
 
-            const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
+            const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
 
             const { result } = renderHook(() => useWorkspacePersistence(mockProps));
 

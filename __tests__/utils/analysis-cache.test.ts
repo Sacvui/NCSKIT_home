@@ -33,7 +33,9 @@ class AnalysisCache {
         // LRU eviction
         if (this.cache.size >= this.MAX_ENTRIES) {
             const oldestKey = this.cache.keys().next().value;
-            this.cache.delete(oldestKey);
+            if (oldestKey !== undefined) {
+                this.cache.delete(oldestKey);
+            }
         }
 
         const key = this.generateKey(data, type, params);

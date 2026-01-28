@@ -2,7 +2,7 @@
 
 import React, { useMemo, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import TemplateInterpretation from '@/components/TemplateInterpretation';
+import { TemplateInterpretation } from '@/components/TemplateInterpretation';
 
 interface CronbachResultsProps {
     results: any;

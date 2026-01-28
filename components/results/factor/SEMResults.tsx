@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import SEMPathDiagram from '../SEMPathDiagram';
+import SEMPathDiagram from '@/components/SEMPathDiagram';
 
 interface SEMResultsProps {
     results: any;
