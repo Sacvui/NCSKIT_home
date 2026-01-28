@@ -130,16 +130,18 @@ export default function DocsPage() {
     const [expandedMethod, setExpandedMethod] = useState<string | null>(null);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 text-white px-6 py-8">
-                <div className="max-w-5xl mx-auto">
-                    <div className="flex items-center gap-3 mb-2">
-                        <BookOpen className="w-8 h-8" />
-                        <h1 className="text-3xl font-bold">ncsStat Documentation</h1>
+        <div className="bg-slate-50 min-h-screen pb-12">
+            {/* Documentation Hero */}
+            <div className="bg-white border-b border-slate-200 py-16 px-6">
+                <div className="max-w-5xl mx-auto text-center">
+                    <div className="inline-flex items-center justify-center p-3 bg-indigo-100 rounded-2xl mb-6">
+                        <BookOpen className="w-10 h-10 text-indigo-600" />
                     </div>
-                    <p className="text-white/80">
-                        Complete guide to 20+ statistical analysis methods and system features for PhD researchers
+                    <h1 className="text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">
+                        ncsStat Documentation
+                    </h1>
+                    <p className="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
+                        Complete guide to statistical tools, WebR technology, and system features aimed at empowering your PhD research.
                     </p>
                 </div>
             </div>
@@ -329,18 +331,6 @@ export default function DocsPage() {
                     </div>
                 </div>
 
-                {/* Footer */}
-                <div className="mt-12 text-center text-sm text-slate-500 pb-8">
-                    <p>
-                        <strong>ncsStat</strong> - Professional statistical analysis for Vietnamese PhD researchers
-                    </p>
-                    <p className="mt-1">
-                        Built with WebR (R in browser) • No data uploaded to server •
-                        <Link href="/analyze" className="text-indigo-600 hover:underline ml-1">
-                            Start Analyzing →
-                        </Link>
-                    </p>
-                </div>
             </div>
         </div>
     );
