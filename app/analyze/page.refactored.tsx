@@ -77,12 +77,14 @@ function AnalyzeContent() {
                 <div className="mb-8">
                     <StepIndicator
                         steps={steps}
-                        currentStep={getStepIndex()}
-                        onStepClick={(index) => {
-                            const stepMap = ['upload', 'profile', 'analyze', 'results'];
+                        currentStep={state.step}
+                        onStepClick={(stepId: string) => {
+                            const stepOrder = ['upload', 'profile', 'analyze', 'results'];
+                            const currentIdx = stepOrder.indexOf(state.step);
+                            const clickedIdx = stepOrder.indexOf(stepId);
                             // Only allow going back, not forward
-                            if (index <= getStepIndex()) {
-                                actions.setStep(stepMap[index] as any);
+                            if (clickedIdx <= currentIdx) {
+                                actions.setStep(stepId as any);
                             }
                         }}
                     />

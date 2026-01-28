@@ -5,13 +5,25 @@ import { AnalysisSelector } from '@/components/AnalysisSelector';
 import { useAnalyzeState, useAnalyzeActions } from '../../context/AnalyzeContext';
 import { useAnalyzeHandlers } from '../../hooks/useAnalyzeHandlers';
 import { WebRStatus } from '@/components/WebRStatus';
+import type { AnalysisStep } from '@/types/analysis';
 
 export function AnalyzeStep() {
     const state = useAnalyzeState();
-    const { runAnalysis, getNumericColumns, getAllColumns } = useAnalyzeHandlers();
+    const actions = useAnalyzeActions();
+    const { runAnalysis, getAllColumns } = useAnalyzeHandlers();
 
-    const numericColumns = getNumericColumns();
     const allColumns = getAllColumns();
+
+    // Handle step selection from AnalysisSelector
+    const handleSelect = (step: string) => {
+        actions.setStep(step as AnalysisStep);
+    };
+
+    // Handle direct run analysis (for analyses that don't need variable selection)
+    const handleRunAnalysis = (type: string) => {
+        // For correlation and other simple analyses, run with all numeric columns
+        runAnalysis(type, allColumns);
+    };
 
     return (
         <div className="space-y-6">
@@ -53,10 +65,9 @@ export function AnalyzeStep() {
             )}
 
             <AnalysisSelector
-                onSelect={(type: string, selectedVars: string[]) => { runAnalysis(type, selectedVars); }}
-                numericColumns={numericColumns}
-                allColumns={allColumns}
-                previousAnalysis={state.previousAnalysis}
+                onSelect={handleSelect}
+                onRunAnalysis={handleRunAnalysis}
+                isAnalyzing={state.isAnalyzing}
             />
         </div>
     );
