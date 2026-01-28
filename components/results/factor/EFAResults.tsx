@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 interface EFAResultsProps {
@@ -39,6 +39,12 @@ export const EFAResults = React.memo(function EFAResults({ results, columns, onP
         }
         return factors;
     }, [results.loadings, columns, results.nFactorsUsed]);
+
+    const handleProceedToCFA = useCallback(() => {
+        if (onProceedToCFA) {
+            onProceedToCFA(suggestedFactors);
+        }
+    }, [onProceedToCFA, suggestedFactors]);
 
     return (
         <div className="space-y-6">
@@ -212,7 +218,7 @@ export const EFAResults = React.memo(function EFAResults({ results, columns, onP
                                 Tiếp tục với <strong>CFA (Confirmatory Factor Analysis)</strong> để xác nhận mô hình này?
                             </p>
                             <button
-                                onClick={() => onProceedToCFA(suggestedFactors)}
+                                onClick={handleProceedToCFA}
                                 className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2"
                             >
                                 <span>Xác nhận bằng CFA ({suggestedFactors.length} factors)</span>
@@ -224,4 +230,4 @@ export const EFAResults = React.memo(function EFAResults({ results, columns, onP
             )}
         </div>
     );
-});\r\n\r\nexport default EFAResults;
+}); \r\n\r\nexport default EFAResults;

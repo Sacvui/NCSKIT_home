@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import TemplateInterpretation from '@/components/TemplateInterpretation';
 
@@ -34,6 +34,12 @@ export const CronbachResults = React.memo(function CronbachResults({
             .map((item: any, idx: number) => columns?.[idx] || item.itemName),
         [itemTotalStats, columns]
     );
+
+    const handleProceedToEFA = useCallback(() => {
+        if (onProceedToEFA) {
+            onProceedToEFA(goodItems);
+        }
+    }, [onProceedToEFA, goodItems]);
 
     return (
         <div className="space-y-8 font-sans text-gray-900">
@@ -127,7 +133,7 @@ export const CronbachResults = React.memo(function CronbachResults({
                                 Tiếp tục với <strong>EFA (Exploratory Factor Analysis)</strong> để khám phá cấu trúc nhân tố tiềm ẩn?
                             </p>
                             <button
-                                onClick={() => onProceedToEFA(goodItems)}
+                                onClick={handleProceedToEFA}
                                 className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2"
                             >
                                 <span>Chạy EFA với {goodItems.length} items tốt</span>
@@ -146,4 +152,4 @@ export const CronbachResults = React.memo(function CronbachResults({
             />
         </div>
     );
-});\r\n\r\nexport default CronbachResults;
+}); \r\n\r\nexport default CronbachResults;

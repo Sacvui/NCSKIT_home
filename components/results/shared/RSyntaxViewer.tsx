@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Code, Copy, Check } from 'lucide-react';
 
@@ -25,13 +25,13 @@ export function RSyntaxViewer({ code, userProfile }: RSyntaxViewerProps) {
     // Check if user has researcher or admin role
     const isResearcher = userProfile?.role === 'researcher' || userProfile?.role === 'admin';
 
-    const handleCopy = () => {
+    const handleCopy = useCallback(() => {
         navigator.clipboard.writeText(code);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
-    };
+    }, [code]);
 
-    const handleUnlock = async () => {
+    const handleUnlock = useCallback(async () => {
         if (!secretCode.trim()) {
             setUnlockError('Vui lòng nhập mã bí mật');
             return;
@@ -60,7 +60,7 @@ export function RSyntaxViewer({ code, userProfile }: RSyntaxViewerProps) {
         } finally {
             setIsUnlocking(false);
         }
-    };
+    }, [secretCode]);
 
     // If not researcher, show locked state
     if (!isResearcher) {
@@ -78,7 +78,7 @@ export function RSyntaxViewer({ code, userProfile }: RSyntaxViewerProps) {
                             </span>
                         </div>
                         <button
-                            onClick={() => setShowUnlockModal(true)}
+                            onClick={useCallback(() => setShowUnlockModal(true), [])}
                             className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white text-xs font-medium rounded-md transition-colors"
                         >
                             Mở khóa
@@ -112,11 +112,11 @@ export function RSyntaxViewer({ code, userProfile }: RSyntaxViewerProps) {
                             )}
                             <div className="flex gap-3 mt-4">
                                 <button
-                                    onClick={() => {
+                                    onClick={useCallback(() => {
                                         setShowUnlockModal(false);
                                         setSecretCode('');
                                         setUnlockError('');
-                                    }}
+                                    }, [])}
                                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
                                 >
                                     Hủy
@@ -140,7 +140,7 @@ export function RSyntaxViewer({ code, userProfile }: RSyntaxViewerProps) {
         <Card className="border-blue-200 bg-blue-50/50 print:hidden">
             <div
                 className="cursor-pointer select-none"
-                onClick={() => setExpanded(!expanded)}
+                onClick={useCallback(() => setExpanded(!expanded), [expanded])}
             >
                 <CardHeader className="py-3 px-4 flex flex-row items-center justify-between space-y-0">
                     <div className="flex items-center gap-2">

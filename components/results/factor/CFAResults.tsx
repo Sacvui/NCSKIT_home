@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 interface CFAResultsProps {
@@ -33,6 +33,12 @@ export const CFAResults = React.memo(function CFAResults({ results, onProceedToS
         fitMeasures.cfi >= 0.9 && fitMeasures.rmsea <= 0.08,
         [fitMeasures.cfi, fitMeasures.rmsea]
     );
+
+    const handleProceedToSEM = useCallback(() => {
+        if (onProceedToSEM) {
+            onProceedToSEM(factors);
+        }
+    }, [onProceedToSEM, factors]);
 
     // Helper to color fit indices
     const getFitColor = (val: number, type: 'high' | 'low') => {
@@ -173,7 +179,7 @@ export const CFAResults = React.memo(function CFAResults({ results, onProceedToS
                                 Tiếp tục với <strong>SEM (Structural Equation Modeling)</strong> để kiểm định mối quan hệ nhân quả giữa các nhân tố?
                             </p>
                             <button
-                                onClick={() => onProceedToSEM(factors)}
+                                onClick={handleProceedToSEM}
                                 className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2"
                             >
                                 <span>Xây dựng SEM với {factors.length} factors</span>
@@ -185,4 +191,4 @@ export const CFAResults = React.memo(function CFAResults({ results, onProceedToS
             )}
         </div>
     );
-});\r\n\r\nexport default CFAResults;
+}); \r\n\r\nexport default CFAResults;
