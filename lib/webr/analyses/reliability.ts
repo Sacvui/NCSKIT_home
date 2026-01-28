@@ -43,12 +43,18 @@ export async function runCronbachAlpha(
     
     # === McDonald's Omega (more robust than Alpha) ===
     # omega() requires at least 3 items
+    # === McDonald's Omega (Robust) ===
+    # omega() can complain with 1 factor or small item counts
     omega_result <- tryCatch({
         if (ncol(data) >= 3) {
-            om <- omega(data, nfactors = 1, plot = FALSE, warnings = FALSE, check.keys = TRUE)
+            # Use suppressWarnings/Messages to silence "Omega_h for 1 factor is not meaningful"
+            om <- suppressWarnings(suppressMessages(
+                omega(data, nfactors = 1, plot = FALSE, check.keys = TRUE)
+            ))
+            
             list(
-                omega_total = om$omega.tot,
-                omega_h = om$omega_h
+                omega_total = if(is.numeric(om$omega.tot)) om$omega.tot else NA,
+                omega_h = if(is.numeric(om$omega_h)) om$omega_h else NA
             )
         } else {
             list(omega_total = NA, omega_h = NA)
@@ -149,16 +155,31 @@ export async function runEFA(data: number[][], nFactors: number, rotation: strin
     library(psych)
     raw_data <- matrix(c(${data.flat().join(',')}), nrow = ${data.length}, byrow = TRUE)
     
-    # Clean Data
+    # Clean Data (Robust approach)
     df <- as.data.frame(raw_data)
-    df_clean <- na.omit(df)
-    df_clean <- df_clean[apply(df_clean, 1, function(x) all(is.finite(x))), ]
-
-    if (nrow(df_clean) < ncol(df_clean)) { stop("Lỗi: Số lượng mẫu hợp lệ nhỏ hơn số lượng biến.") }
-    if (nrow(df_clean) < 3) { stop("Quá ít dữ liệu hợp lệ để chạy phân tích.") }
-    if (any(apply(df_clean, 2, sd) == 0)) { stop("Biến có phương sai bằng 0. Hãy loại bỏ biến này.") }
-
-    cor_mat <- cor(df_clean)
+    
+    # Check if extensive missing data exists
+    n_rows_total <- nrow(df)
+    n_complete <- sum(complete.cases(df))
+    
+    # Use pairwise correlation to handle missing data better
+    # instead of listwise deletion (na.omit) which loses too much data
+    cor_mat <- tryCatch({
+        cor(df, use = "pairwise.complete.obs")
+    }, error = function(e) {
+        # Fallback to listwise if pairwise fails
+        cor(na.omit(df))
+    })
+    
+    # Basic validation
+    if (any(is.na(cor_mat))) { 
+        stop("Lỗi: Dữ liệu có quá nhiều giá trị khuyết (NA) dẫn đến ma trận tương quan không hợp lệ.") 
+    }
+    
+    # Only stop if we really have too few observations to trust ANY correlation
+    # We define "too few" as < 3 observations for any pair
+    if (n_rows_total < 3) { stop("Quá ít dữ liệu (nhỏ hơn 3 mẫu).") }
+    
     eigenvalues <- eigen(cor_mat)$values
 
     # PARALLEL ANALYSIS

@@ -1,6 +1,27 @@
-import React from 'react';
+import {
+    Chart as ChartJS,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend,
+    type ChartOptions
+} from 'chart.js';
 import { Bar, Line, Scatter } from 'react-chartjs-2';
-import type { ChartOptions } from 'chart.js';
+
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    LineElement,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend
+);
 
 interface ChartWrapperProps {
     type: 'bar' | 'line' | 'scatter';

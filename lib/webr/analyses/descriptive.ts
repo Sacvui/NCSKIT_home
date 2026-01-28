@@ -16,13 +16,13 @@ export function validateData(data: number[][], minVars: number = 1, functionName
         throw new Error(`${functionName}: Cần ít nhất ${minVars} biến`);
     }
 
-    // Check for invalid values (NaN, Infinity)
-    const hasInvalid = data.some(row =>
-        row.some(val => !isFinite(val))
+    // Check for invalid values (Infinity only, allow NaN/null/undefined for R to handle as NA)
+    const hasInfinity = data.some(row =>
+        row.some(val => val === Infinity || val === -Infinity)
     );
 
-    if (hasInvalid) {
-        throw new Error(`${functionName}: Dữ liệu chứa giá trị không hợp lệ(NaN hoặc Infinity)`);
+    if (hasInfinity) {
+        throw new Error(`${functionName}: Dữ liệu chứa giá trị vô cực (Infinity)`);
     }
 
     // Check for constant columns (zero variance)
@@ -60,15 +60,15 @@ export async function runDescriptiveStats(data: number[][]): Promise<{
     desc <- describe(df)
     
     list(
-        mean = desc$mean,
-        sd = desc$sd,
-        min = desc$min,
-        max = desc$max,
-        median = desc$median,
-        n = desc$n,
-        skew = desc$skew,
-        kurtosis = desc$kurtosis,
-        se = desc$se
+        mean = as.numeric(desc$mean),
+        sd = as.numeric(desc$sd),
+        min = as.numeric(desc$min),
+        max = as.numeric(desc$max),
+        median = as.numeric(desc$median),
+        n = as.numeric(desc$n),
+        skew = as.numeric(desc$skew),
+        kurtosis = as.numeric(desc$kurtosis),
+        se = as.numeric(desc$se)
     )
     `;
 

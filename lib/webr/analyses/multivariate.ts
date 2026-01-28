@@ -158,16 +158,16 @@ export async function runTwoWayANOVA(
     
     list(
         terms = trimws(rownames(res)),
-        df = res[,"Df"],
-        sum_sq = res[,"Sum Sq"],
-        mean_sq = res[,"Mean Sq"],
-        f_val = res[,"F value"],
-        p_val = res[,"Pr(>F)"],
+        df = as.numeric(res[,"Df"]),
+        sum_sq = as.numeric(res[,"Sum Sq"]),
+        mean_sq = as.numeric(res[,"Mean Sq"]),
+        f_val = as.numeric(res[,"F value"]),
+        p_val = as.numeric(res[,"Pr(>F)"]),
         
         # Interaction Plot Data
         int_f1 = as.character(int_means$f1),
         int_f2 = as.character(int_means$f2),
-        int_y = int_means$y
+        int_y = as.numeric(int_means$y)
     )
     `;
 

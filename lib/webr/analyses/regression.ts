@@ -78,23 +78,23 @@ export async function runLinearRegression(data: number[][], names: string[]): Pr
 
     list(
         coef_names = rownames(coefs),
-        estimates = coefs[, 1],
-        std_betas = std_betas,
-        std_errors = coefs[, 2],
-        t_values = coefs[, 3],
-        p_values = coefs[, 4],
-        r_squared = s$r.squared,
-        adj_r_squared = s$adj.r.squared,
-        f_stat = f_val,
-        df_num = df_num,
-        df_denom = df_denom,
-        f_p_value = f_p_value,
-        sigma = s$sigma,
-        fitted_values = fitted(model),
-        residuals = residuals(model),
-        actual_values = df[, 1],
-        vifs = vif_vals,
-        normality_p = normality_p
+        estimates = as.vector(coefs[, 1]),
+        std_betas = as.vector(std_betas),
+        std_errors = as.vector(coefs[, 2]),
+        t_values = as.vector(coefs[, 3]),
+        p_values = as.vector(coefs[, 4]),
+        r_squared = as.numeric(s$r.squared),
+        adj_r_squared = as.numeric(s$adj.r.squared),
+        f_stat = as.numeric(f_val),
+        df_num = as.numeric(df_num),
+        df_denom = as.numeric(df_denom),
+        f_p_value = as.numeric(f_p_value),
+        sigma = as.numeric(s$sigma),
+        fitted_values = as.vector(fitted(model)),
+        residuals = as.vector(residuals(model)),
+        actual_values = as.vector(df[, 1]),
+        vifs = as.vector(vif_vals),
+        normality_p = as.numeric(normality_p)
     )
     `;
 

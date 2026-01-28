@@ -297,30 +297,34 @@ export async function runOneWayANOVA(groups: number[][]): Promise<{
         p_val <- welch_result$p.value
         method_used <- "Welch ANOVA"
         
-        eta_squared <- (f_stat * df_between) / (f_stat * df_between + df_within)
+        # Calculate Eta Squared (approximate for Welch)
+        # Note: Eta squared is tricky with Welch, using raw SS from standard ANOVA as approximation or omitting
+        model_temp <- aov(values ~ groups)
+        ssb <- summary(model_temp)[[1]][1, 2]
+        sst <- ssb + summary(model_temp)[[1]][2, 2]
+        eta_squared <- ssb / sst
         
         # Run Games-Howell
         gh <- run_games_howell(values, groups)
         ph_comparisons <- gh$comparisons
         ph_diffs <- gh$diffs
         ph_padj <- gh$p_adjs
-        posthoc_warning <- "Variance unequal (Levene p < 0.05). Used Welch ANOVA & Games-Howell Post-hoc."
-        
-        model <- aov(values ~ groups) # Just for residuals
-        resids <- residuals(model)
+        posthoc_warning <- "Phương sai không đồng nhất (Levene p < 0.05). Sử dụng Welch ANOVA & Games-Howell Post-hoc."
         
     } else {
         # === EQUAL VARIANCE -> CLASSIC ANOVA + TUKEY HSD ===
         model <- aov(values ~ groups)
         result_sum <- summary(model)[[1]]
-        f_stat <- result_sum[1, 4]
-        df_between <- result_sum[1, 1]
-        df_within <- result_sum[2, 1]
-        p_val <- result_sum[1, 5]
+        
+        # Ensure we extract simple scalars, not named vectors
+        f_stat <- as.numeric(result_sum[1, "F value"])
+        df_between <- as.numeric(result_sum[1, "Df"])
+        df_within <- as.numeric(result_sum[2, "Df"])
+        p_val <- as.numeric(result_sum[1, "Pr(>F)"])
         method_used <- "Classic ANOVA"
         
-        ssb <- result_sum[1, 2]
-        sst <- ssb + result_sum[2, 2]
+        ssb <- result_sum[1, "Sum Sq"]
+        sst <- ssb + result_sum[2, "Sum Sq"]
         eta_squared <- ssb / sst
         resids <- residuals(model)
         
@@ -329,8 +333,11 @@ export async function runOneWayANOVA(groups: number[][]): Promise<{
         ph_comparisons <- rownames(tukey_result)
         ph_diffs <- tukey_result[, "diff"]
         ph_padj <- tukey_result[, "p adj"]
-        posthoc_warning <- "Variance equal. Used Classic ANOVA & Tukey HSD."
+        posthoc_warning <- "Phương sai đồng nhất. Sử dụng Classic ANOVA & Tukey HSD."
     }
+    
+    model_resid <- aov(values ~ groups)
+    resids <- residuals(model_resid)
     
     shapiro_resid_p <- tryCatch({
         if (length(resids) >= 3 && length(resids) <= 5000) shapiro.test(resids)$p.value else NA
@@ -339,14 +346,14 @@ export async function runOneWayANOVA(groups: number[][]): Promise<{
     groupMeans <- tapply(values, groups, mean)
     
     list(
-        F = f_stat,
-        dfBetween = df_between,
-        dfWithin = df_within,
-        pValue = p_val,
+        F = as.numeric(f_stat),
+        dfBetween = as.numeric(df_between),
+        dfWithin = as.numeric(df_within),
+        pValue = as.numeric(p_val),
         groupMeans = as.numeric(groupMeans),
-        grandMean = mean(values),
-        etaSquared = eta_squared,
-        leveneP = levene_p,
+        grandMean = mean(values, na.rm=TRUE),
+        etaSquared = as.numeric(eta_squared),
+        leveneP = as.numeric(levene_p),
         normalityResidP = if(is.na(shapiro_resid_p)) -1 else shapiro_resid_p,
         methodUsed = method_used,
         postHocWarning = posthoc_warning,

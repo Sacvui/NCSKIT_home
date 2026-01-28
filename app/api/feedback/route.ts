@@ -45,12 +45,20 @@ export async function POST(req: NextRequest) {
             // Config is 50. That's generous. Let's assume 1 per day logic is complex for now.
             // We fully trust the strategy "Góp ý hay - Nhận ngay Token".
 
-            rewardResult = await recordTokenTransaction(
+            // Use Admin version to bypass RLS potentially blocking self-update of tokens
+            // if the user doesn't have explicit update rights on their own profile columns
+            const { recordTokenTransactionAdmin } = await import('@/lib/token-service');
+
+            rewardResult = await recordTokenTransactionAdmin(
                 user.id,
                 POINTS_CONFIG.FEEDBACK,
                 'earn_feedback',
                 'Feedback Reward'
             );
+
+            if (rewardResult?.error) {
+                console.error('Failed to award feedback tokens:', rewardResult.error);
+            }
         }
 
         return NextResponse.json({

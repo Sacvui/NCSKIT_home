@@ -18,6 +18,8 @@ export default function FeedbackWidget() {
 
         setIsSubmitting(true);
         try {
+            console.log('[FeedbackWidget] Submitting:', { type, message, page_url: pathname });
+
             const res = await fetch('/api/feedback', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -29,6 +31,7 @@ export default function FeedbackWidget() {
             });
 
             const data = await res.json();
+            console.log('[FeedbackWidget] Response:', res.status, data);
 
             if (res.ok) {
                 setMessage('');
@@ -41,6 +44,7 @@ export default function FeedbackWidget() {
                 toast.error(data.error || 'Có lỗi xảy ra, vui lòng thử lại.');
             }
         } catch (error) {
+            console.error('[FeedbackWidget] Error:', error);
             toast.error('Không thể gửi phản hồi. Vui lòng kiểm tra mạng.');
         } finally {
             setIsSubmitting(false);
@@ -84,8 +88,8 @@ export default function FeedbackWidget() {
                                 type="button"
                                 onClick={() => setType('bug')}
                                 className={`flex flex-col items-center gap-1 p-2 rounded-xl text-xs font-medium border transition-all ${type === 'bug'
-                                        ? 'bg-red-50 border-red-200 text-red-700'
-                                        : 'bg-slate-50 border-slate-100 text-slate-500 hover:bg-slate-100'
+                                    ? 'bg-red-50 border-red-200 text-red-700'
+                                    : 'bg-slate-50 border-slate-100 text-slate-500 hover:bg-slate-100'
                                     }`}
                             >
                                 <Bug className="w-4 h-4" />
@@ -95,8 +99,8 @@ export default function FeedbackWidget() {
                                 type="button"
                                 onClick={() => setType('idea')}
                                 className={`flex flex-col items-center gap-1 p-2 rounded-xl text-xs font-medium border transition-all ${type === 'idea'
-                                        ? 'bg-amber-50 border-amber-200 text-amber-700'
-                                        : 'bg-slate-50 border-slate-100 text-slate-500 hover:bg-slate-100'
+                                    ? 'bg-amber-50 border-amber-200 text-amber-700'
+                                    : 'bg-slate-50 border-slate-100 text-slate-500 hover:bg-slate-100'
                                     }`}
                             >
                                 <Lightbulb className="w-4 h-4" />
@@ -106,8 +110,8 @@ export default function FeedbackWidget() {
                                 type="button"
                                 onClick={() => setType('other')}
                                 className={`flex flex-col items-center gap-1 p-2 rounded-xl text-xs font-medium border transition-all ${type === 'other'
-                                        ? 'bg-blue-50 border-blue-200 text-blue-700'
-                                        : 'bg-slate-50 border-slate-100 text-slate-500 hover:bg-slate-100'
+                                    ? 'bg-blue-50 border-blue-200 text-blue-700'
+                                    : 'bg-slate-50 border-slate-100 text-slate-500 hover:bg-slate-100'
                                     }`}
                             >
                                 <Heart className="w-4 h-4" />

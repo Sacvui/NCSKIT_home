@@ -58,7 +58,7 @@ export function parseMatrix(val: any, dim: number): number[][] {
 /**
  * Convert JS array to R matrix string
  */
-export function arrayToRMatrix(data: number[][]): string {
-    const flat = data.flat();
+export function arrayToRMatrix(data: (number | null | undefined)[][]): string {
+    const flat = data.flat().map(v => (v === null || v === undefined || isNaN(v as number)) ? 'NA' : v);
     return `matrix(c(${flat.join(',')}), nrow=${data.length}, byrow=TRUE)`;
 }
