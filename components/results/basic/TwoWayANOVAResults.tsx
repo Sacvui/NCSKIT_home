@@ -102,4 +102,6 @@ export const TwoWayANOVAResults = React.memo(function TwoWayANOVAResults({ resul
             </div>
         </div>
     );
-});\r\n\r\nexport default TwoWayANOVAResults;
+});
+
+export default TwoWayANOVAResults;

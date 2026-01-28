@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from './ui/Card';
+import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import { Plus, Trash2, ArrowRight, ArrowDown } from 'lucide-react';
 
 interface SEMSelectionProps {

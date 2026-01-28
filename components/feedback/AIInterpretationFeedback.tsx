@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { FeedbackService, AIFeedbackData } from '@/lib/feedback-service';
 import { Star, MessageSquarePlus, Check, Send } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface AIInterpretationFeedbackProps {
     analysisType: string;

@@ -152,4 +152,6 @@ export const CronbachResults = React.memo(function CronbachResults({
             />
         </div>
     );
-}); \r\n\r\nexport default CronbachResults;
+});
+
+export default CronbachResults;

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, lazy, Suspense } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
+import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { AIInterpretation } from './AIInterpretation';
 import { TemplateInterpretation } from './TemplateInterpretation';
 import SEMPathDiagram from './SEMPathDiagram';

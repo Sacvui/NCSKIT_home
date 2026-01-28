@@ -75,4 +75,6 @@ export const PairedTTestResults = React.memo(function PairedTTestResults({ resul
             </div>
         </div>
     );
-});\r\n\r\nexport default PairedTTestResults;
+});
+
+export default PairedTTestResults;

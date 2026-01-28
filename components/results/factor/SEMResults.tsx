@@ -196,4 +196,6 @@ export const SEMResults = React.memo(function SEMResults({ results }: SEMResults
             )}
         </div>
     );
-});\r\n\r\nexport default SEMResults;
+});
+
+export default SEMResults;

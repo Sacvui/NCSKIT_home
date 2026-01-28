@@ -216,4 +216,6 @@ export const RegressionResults = React.memo(function RegressionResults({ results
             )}
         </div>
     );
-});\r\n\r\nexport default RegressionResults;
+});
+
+export default RegressionResults;

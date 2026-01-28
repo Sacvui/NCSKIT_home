@@ -107,4 +107,6 @@ export const ChiSquareResults = React.memo(function ChiSquareResults({ results }
             </div>
         </div>
     );
-});\r\n\r\nexport default ChiSquareResults;
+});
+
+export default ChiSquareResults;

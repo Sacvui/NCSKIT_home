@@ -85,4 +85,6 @@ export const CorrelationResults = React.memo(function CorrelationResults({ resul
             <p className="text-xs text-gray-500 italic mt-1">* Màu sắc đậm nhạt thể hiện mức độ tương quan.</p>
         </div>
     );
-});\r\n\r\nexport default CorrelationResults;
+});
+
+export default CorrelationResults;

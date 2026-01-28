@@ -99,4 +99,6 @@ export const DescriptiveResults = React.memo(function DescriptiveResults({ resul
             </Card>
         </div>
     );
-});\r\n\r\nexport default DescriptiveResults;
+});
+
+export default DescriptiveResults;

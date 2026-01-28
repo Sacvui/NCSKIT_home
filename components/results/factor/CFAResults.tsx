@@ -191,4 +191,6 @@ export const CFAResults = React.memo(function CFAResults({ results, onProceedToS
             )}
         </div>
     );
-}); \r\n\r\nexport default CFAResults;
+});
+
+export default CFAResults;

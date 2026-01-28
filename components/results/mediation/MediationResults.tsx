@@ -88,4 +88,6 @@ export const MediationResults = React.memo(function MediationResults({ results, 
             </div>
         </div>
     );
-});\r\n\r\nexport default MediationResults;
+});
+
+export default MediationResults;

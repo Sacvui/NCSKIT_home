@@ -90,4 +90,6 @@ export const ClusterResults = React.memo(function ClusterResults({ results, colu
             </div>
         </div>
     );
-});\r\n\r\nexport default ClusterResults;
+});
+
+export default ClusterResults;

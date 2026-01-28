@@ -230,4 +230,6 @@ export const EFAResults = React.memo(function EFAResults({ results, columns, onP
             )}
         </div>
     );
-}); \r\n\r\nexport default EFAResults;
+});
+
+export default EFAResults;

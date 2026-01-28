@@ -95,4 +95,6 @@ export const LogisticResults = React.memo(function LogisticResults({ results, co
             </Card>
         </div>
     );
-});\r\n\r\nexport default LogisticResults;
+});
+
+export default LogisticResults;

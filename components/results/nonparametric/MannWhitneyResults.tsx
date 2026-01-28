@@ -69,4 +69,6 @@ export const MannWhitneyResults = React.memo(function MannWhitneyResults({ resul
             </div>
         </div>
     );
-});\r\n\r\nexport default MannWhitneyResults;
+});
+
+export default MannWhitneyResults;

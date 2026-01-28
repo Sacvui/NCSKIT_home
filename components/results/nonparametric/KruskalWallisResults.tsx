@@ -73,4 +73,6 @@ export const KruskalWallisResults = React.memo(function KruskalWallisResults({ r
             </div>
         </div>
     );
-});\r\n\r\nexport default KruskalWallisResults;
+});
+
+export default KruskalWallisResults;

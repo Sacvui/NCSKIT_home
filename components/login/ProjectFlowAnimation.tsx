@@ -9,7 +9,7 @@ import {
     Layers,
     CheckCircle2
 } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
+import { Card } from '@/components/ui/card';
 
 export function ProjectFlowAnimation() {
     // 0: Data Import

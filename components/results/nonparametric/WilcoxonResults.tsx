@@ -57,4 +57,6 @@ export const WilcoxonResults = React.memo(function WilcoxonResults({ results }: 
             </div>
         </div>
     );
-});\r\n\r\nexport default WilcoxonResults;
+});
+
+export default WilcoxonResults;

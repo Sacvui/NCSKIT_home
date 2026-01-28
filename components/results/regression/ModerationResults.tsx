@@ -94,4 +94,6 @@ export const ModerationResults = React.memo(function ModerationResults({ results
             </div>
         </div>
     );
-});\r\n\r\nexport default ModerationResults;
+});
+
+export default ModerationResults;

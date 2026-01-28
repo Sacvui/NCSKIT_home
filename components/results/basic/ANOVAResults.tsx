@@ -100,4 +100,6 @@ export const ANOVAResults = React.memo(function ANOVAResults({ results, columns 
             </div>
         </div>
     );
-});\r\n\r\nexport default ANOVAResults;
+});
+
+export default ANOVAResults;
