@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/react"
 import { AuthProvider } from "@/context/AuthContext"
+import { LanguageProvider } from "@/context/LanguageContext"
 import FeedbackWidget from "@/components/feedback/FeedbackWidget"
 import ClientToaster from "@/components/ui/ClientToaster"
 import "./globals.css";
@@ -24,12 +25,14 @@ export default function RootLayout({
   return (
     <html lang="vi">
       <body className={inter.className}>
-        <AuthProvider>
-          {children}
-          <Analytics />
-          <FeedbackWidget />
-          <ClientToaster />
-        </AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            {children}
+            <Analytics />
+            <FeedbackWidget />
+            <ClientToaster />
+          </AuthProvider>
+        </LanguageProvider>
       </body>
     </html>
   );
