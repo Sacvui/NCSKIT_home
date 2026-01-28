@@ -143,32 +143,9 @@ export function useRBAC(): UseRBACReturn {
 }
 
 /**
- * Server-side permission check
+ * Server-side permission check logic has been moved to './rbac-server.ts'
+ * to avoid importing 'next/headers' in a client component.
  */
-export async function checkPermissionServer(
-    userId: string,
-    permission: PermissionId
-): Promise<boolean> {
-    const { createClient } = await import('@/utils/supabase/server');
-    const supabase = await createClient();
-
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', userId)
-        .single();
-
-    if (!profile?.role) return false;
-
-    let userRole: UserRole = 'student';
-    if (['user', 'researcher', 'admin'].includes(profile.role)) {
-        userRole = mapLegacyRole(profile.role);
-    } else if (profile.role in USER_ROLES) {
-        userRole = profile.role as UserRole;
-    }
-
-    return hasPermission(userRole, permission);
-}
 
 /**
  * Update user role (admin only)
