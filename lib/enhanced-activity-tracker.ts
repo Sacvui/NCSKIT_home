@@ -280,20 +280,20 @@ export async function getUserActivitySummary(userId: string): Promise<UserActivi
             .single();
 
         // Calculate metrics
-        const sessionActivities = activities.filter(a =>
+        const sessionActivities = activities.filter((a: any) =>
             a.action_type === 'session_end' || a.action_type === 'session_heartbeat'
         );
 
-        const totalTimeInApp = sessionActivities.reduce((sum, a) => {
+        const totalTimeInApp = sessionActivities.reduce((sum: number, a: any) => {
             const duration = a.action_details?.session_duration_seconds || 0;
             return sum + duration;
         }, 0);
 
-        const sessions = activities.filter(a => a.action_type === 'session_start').length;
+        const sessions = activities.filter((a: any) => a.action_type === 'session_start').length;
 
-        const analyses = activities.filter(a => a.action_type === 'analysis_complete');
+        const analyses = activities.filter((a: any) => a.action_type === 'analysis_complete');
         const analysesByType: Record<string, number> = {};
-        analyses.forEach(a => {
+        analyses.forEach((a: any) => {
             const type = a.action_details?.analysis_type || 'unknown';
             analysesByType[type] = (analysesByType[type] || 0) + 1;
         });
@@ -306,19 +306,19 @@ export async function getUserActivitySummary(userId: string): Promise<UserActivi
             lastActiveAt: profile?.last_active || null,
             totalAnalyses: analyses.length,
             analysesByType,
-            totalExports: activities.filter(a => a.action_type === 'export_complete').length,
-            totalUploads: activities.filter(a => a.action_type === 'data_upload').length,
+            totalExports: activities.filter((a: any) => a.action_type === 'export_complete').length,
+            totalUploads: activities.filter((a: any) => a.action_type === 'data_upload').length,
             tokensEarned: profile?.total_earned || 0,
             tokensSpent: profile?.total_spent || 0,
             tokensBalance: profile?.tokens || 0,
-            tokenTransactions: activities.filter(a =>
+            tokenTransactions: activities.filter((a: any) =>
                 a.action_type === 'tokens_earned' ||
                 a.action_type === 'tokens_spent' ||
                 a.action_type === 'tokens_adjusted'
             ).length,
-            feedbackCount: activities.filter(a => a.action_type === 'feedback_submit').length,
-            invitesSent: activities.filter(a => a.action_type === 'invite_sent').length,
-            invitesAccepted: activities.filter(a => a.action_type === 'invite_accepted').length,
+            feedbackCount: activities.filter((a: any) => a.action_type === 'feedback_submit').length,
+            invitesSent: activities.filter((a: any) => a.action_type === 'invite_sent').length,
+            invitesAccepted: activities.filter((a: any) => a.action_type === 'invite_accepted').length,
         };
     } catch (err) {
         console.error('[ActivityTracker] Error getting summary:', err);
@@ -370,35 +370,35 @@ export async function getGlobalActivityStats(
         };
     }
 
-    const uniqueUsers = new Set(activities.map(a => a.user_id));
+    const uniqueUsers = new Set(activities.map((a: any) => a.user_id));
 
     const totalTimeSeconds = activities
-        .filter(a => a.action_type === 'session_end')
-        .reduce((sum, a) => sum + (a.action_details?.session_duration_seconds || 0), 0);
+        .filter((a: any) => a.action_type === 'session_end')
+        .reduce((sum: number, a: any) => sum + (a.action_details?.session_duration_seconds || 0), 0);
 
-    const analyses = activities.filter(a => a.action_type === 'analysis_complete');
+    const analyses = activities.filter((a: any) => a.action_type === 'analysis_complete');
     const analysesByType: Record<string, number> = {};
-    analyses.forEach(a => {
+    analyses.forEach((a: any) => {
         const type = a.action_details?.analysis_type || 'unknown';
         analysesByType[type] = (analysesByType[type] || 0) + 1;
     });
 
     const tokensEarned = activities
-        .filter(a => a.action_type === 'tokens_earned')
-        .reduce((sum, a) => sum + (a.action_details?.tokens_amount || 0), 0);
+        .filter((a: any) => a.action_type === 'tokens_earned')
+        .reduce((sum: number, a: any) => sum + (a.action_details?.tokens_amount || 0), 0);
 
     const tokensSpent = activities
-        .filter(a => a.action_type === 'tokens_spent')
-        .reduce((sum, a) => sum + (a.action_details?.tokens_amount || 0), 0);
+        .filter((a: any) => a.action_type === 'tokens_spent')
+        .reduce((sum: number, a: any) => sum + (a.action_details?.tokens_amount || 0), 0);
 
     return {
-        totalSessions: activities.filter(a => a.action_type === 'session_start').length,
+        totalSessions: activities.filter((a: any) => a.action_type === 'session_start').length,
         totalTimeInAppHours: Math.round(totalTimeSeconds / 3600 * 10) / 10,
         totalAnalyses: analyses.length,
         analysesByType,
         totalTokensEarned: tokensEarned,
         totalTokensSpent: tokensSpent,
         activeUsers: uniqueUsers.size,
-        newSignups: activities.filter(a => a.action_type === 'signup').length,
+        newSignups: activities.filter((a: any) => a.action_type === 'signup').length,
     };
 }
