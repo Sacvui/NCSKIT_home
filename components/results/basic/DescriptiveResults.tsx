@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Bar } from 'react-chartjs-2';
+import { ChartWrapper } from '../shared/ChartWrapper';
 
 interface DescriptiveResultsProps {
     results: any;
@@ -58,7 +58,8 @@ export const DescriptiveResults = React.memo(function DescriptiveResults({ resul
                 </CardHeader>
                 <CardContent>
                     <div className="h-80 w-full">
-                        <Bar
+                        <ChartWrapper
+                            type="bar"
                             data={{
                                 labels: columns,
                                 datasets: [{
@@ -71,26 +72,8 @@ export const DescriptiveResults = React.memo(function DescriptiveResults({ resul
                                 }]
                             }}
                             options={{
-                                responsive: true,
-                                maintainAspectRatio: false,
                                 plugins: {
-                                    legend: { display: false },
-                                    tooltip: {
-                                        backgroundColor: 'rgba(17, 24, 39, 0.9)',
-                                        padding: 12,
-                                        cornerRadius: 8,
-                                    }
-                                },
-                                scales: {
-                                    y: {
-                                        beginAtZero: true,
-                                        grid: { color: '#f3f4f6' },
-                                        ticks: { font: { size: 11 } }
-                                    },
-                                    x: {
-                                        grid: { display: false },
-                                        ticks: { font: { size: 11 } }
-                                    }
+                                    legend: { display: false }
                                 }
                             }}
                         />
