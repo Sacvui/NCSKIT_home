@@ -1,2 +1,0 @@
-app/analyze/page.tsx(2411,51): error TS2451: Cannot redeclare block-scoped variable 'cols'.
-app/analyze/page.tsx(2423,51): error TS2451: Cannot redeclare block-scoped variable 'cols'.
