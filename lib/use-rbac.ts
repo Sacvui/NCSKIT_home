@@ -55,7 +55,7 @@ export function useRBAC(): UseRBACReturn {
                     isLoading: false,
                     userId: null,
                     role: 'guest',
-                    permissions: USER_ROLES.guest.permissions,
+                    permissions: [...USER_ROLES.guest.permissions],
                     tokenMultiplier: 0,
                     dailyLimit: 0,
                 });
@@ -86,7 +86,7 @@ export function useRBAC(): UseRBACReturn {
                 isLoading: false,
                 userId: user.id,
                 role: userRole,
-                permissions: roleConfig.permissions,
+                permissions: [...roleConfig.permissions],
                 tokenMultiplier: roleConfig.tokenMultiplier,
                 dailyLimit: roleConfig.dailyLimit,
             });
@@ -197,7 +197,7 @@ export async function getUsersWithRoles(): Promise<{
         return [];
     }
 
-    return data.map(user => {
+    return data.map((user: any) => {
         let role: UserRole = 'student';
         if (user.role) {
             if (['user', 'researcher', 'admin'].includes(user.role)) {
