@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { AnalysisSelector } from '@/components/AnalysisSelector';
-import { useAnalyzeState, useAnalyzeActions } from '../context/AnalyzeContext';
-import { useAnalyzeHandlers } from '../hooks/useAnalyzeHandlers';
+import { useAnalyzeState, useAnalyzeActions } from '../../context/AnalyzeContext';
+import { useAnalyzeHandlers } from '../../hooks/useAnalyzeHandlers';
 import { WebRStatus } from '@/components/WebRStatus';
 
 export function AnalyzeStep() {
@@ -53,7 +53,7 @@ export function AnalyzeStep() {
             )}
 
             <AnalysisSelector
-                onSelect={(type, selectedVars) => runAnalysis(type, selectedVars)}
+                onSelect={(type: string, selectedVars: string[]) => { runAnalysis(type, selectedVars); }}
                 numericColumns={numericColumns}
                 allColumns={allColumns}
                 previousAnalysis={state.previousAnalysis}

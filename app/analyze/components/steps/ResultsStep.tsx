@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { ResultsDisplay } from '@/components/ResultsDisplay';
-import { useAnalyzeState, useAnalyzeActions } from '../context/AnalyzeContext';
-import { useAnalyzeHandlers } from '../hooks/useAnalyzeHandlers';
+import { useAnalyzeState, useAnalyzeActions } from '../../context/AnalyzeContext';
+import { useAnalyzeHandlers } from '../../hooks/useAnalyzeHandlers';
 import { useAuth } from '@/context/AuthContext';
 
 export function ResultsStep() {

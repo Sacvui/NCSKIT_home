@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { DataProfiler } from '@/components/DataProfiler';
-import { useAnalyzeState, useAnalyzeActions } from '../context/AnalyzeContext';
-import { useAnalyzeHandlers } from '../hooks/useAnalyzeHandlers';
+import { useAnalyzeState, useAnalyzeActions } from '../../context/AnalyzeContext';
+import { useAnalyzeHandlers } from '../../hooks/useAnalyzeHandlers';
 
 export function ProfileStep() {
     const state = useAnalyzeState();

@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { FileUpload } from '@/components/FileUpload';
-import { useAnalyzeActions } from '../context/AnalyzeContext';
-import { useAnalyzeHandlers } from '../hooks/useAnalyzeHandlers';
+import { useAnalyzeActions } from '../../context/AnalyzeContext';
+import { useAnalyzeHandlers } from '../../hooks/useAnalyzeHandlers';
 
 export function UploadStep() {
     const { handleDataLoaded } = useAnalyzeHandlers();

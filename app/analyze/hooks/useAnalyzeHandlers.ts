@@ -1,11 +1,62 @@
 'use client';
 
+/**
+ * Analysis Handlers Hook - FIXED VERSION
+ * 
+ * This hook provides handlers that bridge between component state
+ * and the low-level WebR analysis functions.
+ */
+
 import { useCallback } from 'react';
 import { useAnalyze } from '../context/AnalyzeContext';
-import { profileData } from '@/lib/data-profiler';
-import { runDescriptiveStats, runTTestIndependent, runTTestPaired, runOneWayANOVA, runChiSquare, runMannWhitneyU, runCorrelation, runKruskalWallis, runWilcoxonSignedRank, setProgressCallback } from '@/lib/webr-wrapper';
-import { getAnalysisCost, checkBalance, deductCredits } from '@/lib/ncs-credits';
+import { profileData, DataProfile } from '@/lib/data-profiler';
+import {
+    runDescriptiveStats as rawDescriptiveStats,
+    runTTestIndependent as rawTTestIndependent,
+    runTTestPaired as rawTTestPaired,
+    runOneWayANOVA as rawANOVA,
+    runChiSquare as rawChiSquare,
+    runMannWhitneyU as rawMannWhitney,
+    runCorrelation as rawCorrelation,
+    runKruskalWallis as rawKruskalWallis,
+    runWilcoxonSignedRank as rawWilcoxon,
+} from '@/lib/webr-wrapper';
 import { logAnalysisUsage } from '@/lib/activity-logger';
+
+/**
+ * Extract numeric column values from data
+ */
+function getColumnValues(data: any[], columnName: string): number[] {
+    return data.map(row => parseFloat(row[columnName])).filter(v => !isNaN(v));
+}
+
+/**
+ * Create numeric matrix from multiple columns
+ */
+function getColumnsAsMatrix(data: any[], columnNames: string[]): number[][] {
+    return columnNames.map(col => getColumnValues(data, col));
+}
+
+/**
+ * Group data by categorical variable
+ */
+function groupByCategory(data: any[], groupVar: string, valueVars: string[]): number[][] {
+    const groups: { [key: string]: number[] } = {};
+
+    data.forEach(row => {
+        const groupKey = String(row[groupVar]);
+        if (!groups[groupKey]) {
+            groups[groupKey] = [];
+        }
+        // For now, take first value variable
+        const value = parseFloat(row[valueVars[0]]);
+        if (!isNaN(value)) {
+            groups[groupKey].push(value);
+        }
+    });
+
+    return Object.values(groups);
+}
 
 export function useAnalyzeHandlers() {
     const { state, actions } = useAnalyze();
@@ -37,9 +88,9 @@ export function useAnalyzeHandlers() {
     /**
      * Get numeric columns from profile
      */
-    const getNumericColumns = useCallback(() => {
+    const getNumericColumns = useCallback((): string[] => {
         if (!state.profile) return [];
-        return state.profile.columns
+        return Object.values(state.profile.columnStats)
             .filter(col => col.type === 'numeric')
             .map(col => col.name);
     }, [state.profile]);
@@ -47,9 +98,9 @@ export function useAnalyzeHandlers() {
     /**
      * Get all column names from profile
      */
-    const getAllColumns = useCallback(() => {
+    const getAllColumns = useCallback((): string[] => {
         if (!state.profile) return [];
-        return state.profile.columns.map(col => col.name);
+        return Object.keys(state.profile.columnStats);
     }, [state.profile]);
 
     /**
@@ -65,7 +116,7 @@ export function useAnalyzeHandlers() {
     }, [actions]);
 
     /**
-     * Run analysis
+     * Run analysis with proper data transformation
      */
     const runAnalysis = useCallback(async (type: string, selectedVars: string[]) => {
         if (!state.data || state.data.length === 0) {
@@ -74,48 +125,117 @@ export function useAnalyzeHandlers() {
         }
 
         actions.setIsAnalyzing(true);
-        actions.setAnalysisProgress(0);
+        actions.setAnalysisProgress(10);
         actions.setAnalysisType(type);
-
-        // Set progress callback
-        setProgressCallback((progress: number) => {
-            actions.setAnalysisProgress(progress);
-        });
 
         try {
             let result: any = null;
 
             switch (type) {
-                case 'descriptive':
-                    result = await runDescriptiveStats(state.data, selectedVars);
+                case 'descriptive': {
+                    // Descriptive stats expects number[][] matrix
+                    const matrix = getColumnsAsMatrix(state.data, selectedVars);
+                    result = await rawDescriptiveStats(matrix);
                     break;
-                case 'ttest-indep':
-                    result = await runTTestIndependent(state.data, selectedVars[0], selectedVars[1]);
+                }
+
+                case 'ttest-indep': {
+                    // T-test expects two number arrays
+                    const groupVar = selectedVars[0];
+                    const valueVar = selectedVars[1];
+                    const groups = groupByCategory(state.data, groupVar, [valueVar]);
+                    if (groups.length >= 2) {
+                        result = await rawTTestIndependent(groups[0], groups[1]);
+                    } else {
+                        throw new Error('Need at least 2 groups for T-test');
+                    }
                     break;
-                case 'ttest-paired':
-                    result = await runTTestPaired(state.data, selectedVars[0], selectedVars[1]);
+                }
+
+                case 'ttest-paired': {
+                    // Paired T-test expects two number arrays
+                    const before = getColumnValues(state.data, selectedVars[0]);
+                    const after = getColumnValues(state.data, selectedVars[1]);
+                    result = await rawTTestPaired(before, after);
                     break;
-                case 'anova':
-                    result = await runOneWayANOVA(state.data, selectedVars[0], selectedVars.slice(1));
+                }
+
+                case 'anova': {
+                    // ANOVA expects groups as number[][]
+                    const groupVar = selectedVars[0];
+                    const valueVars = selectedVars.slice(1);
+                    const groups = groupByCategory(state.data, groupVar, valueVars);
+                    result = await rawANOVA(groups);
                     break;
-                case 'correlation':
-                    result = await runCorrelation(state.data, selectedVars);
+                }
+
+                case 'correlation': {
+                    // Correlation expects number[][] matrix
+                    const matrix = getColumnsAsMatrix(state.data, selectedVars);
+                    result = await rawCorrelation(matrix, 'pearson');
                     break;
-                case 'chisquare':
-                    result = await runChiSquare(state.data, selectedVars[0], selectedVars[1]);
+                }
+
+                case 'chisquare': {
+                    // Chi-square expects contingency table
+                    // Build contingency table from two categorical variables
+                    const var1 = selectedVars[0];
+                    const var2 = selectedVars[1];
+
+                    // Create cross-tabulation
+                    const crosstab: { [key: string]: { [key: string]: number } } = {};
+                    const rows = new Set<string>();
+                    const cols = new Set<string>();
+
+                    state.data.forEach((row: any) => {
+                        const r = String(row[var1]);
+                        const c = String(row[var2]);
+                        rows.add(r);
+                        cols.add(c);
+                        if (!crosstab[r]) crosstab[r] = {};
+                        crosstab[r][c] = (crosstab[r][c] || 0) + 1;
+                    });
+
+                    const rowArr = Array.from(rows);
+                    const colArr = Array.from(cols);
+                    const table = rowArr.map(r => colArr.map(c => crosstab[r]?.[c] || 0));
+
+                    result = await rawChiSquare(table);
                     break;
-                case 'mann-whitney':
-                    result = await runMannWhitneyU(state.data, selectedVars[0], selectedVars[1]);
+                }
+
+                case 'mann-whitney': {
+                    const groupVar = selectedVars[0];
+                    const valueVar = selectedVars[1];
+                    const groups = groupByCategory(state.data, groupVar, [valueVar]);
+                    if (groups.length >= 2) {
+                        result = await rawMannWhitney(groups[0], groups[1]);
+                    } else {
+                        throw new Error('Need at least 2 groups for Mann-Whitney');
+                    }
                     break;
-                case 'kruskal-wallis':
-                    result = await runKruskalWallis(state.data, selectedVars[0], selectedVars.slice(1));
+                }
+
+                case 'kruskal-wallis': {
+                    const groupVar = selectedVars[0];
+                    const valueVars = selectedVars.slice(1);
+                    const groups = groupByCategory(state.data, groupVar, valueVars);
+                    result = await rawKruskalWallis(groups);
                     break;
-                case 'wilcoxon':
-                    result = await runWilcoxonSignedRank(state.data, selectedVars[0], selectedVars[1]);
+                }
+
+                case 'wilcoxon': {
+                    const before = getColumnValues(state.data, selectedVars[0]);
+                    const after = getColumnValues(state.data, selectedVars[1]);
+                    result = await rawWilcoxon(before, after);
                     break;
+                }
+
                 default:
                     throw new Error(`Unsupported analysis type: ${type}`);
             }
+
+            actions.setAnalysisProgress(80);
 
             if (result) {
                 result.columns = selectedVars;
@@ -123,8 +243,7 @@ export function useAnalyzeHandlers() {
                 actions.setStep('results');
                 actions.showToast('Phân tích hoàn tất!', 'success');
 
-                // Log usage
-                await logAnalysisUsage(type, state.data.length, selectedVars.length);
+                // Note: Activity logging is handled at component level with user context
             }
         } catch (err) {
             handleAnalysisError(err);
@@ -152,8 +271,11 @@ export function useAnalyzeHandlers() {
      * Workflow: Proceed to CFA after EFA
      */
     const handleProceedToCFA = useCallback((factors: { name: string; indicators: string[] }[]) => {
+        // Extract all variables from factors for the variables field
+        const allVariables = factors.flatMap(f => f.indicators);
         actions.setPreviousAnalysis({
             type: 'efa',
+            variables: allVariables,
             factors,
             results: state.results
         });
@@ -165,8 +287,10 @@ export function useAnalyzeHandlers() {
      * Workflow: Proceed to SEM after CFA
      */
     const handleProceedToSEM = useCallback((factors: { name: string; indicators: string[] }[]) => {
+        const allVariables = factors.flatMap(f => f.indicators);
         actions.setPreviousAnalysis({
             type: 'cfa',
+            variables: allVariables,
             factors,
             results: state.results
         });
