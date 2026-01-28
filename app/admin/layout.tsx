@@ -84,13 +84,16 @@ export default function AdminLayout({
                     <NavLink href="/admin/users" icon={<Users className="w-4 h-4" />} active={pathname?.includes('/users')}>
                         Người dùng
                     </NavLink>
+                    <NavLink href="/admin/roles" icon={<ShieldCheck className="w-4 h-4" />} active={pathname?.includes('/roles')}>
+                        Phân quyền (Roles)
+                    </NavLink>
                     <NavLink href="/admin/config" icon={<Settings className="w-4 h-4" />} active={pathname?.includes('/config')}>
                         Cấu hình
                     </NavLink>
                     <NavLink href="/admin/health" icon={<Activity className="w-4 h-4" />} active={pathname?.includes('/health')}>
                         Hệ thống
                     </NavLink>
-                    <NavLink href="/admin/audit" icon={<ShieldCheck className="w-4 h-4" />} active={pathname?.includes('/audit')}>
+                    <NavLink href="/admin/audit" icon={<Shield className="w-4 h-4" />} active={pathname?.includes('/audit')}>
                         Nhật ký (Audit)
                     </NavLink>
                 </nav>

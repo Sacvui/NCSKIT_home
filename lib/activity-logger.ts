@@ -46,10 +46,27 @@ export async function logActivity({
     }
 }
 
+// Debounce cache to prevent duplicate logs
+const loginDebounceCache = new Map<string, number>();
+const DEBOUNCE_MS = 60000; // 60 seconds
+
 /**
- * Log login event
+ * Log login event (with debounce to prevent duplicates)
  */
 export async function logLogin(userId: string): Promise<void> {
+    // Check if we've logged a login for this user recently
+    const lastLoginTime = loginDebounceCache.get(userId);
+    const now = Date.now();
+
+    if (lastLoginTime && (now - lastLoginTime) < DEBOUNCE_MS) {
+        // Skip duplicate login within debounce window
+        console.log('[ActivityLogger] Skipping duplicate login for user:', userId);
+        return;
+    }
+
+    // Update cache
+    loginDebounceCache.set(userId, now);
+
     await logActivity({
         userId,
         actionType: 'login',
