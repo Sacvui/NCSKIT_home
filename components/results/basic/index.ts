@@ -2,6 +2,6 @@
 export { TTestResults } from './TTestResults';
 export { PairedTTestResults } from './PairedTTestResults';
 export { ANOVAResults } from './ANOVAResults';
-// export { TwoWayANOVAResults } from './TwoWayANOVAResults'; // TODO
-// export { DescriptiveResults } from './DescriptiveResults'; // TODO
-// export { CorrelationResults } from './CorrelationResults'; // TODO
+export { CorrelationResults } from './CorrelationResults';
+export { DescriptiveResults } from './DescriptiveResults';
+export { TwoWayANOVAResults } from './TwoWayANOVAResults';
