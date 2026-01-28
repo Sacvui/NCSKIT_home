@@ -47,17 +47,22 @@ export async function POST(req: NextRequest) {
 
             // Use Admin version to bypass RLS potentially blocking self-update of tokens
             // if the user doesn't have explicit update rights on their own profile columns
-            const { recordTokenTransactionAdmin } = await import('@/lib/token-service');
+            try {
+                const { recordTokenTransactionAdmin } = await import('@/lib/token-service');
 
-            rewardResult = await recordTokenTransactionAdmin(
-                user.id,
-                POINTS_CONFIG.FEEDBACK,
-                'earn_feedback',
-                'Feedback Reward'
-            );
+                rewardResult = await recordTokenTransactionAdmin(
+                    user.id,
+                    POINTS_CONFIG.FEEDBACK,
+                    'earn_feedback',
+                    'Feedback Reward'
+                );
 
-            if (rewardResult?.error) {
-                console.error('Failed to award feedback tokens:', rewardResult.error);
+                if (rewardResult?.error) {
+                    console.error('Failed to award feedback tokens:', rewardResult.error);
+                }
+            } catch (rewardErr) {
+                console.error('Error executing reward transaction:', rewardErr);
+                // Non-blocking error for feedback submission
             }
         }
 
@@ -67,10 +72,10 @@ export async function POST(req: NextRequest) {
             points: POINTS_CONFIG.FEEDBACK
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Feedback API error:', error);
         return NextResponse.json(
-            { error: 'Internal Server Error' },
+            { error: error?.message || 'Internal Server Error' },
             { status: 500 }
         );
     }
