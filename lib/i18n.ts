@@ -12,6 +12,11 @@ export const translations = {
             login: 'Đăng nhập',
             logout: 'Đăng xuất'
         },
+        // Beta warning
+        beta: {
+            warning: 'Hệ thống đang trong giai đoạn thử nghiệm (Beta). Vui lòng kiểm tra lại kết quả trước khi sử dụng cho các công bố chính thức.',
+            learnMore: 'Xem miễn trừ trách nhiệm →'
+        },
         // Hero Section
         hero: {
             badge: 'V1.2.0: Beta Version',
@@ -103,6 +108,11 @@ export const translations = {
             profile: 'Researcher Profile',
             login: 'Login',
             logout: 'Logout'
+        },
+        // Beta warning
+        beta: {
+            warning: 'System is in Beta testing phase. Please verify results before using for official publications.',
+            learnMore: 'View disclaimer →'
         },
         // Hero Section
         hero: {
