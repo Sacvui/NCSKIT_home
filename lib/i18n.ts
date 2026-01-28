@@ -14,7 +14,7 @@ export const translations = {
         },
         // Hero Section
         hero: {
-            badge: 'V1.2.0: Stable Release',
+            badge: 'V1.2.0: Beta Version',
             title: 'Giải pháp Thống kê',
             subtitle: 'Chuẩn khoa học cho Nghiên cứu sinh',
             description: 'Nền tảng phân tích dữ liệu chuyên sâu, tích hợp R-Engine mạnh mẽ và Trợ lý AI. Chính xác tuyệt đối, bảo mật tối đa, không cần cài đặt.',
@@ -106,7 +106,7 @@ export const translations = {
         },
         // Hero Section
         hero: {
-            badge: 'V1.2.0: Stable Release',
+            badge: 'V1.2.0: Beta Version',
             title: 'Advanced Statistics',
             subtitle: 'Scientific Standard for Researchers',
             description: 'Professional data analysis platform powered by R-Engine and AI Assistant. Absolute accuracy, maximum security, zero installation.',

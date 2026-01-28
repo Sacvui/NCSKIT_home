@@ -73,6 +73,14 @@ function LoginForm() {
             {/* Left Column: Login Form */}
             <div className="w-full lg:w-1/3 flex items-center justify-center p-8 lg:p-12 border-r border-gray-100 relative z-20 bg-white h-full overflow-y-auto">
                 <div className="w-full max-w-sm space-y-8 py-10">
+                    {/* Beta Disclaimer Banner */}
+                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 text-xs text-orange-800 mb-6 flex items-start gap-2">
+                        <span className="font-bold uppercase bg-orange-200 text-orange-800 px-1.5 py-0.5 rounded text-[10px] flex-shrink-0 mt-0.5">BETA</span>
+                        <p>
+                            Hệ thống đang thử nghiệm. Vui lòng đọc <a href="/legal/disclaimer" target="_blank" className="font-bold underline hover:text-orange-950">Tuyên bố miễn trừ trách nhiệm</a> trước khi sử dụng.
+                        </p>
+                    </div>
+
                     {/* Header */}
                     <div className="text-center">
                         <img className="mx-auto h-16 w-auto mb-6" src="/logo.svg" alt="ncsStat" />
