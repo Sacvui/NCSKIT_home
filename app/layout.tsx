@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { Toaster } from 'react-hot-toast'
 import { Analytics } from "@vercel/analytics/react"
 import { AuthProvider } from "@/context/AuthContext"
 import FeedbackWidget from "@/components/feedback/FeedbackWidget"
+import ClientToaster from "@/components/ui/ClientToaster"
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin", "vietnamese"] });
@@ -28,7 +28,7 @@ export default function RootLayout({
           {children}
           <Analytics />
           <FeedbackWidget />
-          <Toaster />
+          <ClientToaster />
         </AuthProvider>
       </body>
     </html>
