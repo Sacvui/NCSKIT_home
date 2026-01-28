@@ -135,7 +135,7 @@ export default function AnalyzePage() {
         }
     }, [hasSavedData, data.length]);
 
-    // Auto-Save Effect (Debounced 3s)
+    // Auto-Save Effect (Debounced 1 minute for optimal performance)
     useEffect(() => {
         if (data.length > 0) {
             const timer = setTimeout(() => {
@@ -147,9 +147,30 @@ export default function AnalyzePage() {
                     results,
                     analysisType,
                 });
-            }, 3000);
+                console.log('✅ Auto-saved workspace at', new Date().toLocaleTimeString());
+            }, 60000); // 60 seconds (1 minute) - optimal balance between safety and performance
             return () => clearTimeout(timer);
         }
+    }, [data, step, results, analysisType, filename, saveWorkspace]);
+
+    // Save before page unload (critical data protection)
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (data.length > 0) {
+                saveWorkspace({
+                    data,
+                    columns: getNumericColumns(),
+                    fileName: filename,
+                    currentStep: step,
+                    results,
+                    analysisType,
+                });
+                console.log('✅ Saved workspace before page unload');
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
     }, [data, step, results, analysisType, filename, saveWorkspace]);
 
     // Handle Restoration
