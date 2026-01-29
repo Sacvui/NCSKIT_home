@@ -794,7 +794,10 @@ export default function Analyze2Page() {
                                 setResults({ type: 'efa', data: results });
                                 setPhase('results');
                             }}
-                            setStep={setPhase}
+                            setStep={(step) => {
+                                if (step === 'analyze') setPhase('phase1');
+                                else setPhase(step as AnalysisPhase);
+                            }}
                             setNcsBalance={setNcsBalance}
                             showToast={showToast}
                             setRequiredCredits={setRequiredCredits}
@@ -814,7 +817,10 @@ export default function Analyze2Page() {
                                 setResults({ type: 'cfa', data: results });
                                 setPhase('results');
                             }}
-                            setStep={setPhase}
+                            setStep={(step) => {
+                                if (step === 'analyze') setPhase('phase1');
+                                else setPhase(step as AnalysisPhase);
+                            }}
                             setNcsBalance={setNcsBalance}
                             showToast={showToast}
                             setRequiredCredits={setRequiredCredits}
@@ -836,7 +842,10 @@ export default function Analyze2Page() {
                                 setResults({ type: 'cluster', data: results });
                                 setPhase('results');
                             }}
-                            setStep={setPhase}
+                            setStep={(step) => {
+                                if (step === 'analyze') setPhase('phase1');
+                                else setPhase(step as AnalysisPhase);
+                            }}
                             setNcsBalance={setNcsBalance}
                             showToast={showToast}
                             setAnalysisType={setAnalysisType}
