@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { FileUpload } from '@/components/FileUpload';
 import { DataProfiler } from '@/components/DataProfiler';
 import { profileData, DataProfile } from '@/lib/data-profiler';
-import { BarChart3, FileText, Shield, Trash2, Eye, EyeOff, Wifi, WifiOff, RotateCcw, XCircle, Sparkles } from 'lucide-react';
+import { BarChart3, FileText, Shield, Trash2, Eye, EyeOff, Wifi, WifiOff, RotateCcw, XCircle, Sparkles, TrendingUp, Target, Users } from 'lucide-react';
 import { Toast } from '@/components/ui/Toast';
 import { WebRStatus } from '@/components/WebRStatus';
 import { useAnalysisSession } from '@/hooks/useAnalysisSession';
@@ -29,10 +29,12 @@ import { ReliabilityView } from '@/components/analyze/views/ReliabilityView';
 import { MultivariateView } from '@/components/analyze/views/MultivariateView';
 import { RegressionView } from '@/components/analyze/views/RegressionView';
 import { MediationView } from '@/components/analyze/views/MediationView';
+import AdvancedMethodView from '@/components/analyze/views/AdvancedMethodView';
 import { OmegaResults } from '@/components/results/plssem/OmegaResults';
 import { OutlierResults } from '@/components/results/plssem/OutlierResults';
 import { HTMTResults } from '@/components/results/plssem/HTMTResults';
 import { VIFResults } from '@/components/results/plssem/VIFResults';
+import { BootstrapResults, IPMAResults, MGAResults, BlindfoldingResults } from '@/components/results/plssem';
 import { CronbachResults } from '@/components/results/reliability/CronbachResults';
 import { EFAResults } from '@/components/results/factor/EFAResults';
 import { CFAResults } from '@/components/results/factor/CFAResults';
@@ -765,7 +767,11 @@ export default function Analyze2Page() {
                                 setResults({ type: 'cronbach', data: results });
                                 setPhase('results');
                             }}
-                            setStep={setPhase}
+                            setStep={(step) => {
+                                // Convert AnalysisStep to AnalysisPhase
+                                if (step === 'analyze') setPhase('phase1');
+                                else setPhase(step as AnalysisPhase);
+                            }}
                             setNcsBalance={setNcsBalance}
                             showToast={showToast}
                             setScaleName={setScaleName}
