@@ -169,6 +169,21 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     } catch (semPkgError) {
                         console.warn('SEM Packages (lavaan) failed to install - structural models will be disabled:', semPkgError);
                     }
+
+                    // Stage 4 packages (PLS-SEM for Analyze2) - seminr and boot
+                    try {
+                        await webR.installPackages(['boot'], {
+                            repos: 'https://repo.r-wasm.org/'
+                        });
+                        console.log('✅ PLS-SEM support packages (boot) installed successfully');
+
+                        // Note: seminr may not be available in WebR yet, using alternative approach
+                        // await webR.installPackages(['seminr'], {
+                        //     repos: 'https://repo.r-wasm.org/'
+                        // });
+                    } catch (plsPkgError) {
+                        console.warn('PLS-SEM Packages (boot/seminr) failed to install - some Analyze2 features will be limited:', plsPkgError);
+                    }
                 } catch (pkgError) {
                     console.warn('Core Package install warning:', pkgError);
                 }

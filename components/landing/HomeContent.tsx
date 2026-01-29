@@ -100,6 +100,45 @@ export default function HomeContent() {
                         <ArrowRight className="w-5 h-5" />
                     </Link>
                 </div>
+
+                {/* NEW: Analyze2 PLS-SEM Banner */}
+                <div className="mt-12 max-w-4xl mx-auto">
+                    <Link href="/analyze2" className="block group">
+                        <div className="relative overflow-hidden bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 rounded-2xl p-8 shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 hover:scale-[1.02]">
+                            {/* Animated background pattern */}
+                            <div className="absolute inset-0 opacity-10">
+                                <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
+                            </div>
+
+                            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                                <div className="flex-1 text-center md:text-left">
+                                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-white text-xs font-bold mb-3 uppercase tracking-wide">
+                                        <Sparkles className="w-3 h-3" />
+                                        <span>NEW WORKFLOW</span>
+                                    </div>
+                                    <h3 className="text-2xl md:text-3xl font-extrabold text-white mb-2">
+                                        PLS-SEM Workflow 🏗️
+                                    </h3>
+                                    <p className="text-purple-100 text-sm md:text-base leading-relaxed">
+                                        Quy trình phân tích chuyên nghiệp: <span className="font-bold text-white">Làm sạch → Kiểm định → Mô hình → Đào sâu</span>
+                                    </p>
+                                    <div className="mt-4 flex flex-wrap gap-2 justify-center md:justify-start">
+                                        <span className="px-2 py-1 bg-white/10 rounded text-xs text-white font-medium">McDonald's Omega</span>
+                                        <span className="px-2 py-1 bg-white/10 rounded text-xs text-white font-medium">HTMT Matrix</span>
+                                        <span className="px-2 py-1 bg-white/10 rounded text-xs text-white font-medium">Bootstrapping</span>
+                                        <span className="px-2 py-1 bg-white/10 rounded text-xs text-white font-medium">IPMA</span>
+                                    </div>
+                                </div>
+                                <div className="flex-shrink-0">
+                                    <div className="px-6 py-3 bg-white text-purple-600 rounded-lg font-bold hover:bg-purple-50 transition-all shadow-lg group-hover:shadow-xl flex items-center gap-2">
+                                        <span>Thử ngay</span>
+                                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </Link>
+                </div>
             </div>
 
             {/* Workflow Section (New) */}
