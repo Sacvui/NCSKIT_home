@@ -861,12 +861,17 @@ export default function Analyze2Page() {
                     {/* Regression Select Step - Reused from /analyze */}
                     {phase === 'regression-select' && (
                         <RegressionView
+                            step="regression-select"
                             data={data}
                             columns={getNumericColumns()}
                             user={user}
                             setResults={(results) => {
                                 setResults({ type: 'regression', data: results });
                                 setPhase('results');
+                            }}
+                            setStep={(step) => {
+                                if (step === 'analyze') setPhase('phase1');
+                                else setPhase(step as AnalysisPhase);
                             }}
                             setNcsBalance={setNcsBalance}
                             showToast={showToast}
@@ -879,12 +884,17 @@ export default function Analyze2Page() {
                     {/* Mediation Select Step - Reused from /analyze */}
                     {phase === 'mediation-select' && (
                         <MediationView
+                            step="mediation-select"
                             data={data}
                             columns={getNumericColumns()}
                             user={user}
                             setResults={(results) => {
                                 setResults({ type: 'mediation', data: results });
                                 setPhase('results');
+                            }}
+                            setStep={(step) => {
+                                if (step === 'analyze') setPhase('phase1');
+                                else setPhase(step as AnalysisPhase);
                             }}
                             setNcsBalance={setNcsBalance}
                             showToast={showToast}
