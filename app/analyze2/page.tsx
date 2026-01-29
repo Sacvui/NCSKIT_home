@@ -774,39 +774,42 @@ export default function Analyze2Page() {
 
                                     {/* IPMA */}
                                     <button
+                                        onClick={() => setPhase('ipma-select')}
                                         className="p-6 border-2 border-amber-200 rounded-lg hover:border-amber-400 hover:shadow-lg transition-all text-left group bg-amber-50"
                                         title="Importance-Performance Map Analysis - Prioritizes improvement areas by importance vs performance"
                                     >
                                         <div className="flex items-center gap-3 mb-2">
-                                            <Sparkles className="w-6 h-6 text-amber-600" />
+                                            <TrendingUp className="w-6 h-6 text-amber-600" />
                                             <h3 className="font-bold text-lg group-hover:text-amber-600">IPMA Matrix</h3>
-                                            <Badge variant="default">Coming Soon</Badge>
+                                            <Badge variant="success">Working</Badge>
                                         </div>
                                         <p className="text-sm text-gray-600">Importance-Performance Map - Prioritize improvements</p>
                                     </button>
 
                                     {/* MGA */}
                                     <button
+                                        onClick={() => setPhase('mga-select')}
                                         className="p-6 border-2 border-amber-200 rounded-lg hover:border-amber-400 hover:shadow-lg transition-all text-left group bg-amber-50"
                                         title="Multi-Group Analysis - Compares path coefficients across different groups (e.g., gender, age)"
                                     >
                                         <div className="flex items-center gap-3 mb-2">
-                                            <Sparkles className="w-6 h-6 text-amber-600" />
+                                            <Users className="w-6 h-6 text-amber-600" />
                                             <h3 className="font-bold text-lg group-hover:text-amber-600">MGA</h3>
-                                            <Badge variant="default">Coming Soon</Badge>
+                                            <Badge variant="success">Working</Badge>
                                         </div>
                                         <p className="text-sm text-gray-600">Multi-Group Analysis - Compare groups (gender, age, etc.)</p>
                                     </button>
 
                                     {/* Blindfolding */}
                                     <button
+                                        onClick={() => setPhase('blindfolding-select')}
                                         className="p-6 border-2 border-amber-200 rounded-lg hover:border-amber-400 hover:shadow-lg transition-all text-left group bg-amber-50"
                                         title="Blindfolding procedure - Calculates Q² (Stone-Geisser) for predictive relevance (Q² &gt; 0 indicates relevance)"
                                     >
                                         <div className="flex items-center gap-3 mb-2">
-                                            <Sparkles className="w-6 h-6 text-amber-600" />
+                                            <Eye className="w-6 h-6 text-amber-600" />
                                             <h3 className="font-bold text-lg group-hover:text-amber-600">Blindfolding (Q²)</h3>
-                                            <Badge variant="default">Coming Soon</Badge>
+                                            <Badge variant="success">Working</Badge>
                                         </div>
                                         <p className="text-sm text-gray-600">Q² (Stone-Geisser) - Predictive relevance (Q² &gt; 0)</p>
                                     </button>
@@ -1044,6 +1047,48 @@ export default function Analyze2Page() {
                             setRequiredCredits={setRequiredCredits}
                             setCurrentAnalysisCost={setCurrentAnalysisCost}
                             setShowInsufficientCredits={setShowInsufficientCredits}
+                        />
+                    )}
+
+                    {/* IPMA Select Step */}
+                    {phase === 'ipma-select' && (
+                        <AdvancedMethodView
+                            method="ipma"
+                            data={data.map(row => getNumericColumns().map(col => row[col]))}
+                            columnNames={getNumericColumns()}
+                            onBack={() => setPhase('phase4')}
+                            setResults={(results) => {
+                                setResults({ type: 'ipma', data: results });
+                                setPhase('results');
+                            }}
+                        />
+                    )}
+
+                    {/* MGA Select Step */}
+                    {phase === 'mga-select' && (
+                        <AdvancedMethodView
+                            method="mga"
+                            data={data.map(row => getNumericColumns().map(col => row[col]))}
+                            columnNames={getNumericColumns()}
+                            onBack={() => setPhase('phase4')}
+                            setResults={(results) => {
+                                setResults({ type: 'mga', data: results });
+                                setPhase('results');
+                            }}
+                        />
+                    )}
+
+                    {/* Blindfolding Select Step */}
+                    {phase === 'blindfolding-select' && (
+                        <AdvancedMethodView
+                            method="blindfolding"
+                            data={data.map(row => getNumericColumns().map(col => row[col]))}
+                            columnNames={getNumericColumns()}
+                            onBack={() => setPhase('phase4')}
+                            setResults={(results) => {
+                                setResults({ type: 'blindfolding', data: results });
+                                setPhase('results');
+                            }}
                         />
                     )}
 
