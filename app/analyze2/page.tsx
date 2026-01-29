@@ -186,12 +186,13 @@ export default function Analyze2Page() {
 
     // Phase navigation
     const phases = [
-        { id: 'upload', label: 'Tải dữ liệu', icon: '📁' },
-        { id: 'profile', label: 'Kiểm tra', icon: '🔍' },
-        { id: 'phase1', label: 'Làm sạch & Tin cậy', icon: '🧹' },
-        { id: 'phase2', label: 'Kiểm định thang đo', icon: '📏' },
-        { id: 'phase3', label: 'Mô hình cấu trúc', icon: '🏗️' },
-        { id: 'phase4', label: 'Phân tích nâng cao', icon: '🎯' },
+        { id: 'upload', label: 'Upload', icon: '📁', tooltip: 'Tải dữ liệu lên hệ thống' },
+        { id: 'profile', label: 'Check', icon: '🔍', tooltip: 'Kiểm tra chất lượng dữ liệu' },
+        { id: 'phase1', label: 'Prepare', icon: '🧹', tooltip: 'Làm sạch dữ liệu & Đánh giá độ tin cậy' },
+        { id: 'phase2', label: 'Measure', icon: '📏', tooltip: 'Kiểm định thang đo (HTMT, VIF, EFA, CFA)' },
+        { id: 'phase3', label: 'Structure', icon: '🏗️', tooltip: 'Mô hình cấu trúc (Regression, Mediation, Bootstrap)' },
+        { id: 'phase4', label: 'Advanced', icon: '🎯', tooltip: 'Phân tích nâng cao (IPMA, MGA, Blindfolding)' },
+        { id: 'results', label: 'Results', icon: '✅', tooltip: 'Xem kết quả & Xuất báo cáo' },
     ];
 
     const getCurrentPhaseIndex = () => {
@@ -300,7 +301,7 @@ export default function Analyze2Page() {
                                                 'bg-gray-200 text-gray-500 cursor-not-allowed'}
                     ${isClickable ? 'cursor-pointer hover:shadow-lg' : ''}
                   `}
-                                    title={isClickable ? `${p.label}` : undefined}
+                                    title={isClickable ? p.tooltip || p.label : undefined}
                                 >
                                     <span className="text-2xl">{p.icon}</span>
                                     <span className="text-xs font-medium whitespace-nowrap">{p.label}</span>
