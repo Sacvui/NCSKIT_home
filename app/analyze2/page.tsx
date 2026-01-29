@@ -649,6 +649,166 @@ export default function Analyze2Page() {
                             </div>
                         </div>
                     )}
+
+{/* Method Select Steps - Following /analyze pattern */ }
+
+{/* Omega Select Step */ }
+{
+    phase === 'omega-select' && (
+        <PLSSEMView
+            method="omega"
+            data={data}
+            columns={getNumericColumns()}
+            user={user}
+            setResults={(results) => {
+                setResults({ type: 'omega', data: results });
+                setPhase('results');
+            }}
+            setNcsBalance={setNcsBalance}
+            showToast={showToast}
+            onBack={() => setPhase('phase1')}
+            setRequiredCredits={setRequiredCredits}
+            setCurrentAnalysisCost={setCurrentAnalysisCost}
+            setShowInsufficientCredits={setShowInsufficientCredits}
+        />
+    )
+}
+
+{/* Outlier Select Step */ }
+{
+    phase === 'outlier-select' && (
+        <PLSSEMView
+            method="outlier"
+            data={data}
+            columns={getNumericColumns()}
+            user={user}
+            setResults={(results) => {
+                setResults({ type: 'outlier', data: results });
+                setPhase('results');
+            }}
+            setNcsBalance={setNcsBalance}
+            showToast={showToast}
+            onBack={() => setPhase('phase1')}
+            setRequiredCredits={setRequiredCredits}
+            setCurrentAnalysisCost={setCurrentAnalysisCost}
+            setShowInsufficientCredits={setShowInsufficientCredits}
+        />
+    )
+}
+
+{/* HTMT Select Step */ }
+{
+    phase === 'htmt-select' && (
+        <PLSSEMView
+            method="htmt"
+            data={data}
+            columns={getNumericColumns()}
+            user={user}
+            setResults={(results) => {
+                setResults({ type: 'htmt', data: results });
+                setPhase('results');
+            }}
+            setNcsBalance={setNcsBalance}
+            showToast={showToast}
+            onBack={() => setPhase('phase2')}
+            setRequiredCredits={setRequiredCredits}
+            setCurrentAnalysisCost={setCurrentAnalysisCost}
+            setShowInsufficientCredits={setShowInsufficientCredits}
+        />
+    )
+}
+
+{/* VIF Select Step */ }
+{
+    phase === 'vif-select' && (
+        <PLSSEMView
+            method="vif"
+            data={data}
+            columns={getNumericColumns()}
+            user={user}
+            setResults={(results) => {
+                setResults({ type: 'vif', data: results });
+                setPhase('results');
+            }}
+            setNcsBalance={setNcsBalance}
+            showToast={showToast}
+            onBack={() => setPhase('phase2')}
+            setRequiredCredits={setRequiredCredits}
+            setCurrentAnalysisCost={setCurrentAnalysisCost}
+            setShowInsufficientCredits={setShowInsufficientCredits}
+        />
+    )
+}
+
+{/* Results Step - Display analysis results */ }
+{
+    phase === 'results' && results && (
+        <div className="max-w-6xl mx-auto space-y-6">
+            {/* Omega Results */}
+            {results.type === 'omega' && (
+                <OmegaResults
+                    results={results.data}
+                    columns={results.columns}
+                    scaleName={results.scaleName}
+                />
+            )}
+
+            {/* Outlier Results */}
+            {results.type === 'outlier' && (
+                <OutlierResults
+                    results={results.data}
+                    columns={results.columns}
+                />
+            )}
+
+            {/* HTMT Results */}
+            {results.type === 'htmt' && (
+                <HTMTResults
+                    results={results.data}
+                    factorStructure={results.factorStructure}
+                />
+            )}
+
+            {/* VIF Results */}
+            {results.type === 'vif' && (
+                <VIFResults
+                    results={results.data}
+                    columns={results.columns}
+                />
+            )}
+
+            {/* Navigation Buttons */}
+            <div className="flex gap-4 justify-between">
+                <button
+                    onClick={() => {
+                        // Determine which phase to go back to
+                        if (results.type === 'omega' || results.type === 'outlier') {
+                            setPhase('phase1');
+                        } else if (results.type === 'htmt' || results.type === 'vif') {
+                            setPhase('phase2');
+                        } else {
+                            setPhase('phase1');
+                        }
+                        setResults(null);
+                    }}
+                    className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg transition-colors"
+                >
+                    ← Quay lại chọn phân tích khác
+                </button>
+                <button
+                    onClick={() => {
+                        setResults(null);
+                        setPhase('phase1');
+                    }}
+                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+                >
+                    Chạy phân tích mới
+                </button>
+            </div>
+        </div>
+    )
+}
+
                 </div>
             </div>
 
