@@ -24,8 +24,13 @@ import { useAuth } from '@/context/AuthContext';
 import { initWebR, getWebRStatus, setProgressCallback } from '@/lib/webr/core';
 import { MobileWebRFallback } from '@/components/MobileWebRFallback';
 import { preloadPLSSEMPackages, loadPackageIfNeeded } from '@/lib/webr/package-loader';
+import { PLSSEMView } from '@/components/analyze/views/PLSSEMView';
+import { OmegaResults } from '@/components/results/plssem/OmegaResults';
+import { OutlierResults } from '@/components/results/plssem/OutlierResults';
+import { HTMTResults } from '@/components/results/plssem/HTMTResults';
+import { VIFResults } from '@/components/results/plssem/VIFResults';
 
-// Import new PLS-SEM analysis functions (to be created)
+// Import new PLS-SEM analysis functions
 import {
     runMcDonaldOmega,
     runOutlierDetection,
@@ -39,7 +44,14 @@ import {
     runBlindfolding
 } from '@/lib/webr/pls-sem';
 
-type AnalysisPhase = 'upload' | 'profile' | 'phase1' | 'phase2' | 'phase3' | 'phase4' | 'results';
+type AnalysisPhase =
+    | 'upload' | 'profile'
+    | 'phase1' | 'phase2' | 'phase3' | 'phase4'
+    | 'omega-select' | 'outlier-select'
+    | 'htmt-select' | 'vif-select'
+    | 'bootstrap-select' | 'mediation-select'
+    | 'ipma-select' | 'mga-select' | 'blindfolding-select' | 'plssem-select'
+    | 'results';
 
 export default function Analyze2Page() {
     const router = useRouter();
@@ -61,6 +73,16 @@ export default function Analyze2Page() {
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
     const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
     const [analysisProgress, setAnalysisProgress] = useState(0);
+
+    // PLS-SEM method selection
+    const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
+    const [currentResults, setCurrentResults] = useState<any>(null);
+
+    // Credit management for insufficient credits modal
+    const [requiredCredits, setRequiredCredits] = useState(0);
+    const [currentAnalysisCost, setCurrentAnalysisCost] = useState(0);
+    const [showInsufficientCredits, setShowInsufficientCredits] = useState(false);
+    const [ncsBalance, setNcsBalance] = useState(userProfile?.ncs_balance || 0);
 
     // Results storage for each phase
     const [phase1Results, setPhase1Results] = useState<any>(null);
@@ -311,7 +333,10 @@ export default function Analyze2Page() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {/* Descriptive Statistics */}
-                                    <button className="p-6 border-2 border-gray-200 rounded-lg hover:border-purple-400 hover:shadow-lg transition-all text-left group">
+                                    <button
+                                        onClick={() => showToast('Descriptive Statistics đang được phát triển', 'info')}
+                                        className="p-6 border-2 border-gray-200 rounded-lg hover:border-purple-400 hover:shadow-lg transition-all text-left group"
+                                    >
                                         <div className="flex items-center gap-3 mb-2">
                                             <BarChart3 className="w-6 h-6 text-purple-600" />
                                             <h3 className="font-bold text-lg group-hover:text-purple-600">Descriptive Statistics</h3>
@@ -320,7 +345,10 @@ export default function Analyze2Page() {
                                     </button>
 
                                     {/* McDonald's Omega */}
-                                    <button className="p-6 border-2 border-purple-200 rounded-lg hover:border-purple-400 hover:shadow-lg transition-all text-left group bg-purple-50">
+                                    <button
+                                        onClick={() => setPhase('omega-select')}
+                                        className="p-6 border-2 border-purple-200 rounded-lg hover:border-purple-400 hover:shadow-lg transition-all text-left group bg-purple-50"
+                                    >
                                         <div className="flex items-center gap-3 mb-2">
                                             <Sparkles className="w-6 h-6 text-purple-600" />
                                             <h3 className="font-bold text-lg group-hover:text-purple-600">McDonald's Omega</h3>
@@ -330,7 +358,10 @@ export default function Analyze2Page() {
                                     </button>
 
                                     {/* Cronbach's Alpha */}
-                                    <button className="p-6 border-2 border-gray-200 rounded-lg hover:border-purple-400 hover:shadow-lg transition-all text-left group">
+                                    <button
+                                        onClick={() => showToast('Cronbach\'s Alpha đang được phát triển', 'info')}
+                                        className="p-6 border-2 border-gray-200 rounded-lg hover:border-purple-400 hover:shadow-lg transition-all text-left group"
+                                    >
                                         <div className="flex items-center gap-3 mb-2">
                                             <FileText className="w-6 h-6 text-blue-600" />
                                             <h3 className="font-bold text-lg group-hover:text-purple-600">Cronbach's Alpha</h3>
@@ -339,7 +370,10 @@ export default function Analyze2Page() {
                                     </button>
 
                                     {/* Outlier Detection */}
-                                    <button className="p-6 border-2 border-purple-200 rounded-lg hover:border-purple-400 hover:shadow-lg transition-all text-left group bg-purple-50">
+                                    <button
+                                        onClick={() => setPhase('outlier-select')}
+                                        className="p-6 border-2 border-purple-200 rounded-lg hover:border-purple-400 hover:shadow-lg transition-all text-left group bg-purple-50"
+                                    >
                                         <div className="flex items-center gap-3 mb-2">
                                             <XCircle className="w-6 h-6 text-red-600" />
                                             <h3 className="font-bold text-lg group-hover:text-purple-600">Outlier Detection</h3>
