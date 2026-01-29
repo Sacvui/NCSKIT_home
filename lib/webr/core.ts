@@ -155,12 +155,17 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 // Step 2: Install required packages
                 updateProgress('R-Engine Loading...');
                 try {
-                    // Stage 1 & 2 packages
-                    await webR.installPackages(['psych', 'corrplot', 'GPArotation', 'car', 'cluster']);
+                    // Stage 1 & 2 packages - explicitly specify repository
+                    await webR.installPackages(['psych', 'corrplot', 'GPArotation', 'car', 'cluster'], {
+                        repos: 'https://repo.r-wasm.org/'
+                    });
 
-                    // Stage 3 packages (Experimental SEM)
+                    // Stage 3 packages (Experimental SEM) - quadprog is required for lavaan
                     try {
-                        await webR.installPackages(['lavaan', 'quadprog']);
+                        await webR.installPackages(['quadprog', 'lavaan'], {
+                            repos: 'https://repo.r-wasm.org/'
+                        });
+                        console.log('✅ SEM packages (quadprog + lavaan) installed successfully');
                     } catch (semPkgError) {
                         console.warn('SEM Packages (lavaan) failed to install - structural models will be disabled:', semPkgError);
                     }
