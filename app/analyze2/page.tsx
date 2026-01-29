@@ -25,10 +25,19 @@ import { initWebR, getWebRStatus, setProgressCallback } from '@/lib/webr/core';
 import { MobileWebRFallback } from '@/components/MobileWebRFallback';
 import { preloadPLSSEMPackages, loadPackageIfNeeded } from '@/lib/webr/package-loader';
 import { PLSSEMView } from '@/components/analyze/views/PLSSEMView';
+import { ReliabilityView } from '@/components/analyze/views/ReliabilityView';
+import { MultivariateView } from '@/components/analyze/views/MultivariateView';
+import { RegressionView } from '@/components/analyze/views/RegressionView';
+import { MediationView } from '@/components/analyze/views/MediationView';
 import { OmegaResults } from '@/components/results/plssem/OmegaResults';
 import { OutlierResults } from '@/components/results/plssem/OutlierResults';
 import { HTMTResults } from '@/components/results/plssem/HTMTResults';
 import { VIFResults } from '@/components/results/plssem/VIFResults';
+import { CronbachResults } from '@/components/results/CronbachResults';
+import { EFAResults } from '@/components/results/EFAResults';
+import { CFAResults } from '@/components/results/CFAResults';
+import { RegressionResults } from '@/components/results/RegressionResults';
+import { MediationResults } from '@/components/results/MediationResults';
 
 // Import new PLS-SEM analysis functions
 import {
@@ -47,7 +56,7 @@ import {
 type AnalysisPhase =
     | 'upload' | 'profile'
     | 'phase1' | 'phase2' | 'phase3' | 'phase4'
-    | 'omega-select' | 'outlier-select'
+    | 'omega-select' | 'outlier-select' | 'cronbach-select' | 'efa-select' | 'cfa-select' | 'regression-select' | 'mediation-select'
     | 'htmt-select' | 'vif-select'
     | 'bootstrap-select' | 'mediation-select'
     | 'ipma-select' | 'mga-select' | 'blindfolding-select' | 'plssem-select'
@@ -90,6 +99,11 @@ export default function Analyze2Page() {
     const [phase2Results, setPhase2Results] = useState<any>(null);
     const [phase3Results, setPhase3Results] = useState<any>(null);
     const [phase4Results, setPhase4Results] = useState<any>(null);
+
+    // States for ReliabilityView (Cronbach's Alpha)
+    const [scaleName, setScaleName] = useState('');
+    const [multipleResults, setMultipleResults] = useState<any[]>([]);
+    const [analysisType, setAnalysisType] = useState('');
 
     // Online/Offline detection
     const { isOnline } = useOnlineStatus();
@@ -412,7 +426,7 @@ export default function Analyze2Page() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {/* EFA */}
                                     <button
-                                        onClick={() => showToast('EFA đang được phát triển', 'info')}
+                                        onClick={() => setPhase('efa-select')}
                                         className="p-6 border-2 border-gray-200 rounded-lg hover:border-blue-400 hover:shadow-lg transition-all text-left group"
                                     >
                                         <div className="flex items-center gap-3 mb-2">
@@ -424,7 +438,7 @@ export default function Analyze2Page() {
 
                                     {/* CFA */}
                                     <button
-                                        onClick={() => showToast('CFA đang được phát triển', 'info')}
+                                        onClick={() => setPhase('cfa-select')}
                                         className="p-6 border-2 border-gray-200 rounded-lg hover:border-blue-400 hover:shadow-lg transition-all text-left group"
                                     >
                                         <div className="flex items-center gap-3 mb-2">
@@ -650,164 +664,303 @@ export default function Analyze2Page() {
                         </div>
                     )}
 
-{/* Method Select Steps - Following /analyze pattern */ }
+                    {/* Method Select Steps - Following /analyze pattern */}
 
-{/* Omega Select Step */ }
-{
-    phase === 'omega-select' && (
-        <PLSSEMView
-            method="omega"
-            data={data}
-            columns={getNumericColumns()}
-            user={user}
-            setResults={(results) => {
-                setResults({ type: 'omega', data: results });
-                setPhase('results');
-            }}
-            setNcsBalance={setNcsBalance}
-            showToast={showToast}
-            onBack={() => setPhase('phase1')}
-            setRequiredCredits={setRequiredCredits}
-            setCurrentAnalysisCost={setCurrentAnalysisCost}
-            setShowInsufficientCredits={setShowInsufficientCredits}
-        />
-    )
-}
+                    {/* Omega Select Step */}
+                    {
+                        phase === 'omega-select' && (
+                            <PLSSEMView
+                                method="omega"
+                                data={data}
+                                columns={getNumericColumns()}
+                                user={user}
+                                setResults={(results) => {
+                                    setResults({ type: 'omega', data: results });
+                                    setPhase('results');
+                                }}
+                                setNcsBalance={setNcsBalance}
+                                showToast={showToast}
+                                onBack={() => setPhase('phase1')}
+                                setRequiredCredits={setRequiredCredits}
+                                setCurrentAnalysisCost={setCurrentAnalysisCost}
+                                setShowInsufficientCredits={setShowInsufficientCredits}
+                            />
+                        )
+                    }
 
-{/* Outlier Select Step */ }
-{
-    phase === 'outlier-select' && (
-        <PLSSEMView
-            method="outlier"
-            data={data}
-            columns={getNumericColumns()}
-            user={user}
-            setResults={(results) => {
-                setResults({ type: 'outlier', data: results });
-                setPhase('results');
-            }}
-            setNcsBalance={setNcsBalance}
-            showToast={showToast}
-            onBack={() => setPhase('phase1')}
-            setRequiredCredits={setRequiredCredits}
-            setCurrentAnalysisCost={setCurrentAnalysisCost}
-            setShowInsufficientCredits={setShowInsufficientCredits}
-        />
-    )
-}
+                    {/* Outlier Select Step */}
+                    {
+                        phase === 'outlier-select' && (
+                            <PLSSEMView
+                                method="outlier"
+                                data={data}
+                                columns={getNumericColumns()}
+                                user={user}
+                                setResults={(results) => {
+                                    setResults({ type: 'outlier', data: results });
+                                    setPhase('results');
+                                }}
+                                setNcsBalance={setNcsBalance}
+                                showToast={showToast}
+                                onBack={() => setPhase('phase1')}
+                                setRequiredCredits={setRequiredCredits}
+                                setCurrentAnalysisCost={setCurrentAnalysisCost}
+                                setShowInsufficientCredits={setShowInsufficientCredits}
+                            />
+                        )
+                    }
 
-{/* HTMT Select Step */ }
-{
-    phase === 'htmt-select' && (
-        <PLSSEMView
-            method="htmt"
-            data={data}
-            columns={getNumericColumns()}
-            user={user}
-            setResults={(results) => {
-                setResults({ type: 'htmt', data: results });
-                setPhase('results');
-            }}
-            setNcsBalance={setNcsBalance}
-            showToast={showToast}
-            onBack={() => setPhase('phase2')}
-            setRequiredCredits={setRequiredCredits}
-            setCurrentAnalysisCost={setCurrentAnalysisCost}
-            setShowInsufficientCredits={setShowInsufficientCredits}
-        />
-    )
-}
+                    {/* HTMT Select Step */}
+                    {
+                        phase === 'htmt-select' && (
+                            <PLSSEMView
+                                method="htmt"
+                                data={data}
+                                columns={getNumericColumns()}
+                                user={user}
+                                setResults={(results) => {
+                                    setResults({ type: 'htmt', data: results });
+                                    setPhase('results');
+                                }}
+                                setNcsBalance={setNcsBalance}
+                                showToast={showToast}
+                                onBack={() => setPhase('phase2')}
+                                setRequiredCredits={setRequiredCredits}
+                                setCurrentAnalysisCost={setCurrentAnalysisCost}
+                                setShowInsufficientCredits={setShowInsufficientCredits}
+                            />
+                        )
+                    }
 
-{/* VIF Select Step */ }
-{
-    phase === 'vif-select' && (
-        <PLSSEMView
-            method="vif"
-            data={data}
-            columns={getNumericColumns()}
-            user={user}
-            setResults={(results) => {
-                setResults({ type: 'vif', data: results });
-                setPhase('results');
-            }}
-            setNcsBalance={setNcsBalance}
-            showToast={showToast}
-            onBack={() => setPhase('phase2')}
-            setRequiredCredits={setRequiredCredits}
-            setCurrentAnalysisCost={setCurrentAnalysisCost}
-            setShowInsufficientCredits={setShowInsufficientCredits}
-        />
-    )
-}
 
-{/* Results Step - Display analysis results */ }
-{
-    phase === 'results' && results && (
-        <div className="max-w-6xl mx-auto space-y-6">
-            {/* Omega Results */}
-            {results.type === 'omega' && (
-                <OmegaResults
-                    results={results.data}
-                    columns={results.columns}
-                    scaleName={results.scaleName}
-                />
-            )}
+                    {/* Cronbach Select Step - Reused from /analyze */}
+                    {phase === 'cronbach-select' && (
+                        <ReliabilityView
+                            step="cronbach"
+                            data={data}
+                            columns={getNumericColumns()}
+                            user={user}
+                            setResults={(results) => {
+                                setResults({ type: 'cronbach', data: results });
+                                setPhase('results');
+                            }}
+                            setStep={setPhase}
+                            setNcsBalance={setNcsBalance}
+                            showToast={showToast}
+                            setScaleName={setScaleName}
+                            setMultipleResults={setMultipleResults}
+                            setAnalysisType={setAnalysisType}
+                            setRequiredCredits={setRequiredCredits}
+                            setCurrentAnalysisCost={setCurrentAnalysisCost}
+                            setShowInsufficientCredits={setShowInsufficientCredits}
+                        />
+                    )}
 
-            {/* Outlier Results */}
-            {results.type === 'outlier' && (
-                <OutlierResults
-                    results={results.data}
-                    columns={results.columns}
-                />
-            )}
+                    {/* EFA Select Step - Reused from /analyze */}
+                    {phase === 'efa-select' && (
+                        <MultivariateView
+                            step="efa"
+                            data={data}
+                            columns={getNumericColumns()}
+                            user={user}
+                            setResults={(results) => {
+                                setResults({ type: 'efa', data: results });
+                                setPhase('results');
+                            }}
+                            setStep={setPhase}
+                            setNcsBalance={setNcsBalance}
+                            showToast={showToast}
+                            setRequiredCredits={setRequiredCredits}
+                            setCurrentAnalysisCost={setCurrentAnalysisCost}
+                            setShowInsufficientCredits={setShowInsufficientCredits}
+                        />
+                    )}
 
-            {/* HTMT Results */}
-            {results.type === 'htmt' && (
-                <HTMTResults
-                    results={results.data}
-                    factorStructure={results.factorStructure}
-                />
-            )}
+                    {/* CFA Select Step - Reused from /analyze */}
+                    {phase === 'cfa-select' && (
+                        <MultivariateView
+                            step="cfa"
+                            data={data}
+                            columns={getNumericColumns()}
+                            user={user}
+                            setResults={(results) => {
+                                setResults({ type: 'cfa', data: results });
+                                setPhase('results');
+                            }}
+                            setStep={setPhase}
+                            setNcsBalance={setNcsBalance}
+                            showToast={showToast}
+                            setRequiredCredits={setRequiredCredits}
+                            setCurrentAnalysisCost={setCurrentAnalysisCost}
+                            setShowInsufficientCredits={setShowInsufficientCredits}
+                        />
+                    )}
 
-            {/* VIF Results */}
-            {results.type === 'vif' && (
-                <VIFResults
-                    results={results.data}
-                    columns={results.columns}
-                />
-            )}
+                    {/* Regression Select Step - Reused from /analyze */}
+                    {phase === 'regression-select' && (
+                        <RegressionView
+                            data={data}
+                            columns={getNumericColumns()}
+                            user={user}
+                            setResults={(results) => {
+                                setResults({ type: 'regression', data: results });
+                                setPhase('results');
+                            }}
+                            setNcsBalance={setNcsBalance}
+                            showToast={showToast}
+                            setRequiredCredits={setRequiredCredits}
+                            setCurrentAnalysisCost={setCurrentAnalysisCost}
+                            setShowInsufficientCredits={setShowInsufficientCredits}
+                        />
+                    )}
 
-            {/* Navigation Buttons */}
-            <div className="flex gap-4 justify-between">
-                <button
-                    onClick={() => {
-                        // Determine which phase to go back to
-                        if (results.type === 'omega' || results.type === 'outlier') {
-                            setPhase('phase1');
-                        } else if (results.type === 'htmt' || results.type === 'vif') {
-                            setPhase('phase2');
-                        } else {
-                            setPhase('phase1');
-                        }
-                        setResults(null);
-                    }}
-                    className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg transition-colors"
-                >
-                    ← Quay lại chọn phân tích khác
-                </button>
-                <button
-                    onClick={() => {
-                        setResults(null);
-                        setPhase('phase1');
-                    }}
-                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
-                >
-                    Chạy phân tích mới
-                </button>
-            </div>
-        </div>
-    )
-}
+                    {/* Mediation Select Step - Reused from /analyze */}
+                    {phase === 'mediation-select' && (
+                        <MediationView
+                            data={data}
+                            columns={getNumericColumns()}
+                            user={user}
+                            setResults={(results) => {
+                                setResults({ type: 'mediation', data: results });
+                                setPhase('results');
+                            }}
+                            setNcsBalance={setNcsBalance}
+                            showToast={showToast}
+                            setRequiredCredits={setRequiredCredits}
+                            setCurrentAnalysisCost={setCurrentAnalysisCost}
+                            setShowInsufficientCredits={setShowInsufficientCredits}
+                        />
+                    )}
+
+                    {/* VIF Select Step */}
+                    {
+                        phase === 'vif-select' && (
+                            <PLSSEMView
+                                method="vif"
+                                data={data}
+                                columns={getNumericColumns()}
+                                user={user}
+                                setResults={(results) => {
+                                    setResults({ type: 'vif', data: results });
+                                    setPhase('results');
+                                }}
+                                setNcsBalance={setNcsBalance}
+                                showToast={showToast}
+                                onBack={() => setPhase('phase2')}
+                                setRequiredCredits={setRequiredCredits}
+                                setCurrentAnalysisCost={setCurrentAnalysisCost}
+                                setShowInsufficientCredits={setShowInsufficientCredits}
+                            />
+                        )
+                    }
+
+                    {/* Results Step - Display analysis results */}
+                    {
+                        phase === 'results' && results && (
+                            <div className="max-w-6xl mx-auto space-y-6">
+                                {/* Omega Results */}
+                                {results.type === 'omega' && (
+                                    <OmegaResults
+                                        results={results.data}
+                                        columns={results.columns}
+                                        scaleName={results.scaleName}
+                                    />
+                                )}
+
+                                {/* Outlier Results */}
+                                {results.type === 'outlier' && (
+                                    <OutlierResults
+                                        results={results.data}
+                                        columns={results.columns}
+                                    />
+                                )}
+
+                                {/* HTMT Results */}
+                                {results.type === 'htmt' && (
+                                    <HTMTResults
+                                        results={results.data}
+                                        factorStructure={results.factorStructure}
+                                    />
+                                )}
+
+
+                            {/* Cronbach Results - Reused */}
+                            {results.type === 'cronbach' && (
+                                <CronbachResults
+                                    results={results.data}
+                                    columns={results.columns}
+                                    scaleName={scaleName}
+                                />
+                            )}
+
+                            {/* EFA Results - Reused */}
+                            {results.type === 'efa' && (
+                                <EFAResults
+                                    results={results.data}
+                                    columns={results.columns}
+                                />
+                            )}
+
+                            {/* CFA Results - Reused */}
+                            {results.type === 'cfa' && (
+                                <CFAResults
+                                    results={results.data}
+                                />
+                            )}
+
+                            {/* Regression Results - Reused */}
+                            {results.type === 'regression' && (
+                                <RegressionResults
+                                    results={results.data}
+                                />
+                            )}
+
+                            {/* Mediation Results - Reused */}
+                            {results.type === 'mediation' && (
+                                <MediationResults
+                                    results={results.data}
+                                />
+                            )}
+
+                                {/* VIF Results */}
+                                {results.type === 'vif' && (
+                                    <VIFResults
+                                        results={results.data}
+                                        columns={results.columns}
+                                    />
+                                )}
+
+                                {/* Navigation Buttons */}
+                                <div className="flex gap-4 justify-between">
+                                    <button
+                                        onClick={() => {
+                                            // Determine which phase to go back to
+                                            if (results.type === 'omega' || results.type === 'outlier') {
+                                                setPhase('phase1');
+                                            } else if (results.type === 'htmt' || results.type === 'vif') {
+                                                setPhase('phase2');
+                                            } else {
+                                                setPhase('phase1');
+                                            }
+                                            setResults(null);
+                                        }}
+                                        className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg transition-colors"
+                                    >
+                                        ← Quay lại chọn phân tích khác
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setResults(null);
+                                            setPhase('phase1');
+                                        }}
+                                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+                                    >
+                                        Chạy phân tích mới
+                                    </button>
+                                </div>
+                            </div>
+                        )
+                    }
 
                 </div>
             </div>
