@@ -33,7 +33,7 @@ export async function runLavaanAnalysis(data: number[][], columns: string[], mod
     const script = `
     # Create data frame
     df_sem <- data.frame(matrix(c(${flatData.join(',')}), ncol=${columns.length}, byrow=TRUE))
-    colnames(df_sem) <- ${JSON.stringify(columns)}
+    colnames(df_sem) <- c(${columns.map(c => `"${c}"`).join(', ')})
     
     # Execute lavaan
     # We use 'sem' as a general function, which covers 'cfa' 

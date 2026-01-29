@@ -158,17 +158,25 @@ export async function runEFA(data: number[][], nFactors: number, rotation: strin
     # Clean Data (Robust approach)
     df <- as.data.frame(raw_data)
     
-    # Check if extensive missing data exists
-    n_rows_total <- nrow(df)
-    n_complete <- sum(complete.cases(df))
+    # Remove rows with ANY missing values for functions that require complete data
+    # (KMO, fa.parallel, fa all need complete cases)
+    df_clean <- na.omit(df)
     
-    # Use pairwise correlation to handle missing data better
-    # instead of listwise deletion (na.omit) which loses too much data
+    # Check if we have enough data after cleaning
+    n_rows_total <- nrow(df)
+    n_complete <- nrow(df_clean)
+    
+    if (n_complete < 3) { 
+        stop("Quá ít dữ liệu hoàn chỉnh (< 3 mẫu). Vui lòng kiểm tra dữ liệu khuyết.") 
+    }
+    
+    # Use pairwise correlation for eigenvalues (more robust)
+    # but use complete data for actual EFA
     cor_mat <- tryCatch({
         cor(df, use = "pairwise.complete.obs")
     }, error = function(e) {
-        # Fallback to listwise if pairwise fails
-        cor(na.omit(df))
+        # Fallback to complete cases
+        cor(df_clean)
     })
     
     # Basic validation
@@ -176,13 +184,9 @@ export async function runEFA(data: number[][], nFactors: number, rotation: strin
         stop("Lỗi: Dữ liệu có quá nhiều giá trị khuyết (NA) dẫn đến ma trận tương quan không hợp lệ.") 
     }
     
-    # Only stop if we really have too few observations to trust ANY correlation
-    # We define "too few" as < 3 observations for any pair
-    if (n_rows_total < 3) { stop("Quá ít dữ liệu (nhỏ hơn 3 mẫu).") }
-    
     eigenvalues <- eigen(cor_mat)$values
 
-    # PARALLEL ANALYSIS
+    # PARALLEL ANALYSIS (uses complete data)
     n_factors_parallel <- tryCatch({
         pa <- fa.parallel(df_clean, fm = "pa", fa = "fa", plot = FALSE, n.iter = 20, quant = 0.95)
         pa$nfact
@@ -205,11 +209,11 @@ export async function runEFA(data: number[][], nFactors: number, rotation: strin
     }
     if (n_factors_run < 1) n_factors_run <- 1
 
-    # KMO and Bartlett
+    # KMO and Bartlett (use complete data)
     kmo_result <- tryCatch(KMO(df_clean), error = function(e) list(MSA = 0))
     bartlett_result <- tryCatch(cortest.bartlett(cor_mat, n = nrow(df_clean)), error = function(e) list(p.value = 1))
     
-    # Run EFA
+    # Run EFA (use complete data)
     rotation_method <- "${rotation}"
     efa_result <- fa(df_clean, nfactors = n_factors_run, rotate = rotation_method, fm = "pa")
 
@@ -279,7 +283,7 @@ export async function runCFA(data: number[][], columns: string[], modelSyntax: s
     const rCode = `
     library(psych)
     df <- data.frame(matrix(c(${flatData.join(',')}), ncol=${columns.length}, byrow=TRUE))
-    colnames(df) <- ${JSON.stringify(columns)}
+    colnames(df) <- c(${columns.map(c => `"${c}"`).join(', ')})
     
     fa_result <- fa(df, nfactors = ${nFactors}, rotate = "oblimin", fm = "ml")
     
