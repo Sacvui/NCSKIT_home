@@ -18,7 +18,9 @@ import {
     runBlindfolding
 } from '@/lib/webr/pls-sem';
 import { SmartGroupSelector } from '@/components/VariableSelector';
-import { Sparkles, AlertTriangle, CheckCircle } from 'lucide-react';
+import HTMTSelection from '@/components/HTMTSelection';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Sparkles, AlertTriangle, CheckCircle, Info } from 'lucide-react';
 
 type PLSSEMMethod =
     | 'omega'
@@ -410,6 +412,113 @@ export const PLSSEMView: React.FC<PLSSEMViewProps> = ({
                     <div className="text-center py-8">
                         <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-red-500 border-t-transparent"></div>
                         <p className="mt-4 text-gray-600">Đang tính toán Mahalanobis Distance...</p>
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    // HTMT Matrix UI
+    if (method === 'htmt') {
+        return (
+            <HTMTSelection
+                columns={columns}
+                onRunHTMT={async (factorStructure, threshold) => {
+                    await runHTMTAnalysis(factorStructure);
+                }}
+                isAnalyzing={isAnalyzing}
+                onBack={onBack}
+            />
+        );
+    }
+
+    // VIF Check UI
+    if (method === 'vif') {
+        const [selectedDependent, setSelectedDependent] = React.useState<string>(columns[0] || '');
+
+        return (
+            <div className="max-w-3xl mx-auto space-y-6">
+                <div className="text-center mb-8">
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                        <CheckCircle className="w-8 h-8 text-green-600" />
+                        <h2 className="text-3xl font-bold text-gray-800">
+                            VIF Check (Multicollinearity)
+                        </h2>
+                    </div>
+                    <p className="text-gray-600">
+                        Kiểm tra đa cộng tuyến giữa các biến độc lập
+                    </p>
+                    <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-lg">
+                        <Info className="w-4 h-4 text-green-600" />
+                        <span className="text-sm text-green-700 font-medium">
+                            VIF &lt; 5 = Good | VIF &lt; 10 = Acceptable
+                        </span>
+                    </div>
+                </div>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Chọn biến phụ thuộc (Dependent Variable)</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <select
+                            value={selectedDependent}
+                            onChange={(e) => setSelectedDependent(e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-white focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        >
+                            {columns.map(col => (
+                                <option key={col} value={col}>{col}</option>
+                            ))}
+                        </select>
+                        <p className="text-xs text-gray-500 mt-2 italic">
+                            Các biến còn lại sẽ được coi là biến độc lập (Independent Variables)
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Biến độc lập sẽ được kiểm tra</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="flex flex-wrap gap-2">
+                            {columns.filter(col => col !== selectedDependent).map(col => (
+                                <span
+                                    key={col}
+                                    className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium"
+                                >
+                                    {col}
+                                </span>
+                            ))}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-3 italic">
+                            VIF sẽ được tính cho từng biến độc lập này
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <button
+                    onClick={async () => {
+                        const dependentIndex = columns.indexOf(selectedDependent);
+                        await runVIFAnalysis(dependentIndex);
+                    }}
+                    disabled={isAnalyzing || columns.length < 3}
+                    className="w-full py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    {isAnalyzing ? 'Đang tính toán VIF...' : 'Chạy VIF Check'}
+                </button>
+
+                <button
+                    onClick={onBack}
+                    className="w-full py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg transition-colors"
+                >
+                    ← Quay lại
+                </button>
+
+                {isAnalyzing && (
+                    <div className="text-center py-8">
+                        <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-green-500 border-t-transparent"></div>
+                        <p className="mt-4 text-gray-600">Đang tính toán VIF...</p>
                     </div>
                 )}
             </div>
