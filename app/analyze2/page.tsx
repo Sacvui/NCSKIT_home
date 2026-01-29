@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { FileUpload } from '@/components/FileUpload';
 import { DataProfiler } from '@/components/DataProfiler';
 import { profileData, DataProfile } from '@/lib/data-profiler';
-import { BarChart3, FileText, Shield, Trash2, Eye, EyeOff, Wifi, WifiOff, RotateCcw, XCircle, Sparkles, TrendingUp, Target, Users } from 'lucide-react';
+import { BarChart3, FileText, Shield, Trash2, Eye, EyeOff, Wifi, WifiOff, RotateCcw, XCircle, Sparkles, TrendingUp, Target, Users, Upload, Search, Eraser, Ruler, Building2, Zap, CheckCircle2 } from 'lucide-react';
 import { Toast } from '@/components/ui/Toast';
 import { WebRStatus } from '@/components/WebRStatus';
 import { useAnalysisSession } from '@/hooks/useAnalysisSession';
@@ -186,13 +186,13 @@ export default function Analyze2Page() {
 
     // Phase navigation
     const phases = [
-        { id: 'upload', label: 'Upload', icon: '📁', tooltip: 'Tải dữ liệu lên hệ thống' },
-        { id: 'profile', label: 'Check', icon: '🔍', tooltip: 'Kiểm tra chất lượng dữ liệu' },
-        { id: 'phase1', label: 'Prepare', icon: '🧹', tooltip: 'Làm sạch dữ liệu & Đánh giá độ tin cậy' },
-        { id: 'phase2', label: 'Measure', icon: '📏', tooltip: 'Kiểm định thang đo (HTMT, VIF, EFA, CFA)' },
-        { id: 'phase3', label: 'Structure', icon: '🏗️', tooltip: 'Mô hình cấu trúc (Regression, Mediation, Bootstrap)' },
-        { id: 'phase4', label: 'Advanced', icon: '🎯', tooltip: 'Phân tích nâng cao (IPMA, MGA, Blindfolding)' },
-        { id: 'results', label: 'Results', icon: '✅', tooltip: 'Xem kết quả & Xuất báo cáo' },
+        { id: 'upload', label: 'Upload', icon: Upload, tooltip: 'Tải dữ liệu lên hệ thống' },
+        { id: 'profile', label: 'Check', icon: Search, tooltip: 'Kiểm tra chất lượng dữ liệu' },
+        { id: 'phase1', label: 'Prepare', icon: Eraser, tooltip: 'Làm sạch dữ liệu & Đánh giá độ tin cậy' },
+        { id: 'phase2', label: 'Measure', icon: Ruler, tooltip: 'Kiểm định thang đo (HTMT, VIF, EFA, CFA)' },
+        { id: 'phase3', label: 'Structure', icon: Building2, tooltip: 'Mô hình cấu trúc (Regression, Mediation, Bootstrap)' },
+        { id: 'phase4', label: 'Advanced', icon: Zap, tooltip: 'Phân tích nâng cao (IPMA, MGA, Blindfolding)' },
+        { id: 'results', label: 'Results', icon: CheckCircle2, tooltip: 'Xem kết quả & Xuất báo cáo' },
     ];
 
     const getCurrentPhaseIndex = () => {
@@ -303,7 +303,7 @@ export default function Analyze2Page() {
                   `}
                                     title={isClickable ? p.tooltip || p.label : undefined}
                                 >
-                                    <span className="text-2xl">{p.icon}</span>
+                                    {<p.icon className="w-6 h-6" />}
                                     <span className="text-xs font-medium whitespace-nowrap">{p.label}</span>
                                 </button>
                                 {idx < phases.length - 1 && (
