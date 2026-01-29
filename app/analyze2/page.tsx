@@ -57,6 +57,10 @@ import {
     runBlindfolding
 } from '@/lib/webr/pls-sem';
 
+// Import descriptive statistics
+import { runDescriptiveStats } from '@/lib/webr/analyses/descriptive';
+import { runCronbachAlpha } from '@/lib/webr/analyses/reliability';
+
 type AnalysisPhase =
     | 'upload' | 'profile'
     | 'phase1' | 'phase2' | 'phase3' | 'phase4'
@@ -91,6 +95,10 @@ export default function Analyze2Page() {
     const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
     const [currentResults, setCurrentResults] = useState<any>(null);
     const [results, setResults] = useState<any>(null);
+
+    // Descriptive statistics results
+    const [descriptiveResults, setDescriptiveResults] = useState<any>(null);
+    const [cronbachResults, setCronbachResults] = useState<any>(null);
 
     // Credit management for insufficient credits modal
     const [requiredCredits, setRequiredCredits] = useState(0);
@@ -181,6 +189,47 @@ export default function Analyze2Page() {
     const getAllColumns = () => {
         if (!profile) return [];
         return Object.keys(profile.columnStats);
+    };
+
+    // Handler for Descriptive Statistics
+    const handleDescriptiveStats = async () => {
+        try {
+            setIsAnalyzing(true);
+            showToast('Đang tính toán thống kê mô tả...', 'info');
+
+            // Get numeric columns
+            const numericCols = getNumericColumns();
+            if (numericCols.length === 0) {
+                showToast('Không có cột số để phân tích', 'error');
+                setIsAnalyzing(false);
+                return;
+            }
+
+            // Extract numeric data
+            const numericData = data.map(row =>
+                numericCols.map(col => {
+                    const val = row[col];
+                    return typeof val === 'number' ? val : parseFloat(val);
+                })
+            );
+
+            // Run analysis
+            const result = await runDescriptiveStats(numericData);
+
+            // Add column names to results
+            const resultsWithNames = {
+                ...result,
+                columnNames: numericCols
+            };
+
+            setDescriptiveResults(resultsWithNames);
+            showToast('Thống kê mô tả hoàn tất!', 'success');
+        } catch (error: any) {
+            console.error('Descriptive stats error:', error);
+            showToast(error.message || 'Lỗi khi tính toán thống kê', 'error');
+        } finally {
+            setIsAnalyzing(false);
+        }
     };
 
 
@@ -364,14 +413,15 @@ export default function Analyze2Page() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {/* Descriptive Statistics */}
                                     <button
-                                        onClick={() => showToast('Descriptive Statistics đang được phát triển', 'info')}
-                                        className="p-6 border-2 border-gray-200 rounded-lg hover:border-purple-400 hover:shadow-lg transition-all text-left group"
+                                        onClick={handleDescriptiveStats}
+                                        disabled={isAnalyzing}
+                                        className="p-6 border-2 border-purple-200 rounded-lg hover:border-purple-400 hover:shadow-lg transition-all text-left group bg-purple-50 disabled:opacity-50 disabled:cursor-not-allowed"
                                         title="Mean, SD, Min, Max, Median - Thống kê mô tả cơ bản cho dữ liệu"
                                     >
                                         <div className="flex items-center gap-3 mb-2">
                                             <BarChart3 className="w-6 h-6 text-purple-600" />
                                             <h3 className="font-bold text-lg group-hover:text-purple-600">Descriptive Statistics</h3>
-                                            <Badge variant="default">Coming Soon</Badge>
+                                            <Badge variant="success">Working</Badge>
                                         </div>
                                         <p className="text-sm text-gray-600">Mean, SD, Min, Max, Median, Skewness, Kurtosis</p>
                                     </button>
@@ -418,6 +468,54 @@ export default function Analyze2Page() {
                                         <p className="text-sm text-gray-600">Mahalanobis Distance - Detect & remove multivariate outliers</p>
                                     </button>
                                 </div>
+
+                                {/* Descriptive Statistics Results */}
+                                {descriptiveResults && (
+                                    <div className="mt-6 bg-purple-50 rounded-lg p-6 border border-purple-200">
+                                        <h3 className="text-lg font-bold text-purple-900 mb-4">📊 Descriptive Statistics Results</h3>
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-sm">
+                                                <thead>
+                                                    <tr className="bg-purple-100">
+                                                        <th className="px-4 py-2 text-left font-semibold">Variable</th>
+                                                        <th className="px-4 py-2 text-right font-semibold">N</th>
+                                                        <th className="px-4 py-2 text-right font-semibold">Mean</th>
+                                                        <th className="px-4 py-2 text-right font-semibold">SD</th>
+                                                        <th className="px-4 py-2 text-right font-semibold">Min</th>
+                                                        <th className="px-4 py-2 text-right font-semibold">Max</th>
+                                                        <th className="px-4 py-2 text-right font-semibold">Median</th>
+                                                        <th className="px-4 py-2 text-right font-semibold">Skew</th>
+                                                        <th className="px-4 py-2 text-right font-semibold">Kurtosis</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {descriptiveResults.columnNames.map((colName: string, idx: number) => (
+                                                        <tr key={idx} className="border-b border-purple-100 hover:bg-purple-50">
+                                                            <td className="px-4 py-2 font-medium">{colName}</td>
+                                                            <td className="px-4 py-2 text-right">{descriptiveResults.N[idx]}</td>
+                                                            <td className="px-4 py-2 text-right">{descriptiveResults.mean[idx].toFixed(3)}</td>
+                                                            <td className="px-4 py-2 text-right">{descriptiveResults.sd[idx].toFixed(3)}</td>
+                                                            <td className="px-4 py-2 text-right">{descriptiveResults.min[idx].toFixed(3)}</td>
+                                                            <td className="px-4 py-2 text-right">{descriptiveResults.max[idx].toFixed(3)}</td>
+                                                            <td className="px-4 py-2 text-right">{descriptiveResults.median[idx].toFixed(3)}</td>
+                                                            <td className="px-4 py-2 text-right">{descriptiveResults.skew[idx].toFixed(3)}</td>
+                                                            <td className="px-4 py-2 text-right">{descriptiveResults.kurtosis[idx].toFixed(3)}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div className="mt-4 text-xs text-gray-600">
+                                            <p><strong>Interpretation:</strong></p>
+                                            <ul className="list-disc list-inside space-y-1">
+                                                <li><strong>Mean</strong>: Average value</li>
+                                                <li><strong>SD</strong>: Standard deviation (spread of data)</li>
+                                                <li><strong>Skewness</strong>: &lt; -1 or &gt; 1 indicates non-normal distribution</li>
+                                                <li><strong>Kurtosis</strong>: &lt; -1 or &gt; 1 indicates heavy/light tails</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div className="mt-6 flex justify-end">
                                     <button
