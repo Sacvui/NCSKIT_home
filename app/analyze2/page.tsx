@@ -611,8 +611,8 @@ export default function Analyze2Page() {
                     isOpen={isSaveModalOpen}
                     onClose={() => setIsSaveModalOpen(false)}
                     data={data}
-                    filename={filename}
                     analysisType="pls-sem-workflow"
+                    step={phase}
                     results={null}
                 />
             )}
