@@ -984,6 +984,7 @@ export default function Analyze2Page() {
                                 {results.type === 'regression' && (
                                     <RegressionResults
                                         results={results.data}
+                                        columns={getNumericColumns()}
                                     />
                                 )}
 
@@ -991,6 +992,7 @@ export default function Analyze2Page() {
                                 {results.type === 'mediation' && (
                                     <MediationResults
                                         results={results.data}
+                                        columns={getNumericColumns()}
                                     />
                                 )}
 
@@ -998,7 +1000,7 @@ export default function Analyze2Page() {
                                 {results.type === 'cluster' && (
                                     <ClusterResults
                                         results={results.data}
-                                        columns={results.data.columns || getNumericColumns()}
+                                        columns={getNumericColumns()}
                                     />
                                 )}
 
