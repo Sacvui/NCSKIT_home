@@ -38,6 +38,8 @@ import { EFAResults } from '@/components/results/factor/EFAResults';
 import { CFAResults } from '@/components/results/factor/CFAResults';
 import { RegressionResults } from '@/components/results/regression/RegressionResults';
 import { MediationResults } from '@/components/results/mediation/MediationResults';
+import { ClusterResults } from '@/components/results/cluster/ClusterResults';
+
 
 // Import new PLS-SEM analysis functions
 import {
@@ -56,7 +58,7 @@ import {
 type AnalysisPhase =
     | 'upload' | 'profile'
     | 'phase1' | 'phase2' | 'phase3' | 'phase4'
-    | 'omega-select' | 'outlier-select' | 'cronbach-select' | 'efa-select' | 'cfa-select' | 'regression-select' | 'mediation-select'
+    | 'omega-select' | 'outlier-select' | 'cronbach-select' | 'efa-select' | 'cfa-select' | 'regression-select' | 'mediation-select' | 'cluster-select'
     | 'htmt-select' | 'vif-select'
     | 'bootstrap-select' | 'mediation-select'
     | 'ipma-select' | 'mga-select' | 'blindfolding-select' | 'plssem-select'
@@ -173,6 +175,12 @@ export default function Analyze2Page() {
             .filter(([_, stats]) => stats.type === 'numeric')
             .map(([name, _]) => name);
     };
+
+    const getAllColumns = () => {
+        if (!profile) return [];
+        return Object.keys(profile.columnStats);
+    };
+
 
     // Phase navigation
     const phases = [
@@ -615,6 +623,19 @@ export default function Analyze2Page() {
                                         <p className="text-sm text-gray-600">Kiểm định độc lập</p>
                                     </button>
 
+                                    {/* Cluster Analysis */}
+                                    <button
+                                        onClick={() => setPhase('cluster-select')}
+                                        className="p-6 border-2 border-gray-200 rounded-lg hover:border-amber-400 hover:shadow-lg transition-all text-left group"
+                                    >
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <BarChart3 className="w-6 h-6 text-amber-600" />
+                                            <h3 className="font-bold text-lg group-hover:text-amber-600">Cluster Analysis</h3>
+                                        </div>
+                                        <p className="text-sm text-gray-600">Phân nhóm K-Means</p>
+                                    </button>
+
+
                                     {/* IPMA */}
                                     <button className="p-6 border-2 border-amber-200 rounded-lg hover:border-amber-400 hover:shadow-lg transition-all text-left group bg-amber-50">
                                         <div className="flex items-center gap-3 mb-2">
@@ -796,6 +817,30 @@ export default function Analyze2Page() {
                         />
                     )}
 
+                    {/* Cluster Analysis Select Step - Reused from /analyze */}
+                    {phase === 'cluster-select' && (
+                        <MultivariateView
+                            step="cluster-select"
+                            data={data}
+                            columns={getNumericColumns()}
+                            allColumns={getAllColumns()}
+                            profile={profile}
+                            user={user}
+                            setResults={(results) => {
+                                setResults({ type: 'cluster', data: results });
+                                setPhase('results');
+                            }}
+                            setStep={setPhase}
+                            setNcsBalance={setNcsBalance}
+                            showToast={showToast}
+                            setAnalysisType={setAnalysisType}
+                            setRequiredCredits={setRequiredCredits}
+                            setCurrentAnalysisCost={setCurrentAnalysisCost}
+                            setShowInsufficientCredits={setShowInsufficientCredits}
+                        />
+                    )}
+
+
                     {/* Regression Select Step - Reused from /analyze */}
                     {phase === 'regression-select' && (
                         <RegressionView
@@ -921,6 +966,15 @@ export default function Analyze2Page() {
                                         results={results.data}
                                     />
                                 )}
+
+                                {/* Cluster Analysis Results - Reused */}
+                                {results.type === 'cluster' && (
+                                    <ClusterResults
+                                        results={results.data}
+                                        columns={results.data.columns || getNumericColumns()}
+                                    />
+                                )}
+
 
                                 {/* VIF Results */}
                                 {results.type === 'vif' && (
