@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/Badge';
 import {
     Plus,
@@ -22,6 +22,11 @@ import {
     validateMeasurementModel,
     validateStructuralModel
 } from '@/types/plssem';
+import { ConstructsStep } from './steps/ConstructsStep';
+import { IndicatorsStep } from './steps/IndicatorsStep';
+import { PathsStep } from './steps/PathsStep';
+import { SettingsStep } from './steps/SettingsStep';
+import { ReviewStep } from './steps/ReviewStep';
 
 interface PLSSEMModelBuilderProps {
     columns: string[];
@@ -292,9 +297,4 @@ export const PLSSEMModelBuilder: React.FC<PLSSEMModelBuilderProps> = ({
     );
 };
 
-// Placeholder components for each step (will be implemented next)
-const ConstructsStep: React.FC<any> = (props) => <div>Constructs Step - To be implemented</div>;
-const IndicatorsStep: React.FC<any> = (props) => <div>Indicators Step - To be implemented</div>;
-const PathsStep: React.FC<any> = (props) => <div>Paths Step - To be implemented</div>;
-const SettingsStep: React.FC<any> = (props) => <div>Settings Step - To be implemented</div>;
-const ReviewStep: React.FC<any> = (props) => <div>Review Step - To be implemented</div>;
+

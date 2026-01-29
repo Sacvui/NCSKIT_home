@@ -33,11 +33,11 @@ import { OmegaResults } from '@/components/results/plssem/OmegaResults';
 import { OutlierResults } from '@/components/results/plssem/OutlierResults';
 import { HTMTResults } from '@/components/results/plssem/HTMTResults';
 import { VIFResults } from '@/components/results/plssem/VIFResults';
-import { CronbachResults } from '@/components/results/CronbachResults';
-import { EFAResults } from '@/components/results/EFAResults';
-import { CFAResults } from '@/components/results/CFAResults';
-import { RegressionResults } from '@/components/results/RegressionResults';
-import { MediationResults } from '@/components/results/MediationResults';
+import { CronbachResults } from '@/components/results/reliability/CronbachResults';
+import { EFAResults } from '@/components/results/factor/EFAResults';
+import { CFAResults } from '@/components/results/factor/CFAResults';
+import { RegressionResults } from '@/components/results/regression/RegressionResults';
+import { MediationResults } from '@/components/results/mediation/MediationResults';
 
 // Import new PLS-SEM analysis functions
 import {
@@ -884,43 +884,43 @@ export default function Analyze2Page() {
                                 )}
 
 
-                            {/* Cronbach Results - Reused */}
-                            {results.type === 'cronbach' && (
-                                <CronbachResults
-                                    results={results.data}
-                                    columns={results.columns}
-                                    scaleName={scaleName}
-                                />
-                            )}
+                                {/* Cronbach Results - Reused */}
+                                {results.type === 'cronbach' && (
+                                    <CronbachResults
+                                        results={results.data}
+                                        columns={results.columns}
+                                        scaleName={scaleName}
+                                    />
+                                )}
 
-                            {/* EFA Results - Reused */}
-                            {results.type === 'efa' && (
-                                <EFAResults
-                                    results={results.data}
-                                    columns={results.columns}
-                                />
-                            )}
+                                {/* EFA Results - Reused */}
+                                {results.type === 'efa' && (
+                                    <EFAResults
+                                        results={results.data}
+                                        columns={results.columns}
+                                    />
+                                )}
 
-                            {/* CFA Results - Reused */}
-                            {results.type === 'cfa' && (
-                                <CFAResults
-                                    results={results.data}
-                                />
-                            )}
+                                {/* CFA Results - Reused */}
+                                {results.type === 'cfa' && (
+                                    <CFAResults
+                                        results={results.data}
+                                    />
+                                )}
 
-                            {/* Regression Results - Reused */}
-                            {results.type === 'regression' && (
-                                <RegressionResults
-                                    results={results.data}
-                                />
-                            )}
+                                {/* Regression Results - Reused */}
+                                {results.type === 'regression' && (
+                                    <RegressionResults
+                                        results={results.data}
+                                    />
+                                )}
 
-                            {/* Mediation Results - Reused */}
-                            {results.type === 'mediation' && (
-                                <MediationResults
-                                    results={results.data}
-                                />
-                            )}
+                                {/* Mediation Results - Reused */}
+                                {results.type === 'mediation' && (
+                                    <MediationResults
+                                        results={results.data}
+                                    />
+                                )}
 
                                 {/* VIF Results */}
                                 {results.type === 'vif' && (
