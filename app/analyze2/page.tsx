@@ -77,6 +77,7 @@ export default function Analyze2Page() {
     // PLS-SEM method selection
     const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
     const [currentResults, setCurrentResults] = useState<any>(null);
+    const [results, setResults] = useState<any>(null);
 
     // Credit management for insufficient credits modal
     const [requiredCredits, setRequiredCredits] = useState(0);
@@ -410,7 +411,10 @@ export default function Analyze2Page() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {/* EFA */}
-                                    <button className="p-6 border-2 border-gray-200 rounded-lg hover:border-blue-400 hover:shadow-lg transition-all text-left group">
+                                    <button
+                                        onClick={() => showToast('EFA đang được phát triển', 'info')}
+                                        className="p-6 border-2 border-gray-200 rounded-lg hover:border-blue-400 hover:shadow-lg transition-all text-left group"
+                                    >
                                         <div className="flex items-center gap-3 mb-2">
                                             <BarChart3 className="w-6 h-6 text-blue-600" />
                                             <h3 className="font-bold text-lg group-hover:text-blue-600">EFA</h3>
@@ -419,7 +423,10 @@ export default function Analyze2Page() {
                                     </button>
 
                                     {/* CFA */}
-                                    <button className="p-6 border-2 border-gray-200 rounded-lg hover:border-blue-400 hover:shadow-lg transition-all text-left group">
+                                    <button
+                                        onClick={() => showToast('CFA đang được phát triển', 'info')}
+                                        className="p-6 border-2 border-gray-200 rounded-lg hover:border-blue-400 hover:shadow-lg transition-all text-left group"
+                                    >
                                         <div className="flex items-center gap-3 mb-2">
                                             <FileText className="w-6 h-6 text-blue-600" />
                                             <h3 className="font-bold text-lg group-hover:text-blue-600">CFA</h3>
@@ -428,7 +435,10 @@ export default function Analyze2Page() {
                                     </button>
 
                                     {/* HTMT Matrix */}
-                                    <button className="p-6 border-2 border-blue-200 rounded-lg hover:border-blue-400 hover:shadow-lg transition-all text-left group bg-blue-50">
+                                    <button
+                                        onClick={() => setPhase('htmt-select')}
+                                        className="p-6 border-2 border-blue-200 rounded-lg hover:border-blue-400 hover:shadow-lg transition-all text-left group bg-blue-50"
+                                    >
                                         <div className="flex items-center gap-3 mb-2">
                                             <Sparkles className="w-6 h-6 text-blue-600" />
                                             <h3 className="font-bold text-lg group-hover:text-blue-600">HTMT Matrix</h3>
@@ -438,7 +448,10 @@ export default function Analyze2Page() {
                                     </button>
 
                                     {/* VIF Check */}
-                                    <button className="p-6 border-2 border-blue-200 rounded-lg hover:border-blue-400 hover:shadow-lg transition-all text-left group bg-blue-50">
+                                    <button
+                                        onClick={() => setPhase('vif-select')}
+                                        className="p-6 border-2 border-blue-200 rounded-lg hover:border-blue-400 hover:shadow-lg transition-all text-left group bg-blue-50"
+                                    >
                                         <div className="flex items-center gap-3 mb-2">
                                             <Sparkles className="w-6 h-6 text-blue-600" />
                                             <h3 className="font-bold text-lg group-hover:text-blue-600">VIF Check</h3>
