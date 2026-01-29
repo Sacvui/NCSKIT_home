@@ -789,6 +789,7 @@ export default function Analyze2Page() {
                             step="efa-select"
                             data={data}
                             columns={getNumericColumns()}
+                            profile={profile}
                             user={user}
                             setResults={(results) => {
                                 setResults({ type: 'efa', data: results });
@@ -812,6 +813,7 @@ export default function Analyze2Page() {
                             step="cfa-select"
                             data={data}
                             columns={getNumericColumns()}
+                            profile={profile}
                             user={user}
                             setResults={(results) => {
                                 setResults({ type: 'cfa', data: results });
