@@ -60,7 +60,7 @@ export const HTMTResults = React.memo(function HTMTResults({
                             <thead>
                                 <tr className="border-b border-gray-200 bg-gray-50">
                                     <th className="py-3 px-4 font-semibold text-gray-700">Factor</th>
-                                    {factorNames.map((name, idx) => (
+                                    {factorNames.map((name: string, idx: number) => (
                                         <th key={idx} className="py-3 px-4 font-semibold text-center text-gray-700">
                                             {name}
                                         </th>
@@ -73,7 +73,7 @@ export const HTMTResults = React.memo(function HTMTResults({
                                         <td className="py-3 px-4 font-medium text-gray-900">
                                             {factorNames[rowIdx]}
                                         </td>
-                                        {row.map((value, colIdx) => {
+                                        {row.map((value: number, colIdx: number) => {
                                             const isAboveThreshold = value > threshold;
                                             const isDiagonal = rowIdx === colIdx;
 
@@ -81,10 +81,10 @@ export const HTMTResults = React.memo(function HTMTResults({
                                                 <td
                                                     key={colIdx}
                                                     className={`py-3 px-4 text-center ${isDiagonal
-                                                            ? 'bg-gray-100 text-gray-400'
-                                                            : isAboveThreshold
-                                                                ? 'bg-red-100 text-red-700 font-bold'
-                                                                : 'text-gray-600'
+                                                        ? 'bg-gray-100 text-gray-400'
+                                                        : isAboveThreshold
+                                                            ? 'bg-red-100 text-red-700 font-bold'
+                                                            : 'text-gray-600'
                                                         }`}
                                                 >
                                                     {isDiagonal ? '-' : value.toFixed(3)}
