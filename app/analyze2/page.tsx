@@ -445,50 +445,56 @@ export default function Analyze2Page() {
                                     <button
                                         onClick={() => setPhase('efa-select')}
                                         className="p-6 border-2 border-gray-200 rounded-lg hover:border-blue-400 hover:shadow-lg transition-all text-left group"
+                                        title="Exploratory Factor Analysis - Discovers latent factor structure from observed variables"
                                     >
                                         <div className="flex items-center gap-3 mb-2">
                                             <BarChart3 className="w-6 h-6 text-blue-600" />
                                             <h3 className="font-bold text-lg group-hover:text-blue-600">EFA</h3>
+                                            <Badge variant="success">Working</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">Exploratory Factor Analysis</p>
+                                        <p className="text-sm text-gray-600">Exploratory Factor Analysis - Discover factor structure</p>
                                     </button>
 
                                     {/* CFA */}
                                     <button
                                         onClick={() => setPhase('cfa-select')}
                                         className="p-6 border-2 border-gray-200 rounded-lg hover:border-blue-400 hover:shadow-lg transition-all text-left group"
+                                        title="Confirmatory Factor Analysis - Validates pre-specified measurement model"
                                     >
                                         <div className="flex items-center gap-3 mb-2">
                                             <FileText className="w-6 h-6 text-blue-600" />
                                             <h3 className="font-bold text-lg group-hover:text-blue-600">CFA</h3>
+                                            <Badge variant="success">Working</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">Confirmatory Factor Analysis</p>
+                                        <p className="text-sm text-gray-600">Confirmatory Factor Analysis - Validate measurement model</p>
                                     </button>
 
                                     {/* HTMT Matrix */}
                                     <button
                                         onClick={() => setPhase('htmt-select')}
                                         className="p-6 border-2 border-blue-200 rounded-lg hover:border-blue-400 hover:shadow-lg transition-all text-left group bg-blue-50"
+                                        title="Threshold: HTMT &lt; 0.85 (strict) or &lt; 0.90 (liberal) - Gold standard for discriminant validity"
                                     >
                                         <div className="flex items-center gap-3 mb-2">
                                             <Sparkles className="w-6 h-6 text-blue-600" />
                                             <h3 className="font-bold text-lg group-hover:text-blue-600">HTMT Matrix</h3>
-                                            <Badge variant="success">NEW</Badge>
+                                            <Badge variant="success">Working</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">Tiêu chuẩn vàng kiểm tra tính phân biệt</p>
+                                        <p className="text-sm text-gray-600">HTMT &lt; 0.85 - Gold standard for discriminant validity</p>
                                     </button>
 
                                     {/* VIF Check */}
                                     <button
                                         onClick={() => setPhase('vif-select')}
                                         className="p-6 border-2 border-blue-200 rounded-lg hover:border-blue-400 hover:shadow-lg transition-all text-left group bg-blue-50"
+                                        title="Threshold: VIF &lt; 5.0 (acceptable), VIF &lt; 3.0 (ideal) - Detects multicollinearity issues"
                                     >
                                         <div className="flex items-center gap-3 mb-2">
                                             <Sparkles className="w-6 h-6 text-blue-600" />
                                             <h3 className="font-bold text-lg group-hover:text-blue-600">VIF Check</h3>
-                                            <Badge variant="success">NEW</Badge>
+                                            <Badge variant="success">Working</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">Kiểm tra đa cộng tuyến</p>
+                                        <p className="text-sm text-gray-600">VIF &lt; 5.0 - Variance Inflation Factor for collinearity</p>
                                     </button>
                                 </div>
 
@@ -525,51 +531,68 @@ export default function Analyze2Page() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {/* Linear Regression */}
-                                    <button className="p-6 border-2 border-gray-200 rounded-lg hover:border-green-400 hover:shadow-lg transition-all text-left group">
+                                    <button
+                                        className="p-6 border-2 border-gray-200 rounded-lg hover:border-green-400 hover:shadow-lg transition-all text-left group"
+                                        title="Multiple linear regression - Analyzes relationships between variables"
+                                    >
                                         <div className="flex items-center gap-3 mb-2">
                                             <BarChart3 className="w-6 h-6 text-green-600" />
                                             <h3 className="font-bold text-lg group-hover:text-green-600">Linear Regression</h3>
+                                            <Badge variant="success">Working</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">Hồi quy tuyến tính</p>
+                                        <p className="text-sm text-gray-600">Multiple regression with path coefficients (β)</p>
                                     </button>
 
                                     {/* SEM */}
-                                    <button className="p-6 border-2 border-gray-200 rounded-lg hover:border-green-400 hover:shadow-lg transition-all text-left group">
+                                    <button
+                                        className="p-6 border-2 border-gray-200 rounded-lg hover:border-green-400 hover:shadow-lg transition-all text-left group"
+                                        title="Covariance-based SEM - Traditional approach for theory testing"
+                                    >
                                         <div className="flex items-center gap-3 mb-2">
                                             <FileText className="w-6 h-6 text-green-600" />
-                                            <h3 className="font-bold text-lg group-hover:text-green-600">SEM (CB-SEM)</h3>
+                                            <h3 className="font-bold text-lg group-hover:text-green-600">CB-SEM</h3>
+                                            <Badge variant="default">Coming Soon</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">Structural Equation Modeling</p>
+                                        <p className="text-sm text-gray-600">Covariance-based Structural Equation Modeling</p>
                                     </button>
 
                                     {/* SmartPLS Algorithm */}
-                                    <button className="p-6 border-2 border-green-200 rounded-lg hover:border-green-400 hover:shadow-lg transition-all text-left group bg-green-50">
+                                    <button
+                                        className="p-6 border-2 border-green-200 rounded-lg hover:border-green-400 hover:shadow-lg transition-all text-left group bg-green-50"
+                                        title="PLS-SEM Algorithm - Variance-based approach for prediction and complex models"
+                                    >
                                         <div className="flex items-center gap-3 mb-2">
                                             <Sparkles className="w-6 h-6 text-green-600" />
-                                            <h3 className="font-bold text-lg group-hover:text-green-600">SmartPLS Algorithm</h3>
-                                            <Badge variant="success">NEW</Badge>
+                                            <h3 className="font-bold text-lg group-hover:text-green-600">PLS-SEM Algorithm</h3>
+                                            <Badge variant="default">Coming Soon</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">PLS-SEM cực nhanh trên WebR</p>
+                                        <p className="text-sm text-gray-600">Partial Least Squares - Variance-based SEM</p>
                                     </button>
 
                                     {/* Bootstrapping */}
-                                    <button className="p-6 border-2 border-green-200 rounded-lg hover:border-green-400 hover:shadow-lg transition-all text-left group bg-green-50">
+                                    <button
+                                        className="p-6 border-2 border-green-200 rounded-lg hover:border-green-400 hover:shadow-lg transition-all text-left group bg-green-50"
+                                        title="Bootstrap resampling (5000 iterations) - Tests significance of path coefficients"
+                                    >
                                         <div className="flex items-center gap-3 mb-2">
                                             <Sparkles className="w-6 h-6 text-green-600" />
                                             <h3 className="font-bold text-lg group-hover:text-green-600">Bootstrapping</h3>
-                                            <Badge variant="success">NEW</Badge>
+                                            <Badge variant="default">Coming Soon</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">Lấy P-value cho giả thuyết</p>
+                                        <p className="text-sm text-gray-600">Bootstrap resampling for significance testing (p-values)</p>
                                     </button>
 
                                     {/* Mediation & Moderation */}
-                                    <button className="p-6 border-2 border-green-200 rounded-lg hover:border-green-400 hover:shadow-lg transition-all text-left group bg-green-50 md:col-span-2">
+                                    <button
+                                        className="p-6 border-2 border-green-200 rounded-lg hover:border-green-400 hover:shadow-lg transition-all text-left group bg-green-50 md:col-span-2"
+                                        title="Mediation (Baron & Kenny + Sobel test) and Moderation (Interaction effects) analysis"
+                                    >
                                         <div className="flex items-center gap-3 mb-2">
                                             <Sparkles className="w-6 h-6 text-green-600" />
                                             <h3 className="font-bold text-lg group-hover:text-green-600">Mediation & Moderation</h3>
-                                            <Badge variant="success">NEW</Badge>
+                                            <Badge variant="success">Working</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">Phân tích trung gian và điều tiết tích hợp</p>
+                                        <p className="text-sm text-gray-600">Mediation (indirect effects) & Moderation (interaction) analysis</p>
                                     </button>
                                 </div>
 
@@ -636,43 +659,54 @@ export default function Analyze2Page() {
                                     <button
                                         onClick={() => setPhase('cluster-select')}
                                         className="p-6 border-2 border-gray-200 rounded-lg hover:border-amber-400 hover:shadow-lg transition-all text-left group"
+                                        title="K-Means clustering - Segments data into distinct groups based on similarity"
                                     >
                                         <div className="flex items-center gap-3 mb-2">
                                             <BarChart3 className="w-6 h-6 text-amber-600" />
                                             <h3 className="font-bold text-lg group-hover:text-amber-600">Cluster Analysis</h3>
+                                            <Badge variant="success">Working</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">Phân nhóm K-Means</p>
+                                        <p className="text-sm text-gray-600">K-Means clustering - Segment data into groups</p>
                                     </button>
 
 
                                     {/* IPMA */}
-                                    <button className="p-6 border-2 border-amber-200 rounded-lg hover:border-amber-400 hover:shadow-lg transition-all text-left group bg-amber-50">
+                                    <button
+                                        className="p-6 border-2 border-amber-200 rounded-lg hover:border-amber-400 hover:shadow-lg transition-all text-left group bg-amber-50"
+                                        title="Importance-Performance Map Analysis - Prioritizes improvement areas by importance vs performance"
+                                    >
                                         <div className="flex items-center gap-3 mb-2">
                                             <Sparkles className="w-6 h-6 text-amber-600" />
                                             <h3 className="font-bold text-lg group-hover:text-amber-600">IPMA Matrix</h3>
-                                            <Badge variant="success">NEW</Badge>
+                                            <Badge variant="default">Coming Soon</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">Importance-Performance Analysis</p>
+                                        <p className="text-sm text-gray-600">Importance-Performance Map - Prioritize improvements</p>
                                     </button>
 
                                     {/* MGA */}
-                                    <button className="p-6 border-2 border-amber-200 rounded-lg hover:border-amber-400 hover:shadow-lg transition-all text-left group bg-amber-50">
+                                    <button
+                                        className="p-6 border-2 border-amber-200 rounded-lg hover:border-amber-400 hover:shadow-lg transition-all text-left group bg-amber-50"
+                                        title="Multi-Group Analysis - Compares path coefficients across different groups (e.g., gender, age)"
+                                    >
                                         <div className="flex items-center gap-3 mb-2">
                                             <Sparkles className="w-6 h-6 text-amber-600" />
                                             <h3 className="font-bold text-lg group-hover:text-amber-600">MGA</h3>
-                                            <Badge variant="success">NEW</Badge>
+                                            <Badge variant="default">Coming Soon</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">Multi-Group Analysis</p>
+                                        <p className="text-sm text-gray-600">Multi-Group Analysis - Compare groups (gender, age, etc.)</p>
                                     </button>
 
                                     {/* Blindfolding */}
-                                    <button className="p-6 border-2 border-amber-200 rounded-lg hover:border-amber-400 hover:shadow-lg transition-all text-left group bg-amber-50">
+                                    <button
+                                        className="p-6 border-2 border-amber-200 rounded-lg hover:border-amber-400 hover:shadow-lg transition-all text-left group bg-amber-50"
+                                        title="Blindfolding procedure - Calculates Q² (Stone-Geisser) for predictive relevance (Q² &gt; 0 indicates relevance)"
+                                    >
                                         <div className="flex items-center gap-3 mb-2">
                                             <Sparkles className="w-6 h-6 text-amber-600" />
                                             <h3 className="font-bold text-lg group-hover:text-amber-600">Blindfolding (Q²)</h3>
-                                            <Badge variant="success">NEW</Badge>
+                                            <Badge variant="default">Coming Soon</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">Đo lường giá trị dự báo</p>
+                                        <p className="text-sm text-gray-600">Q² (Stone-Geisser) - Predictive relevance (Q² &gt; 0)</p>
                                     </button>
                                 </div>
 
