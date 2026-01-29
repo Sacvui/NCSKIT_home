@@ -282,7 +282,11 @@ export default function Analyze2Page() {
                         const currentIdx = getCurrentPhaseIndex();
                         const isCompleted = currentIdx > idx;
                         const isCurrent = phase === p.id;
-                        const isClickable = isCompleted || isCurrent;
+                        // Allow free navigation to all phases (analysis phases are independent)
+                        // Only lock phases that require data (phase1-4, results) if no data uploaded
+                        const requiresData = ['phase1', 'phase2', 'phase3', 'phase4', 'results'].includes(p.id);
+                        const hasData = data.length > 0;
+                        const isClickable = requiresData ? hasData : true;
 
                         return (
                             <div key={p.id} className="flex items-center">
