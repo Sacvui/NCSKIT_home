@@ -1,0 +1,445 @@
+/**
+ * PLS-SEM Analysis View
+ * Handles all PLS-SEM specific methods for Analyze2 workflow
+ */
+
+import React, { useState } from 'react';
+import { getAnalysisCost, checkBalance, deductCredits } from '@/lib/ncs-credits';
+import { logAnalysisUsage } from '@/lib/activity-logger';
+import {
+    runMcDonaldOmega,
+    runOutlierDetection,
+    runHTMTMatrix,
+    runVIFCheck,
+    runBootstrapping,
+    runMediationModeration,
+    runIPMA,
+    runMGA,
+    runBlindfolding
+} from '@/lib/webr/pls-sem';
+import { SmartGroupSelector } from '@/components/VariableSelector';
+import { Sparkles, AlertTriangle, CheckCircle } from 'lucide-react';
+
+type PLSSEMMethod =
+    | 'omega'
+    | 'outlier'
+    | 'htmt'
+    | 'vif'
+    | 'bootstrap'
+    | 'mediation'
+    | 'ipma'
+    | 'mga'
+    | 'blindfolding';
+
+interface PLSSEMViewProps {
+    method: PLSSEMMethod;
+    data: any[];
+    columns: string[];
+    user: any;
+    setResults: (results: any) => void;
+    setNcsBalance: React.Dispatch<React.SetStateAction<number>>;
+    showToast: (message: string, type: 'success' | 'error' | 'info') => void;
+    onBack: () => void;
+
+    // Credit UI setters
+    setRequiredCredits: (amount: number) => void;
+    setCurrentAnalysisCost: (amount: number) => void;
+    setShowInsufficientCredits: (show: boolean) => void;
+}
+
+export const PLSSEMView: React.FC<PLSSEMViewProps> = ({
+    method,
+    data,
+    columns,
+    user,
+    setResults,
+    setNcsBalance,
+    showToast,
+    onBack,
+    setRequiredCredits,
+    setCurrentAnalysisCost,
+    setShowInsufficientCredits
+}) => {
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
+
+    const handleAnalysisError = (err: any) => {
+        const msg = err.message || String(err);
+        console.error("PLS-SEM Analysis Error:", err);
+        showToast(`Lỗi: ${msg.substring(0, 100)}...`, 'error');
+    };
+
+    // McDonald's Omega
+    const runOmegaAnalysis = async (cols: string[], name: string) => {
+        if (cols.length < 3) {
+            showToast('McDonald\'s Omega cần ít nhất 3 biến', 'error');
+            return;
+        }
+
+        if (user) {
+            const cost = await getAnalysisCost('omega');
+            const hasEnough = await checkBalance(user.id, cost);
+            if (!hasEnough) {
+                setRequiredCredits(cost);
+                setCurrentAnalysisCost(cost);
+                setShowInsufficientCredits(true);
+                return;
+            }
+        }
+
+        setIsAnalyzing(true);
+
+        try {
+            const selectedData = data.map(row =>
+                cols.map(col => Number(row[col]) || 0)
+            );
+
+            const result = await runMcDonaldOmega(selectedData, cols);
+
+            if (user) {
+                const cost = await getAnalysisCost('omega');
+                await deductCredits(user.id, cost, `McDonald's Omega: ${name}`);
+                await logAnalysisUsage(user.id, 'omega', cost);
+                setNcsBalance(prev => Math.max(0, prev - cost));
+            }
+
+            setResults({
+                type: 'omega',
+                data: result,
+                columns: cols,
+                scaleName: name
+            });
+
+            showToast('Phân tích McDonald\'s Omega hoàn thành!', 'success');
+        } catch (error) {
+            handleAnalysisError(error);
+        } finally {
+            setIsAnalyzing(false);
+        }
+    };
+
+    // Outlier Detection
+    const runOutlierAnalysis = async () => {
+        if (columns.length < 2) {
+            showToast('Cần ít nhất 2 biến để phát hiện outliers', 'error');
+            return;
+        }
+
+        if (user) {
+            const cost = await getAnalysisCost('outlier');
+            const hasEnough = await checkBalance(user.id, cost);
+            if (!hasEnough) {
+                setRequiredCredits(cost);
+                setCurrentAnalysisCost(cost);
+                setShowInsufficientCredits(true);
+                return;
+            }
+        }
+
+        setIsAnalyzing(true);
+
+        try {
+            const numericData = data.map(row =>
+                columns.map(col => Number(row[col]) || 0)
+            );
+
+            const result = await runOutlierDetection(numericData);
+
+            if (user) {
+                const cost = await getAnalysisCost('outlier');
+                await deductCredits(user.id, cost, 'Outlier Detection');
+                await logAnalysisUsage(user.id, 'outlier', cost);
+                setNcsBalance(prev => Math.max(0, prev - cost));
+            }
+
+            setResults({
+                type: 'outlier',
+                data: result,
+                columns: columns
+            });
+
+            showToast(`Phát hiện ${result.n_outliers} outliers!`, 'success');
+        } catch (error) {
+            handleAnalysisError(error);
+        } finally {
+            setIsAnalyzing(false);
+        }
+    };
+
+    // HTMT Matrix
+    const runHTMTAnalysis = async (factorStructure: { name: string; items: number[] }[]) => {
+        if (factorStructure.length < 2) {
+            showToast('HTMT cần ít nhất 2 factors để so sánh', 'error');
+            return;
+        }
+
+        if (user) {
+            const cost = await getAnalysisCost('htmt');
+            const hasEnough = await checkBalance(user.id, cost);
+            if (!hasEnough) {
+                setRequiredCredits(cost);
+                setCurrentAnalysisCost(cost);
+                setShowInsufficientCredits(true);
+                return;
+            }
+        }
+
+        setIsAnalyzing(true);
+
+        try {
+            const numericData = data.map(row =>
+                columns.map(col => Number(row[col]) || 0)
+            );
+
+            const result = await runHTMTMatrix(numericData, factorStructure);
+
+            if (user) {
+                const cost = await getAnalysisCost('htmt');
+                await deductCredits(user.id, cost, 'HTMT Matrix');
+                await logAnalysisUsage(user.id, 'htmt', cost);
+                setNcsBalance(prev => Math.max(0, prev - cost));
+            }
+
+            setResults({
+                type: 'htmt',
+                data: result,
+                factorStructure: factorStructure
+            });
+
+            showToast('HTMT Matrix hoàn thành!', 'success');
+        } catch (error) {
+            handleAnalysisError(error);
+        } finally {
+            setIsAnalyzing(false);
+        }
+    };
+
+    // VIF Check
+    const runVIFAnalysis = async (dependentVarIndex: number = 0) => {
+        if (columns.length < 3) {
+            showToast('VIF cần ít nhất 3 biến (1 dependent + 2 independent)', 'error');
+            return;
+        }
+
+        if (user) {
+            const cost = await getAnalysisCost('vif');
+            const hasEnough = await checkBalance(user.id, cost);
+            if (!hasEnough) {
+                setRequiredCredits(cost);
+                setCurrentAnalysisCost(cost);
+                setShowInsufficientCredits(true);
+                return;
+            }
+        }
+
+        setIsAnalyzing(true);
+
+        try {
+            const numericData = data.map(row =>
+                columns.map(col => Number(row[col]) || 0)
+            );
+
+            const result = await runVIFCheck(numericData, dependentVarIndex);
+
+            if (user) {
+                const cost = await getAnalysisCost('vif');
+                await deductCredits(user.id, cost, 'VIF Check');
+                await logAnalysisUsage(user.id, 'vif', cost);
+                setNcsBalance(prev => Math.max(0, prev - cost));
+            }
+
+            setResults({
+                type: 'vif',
+                data: result,
+                columns: columns
+            });
+
+            showToast('VIF Check hoàn thành!', 'success');
+        } catch (error) {
+            handleAnalysisError(error);
+        } finally {
+            setIsAnalyzing(false);
+        }
+    };
+
+    // Bootstrapping
+    const runBootstrapAnalysis = async (nBootstrap: number = 5000) => {
+        if (columns.length < 2) {
+            showToast('Bootstrapping cần ít nhất 2 biến', 'error');
+            return;
+        }
+
+        if (user) {
+            const cost = await getAnalysisCost('bootstrap');
+            const hasEnough = await checkBalance(user.id, cost);
+            if (!hasEnough) {
+                setRequiredCredits(cost);
+                setCurrentAnalysisCost(cost);
+                setShowInsufficientCredits(true);
+                return;
+            }
+        }
+
+        setIsAnalyzing(true);
+
+        try {
+            const numericData = data.map(row =>
+                columns.map(col => Number(row[col]) || 0)
+            );
+
+            const result = await runBootstrapping(numericData, nBootstrap);
+
+            if (user) {
+                const cost = await getAnalysisCost('bootstrap');
+                await deductCredits(user.id, cost, `Bootstrapping (${nBootstrap} samples)`);
+                await logAnalysisUsage(user.id, 'bootstrap', cost);
+                setNcsBalance(prev => Math.max(0, prev - cost));
+            }
+
+            setResults({
+                type: 'bootstrap',
+                data: result,
+                columns: columns,
+                nBootstrap: nBootstrap
+            });
+
+            showToast(`Bootstrapping với ${nBootstrap} samples hoàn thành!`, 'success');
+        } catch (error) {
+            handleAnalysisError(error);
+        } finally {
+            setIsAnalyzing(false);
+        }
+    };
+
+    // Render based on method
+    if (method === 'omega') {
+        return (
+            <div className="max-w-3xl mx-auto space-y-6">
+                <div className="text-center mb-8">
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                        <Sparkles className="w-8 h-8 text-purple-600" />
+                        <h2 className="text-3xl font-bold text-gray-800">
+                            McDonald&apos;s Omega
+                        </h2>
+                    </div>
+                    <p className="text-gray-600">
+                        Đánh giá độ tin cậy thang đo (Chính xác hơn Cronbach&apos;s Alpha)
+                    </p>
+                    <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-purple-50 border border-purple-200 rounded-lg">
+                        <CheckCircle className="w-4 h-4 text-purple-600" />
+                        <span className="text-sm text-purple-700 font-medium">
+                            Omega ≥ 0.7 = Good | ≥ 0.6 = Acceptable
+                        </span>
+                    </div>
+                </div>
+
+                <SmartGroupSelector
+                    columns={columns}
+                    onAnalyzeGroup={runOmegaAnalysis}
+                    onAnalyzeAllGroups={async (groups) => {
+                        for (const group of groups) {
+                            await runOmegaAnalysis(group.columns, group.name);
+                        }
+                    }}
+                    isAnalyzing={isAnalyzing}
+                    minItemsPerGroup={3}
+                    analysisLabel="McDonald's Omega"
+                />
+
+                <button
+                    onClick={onBack}
+                    className="w-full py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg transition-colors"
+                >
+                    ← Quay lại
+                </button>
+
+                {isAnalyzing && (
+                    <div className="text-center py-8">
+                        <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-purple-500 border-t-transparent"></div>
+                        <p className="mt-4 text-gray-600">Đang tính toán Omega...</p>
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    if (method === 'outlier') {
+        return (
+            <div className="max-w-3xl mx-auto space-y-6">
+                <div className="text-center mb-8">
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                        <AlertTriangle className="w-8 h-8 text-red-600" />
+                        <h2 className="text-3xl font-bold text-gray-800">
+                            Outlier Detection
+                        </h2>
+                    </div>
+                    <p className="text-gray-600">
+                        Phát hiện dữ liệu ngoại lai bằng Mahalanobis Distance
+                    </p>
+                    <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-200 rounded-lg">
+                        <AlertTriangle className="w-4 h-4 text-red-600" />
+                        <span className="text-sm text-red-700 font-medium">
+                            Sử dụng tất cả {columns.length} biến số
+                        </span>
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-lg p-6 border">
+                    <p className="text-sm text-gray-600 mb-4">
+                        Phân tích sẽ tự động sử dụng tất cả biến số trong dataset để tính Mahalanobis Distance.
+                        Các quan sát có khoảng cách vượt ngưỡng (p &lt; 0.001) sẽ được đánh dấu là outliers.
+                    </p>
+
+                    <button
+                        onClick={runOutlierAnalysis}
+                        disabled={isAnalyzing}
+                        className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {isAnalyzing ? 'Đang phân tích...' : 'Phát hiện Outliers'}
+                    </button>
+                </div>
+
+                <button
+                    onClick={onBack}
+                    className="w-full py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg transition-colors"
+                >
+                    ← Quay lại
+                </button>
+
+                {isAnalyzing && (
+                    <div className="text-center py-8">
+                        <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-red-500 border-t-transparent"></div>
+                        <p className="mt-4 text-gray-600">Đang tính toán Mahalanobis Distance...</p>
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    // Placeholder for other methods
+    return (
+        <div className="max-w-3xl mx-auto space-y-6">
+            <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                    {method.toUpperCase()}
+                </h2>
+                <p className="text-gray-600">
+                    Giao diện đang được phát triển...
+                </p>
+            </div>
+
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                <p className="text-yellow-800 font-medium">
+                    🚧 Tính năng này đang được hoàn thiện. R code đã sẵn sàng, UI đang được xây dựng.
+                </p>
+            </div>
+
+            <button
+                onClick={onBack}
+                className="w-full py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg transition-colors"
+            >
+                ← Quay lại
+            </button>
+        </div>
+    );
+};
