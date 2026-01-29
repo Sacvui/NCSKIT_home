@@ -736,7 +736,7 @@ export default function Analyze2Page() {
                     {/* Cronbach Select Step - Reused from /analyze */}
                     {phase === 'cronbach-select' && (
                         <ReliabilityView
-                            step="cronbach"
+                            step="cronbach-select"
                             data={data}
                             columns={getNumericColumns()}
                             user={user}
@@ -759,7 +759,7 @@ export default function Analyze2Page() {
                     {/* EFA Select Step - Reused from /analyze */}
                     {phase === 'efa-select' && (
                         <MultivariateView
-                            step="efa"
+                            step="efa-select"
                             data={data}
                             columns={getNumericColumns()}
                             user={user}
@@ -779,7 +779,7 @@ export default function Analyze2Page() {
                     {/* CFA Select Step - Reused from /analyze */}
                     {phase === 'cfa-select' && (
                         <MultivariateView
-                            step="cfa"
+                            step="cfa-select"
                             data={data}
                             columns={getNumericColumns()}
                             user={user}
