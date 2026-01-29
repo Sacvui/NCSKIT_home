@@ -362,50 +362,56 @@ export default function Analyze2Page() {
                                     <button
                                         onClick={() => showToast('Descriptive Statistics đang được phát triển', 'info')}
                                         className="p-6 border-2 border-gray-200 rounded-lg hover:border-purple-400 hover:shadow-lg transition-all text-left group"
+                                        title="Mean, SD, Min, Max, Median - Thống kê mô tả cơ bản cho dữ liệu"
                                     >
                                         <div className="flex items-center gap-3 mb-2">
                                             <BarChart3 className="w-6 h-6 text-purple-600" />
                                             <h3 className="font-bold text-lg group-hover:text-purple-600">Descriptive Statistics</h3>
+                                            <Badge variant="default">Coming Soon</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">Thống kê mô tả cơ bản</p>
+                                        <p className="text-sm text-gray-600">Mean, SD, Min, Max, Median, Skewness, Kurtosis</p>
                                     </button>
 
                                     {/* McDonald's Omega */}
                                     <button
                                         onClick={() => setPhase('omega-select')}
                                         className="p-6 border-2 border-purple-200 rounded-lg hover:border-purple-400 hover:shadow-lg transition-all text-left group bg-purple-50"
+                                        title="Threshold: ω &gt; 0.70 (acceptable), ω &gt; 0.80 (good) - Độ tin cậy hiện đại, chính xác hơn Cronbach's Alpha"
                                     >
                                         <div className="flex items-center gap-3 mb-2">
                                             <Sparkles className="w-6 h-6 text-purple-600" />
-                                            <h3 className="font-bold text-lg group-hover:text-purple-600">McDonald's Omega</h3>
-                                            <Badge variant="success">NEW</Badge>
+                                            <h3 className="font-bold text-lg group-hover:text-purple-600">McDonald's Omega (ω)</h3>
+                                            <Badge variant="success">Working</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">Độ tin cậy chính xác hơn Cronbach's Alpha</p>
+                                        <p className="text-sm text-gray-600">Modern reliability measure (ω &gt; 0.70) - More accurate than Cronbach's α</p>
                                     </button>
 
                                     {/* Cronbach's Alpha */}
                                     <button
                                         onClick={() => showToast('Cronbach\'s Alpha đang được phát triển', 'info')}
                                         className="p-6 border-2 border-gray-200 rounded-lg hover:border-purple-400 hover:shadow-lg transition-all text-left group"
+                                        title="Threshold: α &gt; 0.70 (acceptable), α &gt; 0.80 (good) - Classic reliability measure"
                                     >
                                         <div className="flex items-center gap-3 mb-2">
                                             <FileText className="w-6 h-6 text-blue-600" />
-                                            <h3 className="font-bold text-lg group-hover:text-purple-600">Cronbach's Alpha</h3>
+                                            <h3 className="font-bold text-lg group-hover:text-purple-600">Cronbach's Alpha (α)</h3>
+                                            <Badge variant="default">Coming Soon</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">Độ tin cậy thang đo truyền thống</p>
+                                        <p className="text-sm text-gray-600">Classic reliability (α &gt; 0.70) - Internal consistency measure</p>
                                     </button>
 
                                     {/* Outlier Detection */}
                                     <button
                                         onClick={() => setPhase('outlier-select')}
                                         className="p-6 border-2 border-purple-200 rounded-lg hover:border-purple-400 hover:shadow-lg transition-all text-left group bg-purple-50"
+                                        title="Mahalanobis Distance method - Detects multivariate outliers that may distort results"
                                     >
                                         <div className="flex items-center gap-3 mb-2">
                                             <XCircle className="w-6 h-6 text-red-600" />
                                             <h3 className="font-bold text-lg group-hover:text-purple-600">Outlier Detection</h3>
-                                            <Badge variant="success">NEW</Badge>
+                                            <Badge variant="success">Working</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">Phát hiện và loại bỏ dữ liệu ngoại lai</p>
+                                        <p className="text-sm text-gray-600">Mahalanobis Distance - Detect & remove multivariate outliers</p>
                                     </button>
                                 </div>
 
