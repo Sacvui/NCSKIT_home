@@ -442,14 +442,14 @@ export default function Analyze2Page() {
 
                                     {/* Cronbach's Alpha */}
                                     <button
-                                        onClick={() => showToast('Cronbach\'s Alpha đang được phát triển', 'info')}
-                                        className="p-6 border-2 border-gray-200 rounded-lg hover:border-purple-400 hover:shadow-lg transition-all text-left group"
-                                        title="Threshold: α &gt; 0.70 (acceptable), α &gt; 0.80 (good) - Classic reliability measure"
+                                        onClick={() => setPhase('cronbach-select')}
+                                        className="p-6 border-2 border-purple-200 rounded-lg hover:border-purple-400 hover:shadow-lg transition-all text-left group bg-purple-50"
+                                        title="Threshold: α > 0.70 (acceptable), α > 0.80 (good) - Classic reliability measure"
                                     >
                                         <div className="flex items-center gap-3 mb-2">
                                             <FileText className="w-6 h-6 text-blue-600" />
                                             <h3 className="font-bold text-lg group-hover:text-purple-600">Cronbach's Alpha (α)</h3>
-                                            <Badge variant="default">Coming Soon</Badge>
+                                            <Badge variant="success">Working</Badge>
                                         </div>
                                         <p className="text-sm text-gray-600">Classic reliability (α &gt; 0.70) - Internal consistency measure</p>
                                     </button>
