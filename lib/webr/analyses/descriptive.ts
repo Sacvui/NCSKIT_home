@@ -73,8 +73,9 @@ export async function runDescriptiveStats(data: number[][]): Promise<{
     `;
 
     const result = await executeRWithRecovery(rCode);
-    const jsResult = await result.toJs() as any;
-    const getValue = parseWebRResult(jsResult);
+    // CRITICAL FIX: executeRWithRecovery already returns unpacked JS result
+    // No need to call .toJs() again - it's already a JavaScript object!
+    const getValue = parseWebRResult(result);
 
     return {
         mean: getValue('mean') || [],
