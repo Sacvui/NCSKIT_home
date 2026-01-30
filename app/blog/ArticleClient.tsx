@@ -11,7 +11,8 @@ import { Footer } from "../components/Footer";
 import { ScrollProgressBar } from "../components/ScrollProgressBar";
 import { useLanguageContext } from "../components/LanguageProvider";
 import type { BlogPostMeta } from "@/types/blog";
-import type { Article, WithContext } from "schema-dts";
+import type { Article, WithContext, BreadcrumbList } from "schema-dts";
+import { BreadcrumbSchema } from "../components/seo/BlogPostSchema";
 
 type BlogArticleClientProps = {
   meta: BlogPostMeta;
@@ -155,6 +156,16 @@ export default function BlogArticleClient({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+      />
+
+      {/* Breadcrumb Schema for navigation hierarchy */}
+      <BreadcrumbSchema
+        items={[
+          { name: "Home", href: "/" },
+          { name: "Blog", href: "/blog" },
+          { name: categoryLabel || "Article", href: `/blog#${meta.category}` },
+          { name: meta.title, href: meta.href },
+        ]}
       />
     </>
   );

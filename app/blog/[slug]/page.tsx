@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { LanguageProvider } from "../../components/LanguageProvider";
+import { HtmlLangWrapper } from "../../components/HtmlLangWrapper";
 import BlogArticleClient from "../ArticleClient";
 import {
   getAllPostSlugs,
@@ -69,7 +70,9 @@ export default async function BlogArticlePage({
 
   return (
     <LanguageProvider>
-      <BlogArticleClient meta={post.meta}>{post.content}</BlogArticleClient>
+      <HtmlLangWrapper>
+        <BlogArticleClient meta={post.meta}>{post.content}</BlogArticleClient>
+      </HtmlLangWrapper>
     </LanguageProvider>
   );
 }

@@ -4,6 +4,7 @@ import "./styles/design-system.css";
 import "./globals.css";
 import "katex/dist/katex.min.css";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { HtmlLangWrapper } from "./components/HtmlLangWrapper";
 
 const inter = Inter({
   subsets: ["latin"],

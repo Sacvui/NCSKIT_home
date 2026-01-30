@@ -7,13 +7,16 @@ import { SEMResearchSection } from "./components/SEMResearchSection";
 import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { LanguageProvider, useLanguageContext } from "./components/LanguageProvider";
+import { HtmlLangWrapper } from "./components/HtmlLangWrapper";
 
 
 
 export default function Home() {
   return (
     <LanguageProvider>
-      <HomeContent />
+      <HtmlLangWrapper>
+        <HomeContent />
+      </HtmlLangWrapper>
     </LanguageProvider>
   );
 }

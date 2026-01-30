@@ -37,3 +37,11 @@ export type BlogPost = {
   content: ReactNode;
 };
 
+// Alias for SEO components compatibility
+export type BlogMeta = BlogPostMeta & {
+  author?: string;
+  image?: string;
+  lang?: string;
+  readTime?: string;
+};
+

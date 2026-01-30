@@ -3640,6 +3640,24 @@ section#hero {
   transition: width var(--transition-base);
 }
 
+/* Timeline Summary Card - Full Width */
+.stat-item.timeline-summary {
+  grid-column: 1 / -1;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Ensure analysis-stats grid doesn't overflow */
+.interactive-analysis-chart .analysis-stats {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.interactive-analysis-chart {
+  max-width: 100%;
+  overflow: hidden;
+}
+
 .table-container {
   overflow-x: auto;
   margin: var(--space-lg) 0;

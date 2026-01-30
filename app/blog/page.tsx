@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { LanguageProvider } from "../components/LanguageProvider";
+import { HtmlLangWrapper } from "../components/HtmlLangWrapper";
 import BlogClient from "./BlogClient";
 import { getBlogIndex, type BlogPostMeta } from "@/lib/blog";
 
@@ -34,7 +35,9 @@ export default async function BlogPage() {
 
   return (
     <LanguageProvider>
-      <BlogClient posts={posts} postsByCategory={postsByCategory} />
+      <HtmlLangWrapper>
+        <BlogClient posts={posts} postsByCategory={postsByCategory} />
+      </HtmlLangWrapper>
     </LanguageProvider>
   );
 }
