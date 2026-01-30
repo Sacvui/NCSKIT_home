@@ -153,9 +153,32 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     throw new Error('WebR initialized but evalR is not available');
                 }
 
-                // Step 2: Check cache and install required packages
+                // Step 2: Check cache and verify packages exist
                 const cachedState = await getCachedWebRState();
-                const skipInstall = cachedState?.initialized;
+
+                // CRITICAL FIX: Verify packages actually exist, not just cache flag
+                let skipInstall = false;
+                if (cachedState?.initialized) {
+                    try {
+                        // Verify core packages are actually installed
+                        const checkResult = await webR.evalR(`
+                            required_pkgs <- c('psych', 'corrplot', 'GPArotation', 'car', 'cluster')
+                            installed_pkgs <- rownames(installed.packages())
+                            all(required_pkgs %in% installed_pkgs)
+                        `);
+                        const allInstalled = await checkResult.toJs();
+                        skipInstall = (allInstalled as any)?.[0] === true || (allInstalled as any)?.values?.[0] === true;
+
+                        if (skipInstall) {
+                            console.log('[WebR] Cache valid: All packages verified');
+                        } else {
+                            console.warn('[WebR] Cache invalid: Packages missing, reinstalling...');
+                        }
+                    } catch (error) {
+                        console.warn('[WebR] Cache verification failed, reinstalling...', error);
+                        skipInstall = false;
+                    }
+                }
 
                 if (skipInstall) {
                     console.log('[WebR] Using cached packages, skipping installation');
