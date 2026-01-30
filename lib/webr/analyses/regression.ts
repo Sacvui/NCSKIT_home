@@ -99,16 +99,14 @@ export async function runLinearRegression(data: number[][], names: string[]): Pr
     `;
 
     const result = await executeRWithRecovery(rCode);
-    const jsResult = await result.toJs() as any;
-    const getValue = parseWebRResult(jsResult);
 
-    const coefNames = getValue('coef_names') || [];
-    const estimates = getValue('estimates') || [];
-    const stdBetas = getValue('std_betas') || [];
-    const stdErrors = getValue('std_errors') || [];
-    const tValues = getValue('t_values') || [];
-    const pValues = getValue('p_values') || [];
-    const vifs = getValue('vifs') || [];
+    const coefNames = result.coef_names || [];
+    const estimates = result.estimates || [];
+    const stdBetas = result.std_betas || [];
+    const stdErrors = result.std_errors || [];
+    const tValues = result.t_values || [];
+    const pValues = result.p_values || [];
+    const vifs = result.vifs || [];
 
     const coefficients = [];
     for (let i = 0; i < coefNames.length; i++) {
@@ -133,20 +131,20 @@ export async function runLinearRegression(data: number[][], names: string[]): Pr
     return {
         coefficients,
         modelFit: {
-            rSquared: getValue('r_squared')?.[0] || 0,
-            adjRSquared: getValue('adj_r_squared')?.[0] || 0,
-            fStatistic: getValue('f_stat')?.[0] || 0,
-            df: getValue('df_num')?.[0] || 0,
-            dfResid: getValue('df_denom')?.[0] || 0,
-            pValue: getValue('f_p_value')?.[0] || 0,
-            residualStdError: getValue('sigma')?.[0] || 0,
-            normalityP: getValue('normality_p')?.[0] || 0
+            rSquared: result.r_squared?.[0] || 0,
+            adjRSquared: result.adj_r_squared?.[0] || 0,
+            fStatistic: result.f_stat?.[0] || 0,
+            df: result.df_num?.[0] || 0,
+            dfResid: result.df_denom?.[0] || 0,
+            pValue: result.f_p_value?.[0] || 0,
+            residualStdError: result.sigma?.[0] || 0,
+            normalityP: result.normality_p?.[0] || 0
         },
         equation: equationStr,
         chartData: {
-            fitted: getValue('fitted_values') || [],
-            residuals: getValue('residuals') || [],
-            actual: getValue('actual_values') || []
+            fitted: result.fitted_values || [],
+            residuals: result.residuals || [],
+            actual: result.actual_values || []
         },
         rCode
     };
@@ -239,17 +237,15 @@ export async function runLogisticRegression(data: number[][], names: string[]): 
     `;
 
     const result = await executeRWithRecovery(rCode);
-    const jsResult = await result.toJs() as any;
-    const getValue = parseWebRResult(jsResult);
 
-    const coefNames = getValue('coef_names') || [];
-    const estimates = getValue('estimates') || [];
-    const stdErrors = getValue('std_errors') || [];
-    const zValues = getValue('z_values') || [];
-    const pValues = getValue('p_values') || [];
-    const ors = getValue('odds_ratios') || [];
-    const low = getValue('conf_low') || [];
-    const high = getValue('conf_high') || [];
+    const coefNames = result.coef_names || [];
+    const estimates = result.estimates || [];
+    const stdErrors = result.std_errors || [];
+    const zValues = result.z_values || [];
+    const pValues = result.p_values || [];
+    const ors = result.odds_ratios || [];
+    const low = result.conf_low || [];
+    const high = result.conf_high || [];
 
     const coefficients = [];
     for (let i = 0; i < coefNames.length; i++) {
@@ -265,19 +261,19 @@ export async function runLogisticRegression(data: number[][], names: string[]): 
         });
     }
 
-    const tn = getValue('tn')?.[0] || 0;
-    const fp = getValue('fp')?.[0] || 0;
-    const fn = getValue('fn')?.[0] || 0;
-    const tp = getValue('tp')?.[0] || 0;
+    const tn = result.tn?.[0] || 0;
+    const fp = result.fp?.[0] || 0;
+    const fn = result.fn?.[0] || 0;
+    const tp = result.tp?.[0] || 0;
     const total = tn + fp + fn + tp;
 
     return {
         coefficients,
         modelFit: {
-            aic: getValue('aic')?.[0] || 0,
-            nullDeviance: getValue('null_dev')?.[0] || 0,
-            residDeviance: getValue('resid_dev')?.[0] || 0,
-            pseudoR2: getValue('pseudo_r2')?.[0] || 0,
+            aic: result.aic?.[0] || 0,
+            nullDeviance: result.null_dev?.[0] || 0,
+            residDeviance: result.resid_dev?.[0] || 0,
+            pseudoR2: result.pseudo_r2?.[0] || 0,
             accuracy: total > 0 ? (tp + tn) / total : 0
         },
         confusionMatrix: {
