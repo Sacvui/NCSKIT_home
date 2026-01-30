@@ -313,7 +313,7 @@ export function TemplateInterpretation({
                 citations: []
             });
         }
-    }, [analysisType, results, scaleName, variableNames]);
+    }, [analysisType, results, scaleName, JSON.stringify(variableNames)]); // Use JSON.stringify to prevent infinite loop
 
     const handleCopy = () => {
         if (!interpretation) return;

@@ -113,6 +113,11 @@ export const MultivariateView: React.FC<MultivariateViewProps> = ({
                             }
                             setIsAnalyzing(true);
 
+                            // Set analysis type for ResultsDisplay
+                            if (setAnalysisType) {
+                                setAnalysisType('cluster');
+                            }
+
                             // NCS Credit Check
                             if (user) {
                                 const cost = await getAnalysisCost('regression'); // Use regression cost as default
@@ -233,6 +238,11 @@ export const MultivariateView: React.FC<MultivariateViewProps> = ({
                                 return;
                             }
                             setIsAnalyzing(true);
+
+                            // Set analysis type for ResultsDisplay
+                            if (setAnalysisType) {
+                                setAnalysisType('twoway-anova');
+                            }
 
                             // NCS Credit Check
                             if (user) {
