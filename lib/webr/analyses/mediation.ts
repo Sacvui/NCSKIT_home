@@ -2,7 +2,7 @@
  * Mediation and Moderation Analysis Modules
  * Uses 'psych' package for robust mediation/moderation modeling.
  */
-import { initWebR, executeRWithRecovery } from '../core';
+import { initWebR, executeRWithRecovery, loadPackagesForMethod } from '../core';
 import { parseWebRResult, arrayToRMatrix } from '../utils';
 
 /**
@@ -36,6 +36,9 @@ export async function runMediationAnalysis(
     rCode: string;
 }> {
     const webR = await initWebR();
+
+    // Lazy load required packages (needs boot for bootstrapping)
+    await loadPackagesForMethod('mediation');
 
     const rCode = `
     library(psych)
@@ -150,6 +153,9 @@ export async function runModerationAnalysis(
     rCode: string;
 }> {
     const webR = await initWebR();
+
+    // Lazy load required packages (needs boot for simple slopes)
+    await loadPackagesForMethod('moderation');
 
     const rCode = `
     library(psych)

@@ -1,7 +1,7 @@
 /**
  * Regression Analysis Modules
  */
-import { initWebR, executeRWithRecovery } from '../core';
+import { initWebR, executeRWithRecovery, loadPackagesForMethod } from '../core';
 import { parseWebRResult, arrayToRMatrix } from '../utils';
 
 /**
@@ -36,6 +36,9 @@ export async function runLinearRegression(data: number[][], names: string[]): Pr
     rCode: string;
 }> {
     const webR = await initWebR();
+
+    // Lazy load required packages (needs car for VIF)
+    await loadPackagesForMethod('linear-regression');
 
     const rCode = `
     data_mat <- ${arrayToRMatrix(data)}
@@ -181,6 +184,9 @@ export async function runLogisticRegression(data: number[][], names: string[]): 
     rCode: string;
 }> {
     const webR = await initWebR();
+
+    // Lazy load required packages (needs car for diagnostics)
+    await loadPackagesForMethod('logistic-regression');
 
     const rCode = `
     data_mat <- ${arrayToRMatrix(data)}

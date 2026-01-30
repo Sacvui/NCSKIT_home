@@ -2,7 +2,7 @@
  * Multivariate Analysis Modules
  * Includes: Cluster Analysis, Two-Way ANOVA, MANOVA, etc.
  */
-import { initWebR, executeRWithRecovery } from '../core';
+import { initWebR, executeRWithRecovery, loadPackagesForMethod } from '../core';
 import { parseWebRResult, arrayToRMatrix } from '../utils';
 
 /**
@@ -25,6 +25,9 @@ export async function runClusterAnalysis(
     rCode: string;
 }> {
     const webR = await initWebR();
+
+    // Lazy load required packages (needs cluster)
+    await loadPackagesForMethod('cluster');
 
     const rCode = `
     library(cluster)
@@ -135,6 +138,9 @@ export async function runTwoWayANOVA(
         f1Levels: [...new Set(f1Clean)].length,
         f2Levels: [...new Set(f2Clean)].length
     });
+
+    // Lazy load required packages (uses built-in stats)
+    await loadPackagesForMethod('two-way-anova');
 
     const rCode = `
     y <- c(${y.join(',')})
