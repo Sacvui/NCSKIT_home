@@ -103,24 +103,22 @@ export async function runMediationAnalysis(
     `;
 
     const result = await executeRWithRecovery(rCode);
-    const jsResult = await result.toJs() as any;
-    const getValue = parseWebRResult(jsResult);
 
     return {
         effects: {
-            total: getValue('total')?.[0] || 0,
-            direct: getValue('direct')?.[0] || 0,
-            indirect: getValue('indirect')?.[0] || 0,
+            total: result.total?.[0] || 0,
+            direct: result.direct?.[0] || 0,
+            indirect: result.indirect?.[0] || 0,
         },
         paths: {
-            a: { est: getValue('a_est')?.[0] || 0, p: 0 }, // P-value extraction tricky without parsing summary
-            b: { est: getValue('b_est')?.[0] || 0, p: 0 },
-            c: { est: getValue('c_est')?.[0] || 0, p: 0 },
-            c_prime: { est: getValue('c_p_est')?.[0] || 0, p: 0 }
+            a: { est: result.a_est?.[0] || 0, p: 0 }, // P-value extraction tricky without parsing summary
+            b: { est: result.b_est?.[0] || 0, p: 0 },
+            c: { est: result.c_est?.[0] || 0, p: 0 },
+            c_prime: { est: result.c_p_est?.[0] || 0, p: 0 }
         },
         bootstrap: {
-            indirectLower: getValue('boot_lower')?.[0] || 0,
-            indirectUpper: getValue('boot_upper')?.[0] || 0
+            indirectLower: result.boot_lower?.[0] || 0,
+            indirectUpper: result.boot_upper?.[0] || 0
         },
         rCode
     };
@@ -228,12 +226,10 @@ export async function runModerationAnalysis(
     `;
 
     const result = await executeRWithRecovery(rCode);
-    const jsResult = await result.toJs() as any;
-    const getValue = parseWebRResult(jsResult);
 
-    const terms = getValue('terms') || [];
-    const estimates = getValue('estimates') || [];
-    const pValues = getValue('p_values') || [];
+    const terms = result.terms || [];
+    const estimates = result.estimates || [];
+    const pValues = result.p_values || [];
 
     const coefficients = [];
     for (let i = 0; i < terms.length; i++) {
@@ -246,11 +242,11 @@ export async function runModerationAnalysis(
 
     return {
         coefficients,
-        interactionSignificant: getValue('int_significant')?.[0] || false,
+        interactionSignificant: result.int_significant?.[0] || false,
         slopes: [
-            { level: 'Low (-1 SD)', slope: getValue('slope_low')?.[0] || 0, pValue: getValue('p_low')?.[0] || 0 },
-            { level: 'Mean', slope: getValue('slope_mean')?.[0] || 0, pValue: getValue('p_mean')?.[0] || 0 },
-            { level: 'High (+1 SD)', slope: getValue('slope_high')?.[0] || 0, pValue: getValue('p_high')?.[0] || 0 }
+            { level: 'Low (-1 SD)', slope: result.slope_low?.[0] || 0, pValue: result.p_low?.[0] || 0 },
+            { level: 'Mean', slope: result.slope_mean?.[0] || 0, pValue: result.p_mean?.[0] || 0 },
+            { level: 'High (+1 SD)', slope: result.slope_high?.[0] || 0, pValue: result.p_high?.[0] || 0 }
         ],
         rCode
     };

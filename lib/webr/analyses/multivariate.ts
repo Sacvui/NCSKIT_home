@@ -61,11 +61,9 @@ export async function runClusterAnalysis(
     `;
 
     const result = await executeRWithRecovery(rCode);
-    const jsResult = await result.toJs() as any;
-    const getValue = parseWebRResult(jsResult);
 
-    const centersFlat = getValue('centers') || [];
-    const nCols = getValue('cols')?.[0] || columns.length;
+    const centersFlat = result.centers || [];
+    const nCols = result.cols?.[0] || columns.length;
 
     // Reconstruct centers matrix
     const centers = [];
@@ -74,13 +72,13 @@ export async function runClusterAnalysis(
     }
 
     return {
-        clusters: getValue('cluster') || [],
+        clusters: result.cluster || [],
         centers: centers,
-        size: getValue('size') || [],
-        withinSS: getValue('withinss') || [],
-        totWithinSS: getValue('tot_withinss')?.[0] || 0,
-        betweensSS: getValue('betweenss')?.[0] || 0,
-        totalSS: getValue('totss')?.[0] || 0,
+        size: result.size || [],
+        withinSS: result.withinss || [],
+        totWithinSS: result.tot_withinss?.[0] || 0,
+        betweensSS: result.betweenss?.[0] || 0,
+        totalSS: result.totss?.[0] || 0,
         rCode
     };
 }
@@ -173,15 +171,13 @@ export async function runTwoWayANOVA(
 
 
     const result = await executeRWithRecovery(rCode);
-    const jsResult = await result.toJs() as any;
-    const getValue = parseWebRResult(jsResult);
 
-    const terms = getValue('terms') || [];
-    const dfs = getValue('df') || [];
-    const sumSqs = getValue('sum_sq') || [];
-    const meanSqs = getValue('mean_sq') || [];
-    const fVals = getValue('f_val') || [];
-    const pVals = getValue('p_val') || [];
+    const terms = result.terms || [];
+    const dfs = result.df || [];
+    const sumSqs = result.sum_sq || [];
+    const meanSqs = result.mean_sq || [];
+    const fVals = result.f_val || [];
+    const pVals = result.p_val || [];
 
     const anovaTable = [];
     for (let i = 0; i < terms.length; i++) {
@@ -196,9 +192,9 @@ export async function runTwoWayANOVA(
         });
     }
 
-    const intF1 = getValue('int_f1') || [];
-    const intF2 = getValue('int_f2') || [];
-    const intY = getValue('int_y') || [];
+    const intF1 = result.int_f1 || [];
+    const intF2 = result.int_f2 || [];
+    const intY = result.int_y || [];
     const interactionPlot = intF1.map((v: string, i: number) => ({
         f1Level: v,
         f2Level: intF2[i],
