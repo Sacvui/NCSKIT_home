@@ -118,20 +118,22 @@ export async function runTTestIndependent(group1: number[], group2: number[]): P
     `;
 
     const result = await executeRWithRecovery(rCode);
+    const jsResult = await result.toJs() as any;
+    const getValue = parseWebRResult(jsResult);
 
     return {
-        t: result.t?.[0] || 0,
-        df: result.df?.[0] || 0,
-        pValue: result.pValue?.[0] || 0,
-        mean1: result.mean1?.[0] || 0,
-        mean2: result.mean2?.[0] || 0,
-        meanDiff: result.meanDiff?.[0] || 0,
-        ci95Lower: result.ci95Lower?.[0] || 0,
-        ci95Upper: result.ci95Upper?.[0] || 0,
-        effectSize: result.effectSize?.[0] || 0,
-        varTestP: result.leveneP?.[0] || 0,
-        normalityP1: result.normalityP1?.[0] || 0,
-        normalityP2: result.normalityP2?.[0] || 0,
+        t: getValue('t')?.[0] || 0,
+        df: getValue('df')?.[0] || 0,
+        pValue: getValue('pValue')?.[0] || 0,
+        mean1: getValue('mean1')?.[0] || 0,
+        mean2: getValue('mean2')?.[0] || 0,
+        meanDiff: getValue('meanDiff')?.[0] || 0,
+        ci95Lower: getValue('ci95Lower')?.[0] || 0,
+        ci95Upper: getValue('ci95Upper')?.[0] || 0,
+        effectSize: getValue('effectSize')?.[0] || 0,
+        varTestP: getValue('leveneP')?.[0] || 0,
+        normalityP1: getValue('normalityP1')?.[0] || 0,
+        normalityP2: getValue('normalityP2')?.[0] || 0,
         rCode: rCode
     };
 }
@@ -182,18 +184,20 @@ export async function runTTestPaired(before: number[], after: number[]): Promise
     `;
 
     const result = await executeRWithRecovery(rCode);
+    const jsResult = await result.toJs() as any;
+    const getValue = parseWebRResult(jsResult);
 
     return {
-        t: result.t?.[0] || 0,
-        df: result.df?.[0] || 0,
-        pValue: result.pValue?.[0] || 0,
-        meanBefore: result.meanBefore?.[0] || 0,
-        meanAfter: result.meanAfter?.[0] || 0,
-        meanDiff: result.meanDiff?.[0] || 0,
-        ci95Lower: result.ci95Lower?.[0] || 0,
-        ci95Upper: result.ci95Upper?.[0] || 0,
-        effectSize: result.effectSize?.[0] || 0,
-        normalityDiffP: result.normalityDiffP?.[0] || 0,
+        t: getValue('t')?.[0] || 0,
+        df: getValue('df')?.[0] || 0,
+        pValue: getValue('pValue')?.[0] || 0,
+        meanBefore: getValue('meanBefore')?.[0] || 0,
+        meanAfter: getValue('meanAfter')?.[0] || 0,
+        meanDiff: getValue('meanDiff')?.[0] || 0,
+        ci95Lower: getValue('ci95Lower')?.[0] || 0,
+        ci95Upper: getValue('ci95Upper')?.[0] || 0,
+        effectSize: getValue('effectSize')?.[0] || 0,
+        normalityDiffP: getValue('normalityDiffP')?.[0] || 0,
         rCode: rCode
     };
 }
@@ -360,10 +364,12 @@ export async function runOneWayANOVA(groups: number[][]): Promise<{
     `;
 
     const result = await executeRWithRecovery(rCode);
+    const jsResult = await result.toJs() as any;
+    const getValue = parseWebRResult(jsResult);
 
-    const comparisons = result.tukeyComparisons || [];
-    const diffs = result.tukeyDiffs || [];
-    const pAdjs = result.tukeyPAdj || [];
+    const comparisons = getValue('tukeyComparisons') || [];
+    const diffs = getValue('tukeyDiffs') || [];
+    const pAdjs = getValue('tukeyPAdj') || [];
     const postHoc = [];
 
     // Safety check for array lengths
@@ -373,18 +379,18 @@ export async function runOneWayANOVA(groups: number[][]): Promise<{
     }
 
     return {
-        F: result.F?.[0] || 0,
-        dfBetween: result.dfBetween?.[0] || 0,
-        dfWithin: result.dfWithin?.[0] || 0,
-        pValue: result.pValue?.[0] || 0,
-        groupMeans: result.groupMeans || [],
-        grandMean: result.grandMean?.[0] || 0,
-        etaSquared: result.etaSquared?.[0] || 0,
-        assumptionCheckP: result.leveneP?.[0] || 0,
-        normalityResidP: result.normalityResidP?.[0] || 0,
-        methodUsed: result.methodUsed?.[0] || 'Classic ANOVA',
+        F: getValue('F')?.[0] || 0,
+        dfBetween: getValue('dfBetween')?.[0] || 0,
+        dfWithin: getValue('dfWithin')?.[0] || 0,
+        pValue: getValue('pValue')?.[0] || 0,
+        groupMeans: getValue('groupMeans') || [],
+        grandMean: getValue('grandMean')?.[0] || 0,
+        etaSquared: getValue('etaSquared')?.[0] || 0,
+        assumptionCheckP: getValue('leveneP')?.[0] || 0,
+        normalityResidP: getValue('normalityResidP')?.[0] || 0,
+        methodUsed: getValue('methodUsed')?.[0] || 'Classic ANOVA',
         postHoc: postHoc,
-        postHocWarning: result.postHocWarning?.[0] || '',
+        postHocWarning: getValue('postHocWarning')?.[0] || '',
         rCode
     };
 }
@@ -435,15 +441,17 @@ export async function runMannWhitneyU(
     )
     `;
     const result = await executeRWithRecovery(rCode);
+    const jsResult = await result.toJs() as any;
+    const getValue = parseWebRResult(jsResult);
     return {
-        statistic: result.statistic?.[0] || 0,
-        pValue: result.p_value?.[0] || 0,
-        median1: result.median1?.[0] || 0,
-        median2: result.median2?.[0] || 0,
-        effectSize: result.effect_size?.[0] || 0,
-        skew1: result.skew1?.[0] || 0,
-        skew2: result.skew2?.[0] || 0,
-        distShapeRun: result.dist_msg?.[0] || "Unknown",
+        statistic: getValue('statistic')?.[0] || 0,
+        pValue: getValue('p_value')?.[0] || 0,
+        median1: getValue('median1')?.[0] || 0,
+        median2: getValue('median2')?.[0] || 0,
+        effectSize: getValue('effect_size')?.[0] || 0,
+        skew1: getValue('skew1')?.[0] || 0,
+        skew2: getValue('skew2')?.[0] || 0,
+        distShapeRun: getValue('dist_msg')?.[0] || "Unknown",
         rCode
     };
 }
@@ -515,11 +523,13 @@ export async function runChiSquare(data: any[][]): Promise<{
     `;
 
     const result = await executeRWithRecovery(rCode);
+    const jsResult = await result.toJs() as any;
+    const getValue = parseWebRResult(jsResult);
 
-    const nR = result.n_rows?.[0];
-    const nC = result.n_cols?.[0];
-    const obsVals = result.obs_vals;
-    const expVals = result.exp_vals;
+    const nR = getValue('n_rows')?.[0];
+    const nC = getValue('n_cols')?.[0];
+    const obsVals = getValue('obs_vals');
+    const expVals = getValue('exp_vals');
 
     const reconstruct = (vals: number[], rows: number, cols: number) => {
         const resMatrix = [];
@@ -532,16 +542,16 @@ export async function runChiSquare(data: any[][]): Promise<{
     };
 
     return {
-        statistic: result.statistic?.[0] || 0,
-        df: result.parameter?.[0] || 0,
-        pValue: result.p_value?.[0] || 0,
-        observed: { data: reconstruct(obsVals, nR, nC), rows: result.row_names, cols: result.col_names },
-        expected: { data: reconstruct(expVals, nR, nC), rows: result.row_names, cols: result.col_names },
-        cramersV: result.cramers_v?.[0] || 0,
-        phi: result.phi?.[0] || 0,
-        oddsRatio: result.odds_ratio?.[0] === -1 ? null : result.odds_ratio?.[0],
-        fisherPValue: result.fisher_p?.[0] ?? null,
-        warning: result.warning_msg?.[0] || '',
+        statistic: getValue('statistic')?.[0] || 0,
+        df: getValue('parameter')?.[0] || 0,
+        pValue: getValue('p_value')?.[0] || 0,
+        observed: { data: reconstruct(obsVals, nR, nC), rows: getValue('row_names'), cols: getValue('col_names') },
+        expected: { data: reconstruct(expVals, nR, nC), rows: getValue('row_names'), cols: getValue('col_names') },
+        cramersV: getValue('cramers_v')?.[0] || 0,
+        phi: getValue('phi')?.[0] || 0,
+        oddsRatio: getValue('odds_ratio')?.[0] === -1 ? null : getValue('odds_ratio')?.[0],
+        fisherPValue: getValue('fisher_p')?.[0] ?? null,
+        warning: getValue('warning_msg')?.[0] || '',
         rCode
     };
 }
@@ -575,12 +585,14 @@ export async function runKruskalWallis(
     )
     `;
     const result = await executeRWithRecovery(rCode);
+    const jsResult = await result.toJs() as any;
+    const getValue = parseWebRResult(jsResult);
     return {
-        statistic: result.statistic?.[0] || 0,
-        df: result.df?.[0] || 0,
-        pValue: result.p_value?.[0] || 0,
-        medians: result.medians || [],
-        method: result.method?.[0] || "Kruskal-Wallis rank sum test",
+        statistic: getValue('statistic')?.[0] || 0,
+        df: getValue('df')?.[0] || 0,
+        pValue: getValue('p_value')?.[0] || 0,
+        medians: getValue('medians') || [],
+        method: getValue('method')?.[0] || "Kruskal-Wallis rank sum test",
         rCode
     };
 }
@@ -613,11 +625,13 @@ export async function runWilcoxonSignedRank(
     )
     `;
     const result = await executeRWithRecovery(rCode);
+    const jsResult = await result.toJs() as any;
+    const getValue = parseWebRResult(jsResult);
     return {
-        statistic: result.statistic?.[0] || 0,
-        pValue: result.p_value?.[0] || 0,
-        medianDiff: result.median_diff?.[0] || 0,
-        method: result.method?.[0] || "Wilcoxon signed rank test",
+        statistic: getValue('statistic')?.[0] || 0,
+        pValue: getValue('p_value')?.[0] || 0,
+        medianDiff: getValue('median_diff')?.[0] || 0,
+        method: getValue('method')?.[0] || "Wilcoxon signed rank test",
         rCode
     };
 }

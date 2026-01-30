@@ -94,17 +94,19 @@ export async function runCronbachAlpha(
     `;
 
     const result = await executeRWithRecovery(rCode);
+    const jsResult = await result.toJs() as any;
+    const getValue = parseWebRResult(jsResult);
 
-    const rawAlpha = result.raw_alpha?.[0] || 0;
-    const stdAlpha = result.std_alpha?.[0] || 0;
-    const omegaTotal = result.omega_total?.[0] || 0;
-    const omegaH = result.omega_h?.[0] || 0;
-    const nItems = result.n_items?.[0] || 'N/A';
+    const rawAlpha = getValue('raw_alpha')?.[0] || 0;
+    const stdAlpha = getValue('std_alpha')?.[0] || 0;
+    const omegaTotal = getValue('omega_total')?.[0] || 0;
+    const omegaH = getValue('omega_h')?.[0] || 0;
+    const nItems = getValue('n_items')?.[0] || 'N/A';
 
-    const scaleMeanDeleted = result.scale_mean_deleted || [];
-    const scaleVarDeleted = result.scale_var_deleted || [];
-    const correctedItemTotal = result.corrected_item_total || [];
-    const alphaIfDeleted = result.alpha_if_deleted || [];
+    const scaleMeanDeleted = getValue('scale_mean_deleted') || [];
+    const scaleVarDeleted = getValue('scale_var_deleted') || [];
+    const correctedItemTotal = getValue('corrected_item_total') || [];
+    const alphaIfDeleted = getValue('alpha_if_deleted') || [];
 
     const itemCount = typeof nItems === 'number' ? nItems : 0;
     const itemTotalStats = [];

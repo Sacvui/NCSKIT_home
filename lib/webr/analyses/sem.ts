@@ -89,16 +89,16 @@ export async function runLavaanAnalysis(data: number[][], columns: string[], mod
         const estimates: any[] = [];
         if (Array.isArray(estimatesRaw)) {
             for (const item of estimatesRaw) {
-                // item is already unpacked object from unpackWebRObject
+                const estValues = parseWebRResult(item);
                 estimates.push({
-                    lhs: item.lhs?.[0] || '',
-                    op: item.op?.[0] || '',
-                    rhs: item.rhs?.[0] || '',
-                    est: item.est?.[0] || 0,
-                    se: item.se?.[0] || 0,
-                    z: item.z?.[0] || 0,
-                    pvalue: item.pvalue?.[0] || 0,
-                    std: item['std.all']?.[0] || 0 // standardized estimate
+                    lhs: estValues('lhs')?.[0] || '',
+                    op: estValues('op')?.[0] || '',
+                    rhs: estValues('rhs')?.[0] || '',
+                    est: estValues('est')?.[0] || 0,
+                    se: estValues('se')?.[0] || 0,
+                    z: estValues('z')?.[0] || 0,
+                    pvalue: estValues('pvalue')?.[0] || 0,
+                    std: estValues('std.all')?.[0] || 0 // standardized estimate
                 });
             }
         }
