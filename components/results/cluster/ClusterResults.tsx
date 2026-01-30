@@ -38,8 +38,8 @@ export const ClusterResults = React.memo(function ClusterResults({ results, colu
                             <div className="text-xs text-purple-600">Between SS</div>
                         </div>
                         <div className="p-4 bg-orange-50 rounded-lg text-center">
-                            <div className="text-2xl font-bold text-orange-600">{results.withinSS?.toFixed(1) || 'N/A'}</div>
-                            <div className="text-xs text-orange-600">Within SS</div>
+                            <div className="text-2xl font-bold text-orange-600">{results.totWithinSS?.toFixed(1) || 'N/A'}</div>
+                            <div className="text-xs text-orange-600">Total Within SS</div>
                         </div>
                     </div>
 
