@@ -67,7 +67,7 @@ type AnalysisPhase =
     | 'omega-select' | 'outlier-select' | 'cronbach-select' | 'efa-select' | 'cfa-select' | 'regression-select' | 'mediation-select' | 'cluster-select'
     | 'htmt-select' | 'vif-select'
     | 'bootstrap-select' | 'mediation-select'
-    | 'ipma-select' | 'mga-select' | 'blindfolding-select' | 'plssem-select'
+    | 'ipma-select' | 'mga-select' | 'blindfolding-select' | 'plssem-select' | 'cbsem-select'
     | 'results';
 
 export default function Analyze2Page() {
@@ -645,41 +645,44 @@ export default function Analyze2Page() {
                                         <p className="text-sm text-gray-600">Multiple regression with path coefficients (β)</p>
                                     </button>
 
-                                    {/* SEM */}
+                                    {/* CB-SEM */}
                                     <button
-                                        className="p-6 border-2 border-gray-200 rounded-lg hover:border-green-400 hover:shadow-lg transition-all text-left group"
+                                        onClick={() => setPhase('cbsem-select')}
+                                        className="p-6 border-2 border-green-200 rounded-lg hover:border-green-400 hover:shadow-lg transition-all text-left group bg-green-50"
                                         title="Covariance-based SEM - Traditional approach for theory testing"
                                     >
                                         <div className="flex items-center gap-3 mb-2">
-                                            <FileText className="w-6 h-6 text-green-600" />
+                                            <Network className="w-6 h-6 text-green-600" />
                                             <h3 className="font-bold text-lg group-hover:text-green-600">CB-SEM</h3>
-                                            <Badge variant="default">Coming Soon</Badge>
+                                            <Badge variant="success">Working</Badge>
                                         </div>
                                         <p className="text-sm text-gray-600">Covariance-based Structural Equation Modeling</p>
                                     </button>
 
                                     {/* SmartPLS Algorithm */}
                                     <button
+                                        onClick={() => setPhase('plssem-select')}
                                         className="p-6 border-2 border-green-200 rounded-lg hover:border-green-400 hover:shadow-lg transition-all text-left group bg-green-50"
                                         title="PLS-SEM Algorithm - Variance-based approach for prediction and complex models"
                                     >
                                         <div className="flex items-center gap-3 mb-2">
-                                            <Sparkles className="w-6 h-6 text-green-600" />
+                                            <Zap className="w-6 h-6 text-green-600" />
                                             <h3 className="font-bold text-lg group-hover:text-green-600">PLS-SEM Algorithm</h3>
-                                            <Badge variant="default">Coming Soon</Badge>
+                                            <Badge variant="success">Working</Badge>
                                         </div>
                                         <p className="text-sm text-gray-600">Partial Least Squares - Variance-based SEM</p>
                                     </button>
 
                                     {/* Bootstrapping */}
                                     <button
+                                        onClick={() => setPhase('bootstrap-select')}
                                         className="p-6 border-2 border-green-200 rounded-lg hover:border-green-400 hover:shadow-lg transition-all text-left group bg-green-50"
                                         title="Bootstrap resampling (5000 iterations) - Tests significance of path coefficients"
                                     >
                                         <div className="flex items-center gap-3 mb-2">
-                                            <Sparkles className="w-6 h-6 text-green-600" />
+                                            <RefreshCw className="w-6 h-6 text-green-600" />
                                             <h3 className="font-bold text-lg group-hover:text-green-600">Bootstrapping</h3>
-                                            <Badge variant="default">Coming Soon</Badge>
+                                            <Badge variant="success">Working</Badge>
                                         </div>
                                         <p className="text-sm text-gray-600">Bootstrap resampling for significance testing (p-values)</p>
                                     </button>
@@ -1113,6 +1116,66 @@ export default function Analyze2Page() {
                             />
                         )
                     }
+
+                    {/* PLS-SEM Algorithm Select Step */}
+                    {phase === 'plssem-select' && (
+                        <PLSSEMView
+                            method="bootstrap"
+                            data={data}
+                            columns={getNumericColumns()}
+                            user={user}
+                            setResults={(results) => {
+                                setResults({ type: 'plssem', data: results });
+                                setPhase('results');
+                            }}
+                            setNcsBalance={setNcsBalance}
+                            showToast={showToast}
+                            onBack={() => setPhase('phase3')}
+                            setRequiredCredits={setRequiredCredits}
+                            setCurrentAnalysisCost={setCurrentAnalysisCost}
+                            setShowInsufficientCredits={setShowInsufficientCredits}
+                        />
+                    )}
+
+                    {/* Bootstrapping Select Step */}
+                    {phase === 'bootstrap-select' && (
+                        <PLSSEMView
+                            method="bootstrap"
+                            data={data}
+                            columns={getNumericColumns()}
+                            user={user}
+                            setResults={(results) => {
+                                setResults({ type: 'bootstrap', data: results });
+                                setPhase('results');
+                            }}
+                            setNcsBalance={setNcsBalance}
+                            showToast={showToast}
+                            onBack={() => setPhase('phase3')}
+                            setRequiredCredits={setRequiredCredits}
+                            setCurrentAnalysisCost={setCurrentAnalysisCost}
+                            setShowInsufficientCredits={setShowInsufficientCredits}
+                        />
+                    )}
+
+                    {/* CB-SEM Select Step */}
+                    {phase === 'cbsem-select' && (
+                        <PLSSEMView
+                            method="bootstrap"
+                            data={data}
+                            columns={getNumericColumns()}
+                            user={user}
+                            setResults={(results) => {
+                                setResults({ type: 'cbsem', data: results });
+                                setPhase('results');
+                            }}
+                            setNcsBalance={setNcsBalance}
+                            showToast={showToast}
+                            onBack={() => setPhase('phase3')}
+                            setRequiredCredits={setRequiredCredits}
+                            setCurrentAnalysisCost={setCurrentAnalysisCost}
+                            setShowInsufficientCredits={setShowInsufficientCredits}
+                        />
+                    )}
 
                     {/* Results Step - Display analysis results */}
                     {
