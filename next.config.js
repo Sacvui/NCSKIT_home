@@ -1,12 +1,5 @@
 /** @type {import('next').NextConfig} */
 
-// Bundle analyzer - enable with ANALYZE=true npm run build
-import bundleAnalyzer from '@next/bundle-analyzer';
-
-const withBundleAnalyzer = bundleAnalyzer({
-    enabled: process.env.ANALYZE === 'true',
-});
-
 const nextConfig = {
     // Headers for WebR (WASM, Service Worker)
     async headers() {
@@ -109,6 +102,6 @@ const nextConfig = {
     },
 };
 
-export default withBundleAnalyzer(nextConfig);
+export default nextConfig;
 
 
