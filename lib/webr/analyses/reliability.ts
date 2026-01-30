@@ -1,7 +1,7 @@
 /**
  * Reliability & Factor Analysis Modules
  */
-import { initWebR, executeRWithRecovery } from '../core';
+import { initWebR, executeRWithRecovery, loadPackagesForMethod } from '../core';
 import { parseWebRResult, parseMatrix, arrayToRMatrix } from '../utils';
 import { runLavaanAnalysis } from './sem';
 

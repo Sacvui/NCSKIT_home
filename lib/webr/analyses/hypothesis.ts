@@ -1,7 +1,7 @@
 /**
  * Hypothesis Testing Modules
  */
-import { initWebR, executeRWithRecovery } from '../core';
+import { initWebR, executeRWithRecovery, loadPackagesForMethod } from '../core';
 import { parseWebRResult, parseMatrix, arrayToRMatrix } from '../utils';
 
 /**
@@ -17,6 +17,9 @@ export async function runCorrelation(
     rCode: string;
 }> {
     const webR = await initWebR();
+
+    // Lazy load required packages for correlation
+    await loadPackagesForMethod('correlation');
 
     const nCols = data[0]?.length || 0;
 

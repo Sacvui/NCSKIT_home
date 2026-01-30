@@ -1,7 +1,7 @@
 /**
  * Descriptive Statistics & Validation Modules
  */
-import { initWebR, executeRWithRecovery } from '../core';
+import { initWebR, executeRWithRecovery, loadPackagesForMethod } from '../core';
 import { parseWebRResult, arrayToRMatrix } from '../utils';
 
 /**
@@ -50,6 +50,9 @@ export async function runDescriptiveStats(data: number[][]): Promise<{
     se: number[];
 }> {
     const webR = await initWebR();
+
+    // Lazy load required packages for descriptive stats
+    await loadPackagesForMethod('descriptive');
 
     const rCode = `
     library(psych)

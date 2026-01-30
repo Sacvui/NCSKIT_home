@@ -1,6 +1,7 @@
 import { WebR } from 'webr';
 import { translateRError } from './utils';
 import { getCachedWebRState, setCachedWebRState, hasValidWebRCache } from './cache';
+import { getRequiredPackages, isPackageLoaded, markPackageLoaded } from './package-registry';
 
 let webRInstance: WebR | null = null;
 let isInitializing = false;
@@ -189,58 +190,25 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 }
 
                 try {
-                    // Stage 1 & 2 packages - skip if cached
+                    // LAZY LOADING OPTIMIZATION: Only load psych initially (most common package)
+                    // Other packages will be loaded on-demand via loadPackagesForMethod()
                     if (!skipInstall) {
-                        await webR.installPackages(['psych', 'corrplot', 'GPArotation', 'car', 'cluster'], {
+                        console.log('[WebR] Installing core package: psych');
+                        await webR.installPackages(['psych'], {
                             repos: 'https://repo.r-wasm.org/'
                         });
-                    }
-
-                    // Stage 3 packages (Experimental SEM) - skip if cached
-                    if (!skipInstall) {
-                        try {
-                            await webR.installPackages(['quadprog', 'lavaan'], {
-                                repos: 'https://repo.r-wasm.org/'
-                            });
-                            console.log('✅ SEM packages (quadprog + lavaan) installed successfully');
-                        } catch (semPkgError) {
-                            console.warn('SEM Packages (lavaan) failed to install - structural models will be disabled:', semPkgError);
-                        }
-                    }
-
-                    // Stage 4 packages (PLS-SEM for Analyze2) - skip if cached
-                    if (!skipInstall) {
-                        try {
-                            await webR.installPackages(['boot'], {
-                                repos: 'https://repo.r-wasm.org/'
-                            });
-                            console.log('✅ PLS-SEM support packages (boot) installed successfully');
-
-                            // Note: seminr may not be available in WebR yet, using alternative approach
-                            // await webR.installPackages(['seminr'], {
-                            //     repos: 'https://repo.r-wasm.org/'
-                            // });
-                        } catch (plsPkgError) {
-                            console.warn('PLS-SEM Packages (boot/seminr) failed to install - some Analyze2 features will be limited:', plsPkgError);
-                        }
+                        console.log('✅ Core package (psych) installed successfully');
                     }
                 } catch (pkgError) {
                     console.warn('Core Package install warning:', pkgError);
                 }
 
-                // Step 3 & 4: Load packages and integrity check
+                // Step 3 & 4: Load core package only
                 updateProgress('R-Engine Loading...');
 
                 await webR.evalR('library(psych)');
-                await webR.evalR('library(GPArotation)');
-
-                // Attempt to load lavaan if installed
-                try {
-                    await webR.evalR('library(lavaan)');
-                    console.log('SEM Engine (lavaan) successfully loaded');
-                } catch (e) {
-                    console.warn('SEM Engine (lavaan) not available');
-                }
+                markPackageLoaded('psych');
+                console.log('[WebR] Core package (psych) loaded');
 
                 updateProgress('R-Engine Ready');
                 webRInstance = webR;
@@ -248,10 +216,10 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 initPromise = null;
                 lastError = null; // Clear any previous errors
 
-                // Cache successful initialization
+                // Cache successful initialization (only psych for now)
                 if (!skipInstall) {
-                    await setCachedWebRState(['psych', 'corrplot', 'GPArotation', 'car', 'cluster', 'quadprog', 'lavaan', 'boot']);
-                    console.log('[WebR] Initialization cached for future visits');
+                    await setCachedWebRState(['psych']);
+                    console.log('[WebR] Minimal initialization cached (psych only)');
                 }
 
                 return webR;
@@ -287,6 +255,52 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
     }
 
     throw new Error('WebR initialization failed');
+}
+
+/**
+ * Load packages on-demand for specific analysis method
+ * This enables lazy loading - only install/load packages when needed
+ */
+export async function loadPackagesForMethod(method: string): Promise<void> {
+    const webR = await initWebR();
+    const required = getRequiredPackages(method);
+
+    if (required.length === 0) {
+        console.log(`[WebR] Method '${method}' uses built-in packages only`);
+        return;
+    }
+
+    for (const pkg of required) {
+        if (isPackageLoaded(pkg)) {
+            console.log(`[WebR] Package '${pkg}' already loaded, skipping`);
+            continue;
+        }
+
+        try {
+            // Check if installed
+            const checkResult = await webR.evalR(`'${pkg}' %in% rownames(installed.packages())`);
+            const checkJs = await checkResult.toJs() as any;
+            const isInstalled = checkJs?.[0] === true || checkJs?.values?.[0] === true;
+
+            if (!isInstalled) {
+                console.log(`[WebR] Installing package '${pkg}' for method '${method}'...`);
+                updateProgress(`Installing ${pkg}...`);
+                await webR.installPackages([pkg], { repos: 'https://repo.r-wasm.org/' });
+            }
+
+            // Load library
+            console.log(`[WebR] Loading library '${pkg}'...`);
+            await webR.evalR(`library(${pkg})`);
+            markPackageLoaded(pkg);
+            console.log(`[WebR] Package '${pkg}' loaded successfully`);
+
+        } catch (error) {
+            console.error(`[WebR] Failed to load package '${pkg}':`, error);
+            throw new Error(`Required package '${pkg}' failed to load for method '${method}'`);
+        }
+    }
+
+    updateProgress('R-Engine Ready');
 }
 
 /**
