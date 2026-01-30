@@ -73,19 +73,17 @@ export async function runDescriptiveStats(data: number[][]): Promise<{
     `;
 
     const result = await executeRWithRecovery(rCode);
-    // CRITICAL FIX: executeRWithRecovery returns unpacked plain object like:
-    // {mean: [1,2,3], sd: [0.5,0.6], ...}
-    // No need for parseWebRResult - just access properties directly!
+    const getValue = parseWebRResult(result);
 
     return {
-        mean: result.mean || [],
-        sd: result.sd || [],
-        min: result.min || [],
-        max: result.max || [],
-        median: result.median || [],
-        N: result.n || [],  // Note: R returns 'n', we map to 'N'
-        skew: result.skew || [],
-        kurtosis: result.kurtosis || [],
-        se: result.se || []
+        mean: getValue('mean') || [],
+        sd: getValue('sd') || [],
+        min: getValue('min') || [],
+        max: getValue('max') || [],
+        median: getValue('median') || [],
+        N: getValue('n') || [],  // Note: R returns 'n', we map to 'N'
+        skew: getValue('skew') || [],
+        kurtosis: getValue('kurtosis') || [],
+        se: getValue('se') || []
     };
 }

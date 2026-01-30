@@ -359,16 +359,12 @@ export async function executeRWithRecovery(rCode: string, maxRetries: number = 2
             ]);
 
             // CRITICAL FIX: Convert R object to JavaScript
-            // Without this, R lists return as proxy objects with default values (0.00)
+            // toJs() returns structure like: {names: ['mean', 'sd'], values: [[1,2,3], [0.5,0.6]]}
+            // This is the format that parseWebRResult expects!
             const jsResult = await rResult.toJs();
 
-            // CRITICAL FIX #3: Recursively unpack nested WebR objects
-            // WebR returns double-nested structures like {omega: {type: "double", values: [0.85]}}
-            // This extracts primitive values at all levels
-            const unpackedResult = unpackWebRObject(jsResult);
-
-            console.log('[DEBUG] R execution successful, unpacked result:', unpackedResult);
-            return unpackedResult;
+            console.log('[DEBUG] R execution successful, toJs result:', jsResult);
+            return jsResult;
         } catch (error: any) {
             console.error(`R execution attempt ${attempt + 1} failed:`, error);
 
