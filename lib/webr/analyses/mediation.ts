@@ -103,8 +103,7 @@ export async function runMediationAnalysis(
     `;
 
     const result = await executeRWithRecovery(rCode);
-    const jsResult = await result.toJs() as any;
-    const getValue = parseWebRResult(jsResult);
+    const getValue = parseWebRResult(result);
 
     return {
         effects: {
@@ -228,8 +227,7 @@ export async function runModerationAnalysis(
     `;
 
     const result = await executeRWithRecovery(rCode);
-    const jsResult = await result.toJs() as any;
-    const getValue = parseWebRResult(jsResult);
+    const getValue = parseWebRResult(result);
 
     const terms = getValue('terms') || [];
     const estimates = getValue('estimates') || [];

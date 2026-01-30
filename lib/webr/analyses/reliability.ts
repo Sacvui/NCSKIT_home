@@ -94,8 +94,7 @@ export async function runCronbachAlpha(
     `;
 
     const result = await executeRWithRecovery(rCode);
-    const jsResult = await result.toJs() as any;
-    const getValue = parseWebRResult(jsResult);
+    const getValue = parseWebRResult(result);
 
     const rawAlpha = getValue('raw_alpha')?.[0] || 0;
     const stdAlpha = getValue('std_alpha')?.[0] || 0;

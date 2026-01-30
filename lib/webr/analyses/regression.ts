@@ -99,8 +99,7 @@ export async function runLinearRegression(data: number[][], names: string[]): Pr
     `;
 
     const result = await executeRWithRecovery(rCode);
-    const jsResult = await result.toJs() as any;
-    const getValue = parseWebRResult(jsResult);
+    const getValue = parseWebRResult(result);
 
     const coefNames = getValue('coef_names') || [];
     const estimates = getValue('estimates') || [];
@@ -239,8 +238,7 @@ export async function runLogisticRegression(data: number[][], names: string[]): 
     `;
 
     const result = await executeRWithRecovery(rCode);
-    const jsResult = await result.toJs() as any;
-    const getValue = parseWebRResult(jsResult);
+    const getValue = parseWebRResult(result);
 
     const coefNames = getValue('coef_names') || [];
     const estimates = getValue('estimates') || [];

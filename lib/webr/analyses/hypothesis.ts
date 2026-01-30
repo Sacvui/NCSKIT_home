@@ -118,8 +118,7 @@ export async function runTTestIndependent(group1: number[], group2: number[]): P
     `;
 
     const result = await executeRWithRecovery(rCode);
-    const jsResult = await result.toJs() as any;
-    const getValue = parseWebRResult(jsResult);
+    const getValue = parseWebRResult(result);
 
     return {
         t: getValue('t')?.[0] || 0,
@@ -184,8 +183,7 @@ export async function runTTestPaired(before: number[], after: number[]): Promise
     `;
 
     const result = await executeRWithRecovery(rCode);
-    const jsResult = await result.toJs() as any;
-    const getValue = parseWebRResult(jsResult);
+    const getValue = parseWebRResult(result);
 
     return {
         t: getValue('t')?.[0] || 0,
@@ -364,8 +362,7 @@ export async function runOneWayANOVA(groups: number[][]): Promise<{
     `;
 
     const result = await executeRWithRecovery(rCode);
-    const jsResult = await result.toJs() as any;
-    const getValue = parseWebRResult(jsResult);
+    const getValue = parseWebRResult(result);
 
     const comparisons = getValue('tukeyComparisons') || [];
     const diffs = getValue('tukeyDiffs') || [];
@@ -441,8 +438,7 @@ export async function runMannWhitneyU(
     )
     `;
     const result = await executeRWithRecovery(rCode);
-    const jsResult = await result.toJs() as any;
-    const getValue = parseWebRResult(jsResult);
+    const getValue = parseWebRResult(result);
     return {
         statistic: getValue('statistic')?.[0] || 0,
         pValue: getValue('p_value')?.[0] || 0,
@@ -523,8 +519,7 @@ export async function runChiSquare(data: any[][]): Promise<{
     `;
 
     const result = await executeRWithRecovery(rCode);
-    const jsResult = await result.toJs() as any;
-    const getValue = parseWebRResult(jsResult);
+    const getValue = parseWebRResult(result);
 
     const nR = getValue('n_rows')?.[0];
     const nC = getValue('n_cols')?.[0];
@@ -585,8 +580,7 @@ export async function runKruskalWallis(
     )
     `;
     const result = await executeRWithRecovery(rCode);
-    const jsResult = await result.toJs() as any;
-    const getValue = parseWebRResult(jsResult);
+    const getValue = parseWebRResult(result);
     return {
         statistic: getValue('statistic')?.[0] || 0,
         df: getValue('df')?.[0] || 0,
@@ -625,8 +619,7 @@ export async function runWilcoxonSignedRank(
     )
     `;
     const result = await executeRWithRecovery(rCode);
-    const jsResult = await result.toJs() as any;
-    const getValue = parseWebRResult(jsResult);
+    const getValue = parseWebRResult(result);
     return {
         statistic: getValue('statistic')?.[0] || 0,
         pValue: getValue('p_value')?.[0] || 0,

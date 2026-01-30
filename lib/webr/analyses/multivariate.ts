@@ -61,8 +61,7 @@ export async function runClusterAnalysis(
     `;
 
     const result = await executeRWithRecovery(rCode);
-    const jsResult = await result.toJs() as any;
-    const getValue = parseWebRResult(jsResult);
+    const getValue = parseWebRResult(result);
 
     const centersFlat = getValue('centers') || [];
     const nCols = getValue('cols')?.[0] || columns.length;
@@ -173,8 +172,7 @@ export async function runTwoWayANOVA(
 
 
     const result = await executeRWithRecovery(rCode);
-    const jsResult = await result.toJs() as any;
-    const getValue = parseWebRResult(jsResult);
+    const getValue = parseWebRResult(result);
 
     const terms = getValue('terms') || [];
     const dfs = getValue('df') || [];
