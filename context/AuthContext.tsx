@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { getSupabase } from '@/utils/supabase/client';
 import { getORCIDUser, clearORCIDUser } from '@/utils/cookie-helper';
 import { User, AuthChangeEvent, Session } from '@supabase/supabase-js';
@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const sessionStartRef = useRef<Date | null>(null);
     const supabase = getSupabase();
 
-    const fetchProfile = async (userId: string) => {
+    const fetchProfile = useCallback(async (userId: string) => {
         try {
             console.log(`[AuthProvider] Fetching profile for ${userId}...`);
             const { data, error } = await supabase
@@ -66,9 +66,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch (err) {
             console.error('[AuthProvider] Profile fetch error:', err);
         }
-    };
+    }, [supabase]);
 
-    const initializeAuth = async () => {
+    const initializeAuth = useCallback(async () => {
         if (isInitialized.current) return;
         isInitialized.current = true;
         console.log('[AuthProvider] Initializing...');
@@ -112,7 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } finally {
             setLoading(false);
         }
-    };
+    }, [supabase, fetchProfile]);
 
     useEffect(() => {
         // Run deep initialization
@@ -163,30 +163,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return () => {
             subscription.unsubscribe();
         };
-    }, []);
+    }, [initializeAuth, fetchProfile, profile, supabase]);
 
-    const signOut = async () => {
+    const signOut = useCallback(async () => {
         await supabase.auth.signOut();
         clearORCIDUser();
         setUser(null);
         setProfile(null);
         window.location.href = '/login';
-    };
+    }, [supabase]);
 
-    const value = {
+    const refreshProfile = useCallback(async () => {
+        const currentUserId = user?.id || (profile?.id);
+        if (currentUserId) {
+            await fetchProfile(currentUserId);
+        }
+    }, [user?.id, profile?.id, fetchProfile]);
+
+    // Memoize context value to prevent unnecessary re-renders
+    const value = useMemo(() => ({
         user,
         profile,
         loading,
         isAdmin: profile?.role === 'admin',
         isOrcidUser: !!profile?.orcid_id,
-        refreshProfile: async () => {
-            const currentUserId = user?.id || (profile?.id);
-            if (currentUserId) {
-                await fetchProfile(currentUserId);
-            }
-        },
+        refreshProfile,
         signOut,
-    };
+    }), [user, profile, loading, refreshProfile, signOut]);
 
     return (
         <AuthContext.Provider value={value}>

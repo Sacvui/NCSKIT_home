@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { FileUpload } from '@/components/FileUpload';
 import { DataProfiler } from '@/components/DataProfiler';
 import { profileData, DataProfile } from '@/lib/data-profiler';
-import { BarChart3, FileText, Shield, Trash2, Eye, EyeOff, Wifi, WifiOff, RotateCcw, XCircle, Sparkles, TrendingUp, Target, Users, Upload, Search, Eraser, Ruler, Building2, Zap, CheckCircle2 } from 'lucide-react';
+import { BarChart3, FileText, Shield, Trash2, Eye, EyeOff, Wifi, WifiOff, RotateCcw, XCircle, Sparkles, TrendingUp, Target, Users, Upload, Search, Eraser, Ruler, Building2, Zap, CheckCircle2, Network, RefreshCw } from 'lucide-react';
 import { Toast } from '@/components/ui/Toast';
 import { WebRStatus } from '@/components/WebRStatus';
 import { useAnalysisSession } from '@/hooks/useAnalysisSession';
@@ -30,20 +30,10 @@ import { MultivariateView } from '@/components/analyze/views/MultivariateView';
 import { RegressionView } from '@/components/analyze/views/RegressionView';
 import { MediationView } from '@/components/analyze/views/MediationView';
 import AdvancedMethodView from '@/components/analyze/views/AdvancedMethodView';
-import { OmegaResults } from '@/components/results/plssem/OmegaResults';
-import { OutlierResults } from '@/components/results/plssem/OutlierResults';
-import { HTMTResults } from '@/components/results/plssem/HTMTResults';
-import { VIFResults } from '@/components/results/plssem/VIFResults';
-import { BootstrapResults, IPMAResults, MGAResults, BlindfoldingResults } from '@/components/results/plssem';
-import { CronbachResults } from '@/components/results/reliability/CronbachResults';
-import { EFAResults } from '@/components/results/factor/EFAResults';
-import { CFAResults } from '@/components/results/factor/CFAResults';
-import { RegressionResults } from '@/components/results/regression/RegressionResults';
-import { MediationResults } from '@/components/results/mediation/MediationResults';
-import { ClusterResults } from '@/components/results/cluster/ClusterResults';
+import { ResultSkeleton } from '@/components/results/shared/ResultSkeleton';
+import dynamicImport from 'next/dynamic';
 
-
-// Import new PLS-SEM analysis functions
+// Import PLS-SEM analysis functions
 import {
     runMcDonaldOmega,
     runOutlierDetection,
@@ -60,6 +50,81 @@ import {
 // Import descriptive statistics
 import { runDescriptiveStats } from '@/lib/webr/analyses/descriptive';
 import { runCronbachAlpha } from '@/lib/webr/analyses/reliability';
+
+// Lazy load result components to reduce initial bundle size
+const OmegaResults = dynamicImport(() => import('@/components/results/plssem/OmegaResults').then(m => ({ default: m.OmegaResults })), {
+    loading: () => <ResultSkeleton />,
+    ssr: false
+});
+
+const OutlierResults = dynamicImport(() => import('@/components/results/plssem/OutlierResults').then(m => ({ default: m.OutlierResults })), {
+    loading: () => <ResultSkeleton />,
+    ssr: false
+});
+
+const HTMTResults = dynamicImport(() => import('@/components/results/plssem/HTMTResults').then(m => ({ default: m.HTMTResults })), {
+    loading: () => <ResultSkeleton />,
+    ssr: false
+});
+
+const VIFResults = dynamicImport(() => import('@/components/results/plssem/VIFResults').then(m => ({ default: m.VIFResults })), {
+    loading: () => <ResultSkeleton />,
+    ssr: false
+});
+
+const BootstrapResults = dynamicImport(() => import('@/components/results/plssem').then(m => ({ default: m.BootstrapResults })), {
+    loading: () => <ResultSkeleton />,
+    ssr: false
+});
+
+const IPMAResults = dynamicImport(() => import('@/components/results/plssem').then(m => ({ default: m.IPMAResults })), {
+    loading: () => <ResultSkeleton />,
+    ssr: false
+});
+
+const MGAResults = dynamicImport(() => import('@/components/results/plssem').then(m => ({ default: m.MGAResults })), {
+    loading: () => <ResultSkeleton />,
+    ssr: false
+});
+
+const BlindfoldingResults = dynamicImport(() => import('@/components/results/plssem').then(m => ({ default: m.BlindfoldingResults })), {
+    loading: () => <ResultSkeleton />,
+    ssr: false
+});
+
+const CronbachResults = dynamicImport(() => import('@/components/results/reliability/CronbachResults').then(m => ({ default: m.CronbachResults })), {
+    loading: () => <ResultSkeleton />,
+    ssr: false
+});
+
+const EFAResults = dynamicImport(() => import('@/components/results/factor/EFAResults').then(m => ({ default: m.EFAResults })), {
+    loading: () => <ResultSkeleton />,
+    ssr: false
+});
+
+const CFAResults = dynamicImport(() => import('@/components/results/factor/CFAResults').then(m => ({ default: m.CFAResults })), {
+    loading: () => <ResultSkeleton />,
+    ssr: false
+});
+
+const RegressionResults = dynamicImport(() => import('@/components/results/regression/RegressionResults').then(m => ({ default: m.RegressionResults })), {
+    loading: () => <ResultSkeleton />,
+    ssr: false
+});
+
+const MediationResults = dynamicImport(() => import('@/components/results/mediation/MediationResults').then(m => ({ default: m.MediationResults })), {
+    loading: () => <ResultSkeleton />,
+    ssr: false
+});
+
+const ClusterResults = dynamicImport(() => import('@/components/results/cluster/ClusterResults').then(m => ({ default: m.ClusterResults })), {
+    loading: () => <ResultSkeleton />,
+    ssr: false
+});
+
+
+
+
 
 type AnalysisPhase =
     | 'upload' | 'profile'
@@ -1315,3 +1380,4 @@ export default function Analyze2Page() {
         </div>
     );
 }
+

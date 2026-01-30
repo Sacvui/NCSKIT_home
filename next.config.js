@@ -1,4 +1,10 @@
 /** @type {import('next').NextConfig} */
+
+// Bundle analyzer - enable with ANALYZE=true npm run build
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+    enabled: process.env.ANALYZE === 'true',
+});
+
 const nextConfig = {
     // Headers for WebR (WASM, Service Worker)
     async headers() {
@@ -71,11 +77,36 @@ const nextConfig = {
             },
         ];
     },
+
     // Enable strict TypeScript checking for better code quality
     typescript: {
         ignoreBuildErrors: false,
-    }
+    },
+
+    // Performance optimizations
+    compress: true,
+    optimizeFonts: true,
+    swcMinify: true,
+
+    // Image optimization
+    images: {
+        formats: ['image/webp', 'image/avif'],
+        minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
+    },
+
+    // Experimental optimizations
+    experimental: {
+        optimizePackageImports: ['lucide-react', 'react-chartjs-2'],
+    },
+
+    // Modularize imports to reduce bundle size
+    modularizeImports: {
+        'lucide-react': {
+            transform: 'lucide-react/dist/esm/icons/{{member}}',
+        },
+    },
 };
 
-export default nextConfig;
+module.exports = withBundleAnalyzer(nextConfig);
+
 

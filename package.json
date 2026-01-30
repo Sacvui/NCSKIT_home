@@ -9,9 +9,16 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "type-check": "tsc --noEmit",
+    "verify-build": "npm run type-check && npm run lint && npm run build",
+    "analyze": "ANALYZE=true npm run build",
+    "clean": "powershell -ExecutionPolicy Bypass -File ./scripts/clean-project.ps1",
+    "clean:all": "npm run clean && Remove-Item -Recurse -Force node_modules",
+    "fresh": "npm run clean:all && npm install",
     "check-env": "node scripts/check-env.js",
     "fix-auth": "node scripts/fix-supabase-config.js",
-    "prebuild": "npm run check-env"
+    "prebuild": "npm run check-env",
+    "prepare": "node -e \"try { require('fs').mkdirSync('.husky') } catch (e) {}\""
   },
   "dependencies": {
     "@supabase/ssr": "^0.8.0",
@@ -24,6 +31,7 @@
     "crypto-js": "^4.2.0",
     "framer-motion": "^12.26.2",
     "html2canvas": "^1.4.1",
+    "idb": "^8.0.3",
     "idb-keyval": "^6.2.2",
     "jspdf": "^4.0.0",
     "jspdf-autotable": "^5.0.7",
@@ -51,6 +59,7 @@
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.1",
+    "husky": "^9.1.7",
     "jest": "^29.0.0",
     "jest-environment-jsdom": "^29.7.0",
     "tailwindcss": "^4",

@@ -1,5 +1,6 @@
 import { WebR } from 'webr';
 import { translateRError } from './utils';
+import { getCachedWebRState, setCachedWebRState, hasValidWebRCache } from './cache';
 
 let webRInstance: WebR | null = null;
 let isInitializing = false;
@@ -152,37 +153,53 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     throw new Error('WebR initialized but evalR is not available');
                 }
 
-                // Step 2: Install required packages
-                updateProgress('R-Engine Loading...');
-                try {
-                    // Stage 1 & 2 packages - explicitly specify repository
-                    await webR.installPackages(['psych', 'corrplot', 'GPArotation', 'car', 'cluster'], {
-                        repos: 'https://repo.r-wasm.org/'
-                    });
+                // Step 2: Check cache and install required packages
+                const cachedState = await getCachedWebRState();
+                const skipInstall = cachedState?.initialized;
 
-                    // Stage 3 packages (Experimental SEM) - quadprog is required for lavaan
-                    try {
-                        await webR.installPackages(['quadprog', 'lavaan'], {
+                if (skipInstall) {
+                    console.log('[WebR] Using cached packages, skipping installation');
+                    updateProgress('R-Engine Loading (cached)...');
+                } else {
+                    console.log('[WebR] No cache found, installing packages...');
+                    updateProgress('R-Engine Loading...');
+                }
+
+                try {
+                    // Stage 1 & 2 packages - skip if cached
+                    if (!skipInstall) {
+                        await webR.installPackages(['psych', 'corrplot', 'GPArotation', 'car', 'cluster'], {
                             repos: 'https://repo.r-wasm.org/'
                         });
-                        console.log('✅ SEM packages (quadprog + lavaan) installed successfully');
-                    } catch (semPkgError) {
-                        console.warn('SEM Packages (lavaan) failed to install - structural models will be disabled:', semPkgError);
                     }
 
-                    // Stage 4 packages (PLS-SEM for Analyze2) - seminr and boot
-                    try {
-                        await webR.installPackages(['boot'], {
-                            repos: 'https://repo.r-wasm.org/'
-                        });
-                        console.log('✅ PLS-SEM support packages (boot) installed successfully');
+                    // Stage 3 packages (Experimental SEM) - skip if cached
+                    if (!skipInstall) {
+                        try {
+                            await webR.installPackages(['quadprog', 'lavaan'], {
+                                repos: 'https://repo.r-wasm.org/'
+                            });
+                            console.log('✅ SEM packages (quadprog + lavaan) installed successfully');
+                        } catch (semPkgError) {
+                            console.warn('SEM Packages (lavaan) failed to install - structural models will be disabled:', semPkgError);
+                        }
+                    }
 
-                        // Note: seminr may not be available in WebR yet, using alternative approach
-                        // await webR.installPackages(['seminr'], {
-                        //     repos: 'https://repo.r-wasm.org/'
-                        // });
-                    } catch (plsPkgError) {
-                        console.warn('PLS-SEM Packages (boot/seminr) failed to install - some Analyze2 features will be limited:', plsPkgError);
+                    // Stage 4 packages (PLS-SEM for Analyze2) - skip if cached
+                    if (!skipInstall) {
+                        try {
+                            await webR.installPackages(['boot'], {
+                                repos: 'https://repo.r-wasm.org/'
+                            });
+                            console.log('✅ PLS-SEM support packages (boot) installed successfully');
+
+                            // Note: seminr may not be available in WebR yet, using alternative approach
+                            // await webR.installPackages(['seminr'], {
+                            //     repos: 'https://repo.r-wasm.org/'
+                            // });
+                        } catch (plsPkgError) {
+                            console.warn('PLS-SEM Packages (boot/seminr) failed to install - some Analyze2 features will be limited:', plsPkgError);
+                        }
                     }
                 } catch (pkgError) {
                     console.warn('Core Package install warning:', pkgError);
@@ -207,6 +224,13 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 isInitializing = false;
                 initPromise = null;
                 lastError = null; // Clear any previous errors
+
+                // Cache successful initialization
+                if (!skipInstall) {
+                    await setCachedWebRState(['psych', 'corrplot', 'GPArotation', 'car', 'cluster', 'quadprog', 'lavaan', 'boot']);
+                    console.log('[WebR] Initialization cached for future visits');
+                }
+
                 return webR;
             } catch (error) {
                 console.error(`WebR init attempt ${attempt + 1} failed:`, error);
@@ -243,6 +267,59 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
 }
 
 /**
+ * Recursively unpacks WebR objects to extract primitive values
+ * WebR returns nested structures like: {omega: {type: "double", values: [0.85]}}
+ * This function converts them to: {omega: 0.85}
+ */
+function unpackWebRObject(obj: any): any {
+    // Handle null/undefined
+    if (obj === null || obj === undefined) {
+        return obj;
+    }
+
+    // Handle primitive types
+    if (typeof obj !== 'object') {
+        return obj;
+    }
+
+    // Handle arrays
+    if (Array.isArray(obj)) {
+        return obj.map(item => unpackWebRObject(item));
+    }
+
+    // Handle WebR typed objects (e.g., {type: "double", values: [0.85]})
+    if (obj.type && obj.values !== undefined) {
+        // Extract the first value if it's an array with one element
+        if (Array.isArray(obj.values)) {
+            if (obj.values.length === 1) {
+                return unpackWebRObject(obj.values[0]);
+            }
+            // Return the array if multiple values
+            return obj.values.map((v: any) => unpackWebRObject(v));
+        }
+        return unpackWebRObject(obj.values);
+    }
+
+    // Handle WebR list objects (e.g., {type: "list", names: [...], values: [...]})
+    if (obj.type === 'list' && obj.names && obj.values) {
+        const result: any = {};
+        for (let i = 0; i < obj.names.length; i++) {
+            result[obj.names[i]] = unpackWebRObject(obj.values[i]);
+        }
+        return result;
+    }
+
+    // Handle regular objects - recursively unpack all properties
+    const result: any = {};
+    for (const key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            result[key] = unpackWebRObject(obj[key]);
+        }
+    }
+    return result;
+}
+
+/**
  * Execute R code with error recovery and timeout protection
  */
 export async function executeRWithRecovery(rCode: string, maxRetries: number = 2, timeoutMs: number = 60000): Promise<any> {
@@ -251,13 +328,24 @@ export async function executeRWithRecovery(rCode: string, maxRetries: number = 2
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
             // Wrap evalR in a timeout to prevent infinite hangs
-            const result = await Promise.race([
+            const rResult: any = await Promise.race([
                 webR.evalR(rCode),
                 new Promise((_, reject) =>
                     setTimeout(() => reject(new Error(`R execution timeout after ${timeoutMs / 1000}s`)), timeoutMs)
                 )
             ]);
-            return result;
+
+            // CRITICAL FIX: Convert R object to JavaScript
+            // Without this, R lists return as proxy objects with default values (0.00)
+            const jsResult = await rResult.toJs();
+
+            // CRITICAL FIX #3: Recursively unpack nested WebR objects
+            // WebR returns double-nested structures like {omega: {type: "double", values: [0.85]}}
+            // This extracts primitive values at all levels
+            const unpackedResult = unpackWebRObject(jsResult);
+
+            console.log('[DEBUG] R execution successful, unpacked result:', unpackedResult);
+            return unpackedResult;
         } catch (error: any) {
             console.error(`R execution attempt ${attempt + 1} failed:`, error);
 
