@@ -1,4 +1,4 @@
-import { initWebR } from '../core';
+import { initWebR, loadPackagesForMethod } from '../core';
 import { parseWebRResult } from '../utils';
 
 export interface SEMResult {
@@ -25,6 +25,9 @@ export interface SEMResult {
  */
 export async function runLavaanAnalysis(data: number[][], columns: string[], model: string): Promise<SEMResult> {
     const webR = await initWebR();
+
+    // Lazy load required packages (needs lavaan and quadprog)
+    await loadPackagesForMethod('sem');
 
     // Convert data to R Matrix/Dataframe 
     const flatData = data.flat();

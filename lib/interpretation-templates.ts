@@ -47,6 +47,7 @@ export type AnalysisType =
     | 'ttest_independent'
     | 'ttest_paired'
     | 'anova'
+    | 'two_way_anova'
     | 'efa'
     | 'cfa'
     | 'linear_regression'
@@ -55,7 +56,9 @@ export type AnalysisType =
     | 'kruskal_wallis'
     | 'wilcoxon_signed'
     | 'chi_square'
-    | 'mediation';
+    | 'mediation'
+    | 'moderation'
+    | 'cluster';
 
 export interface InterpretationResult {
     summary: string;        // Main interpretation
@@ -425,6 +428,318 @@ export function interpretMediation(params: {
     return { summary, details, warnings, citations };
 }
 
+// ===== PAIRED T-TEST =====
+
+export function interpretTTestPaired(params: {
+    targetVar: string;
+    meanBefore: number;
+    sdBefore: number;
+    meanAfter: number;
+    sdAfter: number;
+    meanDiff: number;
+    t: number;
+    df: number;
+    pValue: number;
+    cohensD?: number;
+    normalityDiffP?: number;
+}): InterpretationResult {
+    const { targetVar, meanBefore, sdBefore, meanAfter, sdAfter, meanDiff, t, df, pValue, cohensD, normalityDiffP } = params;
+
+    const pStr = formatPValue(pValue);
+    let summary = '';
+    const details: string[] = [];
+    const warnings: string[] = [];
+    const citations = ['Cohen, J. (1988). Statistical power analysis for behavioral sciences.'];
+
+    if (pValue > 0.05) {
+        summary = `Kiểm định Paired t-test cho thấy không có sự khác biệt có ý nghĩa thống kê về "${targetVar}" giữa hai thời điểm đo (t(${formatNum(df, 0)}) = ${formatNum(t)}, ${pStr}). Giá trị trung bình trước (M = ${formatNum(meanBefore)}, SD = ${formatNum(sdBefore)}) và sau (M = ${formatNum(meanAfter)}, SD = ${formatNum(sdAfter)}) không khác biệt đáng kể.`;
+    } else {
+        const direction = meanDiff > 0 ? 'giảm' : 'tăng';
+        const fromTo = meanDiff > 0 ? `từ ${formatNum(meanBefore)} xuống ${formatNum(meanAfter)}` : `từ ${formatNum(meanBefore)} lên ${formatNum(meanAfter)}`;
+
+        summary = `Có sự thay đổi có ý nghĩa thống kê về "${targetVar}" giữa hai thời điểm đo (t(${formatNum(df, 0)}) = ${formatNum(t)}, ${pStr}). Giá trị trung bình ${direction} ${fromTo}, với độ chênh lệch trung bình là ${formatNum(Math.abs(meanDiff))}.`;
+    }
+
+    // Effect size
+    if (cohensD !== undefined) {
+        const d = Math.abs(cohensD);
+        let effectLabel = '';
+        if (d < 0.2) effectLabel = 'rất nhỏ';
+        else if (d < 0.5) effectLabel = 'nhỏ';
+        else if (d < 0.8) effectLabel = 'trung bình';
+        else effectLabel = 'lớn';
+
+        details.push(`Độ lớn ảnh hưởng Cohen's d = ${formatNum(cohensD)} (${effectLabel}).`);
+    }
+
+    // Normality check
+    if (normalityDiffP !== undefined && normalityDiffP > 0 && normalityDiffP < 0.05) {
+        warnings.push(`Hiệu số vi phạm giả định phân phối chuẩn (Shapiro-Wilk: p = ${formatPValue(normalityDiffP)}). Nên xem xét sử dụng Wilcoxon Signed Rank Test.`);
+    }
+
+    return { summary, details, warnings, citations };
+}
+
+// ===== MANN-WHITNEY U TEST =====
+
+export function interpretMannWhitney(params: {
+    group1Name: string;
+    group2Name: string;
+    targetVar: string;
+    statistic: number;
+    pValue: number;
+    median1: number;
+    median2: number;
+    effectSize?: number;
+    distShapeRun?: string;
+}): InterpretationResult {
+    const { group1Name, group2Name, targetVar, statistic, pValue, median1, median2, effectSize, distShapeRun } = params;
+
+    const pStr = formatPValue(pValue);
+    let summary = '';
+    const details: string[] = [];
+    const warnings: string[] = [];
+    const citations = ['Mann, H. B., & Whitney, D. R. (1947). On a test of whether one of two random variables is stochastically larger than the other.'];
+
+    if (pValue > 0.05) {
+        summary = `Kiểm định Mann-Whitney U cho thấy không có sự khác biệt có ý nghĩa thống kê về "${targetVar}" giữa nhóm ${group1Name} (Median = ${formatNum(median1)}) và nhóm ${group2Name} (Median = ${formatNum(median2)}) với U = ${formatNum(statistic)}, ${pStr}.`;
+    } else {
+        const higherGroup = median1 > median2 ? group1Name : group2Name;
+        const lowerGroup = median1 > median2 ? group2Name : group1Name;
+        const medHigh = Math.max(median1, median2);
+        const medLow = Math.min(median1, median2);
+
+        summary = `Có sự khác biệt có ý nghĩa thống kê về "${targetVar}" giữa hai nhóm (U = ${formatNum(statistic)}, ${pStr}). Giá trị trung vị của nhóm ${higherGroup} (Median = ${formatNum(medHigh)}) cao hơn đáng kể so với nhóm ${lowerGroup} (Median = ${formatNum(medLow)}).`;
+    }
+
+    // Effect size
+    if (effectSize !== undefined) {
+        let effectLabel = '';
+        const r = Math.abs(effectSize);
+        if (r < 0.1) effectLabel = 'rất nhỏ';
+        else if (r < 0.3) effectLabel = 'nhỏ';
+        else if (r < 0.5) effectLabel = 'trung bình';
+        else effectLabel = 'lớn';
+
+        details.push(`Độ lớn ảnh hưởng r = ${formatCoef(effectSize)} (${effectLabel}).`);
+    }
+
+    // Distribution shape note
+    if (distShapeRun) {
+        details.push(distShapeRun);
+    }
+
+    return { summary, details, warnings, citations };
+}
+
+// ===== KRUSKAL-WALLIS TEST =====
+
+export function interpretKruskalWallis(params: {
+    factorVar: string;
+    targetVar: string;
+    statistic: number;
+    df: number;
+    pValue: number;
+    medians: number[];
+}): InterpretationResult {
+    const { factorVar, targetVar, statistic, df, pValue, medians } = params;
+
+    const pStr = formatPValue(pValue);
+    let summary = '';
+    const details: string[] = [];
+    const warnings: string[] = [];
+    const citations = ['Kruskal, W. H., & Wallis, W. A. (1952). Use of ranks in one-criterion variance analysis.'];
+
+    if (pValue > 0.05) {
+        summary = `Kiểm định Kruskal-Wallis cho thấy không có sự khác biệt có ý nghĩa thống kê về "${targetVar}" giữa các nhóm "${factorVar}" khác nhau (H(${df}) = ${formatNum(statistic)}, ${pStr}).`;
+    } else {
+        summary = `Kết quả kiểm định Kruskal-Wallis cho thấy có sự khác biệt có ý nghĩa thống kê về "${targetVar}" giữa các nhóm "${factorVar}" (H(${df}) = ${formatNum(statistic)}, ${pStr}).`;
+
+        if (medians && medians.length > 0) {
+            const medianStr = medians.map((m, i) => `Nhóm ${i + 1}: ${formatNum(m)}`).join(', ');
+            details.push(`Giá trị trung vị theo nhóm: ${medianStr}.`);
+        }
+
+        details.push('Nên tiến hành kiểm định hậu kiểm (post-hoc) để xác định cặp nhóm nào khác biệt.');
+    }
+
+    return { summary, details, warnings, citations };
+}
+
+// ===== WILCOXON SIGNED RANK TEST =====
+
+export function interpretWilcoxonSigned(params: {
+    targetVar: string;
+    statistic: number;
+    pValue: number;
+    medianDiff: number;
+}): InterpretationResult {
+    const { targetVar, statistic, pValue, medianDiff } = params;
+
+    const pStr = formatPValue(pValue);
+    let summary = '';
+    const details: string[] = [];
+    const warnings: string[] = [];
+    const citations = ['Wilcoxon, F. (1945). Individual comparisons by ranking methods. Biometrics Bulletin.'];
+
+    if (pValue > 0.05) {
+        summary = `Kiểm định Wilcoxon Signed Rank cho thấy không có sự thay đổi có ý nghĩa thống kê về "${targetVar}" giữa hai thời điểm đo (W = ${formatNum(statistic)}, ${pStr}).`;
+    } else {
+        const direction = medianDiff > 0 ? 'giảm' : 'tăng';
+        summary = `Có sự thay đổi có ý nghĩa thống kê về "${targetVar}" giữa hai thời điểm đo (W = ${formatNum(statistic)}, ${pStr}). Giá trị trung vị có xu hướng ${direction} với độ chênh lệch trung vị là ${formatNum(Math.abs(medianDiff))}.`;
+    }
+
+    details.push('Kiểm định này phù hợp khi dữ liệu vi phạm giả định phân phối chuẩn của Paired t-test.');
+
+    return { summary, details, warnings, citations };
+}
+
+// ===== MODERATION ANALYSIS =====
+
+export function interpretModeration(params: {
+    xVar: string;
+    mVar: string;
+    yVar: string;
+    interactionTerm: string;
+    interactionEstimate: number;
+    interactionP: number;
+    simpleSlopes?: {
+        level: string;
+        slope: number;
+        pValue: number;
+    }[];
+}): InterpretationResult {
+    const { xVar, mVar, yVar, interactionTerm, interactionEstimate, interactionP, simpleSlopes } = params;
+
+    let summary = '';
+    const details: string[] = [];
+    const warnings: string[] = [];
+    const citations = [
+        'Aiken, L. S., & West, S. G. (1991). Multiple regression: Testing and interpreting interactions.',
+        'Hayes, A. F. (2018). Introduction to mediation, moderation, and conditional process analysis (2nd ed.).'
+    ];
+
+    if (interactionP > 0.05) {
+        summary = `Kết quả phân tích cho thấy KHÔNG có hiệu ứng điều tiết (moderation) của "${mVar}" trong mối quan hệ giữa "${xVar}" và "${yVar}". Hệ số tương tác ${interactionTerm} không có ý nghĩa thống kê (β = ${formatCoef(interactionEstimate)}, ${formatPValue(interactionP)}).`;
+    } else {
+        const direction = interactionEstimate > 0 ? 'tăng cường' : 'làm suy yếu';
+        summary = `Kết quả phân tích cho thấy "${mVar}" đóng vai trò ĐIỀU TIẾT (moderator) trong mối quan hệ giữa "${xVar}" và "${yVar}". Hệ số tương tác có ý nghĩa thống kê (β = ${formatCoef(interactionEstimate)}, ${formatPValue(interactionP)}), cho thấy "${mVar}" ${direction} tác động của "${xVar}" lên "${yVar}".`;
+
+        // Simple slopes
+        if (simpleSlopes && simpleSlopes.length > 0) {
+            details.push('**Phân tích Simple Slopes:**');
+            for (const slope of simpleSlopes) {
+                const sig = slope.pValue < 0.05 ? 'có ý nghĩa' : 'không có ý nghĩa';
+                details.push(`- Tại mức ${slope.level} của biến điều tiết: slope = ${formatCoef(slope.slope)}, ${formatPValue(slope.pValue)} (${sig})`);
+            }
+        }
+    }
+
+    return { summary, details, warnings, citations };
+}
+
+// ===== CLUSTER ANALYSIS =====
+
+export function interpretClusterAnalysis(params: {
+    method: string;
+    nClusters: number;
+    totalSS: number;
+    withinSS: number;
+    betweenSS: number;
+    silhouetteScore?: number;
+}): InterpretationResult {
+    const { method, nClusters, totalSS, withinSS, betweenSS, silhouetteScore } = params;
+
+    const varianceExplained = (betweenSS / totalSS) * 100;
+
+    let summary = `Phân tích phân cụm (${method}) đã xác định được ${nClusters} cụm (clusters) từ dữ liệu. Tỷ lệ phương sai giải thích bởi các cụm là ${formatNum(varianceExplained, 1)}% (Between-cluster SS / Total SS).`;
+
+    const details: string[] = [];
+    const warnings: string[] = [];
+    const citations = [
+        'Hair, J. F., et al. (2010). Multivariate data analysis (7th ed.).',
+        'Rousseeuw, P. J. (1987). Silhouettes: A graphical aid to the interpretation and validation of cluster analysis.'
+    ];
+
+    // Variance components
+    details.push(`Total Sum of Squares: ${formatNum(totalSS)}`);
+    details.push(`Within-cluster SS: ${formatNum(withinSS)} (${formatNum((withinSS / totalSS) * 100, 1)}%)`);
+    details.push(`Between-cluster SS: ${formatNum(betweenSS)} (${formatNum(varianceExplained, 1)}%)`);
+
+    // Silhouette score
+    if (silhouetteScore !== undefined) {
+        let quality = '';
+        if (silhouetteScore >= 0.7) quality = 'mạnh (strong)';
+        else if (silhouetteScore >= 0.5) quality = 'hợp lý (reasonable)';
+        else if (silhouetteScore >= 0.25) quality = 'yếu (weak)';
+        else quality = 'không rõ ràng (no substantial structure)';
+
+        details.push(`Silhouette Score = ${formatCoef(silhouetteScore)} → Chất lượng phân cụm: ${quality}.`);
+    }
+
+    // Recommendations
+    if (varianceExplained < 50) {
+        warnings.push('Tỷ lệ phương sai giải thích < 50%. Nên xem xét tăng số cụm hoặc kiểm tra lại dữ liệu.');
+    }
+
+    return { summary, details, warnings, citations };
+}
+
+// ===== TWO-WAY ANOVA =====
+
+export function interpretTwoWayANOVA(params: {
+    factor1: string;
+    factor2: string;
+    targetVar: string;
+    mainEffect1F: number;
+    mainEffect1P: number;
+    mainEffect2F: number;
+    mainEffect2P: number;
+    interactionF: number;
+    interactionP: number;
+    df1: number;
+    df2: number;
+    dfError: number;
+}): InterpretationResult {
+    const { factor1, factor2, targetVar, mainEffect1F, mainEffect1P, mainEffect2F, mainEffect2P, interactionF, interactionP, df1, df2, dfError } = params;
+
+    let summary = '';
+    const details: string[] = [];
+    const warnings: string[] = [];
+    const citations = ['Field, A. (2013). Discovering statistics using IBM SPSS statistics (4th ed.).'];
+
+    // Interaction effect (most important)
+    const hasInteraction = interactionP < 0.05;
+    const hasMain1 = mainEffect1P < 0.05;
+    const hasMain2 = mainEffect2P < 0.05;
+
+    if (hasInteraction) {
+        summary = `Kết quả phân tích phương sai hai yếu tố (Two-Way ANOVA) cho thấy có HIỆU ỨNG TƯƠNG TÁC có ý nghĩa thống kê giữa "${factor1}" và "${factor2}" lên "${targetVar}" (F(${df1}, ${dfError}) = ${formatNum(interactionF)}, ${formatPValue(interactionP)}). Điều này có nghĩa là tác động của một yếu tố phụ thuộc vào mức độ của yếu tố kia.`;
+
+        details.push('Khi có hiệu ứng tương tác, cần tập trung phân tích Simple Effects thay vì Main Effects.');
+    } else {
+        summary = `Kết quả phân tích Two-Way ANOVA cho thấy KHÔNG có hiệu ứng tương tác giữa "${factor1}" và "${factor2}" (${formatPValue(interactionP)}). `;
+
+        // Main effects
+        const mainEffects = [];
+        if (hasMain1) mainEffects.push(`"${factor1}" (F(${df1}, ${dfError}) = ${formatNum(mainEffect1F)}, ${formatPValue(mainEffect1P)})`);
+        if (hasMain2) mainEffects.push(`"${factor2}" (F(${df2}, ${dfError}) = ${formatNum(mainEffect2F)}, ${formatPValue(mainEffect2P)})`);
+
+        if (mainEffects.length > 0) {
+            summary += `Tuy nhiên, có hiệu ứng chính (main effect) có ý nghĩa từ: ${mainEffects.join(' và ')}.`;
+        } else {
+            summary += `Cả hai yếu tố đều không có hiệu ứng chính có ý nghĩa thống kê.`;
+        }
+    }
+
+    // Details for all effects
+    details.push(`Main Effect "${factor1}": F(${df1}, ${dfError}) = ${formatNum(mainEffect1F)}, ${formatPValue(mainEffect1P)}`);
+    details.push(`Main Effect "${factor2}": F(${df2}, ${dfError}) = ${formatNum(mainEffect2F)}, ${formatPValue(mainEffect2P)}`);
+    details.push(`Interaction Effect: F(${df1}, ${dfError}) = ${formatNum(interactionF)}, ${formatPValue(interactionP)}`);
+
+    return { summary, details, warnings, citations };
+}
+
 // ===== CHI-SQUARE =====
 
 export function interpretChiSquare(params: {
@@ -577,12 +892,22 @@ export function generateInterpretation(
             return interpretCorrelation(results as any);
         case 'ttest_independent':
             return interpretTTestIndependent(results as any);
+        case 'ttest_paired':
+            return interpretTTestPaired(results as any);
         case 'anova':
             return interpretANOVA(results as any);
+        case 'two_way_anova':
+            return interpretTwoWayANOVA(results as any);
         case 'linear_regression':
             return interpretLinearRegression(results as any);
         case 'logistic_regression':
             return interpretLogisticRegression(results as any);
+        case 'mann_whitney':
+            return interpretMannWhitney(results as any);
+        case 'kruskal_wallis':
+            return interpretKruskalWallis(results as any);
+        case 'wilcoxon_signed':
+            return interpretWilcoxonSigned(results as any);
         case 'chi_square':
             return interpretChiSquare(results as any);
         case 'efa':
@@ -591,6 +916,10 @@ export function generateInterpretation(
             return interpretCFA(results as any);
         case 'mediation':
             return interpretMediation(results as any);
+        case 'moderation':
+            return interpretModeration(results as any);
+        case 'cluster':
+            return interpretClusterAnalysis(results as any);
         default:
             return {
                 summary: 'Chưa có template cho phân tích này.',

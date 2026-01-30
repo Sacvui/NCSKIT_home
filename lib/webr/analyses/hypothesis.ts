@@ -72,6 +72,8 @@ export async function runTTestIndependent(group1: number[], group2: number[]): P
     normalityP2: number;
     rCode: string;
 }> {
+    // Lazy load required packages (uses built-in stats)
+    await loadPackagesForMethod('ttest');
     const rCode = `
     group1 <- c(${group1.join(',')})
     group2 <- c(${group2.join(',')})
@@ -156,6 +158,8 @@ export async function runTTestPaired(before: number[], after: number[]): Promise
     normalityDiffP: number;
     rCode: string;
 }> {
+    // Lazy load required packages (uses built-in stats)
+    await loadPackagesForMethod('paired-ttest');
     const rCode = `
     before <- c(${before.join(',')})
     after <- c(${after.join(',')})
@@ -221,6 +225,8 @@ export async function runOneWayANOVA(groups: number[][]): Promise<{
     postHocWarning: string;
     rCode: string;
 }> {
+    // Lazy load required packages (uses built-in stats)
+    await loadPackagesForMethod('anova');
     const rCode = `
     values <- c(${groups.map(g => g.join(',')).join(',')})
     groups <- factor(c(${groups.map((g, i) => g.map(() => i + 1).join(',')).join(',')}))
@@ -412,6 +418,8 @@ export async function runMannWhitneyU(
     distShapeRun: string;
     rCode: string;
 }> {
+    // Lazy load required packages (needs psych for skew)
+    await loadPackagesForMethod('mann-whitney');
     const rCode = `
     library(psych)
     g1 <- c(${group1.join(',')})
@@ -471,6 +479,8 @@ export async function runChiSquare(data: any[][]): Promise<{
     warning: string;
     rCode: string;
 }> {
+    // Lazy load required packages (uses built-in stats)
+    await loadPackagesForMethod('chi-square');
     const flatData = data.flat().map(v => `"${String(v).replace(/"/g, '\\"')}"`).join(',');
     const nRows = data.length;
 
@@ -567,6 +577,8 @@ export async function runKruskalWallis(
     method: string;
     rCode: string;
 }> {
+    // Lazy load required packages (uses built-in stats)
+    await loadPackagesForMethod('kruskal');
     const rCode = `
     values <- c(${groups.map(g => g.join(',')).join(',')})
     groups <- factor(c(${groups.map((g, i) => g.map(() => i + 1).join(',')).join(',')}))
@@ -607,6 +619,8 @@ export async function runWilcoxonSignedRank(
     method: string;
     rCode: string;
 }> {
+    // Lazy load required packages (uses built-in stats)
+    await loadPackagesForMethod('wilcoxon');
     const rCode = `
     v_before <- c(${before.join(',')})
     v_after <- c(${after.join(',')})

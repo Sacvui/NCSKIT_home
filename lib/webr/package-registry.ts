@@ -16,7 +16,7 @@ export const PACKAGE_REGISTRY = {
     'ttest': [], // Uses built-in stats package
     'paired-ttest': [],
     'anova': [],
-    'mann-whitney': [],
+    'mann-whitney': ['psych'], // Uses psych::skew for distribution shape check
     'wilcoxon': [],
     'kruskal': [],
     'chi-square': [],
@@ -36,8 +36,8 @@ export const PACKAGE_REGISTRY = {
     'two-way-anova': [],
 
     // Mediation & Moderation
-    'mediation': ['boot'],
-    'moderation': ['boot'],
+    'mediation': ['psych', 'boot'],
+    'moderation': ['psych', 'car'],
 } as const;
 
 export type AnalysisMethod = keyof typeof PACKAGE_REGISTRY;

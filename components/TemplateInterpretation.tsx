@@ -15,13 +15,20 @@ import {
     interpretCronbachAlpha,
     interpretCorrelation,
     interpretTTestIndependent,
+    interpretTTestPaired,
     interpretANOVA,
+    interpretTwoWayANOVA,
     interpretLinearRegression,
     interpretLogisticRegression,
+    interpretMannWhitney,
+    interpretKruskalWallis,
+    interpretWilcoxonSigned,
     interpretChiSquare,
     interpretEFA,
     interpretCFA,
     interpretMediation,
+    interpretModeration,
+    interpretClusterAnalysis,
     InterpretationResult
 } from '@/lib/interpretation-templates';
 
@@ -96,6 +103,23 @@ export function TemplateInterpretation({
                     });
                     break;
 
+                case 'ttest_paired':
+                case 'paired_ttest':
+                    result = interpretTTestPaired({
+                        targetVar: variableNames.targetVar || 'Biến phụ thuộc',
+                        meanBefore: results.meanBefore || 0,
+                        sdBefore: results.sdBefore || 0,
+                        meanAfter: results.meanAfter || 0,
+                        sdAfter: results.sdAfter || 0,
+                        meanDiff: results.meanDiff || 0,
+                        t: results.t || 0,
+                        df: results.df || 0,
+                        pValue: results.pValue || 0,
+                        cohensD: results.effectSize,
+                        normalityDiffP: results.normalityDiffP
+                    });
+                    break;
+
                 case 'anova':
                 case 'one_way_anova':
                     result = interpretANOVA({
@@ -110,6 +134,24 @@ export function TemplateInterpretation({
                         leveneP: results.assumptionCheckP,
                         normalityResidP: results.normalityResidP,
                         postHoc: results.postHoc
+                    });
+                    break;
+
+                case 'two_way_anova':
+                case 'anova_2way':
+                    result = interpretTwoWayANOVA({
+                        factor1: variableNames.factor1 || 'Yếu tố 1',
+                        factor2: variableNames.factor2 || 'Yếu tố 2',
+                        targetVar: variableNames.targetVar || 'Biến phụ thuộc',
+                        mainEffect1F: results.mainEffect1F || 0,
+                        mainEffect1P: results.mainEffect1P || 1,
+                        mainEffect2F: results.mainEffect2F || 0,
+                        mainEffect2P: results.mainEffect2P || 1,
+                        interactionF: results.interactionF || 0,
+                        interactionP: results.interactionP || 1,
+                        df1: results.df1 || 0,
+                        df2: results.df2 || 0,
+                        dfError: results.dfError || 0
                     });
                     break;
 
@@ -150,6 +192,45 @@ export function TemplateInterpretation({
                     });
                     break;
 
+                case 'mann_whitney':
+                case 'mann-whitney':
+                    result = interpretMannWhitney({
+                        group1Name: variableNames.group1 || 'Nhóm 1',
+                        group2Name: variableNames.group2 || 'Nhóm 2',
+                        targetVar: variableNames.targetVar || 'Biến phụ thuộc',
+                        statistic: results.statistic || 0,
+                        pValue: results.pValue || 0,
+                        median1: results.median1 || 0,
+                        median2: results.median2 || 0,
+                        effectSize: results.effectSize,
+                        distShapeRun: results.distShapeRun
+                    });
+                    break;
+
+                case 'kruskal_wallis':
+                case 'kruskal-wallis':
+                case 'kruskal':
+                    result = interpretKruskalWallis({
+                        factorVar: variableNames.factorVar || 'Biến phân nhóm',
+                        targetVar: variableNames.targetVar || 'Biến phụ thuộc',
+                        statistic: results.statistic || 0,
+                        df: results.df || 0,
+                        pValue: results.pValue || 0,
+                        medians: results.medians || []
+                    });
+                    break;
+
+                case 'wilcoxon_signed':
+                case 'wilcoxon-signed':
+                case 'wilcoxon':
+                    result = interpretWilcoxonSigned({
+                        targetVar: variableNames.targetVar || 'Biến phụ thuộc',
+                        statistic: results.statistic || 0,
+                        pValue: results.pValue || 0,
+                        medianDiff: results.medianDiff || 0
+                    });
+                    break;
+
                 case 'efa':
                     result = interpretEFA({
                         kmo: results.kmo || 0,
@@ -186,6 +267,30 @@ export function TemplateInterpretation({
                         sobelP: results.sobelP || 1,
                         bootstrapCI: results.bootstrapCI,
                         mediationType: results.mediationType || 'none'
+                    });
+                    break;
+
+                case 'moderation':
+                    result = interpretModeration({
+                        xVar: variableNames.x || 'X',
+                        mVar: variableNames.m || 'M',
+                        yVar: variableNames.y || 'Y',
+                        interactionTerm: results.interactionTerm || 'X:M',
+                        interactionEstimate: results.interactionEstimate || 0,
+                        interactionP: results.interactionP || 1,
+                        simpleSlopes: results.slopes
+                    });
+                    break;
+
+                case 'cluster':
+                case 'cluster_analysis':
+                    result = interpretClusterAnalysis({
+                        method: results.method || 'K-Means',
+                        nClusters: results.nClusters || results.k || 0,
+                        totalSS: results.totalSS || 0,
+                        withinSS: results.totWithinSS || 0,
+                        betweenSS: results.betweensSS || 0,
+                        silhouetteScore: results.silhouetteScore
                     });
                     break;
 

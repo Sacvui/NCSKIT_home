@@ -29,6 +29,9 @@ export async function runCronbachAlpha(
     }[];
     rCode: string;
 }> {
+    // Lazy load required packages
+    await loadPackagesForMethod('cronbach');
+
     const rCode = `
     library(psych)
     raw_data <- ${arrayToRMatrix(data)}
@@ -150,6 +153,9 @@ export async function runEFA(data: number[][], nFactors: number, rotation: strin
 }> {
     const webR = await initWebR(); // EFA often runs long, might not use executeWithRecovery for single-shot, but consistent init is key
 
+    // Lazy load required packages (needs psych and GPArotation)
+    await loadPackagesForMethod('efa');
+
     const rCode = `
     library(psych)
     raw_data <- matrix(c(${data.flat().join(',')}), nrow = ${data.length}, byrow = TRUE)
@@ -257,6 +263,9 @@ export async function runEFA(data: number[][], nFactors: number, rotation: strin
  * Upgraded to use true SEM engine (lavaan)
  */
 export async function runCFA(data: number[][], columns: string[], modelSyntax: string): Promise<any> {
+    // Lazy load required packages (needs lavaan)
+    await loadPackagesForMethod('cfa');
+
     try {
         // Try running true CFA with lavaan
         const result = await runLavaanAnalysis(data, columns, modelSyntax);
