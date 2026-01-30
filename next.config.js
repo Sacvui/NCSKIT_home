@@ -78,10 +78,8 @@ const nextConfig = {
         ignoreBuildErrors: false,
     },
 
-    // Performance optimizations
+    // Enable compression
     compress: true,
-    optimizeFonts: true,
-    swcMinify: true,
 
     // Image optimization
     images: {
