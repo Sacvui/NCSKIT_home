@@ -8,6 +8,8 @@ import { Header } from "./components/Header";
 import { Footer } from "./components/Footer";
 import { LanguageProvider, useLanguageContext } from "./components/LanguageProvider";
 import { HtmlLangWrapper } from "./components/HtmlLangWrapper";
+import { Testimonials } from "./components/Testimonials";
+import { Newsletter } from "./components/Newsletter";
 
 
 
@@ -111,6 +113,16 @@ function HomeContent() {
 
         {/* SEM Research Section - Professional Q1 Research Model */}
         <SEMResearchSection />
+
+        {/* Testimonials - Social Proof */}
+        <Testimonials />
+
+        {/* Newsletter CTA */}
+        <section className="section">
+          <div className="container">
+            <Newsletter />
+          </div>
+        </section>
       </main>
 
       <Footer />

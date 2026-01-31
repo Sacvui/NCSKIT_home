@@ -7,6 +7,8 @@ import { Header } from "../components/Header";
 import { FormattedDate } from "../components/FormattedDate";
 import { Footer } from "../components/Footer";
 import { useLanguageContext } from "../components/LanguageProvider";
+import { BlogSearch } from "../components/blog/BlogSearch";
+import { Newsletter } from "../components/Newsletter";
 import type { BlogPostMeta } from "@/types/blog";
 import type { BlogGroup } from "@/lib/content";
 
@@ -78,6 +80,9 @@ export default function BlogClient(props: BlogClientProps) {
                     </span>
                   ))}
                 </div>
+
+                {/* Blog Search */}
+                <BlogSearch posts={posts} placeholder="Search articles..." />
               </div>
 
               {/* Featured Post Card */}
@@ -217,23 +222,10 @@ export default function BlogClient(props: BlogClientProps) {
           </div>
         </section>
 
-        {/* Newsletter / CTA Section */}
-        <section className="py-20 bg-slate-900 text-white">
-          <div className="container text-center max-w-3xl space-y-8">
-            <h2 className="text-3xl md:text-4xl font-bold">Stay Updated with NCSKIT</h2>
-            <p className="text-lg text-slate-300">
-              Join our community of researchers and receive the latest insights on SEM, AI tools, and academic publishing directly to your inbox.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="px-6 py-3 rounded-full bg-white/10 border border-white/20 text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand focus:bg-white/20 flex-grow"
-              />
-              <button className="px-8 py-3 rounded-full bg-brand hover:bg-brand-light text-white font-bold transition-all shadow-lg hover:shadow-brand/50">
-                Subscribe
-              </button>
-            </div>
+        {/* Newsletter Section */}
+        <section className="py-20">
+          <div className="container">
+            <Newsletter />
           </div>
         </section>
       </main>
