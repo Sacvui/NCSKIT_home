@@ -261,59 +261,47 @@ export type SiteCopy = {
 
 const navResearchChildren: Record<Locale, NavChild[]> = {
   en: [
-    { label: "Research Lab", href: "/blog#blog-lab" },
     { label: "Knowledge Atlas", href: "/blog" },
-    { label: "Research design", href: "/blog#blog-lab" },
-    { label: "Data cleaning", href: "/blog#blog-lab" },
-    { label: "Hypothesis testing", href: "/blog#blog-lab" },
-    { label: "Advanced SEM / PLS", href: "/blog#blog-lab" },
+    { label: "Research Lab", href: "/blog#blog-lab" },
   ],
   vi: [
+    { label: "Knowledge Atlas", href: "/blog" },
     { label: "Phòng Lab Chạy Số", href: "/blog#blog-lab" },
-    { label: "Góc nhìn Kinh tế", href: "/blog#blog-economics" },
-    { label: "Kỹ năng Viết & Công bố", href: "/blog#blog-writing" },
   ],
 };
 
 const navFeaturesChildren: Record<Locale, NavChild[]> = {
   en: [
-    { label: "Core Modules", href: "/features" },
-    { label: "Architecture", href: "/architecture" },
-    { label: "Workflow", href: "/workflow" },
-    { label: "Automation", href: "/workflow#automation" },
+    { label: "Core Modules", href: "/#modules" },
+    { label: "Statistical Analysis", href: "/#statistical-analysis" },
   ],
   vi: [
-    { label: "Phân hệ cốt lõi", href: "/features" },
-    { label: "Quy trình nghiên cứu", href: "/workflow" },
+    { label: "Phân hệ cốt lõi", href: "/#modules" },
+    { label: "Phân tích thống kê", href: "/#statistical-analysis" },
   ],
 };
 
 const navResourcesChildren: Record<Locale, NavChild[]> = {
   en: [
-    { label: "Documentation", href: "/resources" },
-    { label: "Release Notes", href: "/releases" },
-    { label: "Project README", href: "/docs/README.md" },
-    { label: "Architecture", href: "/docs/ARCHITECTURE.md" },
+    { label: "Documentation", href: "/docs/README.md" },
+    { label: "Whitepaper", href: "/docs/WHITEPAPER.md" },
   ],
   vi: [
-    { label: "Hướng dẫn sử dụng", href: "/resources" },
+    { label: "Tài liệu", href: "/docs/README.md" },
+    { label: "Whitepaper", href: "/docs/WHITEPAPER.md" },
   ],
 };
 
 const knowledgeNavChildren: Record<Locale, NavChild[]> = {
   en: [
-    { label: "Marketing & Playbooks", href: "/blog#blog-marketing" },
-    { label: "Street Economics", href: "/blog#blog-economics" },
-    { label: "Research Lab Articles", href: "/blog#blog-lab" },
-    { label: "Writing & Publication", href: "/blog#blog-writing" },
-    { label: "Resource Vault", href: "/blog#blog-vault" },
+    { label: "All Articles", href: "/blog" },
+    { label: "Research Lab", href: "/blog#blog-lab" },
+    { label: "Writing Guide", href: "/blog#blog-writing" },
   ],
   vi: [
-    { label: "Marketing & Chiêu trò", href: "/blog#blog-marketing" },
-    { label: "Kinh tế vỉa hè", href: "/blog#blog-economics" },
-    { label: 'Phòng Lab "Chạy số"', href: "/blog#blog-lab" },
-    { label: "Bút chiến học thuật", href: "/blog#blog-writing" },
-    { label: "Kho đồ chơi nghiên cứu", href: "/blog#blog-vault" },
+    { label: "Tất cả bài viết", href: "/blog" },
+    { label: "Phòng Lab Chạy Số", href: "/blog#blog-lab" },
+    { label: "Kỹ năng viết", href: "/blog#blog-writing" },
   ],
 };
 

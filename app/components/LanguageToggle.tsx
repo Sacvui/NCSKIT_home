@@ -6,6 +6,10 @@ export function LanguageToggle() {
   const { locale, setLocale, copy } = useLanguageContext();
   const lang = copy.language;
 
+  // TEMPORARILY DISABLED - Uncomment to re-enable language switching
+  return null;
+
+  /* 
   return (
     <div className="language-toggle" role="group" aria-label={lang.label}>
       <button
@@ -24,5 +28,6 @@ export function LanguageToggle() {
       </button>
     </div>
   );
+  */
 }
 
