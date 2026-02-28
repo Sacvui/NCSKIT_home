@@ -624,16 +624,16 @@ export default function Analyze2Page() {
 
                                     {/* CFA */}
                                     <button
-                                        onClick={() => setPhase('cfa-select')}
-                                        className="p-6 border-2 border-gray-200 rounded-lg hover:border-blue-400 hover:shadow-lg transition-all text-left group"
-                                        title="Confirmatory Factor Analysis - Validates pre-specified measurement model"
+                                        disabled={true}
+                                        className="p-6 border-2 border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed text-left group opacity-60"
+                                        title="Confirmatory Factor Analysis - Temporarily unavailable (requires quadprog package)"
                                     >
                                         <div className="flex items-center gap-3 mb-2">
-                                            <FileText className="w-6 h-6 text-blue-600" />
-                                            <h3 className="font-bold text-lg group-hover:text-blue-600">CFA</h3>
-                                            <Badge variant="success">Working</Badge>
+                                            <FileText className="w-6 h-6 text-gray-500" />
+                                            <h3 className="font-bold text-lg text-gray-600">CFA</h3>
+                                            <Badge variant="warning">Soon</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">Confirmatory Factor Analysis - Validate measurement model</p>
+                                        <p className="text-sm text-gray-500">Confirmatory Factor Analysis - Validate measurement model</p>
                                     </button>
 
                                     {/* HTMT Matrix */}
@@ -712,14 +712,14 @@ export default function Analyze2Page() {
 
                                     {/* CB-SEM */}
                                     <button
-                                        onClick={() => setPhase('cbsem-select')}
-                                        className="p-6 border-2 border-green-200 rounded-lg hover:border-green-400 hover:shadow-lg transition-all text-left group bg-green-50"
-                                        title="Covariance-based SEM - Traditional approach for theory testing"
+                                        disabled={true}
+                                        className="p-6 border-2 border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed text-left group opacity-60"
+                                        title="Covariance-based SEM - Temporarily unavailable (requires quadprog package)"
                                     >
                                         <div className="flex items-center gap-3 mb-2">
-                                            <Network className="w-6 h-6 text-green-600" />
-                                            <h3 className="font-bold text-lg group-hover:text-green-600">CB-SEM</h3>
-                                            <Badge variant="success">Working</Badge>
+                                            <Network className="w-6 h-6 text-gray-500" />
+                                            <h3 className="font-bold text-lg text-gray-600">CB-SEM</h3>
+                                            <Badge variant="warning">Soon</Badge>
                                         </div>
                                         <p className="text-sm text-gray-600">Covariance-based Structural Equation Modeling</p>
                                     </button>

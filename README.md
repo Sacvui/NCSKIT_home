@@ -4,7 +4,7 @@
 
 🔗 **Live App:** [https://stat.ncskit.org](https://stat.ncskit.org)
 
-📄 **Version:** 2.0.0 (Major Release - 2026-01-24)
+📄 **Version:** 2.1.0 (2026-03-01)
 
 ---
 
@@ -67,10 +67,10 @@
 
 | Layer | Stack |
 |-------|-------|
-| **Frontend** | Next.js 14, React 18, TypeScript |
-| **Styling** | Tailwind CSS, Lucide Icons |
-| **R Engine** | WebR (WebAssembly R) |
-| **R Packages** | `psych`, `GPArotation` |
+| **Frontend** | Next.js 16, React 19, TypeScript |
+| **Styling** | Tailwind CSS 4, Lucide Icons |
+| **R Engine** | WebR 0.5 (WebAssembly R) |
+| **R Packages** | `psych`, `GPArotation`, `lavaan` |
 | **AI** | Google Gemini 2.0 Flash |
 | **Auth** | Supabase Auth (Google, ORCID, LinkedIn) |
 | **Database** | Supabase PostgreSQL |
@@ -120,17 +120,28 @@ Truy cập `http://localhost:3000`
 ```
 ncsStat/
 ├── app/                    # Next.js App Router
-│   ├── analyze/            # Trang phân tích chính
+│   ├── analyze/            # Trang phân tích chính (Basic)
+│   ├── analyze2/           # Trang phân tích PLS-SEM
+│   ├── api/                # API Routes (auth, feedback, AI)
+│   ├── admin/              # Admin panel
 │   ├── login/              # Đăng nhập OAuth
 │   └── profile/            # Hồ sơ người dùng
 ├── components/             # React Components
+│   ├── analyze/            # Analysis workflow components
+│   ├── results/            # Result display (9 categories)
+│   ├── ui/                 # Shared UI primitives
+│   └── layout/             # Header, Footer
 ├── lib/
-│   ├── webr-wrapper.ts     # R statistical functions (2000+ lines)
-│   ├── i18n.ts             # Internationalization
+│   ├── webr/               # WebR engine & analysis modules
+│   │   ├── core.ts         # WebR singleton, init, retry logic
+│   │   └── analyses/       # 8 analysis modules (hypothesis, reliability, etc.)
+│   ├── i18n.ts             # Internationalization (vi/en)
+│   ├── interpretation-templates.ts  # ASIG template system
 │   └── pdf-exporter.ts     # PDF export
-├── paper/
-│   └── R_CODE_REFERENCE.md # R code documentation (18 methods)
-└── utils/supabase/         # Supabase client
+├── hooks/                  # Custom React hooks
+├── context/                # Auth & Language providers
+├── types/                  # TypeScript type definitions
+└── utils/supabase/         # Supabase client & migrations
 ```
 
 ---

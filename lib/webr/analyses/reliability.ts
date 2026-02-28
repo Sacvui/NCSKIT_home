@@ -47,12 +47,20 @@ export async function runCronbachAlpha(
     # === McDonald's Omega (more robust than Alpha) ===
     # omega() requires at least 3 items
     # === McDonald's Omega (Robust) ===
-    # omega() can complain with 1 factor or small item counts
+    # Auto-detect optimal number of factors using parallel analysis
     omega_result <- tryCatch({
         if (ncol(data) >= 3) {
-            # Use suppressWarnings/Messages to silence "Omega_h for 1 factor is not meaningful"
+            # Detect optimal number of factors
+            nfactors_detected <- tryCatch({
+                fa_parallel <- fa.parallel(data, fm="minres", fa="fa", plot=FALSE, n.iter=20)
+                max(1, fa_parallel$nfact)  # Use suggested factors, minimum 1
+            }, error = function(e) {
+                1  # Fallback to 1 factor if detection fails
+            })
+            
+            # Calculate omega with detected number of factors
             om <- suppressWarnings(suppressMessages(
-                omega(data, nfactors = 1, plot = FALSE, check.keys = TRUE)
+                omega(data, nfactors = nfactors_detected, plot = FALSE, check.keys = TRUE)
             ))
             
             list(

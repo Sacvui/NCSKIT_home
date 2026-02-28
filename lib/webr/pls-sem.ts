@@ -9,10 +9,10 @@ import { executeRWithRecovery } from './core';
  * McDonald's Omega - More accurate reliability measure than Cronbach's Alpha
  */
 export async function runMcDonaldOmega(data: number[][], itemNames?: string[]): Promise<any> {
-    const nItems = data[0].length;
-    const itemLabels = itemNames || Array.from({ length: nItems }, (_, i) => `Item${i + 1}`);
+  const nItems = data[0].length;
+  const itemLabels = itemNames || Array.from({ length: nItems }, (_, i) => `Item${i + 1}`);
 
-    const rCode = `
+  const rCode = `
     # McDonald's Omega Calculation
     library(psych)
     
@@ -24,28 +24,38 @@ export async function runMcDonaldOmega(data: number[][], itemNames?: string[]): 
     colnames(data_matrix) <- c(${itemLabels.map(name => `"${name}"`).join(',')})
     df <- as.data.frame(data_matrix)
     
-    # Calculate Omega
-    omega_result <- omega(df, nfactors=1, plot=FALSE)
+    # Auto-detect optimal number of factors using parallel analysis
+    # Suppress warnings and use tryCatch for robustness
+    nfactors_detected <- tryCatch({
+      fa_parallel <- fa.parallel(df, fm="minres", fa="fa", plot=FALSE, n.iter=20)
+      max(1, fa_parallel$nfact)  # Use suggested factors, minimum 1
+    }, error = function(e) {
+      1  # Fallback to 1 factor if detection fails
+    })
+    
+    # Calculate Omega with detected number of factors
+    omega_result <- omega(df, nfactors=nfactors_detected, plot=FALSE)
     
     # Extract results
     list(
       omega_total = omega_result$omega.tot,
       omega_hierarchical = omega_result$omega_h,
       alpha = omega_result$alpha,
+      nfactors_used = nfactors_detected,
       interpretation = ifelse(omega_result$omega.tot >= 0.7, "Good", 
                        ifelse(omega_result$omega.tot >= 0.6, "Acceptable", "Poor"))
     )
   `;
 
-    const result = await executeRWithRecovery(rCode);
-    return result;
+  const result = await executeRWithRecovery(rCode);
+  return result;
 }
 
 /**
  * Outlier Detection using Mahalanobis Distance
  */
 export async function runOutlierDetection(data: number[][]): Promise<any> {
-    const rCode = `
+  const rCode = `
     library(psych)
     
     # Create data matrix
@@ -77,20 +87,20 @@ export async function runOutlierDetection(data: number[][]): Promise<any> {
     )
   `;
 
-    const result = await executeRWithRecovery(rCode);
-    return result;
+  const result = await executeRWithRecovery(rCode);
+  return result;
 }
 
 /**
  * HTMT Matrix - Heterotrait-Monotrait Ratio (Gold standard for discriminant validity)
  */
 export async function runHTMTMatrix(data: number[][], factorStructure: { name: string; items: number[] }[]): Promise<any> {
-    // Build factor assignment
-    const factorAssignment = factorStructure.map(f =>
-        `${f.name} = c(${f.items.join(',')})`
-    ).join(', ');
+  // Build factor assignment
+  const factorAssignment = factorStructure.map(f =>
+    `${f.name} = c(${f.items.join(',')})`
+  ).join(', ');
 
-    const rCode = `
+  const rCode = `
     library(psych)
     
     # Create data matrix
@@ -139,15 +149,15 @@ export async function runHTMTMatrix(data: number[][], factorStructure: { name: s
     )
   `;
 
-    const result = await executeRWithRecovery(rCode);
-    return result;
+  const result = await executeRWithRecovery(rCode);
+  return result;
 }
 
 /**
  * VIF Check - Variance Inflation Factor (Multicollinearity detection)
  */
 export async function runVIFCheck(data: number[][], dependentVarIndex: number = 0): Promise<any> {
-    const rCode = `
+  const rCode = `
     library(car)
     
     # Create data matrix
@@ -177,8 +187,8 @@ export async function runVIFCheck(data: number[][], dependentVarIndex: number = 
     )
   `;
 
-    const result = await executeRWithRecovery(rCode);
-    return result;
+  const result = await executeRWithRecovery(rCode);
+  return result;
 }
 
 /**
@@ -186,14 +196,14 @@ export async function runVIFCheck(data: number[][], dependentVarIndex: number = 
  * Using seminr package for WebR
  */
 export async function runPLSSEM(
-    data: number[][],
-    measurementModel: { construct: string; items: number[] }[],
-    structuralModel: { from: string; to: string }[]
+  data: number[][],
+  measurementModel: { construct: string; items: number[] }[],
+  structuralModel: { from: string; to: string }[]
 ): Promise<any> {
-    // Note: This is a placeholder. Full PLS-SEM requires seminr package
-    // which may need to be added to WebR core initialization
+  // Note: This is a placeholder. Full PLS-SEM requires seminr package
+  // which may need to be added to WebR core initialization
 
-    const rCode = `
+  const rCode = `
     # PLS-SEM using basic implementation
     # For production, use seminr package
     library(psych)
@@ -216,15 +226,15 @@ export async function runPLSSEM(
     )
   `;
 
-    const result = await executeRWithRecovery(rCode);
-    return result;
+  const result = await executeRWithRecovery(rCode);
+  return result;
 }
 
 /**
  * Bootstrapping for PLS-SEM (Get P-values)
  */
 export async function runBootstrapping(data: number[][], nBootstrap: number = 5000): Promise<any> {
-    const rCode = `
+  const rCode = `
     # Bootstrap resampling
     set.seed(123)
     
@@ -251,21 +261,21 @@ export async function runBootstrapping(data: number[][], nBootstrap: number = 50
     )
   `;
 
-    const result = await executeRWithRecovery(rCode);
-    return result;
+  const result = await executeRWithRecovery(rCode);
+  return result;
 }
 
 /**
  * Mediation & Moderation Analysis
  */
 export async function runMediationModeration(
-    data: number[][],
-    ivIndex: number,
-    mediatorIndex: number,
-    dvIndex: number,
-    moderatorIndex?: number
+  data: number[][],
+  ivIndex: number,
+  mediatorIndex: number,
+  dvIndex: number,
+  moderatorIndex?: number
 ): Promise<any> {
-    const rCode = `
+  const rCode = `
     library(psych)
     
     data_matrix <- matrix(c(${data.flat().join(',')}), 
@@ -310,15 +320,15 @@ export async function runMediationModeration(
     )
   `;
 
-    const result = await executeRWithRecovery(rCode);
-    return result;
+  const result = await executeRWithRecovery(rCode);
+  return result;
 }
 
 /**
  * IPMA - Importance-Performance Matrix Analysis
  */
 export async function runIPMA(data: number[][], targetIndex: number): Promise<any> {
-    const rCode = `
+  const rCode = `
     data_matrix <- matrix(c(${data.flat().join(',')}), 
                           nrow=${data.length}, 
                           ncol=${data[0].length}, 
@@ -338,19 +348,19 @@ export async function runIPMA(data: number[][], targetIndex: number): Promise<an
     )
   `;
 
-    const result = await executeRWithRecovery(rCode);
-    return result;
+  const result = await executeRWithRecovery(rCode);
+  return result;
 }
 
 /**
  * MGA - Multi-Group Analysis
  */
 export async function runMGA(
-    data: number[][],
-    groupVariable: number[],
-    dependentVarIndex: number
+  data: number[][],
+  groupVariable: number[],
+  dependentVarIndex: number
 ): Promise<any> {
-    const rCode = `
+  const rCode = `
     data_matrix <- matrix(c(${data.flat().join(',')}), 
                           nrow=${data.length}, 
                           ncol=${data[0].length}, 
@@ -375,15 +385,15 @@ export async function runMGA(
     )
   `;
 
-    const result = await executeRWithRecovery(rCode);
-    return result;
+  const result = await executeRWithRecovery(rCode);
+  return result;
 }
 
 /**
  * Blindfolding - Predictive Relevance (Q²)
  */
 export async function runBlindfolding(data: number[][], omissionDistance: number = 7): Promise<any> {
-    const rCode = `
+  const rCode = `
     # Blindfolding procedure for Q² calculation
     data_matrix <- matrix(c(${data.flat().join(',')}), 
                           nrow=${data.length}, 
@@ -405,6 +415,6 @@ export async function runBlindfolding(data: number[][], omissionDistance: number
     )
   `;
 
-    const result = await executeRWithRecovery(rCode);
-    return result;
+  const result = await executeRWithRecovery(rCode);
+  return result;
 }
