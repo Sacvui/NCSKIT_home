@@ -1,5 +1,4 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
@@ -7,28 +6,37 @@ export async function GET(request: Request) {
     const code = searchParams.get('code');
     const next = searchParams.get('next') ?? '/analyze';
 
-    console.log('[Auth Callback Route] Processing exchange with standard cookies store...');
+    console.log('[Auth Callback Route] Processing exchange with manual response cookie attachment...');
+
+    // 1. Create the redirect response object first
+    const response = NextResponse.redirect(`${origin}${next}`);
 
     if (code) {
-        const cookieStore = await cookies();
-        
+        // 2. Initialize Supabase client targeting the redirect response
         const supabase = createServerClient(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
             process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
             {
                 cookies: {
                     getAll() {
-                        return cookieStore.getAll();
+                        const cookieString = request.headers.get('Cookie') ?? '';
+                        return cookieString.split(';').map(v => {
+                            const parts = v.split('=');
+                            return {
+                                name: parts[0].trim(),
+                                value: parts.slice(1).join('=').trim()
+                            };
+                        }).filter(c => c.name !== '');
                     },
                     setAll(cookiesToSet) {
-                        try {
-                            cookiesToSet.forEach(({ name, value, options }) =>
-                                cookieStore.set(name, value, options)
-                            );
-                        } catch (err) {
-                            // This catch is expected in some server environments
-                            console.warn('[Auth Callback Route] setAll error (ignored):', err);
-                        }
+                        cookiesToSet.forEach(({ name, value, options }) => {
+                            // Apply cookies directly to the redirect response object
+                            response.cookies.set(name, value, {
+                                ...options,
+                                // Ensure cross-subdomain compatibility
+                                domain: (process.env.NEXT_PUBLIC_SITE_URL?.includes('ncskit.org')) ? '.ncskit.org' : undefined,
+                            });
+                        });
                     },
                 },
             }
@@ -37,8 +45,8 @@ export async function GET(request: Request) {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         
         if (!error) {
-            console.log('[Auth Callback Route] Exchange successful.');
-            return NextResponse.redirect(`${origin}${next}`);
+            console.log('[Auth Callback Route] Exchange successful. Cookies attached to response.');
+            return response;
         } else {
             console.error('[Auth Callback Route] Exchange error:', error.message);
             return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error.message)}`);
