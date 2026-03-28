@@ -35,7 +35,6 @@ export async function createClient() {
                 },
             },
             cookieOptions: {
-                domain: (process.env.NEXT_PUBLIC_SITE_URL?.includes('ncskit.org')) ? '.ncskit.org' : undefined,
                 sameSite: 'lax',
                 secure: true,
                 path: '/',
