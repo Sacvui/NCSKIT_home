@@ -63,6 +63,7 @@ export async function updateSession(request: NextRequest) {
                         cookiesToSet.forEach(({ name, value, options }) =>
                             response.cookies.set(name, value, {
                                 ...options,
+                                domain: (process.env.NEXT_PUBLIC_SITE_URL?.includes('ncskit.org')) ? '.ncskit.org' : undefined,
                                 secure: useSecureCookies,
                                 sameSite: 'lax',
                                 path: '/',
@@ -71,6 +72,7 @@ export async function updateSession(request: NextRequest) {
                     },
                 },
                 cookieOptions: {
+                    domain: (process.env.NEXT_PUBLIC_SITE_URL?.includes('ncskit.org')) ? '.ncskit.org' : undefined,
                     secure: useSecureCookies,
                     sameSite: 'lax',
                     path: '/',

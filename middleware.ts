@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server'
-// import { updateSession } from '@/utils/supabase/middleware'
+import { updateSession } from '@/utils/supabase/middleware'
 
 export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone()
@@ -13,7 +13,7 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(url, { status: 301 })
     }
 
-    return NextResponse.next()
+    return await updateSession(request)
 }
 
 export const config = {

@@ -24,11 +24,14 @@ export async function GET(request: Request) {
                 return NextResponse.redirect(`${origin}${next}`);
             } else {
                 console.error('[Auth Callback Route] Exchange error:', error.message);
-                return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error.message)}`);
+                const errorMessage = error.message.includes('code_verifier') 
+                    ? 'Lỗi bảo mật PKCE: Vui lòng xóa cookie trình duyệt hoặc thử lại trong tab ẩn danh.' 
+                    : error.message;
+                return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(errorMessage)}`);
             }
         } catch (err: any) {
             console.error('[Auth Callback Route] Unexpected error:', err.message);
-            return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(err.message)}`);
+            return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent('Lỗi hệ thống trong quá trình xử lý callback.')}`);
         }
     }
 

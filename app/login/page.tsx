@@ -31,9 +31,7 @@ function LoginForm() {
         try {
             const supabase = getSupabase()
             // ALWAYS redirect to the primary production domain to avoid cookie/session mismatches
-            const origin = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-                ? window.location.origin
-                : 'https://ncsstat.ncskit.org'
+            const origin = window.location.origin
 
             const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(next || '/analyze')}`
             console.log('Redirecting to:', redirectTo)

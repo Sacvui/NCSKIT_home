@@ -28,7 +28,18 @@ export function getSupabase() {
             )
         } else {
             console.log('[Supabase Client] Initializing with environment variables')
-            supabaseInstance = createBrowserClient(supabaseUrl, supabaseAnonKey)
+            supabaseInstance = createBrowserClient(
+                supabaseUrl, 
+                supabaseAnonKey,
+                {
+                    cookieOptions: {
+                        domain: (process.env.NEXT_PUBLIC_SITE_URL?.includes('ncskit.org')) ? '.ncskit.org' : undefined,
+                        path: '/',
+                        sameSite: 'lax',
+                        secure: true
+                    }
+                }
+            )
         }
     }
     return supabaseInstance
