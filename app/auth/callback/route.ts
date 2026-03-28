@@ -23,10 +23,7 @@ export async function GET(request: Request) {
                     setAll(cookiesToSet) {
                         try {
                             cookiesToSet.forEach(({ name, value, options }) =>
-                                cookieStore.set(name, value, {
-                                    ...options,
-                                    domain: (process.env.NEXT_PUBLIC_SITE_URL?.includes('ncskit.org')) ? '.ncskit.org' : undefined,
-                                })
+                            cookieStore.set(name, value, options)
                             );
                         } catch (err) {
                             // This catch is expected in some server environments
