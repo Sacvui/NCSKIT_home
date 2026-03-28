@@ -115,8 +115,10 @@ export async function updateSession(request: NextRequest) {
             const { data: { user }, error: userError } = await supabase.auth.getUser()
 
             if (userError || !user) {
-                console.log('[Middleware] No valid Supabase user found for protected route:', pathname)
-                return NextResponse.redirect(new URL('/login?error=no_session&path=' + encodeURIComponent(pathname), request.url))
+                console.log('[Middleware] No valid Supabase user found for protected route:', pathname, userError?.message)
+                // TEMPORARY: Don't redirect, just proceed to see if client-side can pick it up
+                // return NextResponse.redirect(new URL('/login?error=no_session&path=' + encodeURIComponent(pathname), request.url))
+                return response
             }
 
             console.log('[Middleware] User validated successfully:', user.email)

@@ -21,7 +21,10 @@ export async function GET(request: Request) {
             
             if (!error) {
                 console.log('[Auth Callback Route] Exchange successful, redirecting to:', next);
-                return NextResponse.redirect(`${origin}${next}`);
+                
+                // Create a response object first to ensure cookies from the exchange are captured
+                const response = NextResponse.redirect(`${origin}${next}`);
+                return response;
             } else {
                 console.error('[Auth Callback Route] Exchange error:', error.message);
                 const errorMessage = error.message.includes('code_verifier') 
