@@ -2,8 +2,17 @@ import { NextResponse, type NextRequest } from 'next/server'
 // import { updateSession } from '@/utils/supabase/middleware'
 
 export async function middleware(request: NextRequest) {
-    // PASS-THROUGH: Rely on Client-Side Auth Checks
-    // We are disabling server-side middleware checks to avoid cookie persistence issues.
+    const url = request.nextUrl.clone()
+    const host = request.headers.get('host') || ''
+    
+    // FORCE PRIMARY DOMAIN: Avoid PKCE/Cookie mismatch between stat.ncskit.org and ncsstat.ncskit.org
+    if (host.includes('stat.ncskit.org') && !host.includes('ncsstat.ncskit.org')) {
+        console.log(`[Middleware] Redirecting from ${host} to ncsstat.ncskit.org`)
+        url.hostname = 'ncsstat.ncskit.org'
+        url.port = '' // Ensure port is stripped in production
+        return NextResponse.redirect(url, { status: 301 })
+    }
+
     return NextResponse.next()
 }
 
