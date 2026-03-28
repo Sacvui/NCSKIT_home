@@ -29,6 +29,19 @@ function LoginForm() {
         setErrorMsg(null)
 
         try {
+            // NUCLEAR FIX: Clear any existing Supabase auth/PKCE cookies before starting
+            // to prevent the "duplicate code verifiers" issue.
+            const cookies = document.cookie.split(';')
+            const supabaseCookies = cookies.filter(c => c.trim().includes('sb-') && c.trim().includes('-code-verifier'))
+            
+            supabaseCookies.forEach(cookie => {
+                const name = cookie.split('=')[0].trim()
+                // Clear on current host
+                document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`
+                // Clear on root domain
+                document.cookie = `${name}=; path=/; domain=.ncskit.org; expires=Thu, 01 Jan 1970 00:00:00 GMT`
+            })
+
             const supabase = getSupabase()
             // ALWAYS redirect to the primary production domain to avoid cookie/session mismatches
             const origin = window.location.origin
