@@ -973,43 +973,45 @@ export default function AnalyzePage() {
                             {(analysisType === 'cronbach-batch' || analysisType === 'omega-batch') && multipleResults.length > 0 && (
                                 <div className="space-y-8">
                                     {/* Summary Table */}
-                                    <div className="bg-white rounded-xl shadow-lg p-6">
-                                        <h3 className="text-lg font-bold text-gray-800 mb-4">Tổng hợp độ tin cậy các thang đo</h3>
-                                        <table className="w-full text-left">
-                                            <thead>
-                                                <tr className="border-b-2 border-gray-300">
-                                                    <th className="py-2 px-3 font-semibold">Thang đo</th>
-                                                    <th className="py-2 px-3 font-semibold text-center">Số biến</th>
-                                                    <th className="py-2 px-3 font-semibold text-center">Cronbach&apos;s Alpha</th>
-                                                    <th className="py-2 px-3 font-semibold text-center">Đánh giá</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {multipleResults.map((r, idx) => {
-                                                    const alpha = r.data?.alpha || r.data?.rawAlpha || 0;
-                                                    let evaluation = '';
-                                                    let evalColor = '';
-                                                    if (alpha >= 0.9) { evaluation = 'Xuất sắc'; evalColor = 'text-green-700 bg-green-100'; }
-                                                    else if (alpha >= 0.8) { evaluation = 'Tốt'; evalColor = 'text-green-600 bg-green-50'; }
-                                                    else if (alpha >= 0.7) { evaluation = 'Chấp nhận'; evalColor = 'text-blue-600 bg-blue-50'; }
-                                                    else if (alpha >= 0.6) { evaluation = 'Khá'; evalColor = 'text-yellow-600 bg-yellow-50'; }
-                                                    else { evaluation = 'Kém'; evalColor = 'text-red-600 bg-red-50'; }
+                                    <div className="bg-white rounded-xl shadow-lg p-6 border border-slate-200">
+                                        <h3 className="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Tổng hợp độ tin cậy các thang đo</h3>
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-left text-sm text-slate-800">
+                                                <thead className="bg-slate-50 text-slate-700">
+                                                    <tr className="border-b-2 border-slate-300">
+                                                        <th className="py-3 px-4 font-semibold rounded-tl-lg">Thang đo</th>
+                                                        <th className="py-3 px-4 font-semibold text-center">Số biến</th>
+                                                        <th className="py-3 px-4 font-semibold text-center">Cronbach&apos;s Alpha</th>
+                                                        <th className="py-3 px-4 font-semibold text-center rounded-tr-lg">Đánh giá</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {multipleResults.map((r, idx) => {
+                                                        const alpha = r.data?.alpha || r.data?.rawAlpha || 0;
+                                                        let evaluation = '';
+                                                        let evalColor = '';
+                                                        if (alpha >= 0.9) { evaluation = 'Xuất sắc'; evalColor = 'text-green-800 bg-green-100 ring-1 ring-green-200'; }
+                                                        else if (alpha >= 0.8) { evaluation = 'Tốt'; evalColor = 'text-green-700 bg-emerald-50 ring-1 ring-emerald-200'; }
+                                                        else if (alpha >= 0.7) { evaluation = 'Chấp nhận'; evalColor = 'text-blue-700 bg-blue-50 ring-1 ring-blue-200'; }
+                                                        else if (alpha >= 0.6) { evaluation = 'Khá'; evalColor = 'text-amber-700 bg-amber-50 ring-1 ring-amber-200'; }
+                                                        else { evaluation = 'Kém'; evalColor = 'text-red-700 bg-red-50 ring-1 ring-red-200'; }
 
-                                                    return (
-                                                        <tr key={idx} className="border-b border-gray-200 hover:bg-gray-50">
-                                                            <td className="py-3 px-3 font-medium">{r.scaleName}</td>
-                                                            <td className="py-3 px-3 text-center">{r.columns.length}</td>
-                                                            <td className="py-3 px-3 text-center font-bold">{alpha.toFixed(3)}</td>
-                                                            <td className="py-3 px-3 text-center">
-                                                                <span className={`px-2 py-1 rounded text-sm font-medium ${evalColor}`}>
-                                                                    {evaluation}
-                                                                </span>
-                                                            </td>
-                                                        </tr>
-                                                    );
-                                                })}
-                                            </tbody>
-                                        </table>
+                                                        return (
+                                                            <tr key={idx} className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
+                                                                <td className="py-3 px-4 font-bold text-slate-700">{r.scaleName}</td>
+                                                                <td className="py-3 px-4 text-center font-medium text-slate-600">{r.columns.length}</td>
+                                                                <td className="py-3 px-4 text-center font-bold text-slate-900">{alpha.toFixed(3)}</td>
+                                                                <td className="py-3 px-4 text-center">
+                                                                    <span className={`px-2.5 py-1 rounded-md text-sm font-semibold shadow-sm ${evalColor}`}>
+                                                                        {evaluation}
+                                                                    </span>
+                                                                </td>
+                                                            </tr>
+                                                        );
+                                                    })}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
 
                                     {/* Detailed Results for Each Group */}

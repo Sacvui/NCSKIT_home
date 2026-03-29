@@ -42,34 +42,34 @@ export const CronbachResults = React.memo(function CronbachResults({
     }, [onProceedToEFA, goodItems]);
 
     return (
-        <div className="space-y-8 font-sans text-gray-900">
+        <div className="space-y-8 font-sans text-slate-900">
             {/* Reliability Statistics Table */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>{analysisType === 'omega' ? 'McDonald\'s Omega Reliability' : 'Reliability Statistics'}</CardTitle>
+            <Card className="border-slate-200 shadow-sm">
+                <CardHeader className="border-b bg-slate-50/50 pb-4">
+                    <CardTitle className="text-slate-800">{analysisType === 'omega' ? 'McDonald\'s Omega Reliability' : 'Reliability Statistics'}</CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <table className="w-full text-left text-sm">
-                        <thead>
-                            <tr className="border-b border-gray-200">
-                                <th className="py-2 pr-4 font-semibold text-gray-700">Measure</th>
-                                <th className="py-2 pr-4 font-semibold text-gray-700">Value</th>
-                                <th className="py-2 pr-4 font-semibold text-gray-700 pl-4 border-l border-gray-100">N of Items</th>
+                <CardContent className="pt-6">
+                    <table className="w-full text-left text-sm text-slate-700">
+                        <thead className="bg-slate-50 text-slate-700">
+                            <tr className="border-y-2 border-slate-300">
+                                <th className="py-3 px-4 font-semibold">Measure</th>
+                                <th className="py-3 px-4 font-semibold text-center">Value</th>
+                                <th className="py-3 px-4 font-semibold text-center border-l-2 border-slate-300">N of Items</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr className="border-b border-gray-100">
-                                <td className={`py-2 pr-4 font-medium ${analysisType !== 'omega' ? 'text-black font-bold' : 'text-gray-600'}`}>Cronbach&apos;s Alpha</td>
-                                <td className={`py-2 pr-4 ${analysisType !== 'omega' ? 'font-bold' : ''}`}>{alpha.toFixed(3)}</td>
-                                <td className="py-2 pr-4 row-span-3 align-middle border-l border-gray-100 pl-4">{nItems}</td>
+                            <tr className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
+                                <td className={`py-3 px-4 font-bold ${analysisType !== 'omega' ? 'text-slate-900' : 'text-slate-500 font-medium'}`}>Cronbach&apos;s Alpha</td>
+                                <td className={`py-3 px-4 text-center ${analysisType !== 'omega' ? 'font-bold text-slate-900' : 'text-slate-600'}`}>{alpha.toFixed(3)}</td>
+                                <td className="py-3 px-4 text-center row-span-3 align-middle border-l-2 border-slate-300 font-bold text-slate-800 text-base">{nItems}</td>
                             </tr>
-                            <tr className="border-b border-gray-100">
-                                <td className={`py-2 pr-4 font-medium ${analysisType === 'omega' ? 'text-black font-bold' : 'text-gray-600'}`}>McDonald&apos;s Omega (Total)</td>
-                                <td className={`py-2 pr-4 ${analysisType === 'omega' ? 'font-bold' : ''}`}>{results.omega ? results.omega.toFixed(3) : '-'}</td>
+                            <tr className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
+                                <td className={`py-3 px-4 font-bold ${analysisType === 'omega' ? 'text-slate-900' : 'text-slate-500 font-medium'}`}>McDonald&apos;s Omega (Total)</td>
+                                <td className={`py-3 px-4 text-center ${analysisType === 'omega' ? 'font-bold text-slate-900' : 'text-slate-600'}`}>{results.omega ? results.omega.toFixed(3) : '-'}</td>
                             </tr>
-                            <tr>
-                                <td className="py-2 pr-4 font-medium text-gray-400 text-xs">Omega Hierarchical</td>
-                                <td className="py-2 pr-4 text-gray-400 text-xs">{results.omegaHierarchical ? results.omegaHierarchical.toFixed(3) : '-'}</td>
+                            <tr className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
+                                <td className="py-3 px-4 font-medium text-slate-400 text-xs">Omega Hierarchical</td>
+                                <td className="py-3 px-4 text-center text-slate-400 text-xs">{results.omegaHierarchical ? results.omegaHierarchical.toFixed(3) : '-'}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -78,43 +78,43 @@ export const CronbachResults = React.memo(function CronbachResults({
 
             {/* Item-Total Statistics Table */}
             {itemTotalStats.length > 0 && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Item-Total Statistics</CardTitle>
+                <Card className="border-slate-200 shadow-sm">
+                    <CardHeader className="border-b bg-slate-50/50 pb-4">
+                        <CardTitle className="text-slate-800">Item-Total Statistics</CardTitle>
                     </CardHeader>
-                    <CardContent className="overflow-x-auto">
-                        <table className="w-full text-left text-sm whitespace-nowrap">
-                            <thead>
-                                <tr className="border-b border-gray-200 bg-gray-50">
-                                    <th className="py-3 px-4 font-semibold text-gray-700">Variable</th>
-                                    <th className="py-3 px-4 font-semibold text-right text-gray-700">Scale Mean if Item Deleted</th>
-                                    <th className="py-3 px-4 font-semibold text-right text-gray-700">Scale Variance if Item Deleted</th>
-                                    <th className="py-3 px-4 font-semibold text-right text-gray-700">Corrected Item-Total Correlation</th>
-                                    <th className="py-3 px-4 font-semibold text-right text-gray-700">Cronbach&apos;s Alpha if Item Deleted</th>
+                    <CardContent className="overflow-x-auto pt-6">
+                        <table className="w-full text-left text-sm whitespace-nowrap text-slate-700">
+                            <thead className="bg-slate-50 text-slate-700">
+                                <tr className="border-y-2 border-slate-300">
+                                    <th className="py-3 px-4 font-semibold">Variable</th>
+                                    <th className="py-3 px-4 font-semibold text-right">Scale Mean if Item Deleted</th>
+                                    <th className="py-3 px-4 font-semibold text-right">Scale Variance if Item Deleted</th>
+                                    <th className="py-3 px-4 font-semibold text-right">Corrected Item-Total <br/>Correlation</th>
+                                    <th className="py-3 px-4 font-semibold text-right">Cronbach&apos;s Alpha if <br/>Item Deleted</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {itemTotalStats.map((item: any, idx: number) => (
-                                    <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                                        <td className="py-3 px-4 font-medium text-gray-900">
+                                    <tr key={idx} className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
+                                        <td className="py-3 px-4 font-bold text-slate-800">
                                             {columns?.[idx] || item.itemName}
                                         </td>
-                                        <td className="py-3 px-4 text-right text-gray-600">{item.scaleMeanIfDeleted?.toFixed(3) || '-'}</td>
-                                        <td className="py-3 px-4 text-right text-gray-600">{item.scaleVarianceIfDeleted?.toFixed(3) || '-'}</td>
-                                        <td className={`py-3 px-4 text-right ${item.correctedItemTotalCorrelation < 0.3 ? 'text-red-600 font-bold' : 'text-gray-600'}`}>
+                                        <td className="py-3 px-4 text-right text-slate-600">{item.scaleMeanIfDeleted?.toFixed(3) || '-'}</td>
+                                        <td className="py-3 px-4 text-right text-slate-600">{item.scaleVarianceIfDeleted?.toFixed(3) || '-'}</td>
+                                        <td className={`py-3 px-4 text-right font-medium ${item.correctedItemTotalCorrelation < 0.3 ? 'text-red-600 bg-red-50' : 'text-slate-900 border-l border-r border-slate-100'}`}>
                                             {item.correctedItemTotalCorrelation?.toFixed(3) || '-'}
                                         </td>
-                                        <td className={`py-3 px-4 text-right ${item.alphaIfItemDeleted > alpha ? 'text-orange-600 font-bold' : 'text-gray-600'}`}>
+                                        <td className={`py-3 px-4 text-right font-medium ${item.alphaIfItemDeleted > alpha ? 'text-orange-600 bg-orange-50' : 'text-slate-900'}`}>
                                             {item.alphaIfItemDeleted?.toFixed(3) || '-'}
                                         </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
-                        <p className="text-xs text-gray-500 italic p-4 bg-gray-50 mt-4 rounded-md">
-                            * Corrected Item-Total Correlation &lt; 0.3 được đánh dấu đỏ (cần xem xét loại bỏ).
-                            Alpha if Item Deleted &gt; Alpha hiện tại được đánh dấu cam (loại bỏ có thể cải thiện độ tin cậy).
-                        </p>
+                        <div className="text-xs text-slate-500 italic p-4 bg-slate-50 mt-4 rounded-md border border-slate-200">
+                            <p className="mb-1"><span className="inline-block w-3 h-3 bg-red-100 border border-red-300 mr-2 rounded"></span><strong>Corrected Item-Total Correlation &lt; 0.3</strong> (Nền đỏ) biểu thị tương quan biến-tổng yếu, cần xem xét loại bỏ biến này.</p>
+                            <p><span className="inline-block w-3 h-3 bg-orange-100 border border-orange-300 mr-2 rounded"></span><strong>Alpha if Item Deleted &gt; Alpha hiện tại</strong> (Nền cam) báo hiệu độ tin cậy của thang đo sẽ tăng lên nếu loại bỏ biến này.</p>
+                        </div>
                     </CardContent>
                 </Card>
             )}

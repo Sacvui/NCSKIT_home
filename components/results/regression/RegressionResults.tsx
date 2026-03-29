@@ -9,210 +9,315 @@ interface RegressionResultsProps {
     columns: string[];
 }
 
+// Helper for safe number formatting
+const fmt = (val: any, digits = 3) => {
+    if (val === undefined || val === null || isNaN(val)) return '-';
+    return Number(val).toFixed(digits);
+};
+
+const fmtP = (p: number) => {
+    if (p === undefined || p === null || isNaN(p)) return '-';
+    if (p < 0.001) return '< .001';
+    return p.toFixed(3);
+};
+
 /**
- * Linear Regression Results Component
- * Displays model summary, coefficients, assumption checks, and actual vs predicted chart
+ * Linear Regression Results Component (SPSS Standard)
+ * Displays: Equation → Model Summary → ANOVA → Coefficients → Assumption Checks → Chart
  */
 export const RegressionResults = React.memo(function RegressionResults({ results, columns }: RegressionResultsProps) {
     if (!results || !results.modelFit) return null;
 
     const { modelFit, coefficients, equation } = results;
 
+    // Compute ANOVA values from available data
+    const n = results.chartData?.actual?.length || 0;
+    const k = (coefficients?.length || 1) - 1; // number of predictors (excluding intercept)
+    const dfRegression = modelFit.df || k;
+    const dfResidual = modelFit.dfResid || (n - k - 1);
+    const dfTotal = dfRegression + dfResidual;
+
+    // SS calculations from residuals and actual values
+    const actualVals = results.chartData?.actual || [];
+    const fittedVals = results.chartData?.fitted || [];
+    const yMean = actualVals.length > 0 ? actualVals.reduce((s: number, v: number) => s + v, 0) / actualVals.length : 0;
+
+    const ssRegression = fittedVals.reduce((s: number, f: number) => s + Math.pow(f - yMean, 2), 0);
+    const ssResidual = actualVals.reduce((s: number, a: number, i: number) => s + Math.pow(a - (fittedVals[i] || 0), 2), 0);
+    const ssTotal = ssRegression + ssResidual;
+
+    const msRegression = dfRegression > 0 ? ssRegression / dfRegression : 0;
+    const msResidual = dfResidual > 0 ? ssResidual / dfResidual : 0;
+
     return (
-        <div className="space-y-8 font-sans">
+        <div className="space-y-8 font-sans text-slate-900">
             {/* Equation */}
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6 rounded-lg text-white shadow-lg">
-                <h4 className="font-bold text-sm uppercase tracking-wider mb-2 opacity-80">Phương trình hồi quy tuyến tính</h4>
-                <div className="text-xl md:text-2xl font-mono font-bold break-all">
+            <div className="bg-gradient-to-r from-indigo-600 to-blue-700 p-6 rounded-xl text-white shadow-lg">
+                <h4 className="font-bold text-sm uppercase tracking-wider mb-2 opacity-80">Regression Equation</h4>
+                <div className="text-lg md:text-xl font-mono font-bold break-all">
                     {equation}
                 </div>
             </div>
 
-            {/* Model Summary */}
-            <div className="bg-white border-t-2 border-b-2 border-black p-6">
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-bold uppercase tracking-widest border-b-2 border-black inline-block pb-1">Model Summary</h3>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
-                    <div className="p-4 bg-gray-50 rounded">
-                        <div className="text-sm text-gray-500 uppercase font-semibold mb-1">R Square</div>
-                        <div className="text-2xl font-bold text-blue-700">{modelFit.rSquared.toFixed(3)}</div>
-                    </div>
-                    <div className="p-4 bg-gray-50 rounded">
-                        <div className="text-sm text-gray-500 uppercase font-semibold mb-1">Adjusted R²</div>
-                        <div className="text-2xl font-bold text-blue-600">{modelFit.adjRSquared.toFixed(3)}</div>
-                    </div>
-                    <div className="p-4 bg-gray-50 rounded">
-                        <div className="text-sm text-gray-500 uppercase font-semibold mb-1">F Statistic</div>
-                        <div className="text-xl font-bold text-gray-800">{modelFit.fStatistic.toFixed(2)}</div>
-                    </div>
-                    <div className="p-4 bg-gray-50 rounded">
-                        <div className="text-sm text-gray-500 uppercase font-semibold mb-1">Sig. (ANOVA)</div>
-                        <div className={`text-xl font-bold ${modelFit.pValue < 0.05 ? 'text-green-600' : 'text-red-500'}`}>
-                            {modelFit.pValue < 0.001 ? '< .001' : modelFit.pValue.toFixed(3)}
-                        </div>
-                    </div>
-                </div>
-
-                <p className="text-xs text-gray-500 italic mt-4 text-center">
-                    Mô hình giải thích được <strong>{(modelFit.adjRSquared * 100).toFixed(1)}%</strong> biến thiên của biến phục thuộc.
-                </p>
-            </div>
-
-            {/* Coefficients */}
-            <div className="bg-white border-t-2 border-b-2 border-black p-6">
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-bold uppercase tracking-widest border-b-2 border-black inline-block pb-1">Coefficients</h3>
-                </div>
-
-                <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                        <thead>
-                            <tr className="border-b-2 border-gray-400 bg-gray-50">
-                                <th className="py-3 px-4 text-left font-bold uppercase text-xs tracking-wider">Model</th>
-                                <th className="py-3 px-4 text-right font-bold uppercase text-xs tracking-wider">Unstandardized B</th>
-                                <th className="py-3 px-4 text-right font-bold uppercase text-xs tracking-wider">Std. Error</th>
-                                <th className="py-3 px-4 text-right font-bold uppercase text-xs tracking-wider">t</th>
-                                <th className="py-3 px-4 text-right font-bold uppercase text-xs tracking-wider">Sig.</th>
-                                <th className="py-3 px-4 text-right font-bold uppercase text-xs tracking-wider text-purple-700">VIF</th>
+            {/* ─── 1. Model Summary (SPSS Style) ─── */}
+            <Card className="border-slate-200 shadow-sm">
+                <CardHeader className="border-b bg-slate-50/50 pb-4">
+                    <CardTitle className="text-slate-800">Model Summary</CardTitle>
+                </CardHeader>
+                <CardContent className="overflow-x-auto pt-6">
+                    <table className="w-full text-sm text-slate-700">
+                        <thead className="bg-slate-50 text-slate-700">
+                            <tr className="border-y-2 border-slate-300">
+                                <th className="py-3 px-4 font-semibold text-center">Model</th>
+                                <th className="py-3 px-4 font-semibold text-center">R</th>
+                                <th className="py-3 px-4 font-semibold text-center">R Square</th>
+                                <th className="py-3 px-4 font-semibold text-center">Adjusted R Square</th>
+                                <th className="py-3 px-4 font-semibold text-center">Std. Error of the Estimate</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {coefficients.map((coef: any, idx: number) => (
-                                <tr key={idx} className="border-b border-gray-100 hover:bg-blue-50 transition-colors">
-                                    <td className="py-3 px-4 font-bold text-gray-800">
-                                        {coef.term === '(Intercept)' ? '(Constant)' : coef.term.replace(/`/g, '')}
-                                    </td>
-                                    <td className="py-3 px-4 text-right font-mono font-medium">
-                                        {coef.estimate.toFixed(3)}
-                                    </td>
-                                    <td className="py-3 px-4 text-right text-gray-600">
-                                        {coef.stdError.toFixed(3)}
-                                    </td>
-                                    <td className="py-3 px-4 text-right text-gray-600">
-                                        {coef.tValue.toFixed(3)}
-                                    </td>
-                                    <td className={`py-3 px-4 text-right font-bold ${coef.pValue < 0.05 ? 'text-green-600' : 'text-gray-400'}`}>
-                                        {coef.pValue < 0.001 ? '< .001' : coef.pValue.toFixed(3)}
-                                    </td>
-                                    <td className="py-3 px-4 text-right font-bold text-purple-700">
-                                        {coef.vif ? coef.vif.toFixed(3) : '-'}
-                                    </td>
-                                </tr>
-                            ))}
+                            <tr className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
+                                <td className="py-3 px-4 text-center font-bold text-slate-800">1</td>
+                                <td className="py-3 px-4 text-center font-bold text-slate-900">{fmt(Math.sqrt(modelFit.rSquared))}</td>
+                                <td className="py-3 px-4 text-center font-bold text-slate-900">{fmt(modelFit.rSquared)}</td>
+                                <td className="py-3 px-4 text-center font-bold text-slate-900">{fmt(modelFit.adjRSquared)}</td>
+                                <td className="py-3 px-4 text-center text-slate-600">{fmt(modelFit.residualStdError)}</td>
+                            </tr>
                         </tbody>
                     </table>
-                </div>
-            </div>
+                    <p className="text-xs text-slate-500 italic mt-4">
+                        a. Predictors: (Constant), {coefficients?.filter((c: any) => c.term !== '(Intercept)').map((c: any) => c.term.replace(/`/g, '')).join(', ')}
+                    </p>
+                </CardContent>
+            </Card>
 
-            {/* Assumption Checks Card */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-indigo-700">Kiểm định Giả định (Assumption Checks)</CardTitle>
+            {/* ─── 2. ANOVA Table (SPSS Style) ─── */}
+            <Card className="border-slate-200 shadow-sm">
+                <CardHeader className="border-b bg-slate-50/50 pb-4">
+                    <CardTitle className="text-slate-800">ANOVA<sup>a</sup></CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="overflow-x-auto pt-6">
+                    <table className="w-full text-sm text-slate-700">
+                        <thead className="bg-slate-50 text-slate-700">
+                            <tr className="border-y-2 border-slate-300">
+                                <th className="py-3 px-4 font-semibold text-center">Model</th>
+                                <th className="py-3 px-4 font-semibold text-left">Source</th>
+                                <th className="py-3 px-4 font-semibold text-right">Sum of Squares</th>
+                                <th className="py-3 px-4 font-semibold text-right">df</th>
+                                <th className="py-3 px-4 font-semibold text-right">Mean Square</th>
+                                <th className="py-3 px-4 font-semibold text-right">F</th>
+                                <th className="py-3 px-4 font-semibold text-right">Sig.</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
+                                <td rowSpan={3} className="py-3 px-4 text-center font-bold text-slate-800 align-top border-r border-slate-200">1</td>
+                                <td className="py-3 px-4 font-medium text-slate-700">Regression</td>
+                                <td className="py-3 px-4 text-right text-slate-600">{fmt(ssRegression)}</td>
+                                <td className="py-3 px-4 text-right text-slate-600">{dfRegression}</td>
+                                <td className="py-3 px-4 text-right text-slate-600">{fmt(msRegression)}</td>
+                                <td className="py-3 px-4 text-right font-bold text-slate-900">{fmt(modelFit.fStatistic, 2)}</td>
+                                <td className={`py-3 px-4 text-right font-bold ${modelFit.pValue < 0.05 ? 'text-green-700' : 'text-red-600'}`}>
+                                    {fmtP(modelFit.pValue)}
+                                </td>
+                            </tr>
+                            <tr className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
+                                <td className="py-3 px-4 font-medium text-slate-700">Residual</td>
+                                <td className="py-3 px-4 text-right text-slate-600">{fmt(ssResidual)}</td>
+                                <td className="py-3 px-4 text-right text-slate-600">{dfResidual}</td>
+                                <td className="py-3 px-4 text-right text-slate-600">{fmt(msResidual)}</td>
+                                <td className="py-3 px-4"></td>
+                                <td className="py-3 px-4"></td>
+                            </tr>
+                            <tr className="border-b-2 border-slate-300 hover:bg-slate-50 transition-colors">
+                                <td className="py-3 px-4 font-medium text-slate-700">Total</td>
+                                <td className="py-3 px-4 text-right font-medium text-slate-800">{fmt(ssTotal)}</td>
+                                <td className="py-3 px-4 text-right font-medium text-slate-800">{dfTotal}</td>
+                                <td className="py-3 px-4"></td>
+                                <td className="py-3 px-4"></td>
+                                <td className="py-3 px-4"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div className="text-xs text-slate-500 italic mt-4 space-y-1">
+                        <p>a. Dependent Variable: {coefficients?.[0] ? columns?.[0] || 'Y' : 'Y'}</p>
+                        <p>b. Predictors: (Constant), {coefficients?.filter((c: any) => c.term !== '(Intercept)').map((c: any) => c.term.replace(/`/g, '')).join(', ')}</p>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* ─── 3. Coefficients Table (SPSS Style) ─── */}
+            <Card className="border-slate-200 shadow-sm">
+                <CardHeader className="border-b bg-slate-50/50 pb-4">
+                    <CardTitle className="text-slate-800">Coefficients<sup>a</sup></CardTitle>
+                </CardHeader>
+                <CardContent className="overflow-x-auto pt-6">
+                    <table className="w-full text-sm whitespace-nowrap text-slate-700">
+                        <thead className="bg-slate-50 text-slate-700">
+                            <tr className="border-y-2 border-slate-300">
+                                <th rowSpan={2} className="py-3 px-4 font-semibold text-left border-r border-slate-200">Model</th>
+                                <th colSpan={2} className="py-2 px-4 font-semibold text-center border-b border-slate-200">Unstandardized Coefficients</th>
+                                <th rowSpan={2} className="py-3 px-4 font-semibold text-center border-l border-r border-slate-200">Standardized<br/>Coefficients Beta</th>
+                                <th rowSpan={2} className="py-3 px-4 font-semibold text-center">t</th>
+                                <th rowSpan={2} className="py-3 px-4 font-semibold text-center">Sig.</th>
+                                <th colSpan={2} className="py-2 px-4 font-semibold text-center border-l border-slate-200 border-b border-slate-200">Collinearity Statistics</th>
+                            </tr>
+                            <tr className="border-b-2 border-slate-300">
+                                <th className="py-2 px-4 font-semibold text-center">B</th>
+                                <th className="py-2 px-4 font-semibold text-center border-r border-slate-200">Std. Error</th>
+                                <th className="py-2 px-4 font-semibold text-center border-l border-slate-200">Tolerance</th>
+                                <th className="py-2 px-4 font-semibold text-center">VIF</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {coefficients.map((coef: any, idx: number) => {
+                                const isIntercept = coef.term === '(Intercept)';
+                                const tolerance = coef.vif ? (1 / coef.vif) : undefined;
+                                const isSig = coef.pValue < 0.05;
+
+                                return (
+                                    <tr key={idx} className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
+                                        <td className="py-3 px-4 font-bold text-slate-800 border-r border-slate-200">
+                                            {isIntercept ? '(Constant)' : coef.term.replace(/`/g, '')}
+                                        </td>
+                                        <td className="py-3 px-4 text-center font-medium text-slate-900">{fmt(coef.estimate)}</td>
+                                        <td className="py-3 px-4 text-center text-slate-600 border-r border-slate-200">{fmt(coef.stdError)}</td>
+                                        <td className="py-3 px-4 text-center font-medium text-slate-700 border-r border-slate-200">
+                                            {isIntercept ? '' : fmt(coef.stdBeta)}
+                                        </td>
+                                        <td className="py-3 px-4 text-center text-slate-600">{fmt(coef.tValue)}</td>
+                                        <td className={`py-3 px-4 text-center font-bold ${isSig ? 'text-green-700' : 'text-slate-400'}`}>
+                                            {fmtP(coef.pValue)}
+                                        </td>
+                                        <td className="py-3 px-4 text-center text-slate-600 border-l border-slate-200">
+                                            {isIntercept ? '' : (tolerance !== undefined ? fmt(tolerance) : '-')}
+                                        </td>
+                                        <td className={`py-3 px-4 text-center font-medium ${coef.vif && coef.vif >= 10 ? 'text-red-600 bg-red-50' : coef.vif && coef.vif >= 5 ? 'text-amber-600 bg-amber-50' : 'text-slate-700'}`}>
+                                            {isIntercept ? '' : (coef.vif ? fmt(coef.vif) : '-')}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                    <p className="text-xs text-slate-500 italic mt-4">
+                        a. Dependent Variable: {columns?.[0] || 'Y'}
+                    </p>
+                </CardContent>
+            </Card>
+
+            {/* ─── 4. Assumption Checks ─── */}
+            <Card className="border-slate-200 shadow-sm">
+                <CardHeader className="border-b bg-slate-50/50 pb-4">
+                    <CardTitle className="text-slate-800">Assumption Checks</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* 1. Normality */}
-                        <div className="p-4 bg-gray-50 rounded border border-gray-100">
-                            <h5 className="font-bold text-sm text-gray-700 mb-2">1. Phân phối chuẩn của phần dư (Normality)</h5>
+                        <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                            <h5 className="font-bold text-sm text-slate-700 mb-2">1. Normality of Residuals</h5>
                             <div className="flex justify-between items-center mb-1">
-                                <span className="text-sm text-gray-600">Shapiro-Wilk Test:</span>
-                                <span className={`font-bold ${modelFit.normalityP >= 0.05 ? 'text-green-600' : 'text-orange-500'}`}>
+                                <span className="text-sm text-slate-600">Shapiro-Wilk Test:</span>
+                                <span className={`font-bold ${modelFit.normalityP >= 0.05 ? 'text-green-700' : 'text-amber-600'}`}>
                                     p = {modelFit.normalityP?.toFixed(4)}
                                 </span>
                             </div>
-                            <p className="text-xs text-gray-500 italic">
+                            <p className="text-xs text-slate-500 italic">
                                 {modelFit.normalityP >= 0.05
-                                    ? '✓ Phần dư có phân phối chuẩn (Tốt).'
-                                    : '⚠ Phần dư không phân phối chuẩn (Cân nhắc cỡ mẫu lớn).'}
+                                    ? '✓ Residuals are normally distributed (p ≥ .05).'
+                                    : '⚠ Residuals may not be normally distributed. Consider larger sample size.'}
                             </p>
                         </div>
 
                         {/* 2. Multicollinearity */}
-                        <div className="p-4 bg-gray-50 rounded border border-gray-100">
-                            <h5 className="font-bold text-sm text-gray-700 mb-2">2. Đa cộng tuyến (Multicollinearity)</h5>
+                        <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                            <h5 className="font-bold text-sm text-slate-700 mb-2">2. Multicollinearity (VIF)</h5>
                             <div className="flex justify-between items-center mb-1">
-                                <span className="text-sm text-gray-600">VIF Max:</span>
-                                <span className="font-bold text-purple-700">
+                                <span className="text-sm text-slate-600">Max VIF:</span>
+                                <span className={`font-bold ${Math.max(...coefficients.map((c: any) => c.vif || 0)) < 10 ? 'text-green-700' : 'text-red-600'}`}>
                                     {Math.max(...coefficients.map((c: any) => c.vif || 0)).toFixed(2)}
                                 </span>
                             </div>
-                            <p className="text-xs text-gray-500 italic">
+                            <p className="text-xs text-slate-500 italic">
                                 {Math.max(...coefficients.map((c: any) => c.vif || 0)) < 10
-                                    ? '✓ Không có hiện tượng đa cộng tuyến nghiêm trọng (VIF < 10).'
-                                    : '⚠ Cảnh báo đa cộng tuyến (VIF > 10).'}
+                                    ? '✓ No serious multicollinearity detected (VIF < 10).'
+                                    : '⚠ Warning: Multicollinearity detected (VIF ≥ 10).'}
                             </p>
                         </div>
                     </div>
                 </CardContent>
             </Card>
 
-            {/* Conclusion */}
-            <div className="bg-gray-50 border border-gray-200 p-6 rounded-sm">
-                <h4 className="font-bold mb-3 text-gray-800 uppercase text-xs tracking-wider">Kết luận</h4>
-                <ul className="list-disc pl-5 space-y-2 text-sm text-gray-800">
+            {/* ─── 5. Conclusion ─── */}
+            <div className="bg-slate-50 border border-slate-200 p-6 rounded-lg">
+                <h4 className="font-bold mb-3 text-slate-800 uppercase text-xs tracking-wider">Interpretation</h4>
+                <ul className="list-disc pl-5 space-y-2 text-sm text-slate-700">
                     <li>
-                        Mô hình hồi quy <strong>{modelFit.pValue < 0.05 ? 'có ý nghĩa thống kê' : 'không có ý nghĩa thống kê'}</strong> (F = {modelFit.fStatistic.toFixed(2)}, p {modelFit.pValue < 0.001 ? '< .001' : `= ${modelFit.pValue.toFixed(3)}`}).
+                        The regression model is <strong>{modelFit.pValue < 0.05 ? 'statistically significant' : 'not statistically significant'}</strong> (F({dfRegression}, {dfResidual}) = {modelFit.fStatistic.toFixed(2)}, p {modelFit.pValue < 0.001 ? '< .001' : `= ${modelFit.pValue.toFixed(3)}`}).
                     </li>
                     <li>
-                        Các biến độc lập tác động có ý nghĩa (p &lt; 0.05):{' '}
+                        The model explains <strong>{(modelFit.adjRSquared * 100).toFixed(1)}%</strong> of the variance in the dependent variable (Adjusted R² = {fmt(modelFit.adjRSquared)}).
+                    </li>
+                    <li>
+                        Significant predictors (p &lt; .05):{' '}
                         {coefficients.filter((c: any) => c.term !== '(Intercept)' && c.pValue < 0.05).length > 0
                             ? coefficients
                                 .filter((c: any) => c.term !== '(Intercept)' && c.pValue < 0.05)
-                                .map((c: any) => c.term.replace(/`/g, ''))
+                                .map((c: any) => `${c.term.replace(/`/g, '')} (β = ${fmt(c.stdBeta)})`)
                                 .join(', ')
-                            : 'Không có biến nào.'}
+                            : 'None.'}
                     </li>
                 </ul>
             </div>
 
-            {/* Charts: Actual vs Predicted */}
+            {/* ─── 6. Charts: Actual vs Predicted ─── */}
             {results.chartData && (
-                <div className="bg-white border-t-2 border-b-2 border-black p-6 mt-8">
-                    <h3 className="text-lg font-bold uppercase tracking-widest border-b-2 border-black inline-block pb-1 mb-6">
-                        Actual vs Predicted
-                    </h3>
-                    <div className="h-80 w-full">
-                        <Scatter
-                            data={{
-                                datasets: [
-                                    {
-                                        label: 'Quan sát',
-                                        data: results.chartData.actual.map((val: number, i: number) => ({
-                                            x: results.chartData.fitted[i], // X = Predicted
-                                            y: val // Y = Actual
-                                        })),
-                                        backgroundColor: 'rgba(59, 130, 246, 0.6)',
-                                        borderColor: 'rgba(59, 130, 246, 1)',
-                                    }
-                                ]
-                            }}
-                            options={{
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                scales: {
-                                    x: {
-                                        title: { display: true, text: 'Giá trị Dự báo (Predicted)' }
+                <Card className="border-slate-200 shadow-sm">
+                    <CardHeader className="border-b bg-slate-50/50 pb-4">
+                        <CardTitle className="text-slate-800">Actual vs. Predicted Values</CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                        <div className="h-80 w-full">
+                            <Scatter
+                                data={{
+                                    datasets: [
+                                        {
+                                            label: 'Observations',
+                                            data: results.chartData.actual.map((val: number, i: number) => ({
+                                                x: results.chartData.fitted[i],
+                                                y: val
+                                            })),
+                                            backgroundColor: 'rgba(79, 70, 229, 0.5)',
+                                            borderColor: 'rgba(79, 70, 229, 1)',
+                                        }
+                                    ]
+                                }}
+                                options={{
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    scales: {
+                                        x: {
+                                            title: { display: true, text: 'Predicted Value' }
+                                        },
+                                        y: {
+                                            title: { display: true, text: 'Actual Value' }
+                                        }
                                     },
-                                    y: {
-                                        title: { display: true, text: 'Giá trị Thực tế (Actual)' }
-                                    }
-                                },
-                                plugins: {
-                                    tooltip: {
-                                        callbacks: {
-                                            label: (context) => {
-                                                const point = context.raw as { x: number, y: number };
-                                                return `Pred: ${point.x.toFixed(2)}, Act: ${point.y.toFixed(2)}`;
+                                    plugins: {
+                                        tooltip: {
+                                            callbacks: {
+                                                label: (context) => {
+                                                    const point = context.raw as { x: number, y: number };
+                                                    return `Predicted: ${point.x.toFixed(2)}, Actual: ${point.y.toFixed(2)}`;
+                                                }
                                             }
                                         }
                                     }
-                                }
-                            }}
-                        />
-                    </div>
-                </div>
+                                }}
+                            />
+                        </div>
+                    </CardContent>
+                </Card>
             )}
         </div>
     );

@@ -48,56 +48,66 @@ export const EFAResults = React.memo(function EFAResults({ results, columns, onP
 
     return (
         <div className="space-y-6">
-            {/* Eigenvalues & Extracted Factors */}
+            {/* Total Variance Explained */}
             {results.eigenvalues && results.eigenvalues.length > 0 && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Eigenvalues & Number of Factors</CardTitle>
+                <Card className="border-slate-200 shadow-sm">
+                    <CardHeader className="border-b bg-slate-50/50 pb-4">
+                        <CardTitle className="text-slate-800">Total Variance Explained</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4 text-sm text-gray-800">
-                            <p>
-                                <strong>Số lượng nhân tố được trích xuất:</strong> {results.nFactorsUsed}
-                            </p>
-                            <div>
-                                <strong>Eigenvalues (Initial):</strong>
-                                <div className="mt-2 flex flex-wrap gap-2">
-                                    {results.eigenvalues.slice(0, 10).map((ev: number, i: number) => (
-                                        <div
-                                            key={i}
-                                            className={`px-3 py-1 rounded border ${ev > 1 ? 'bg-green-100 border-green-300 text-green-800 font-bold' : 'bg-gray-50 border-gray-200 text-gray-500'}`}
-                                        >
-                                            F{i + 1}: {ev.toFixed(3)}
-                                        </div>
-                                    ))}
-                                    {results.eigenvalues.length > 10 && <span className="text-gray-400 self-center">...</span>}
-                                </div>
-                                <p className="text-xs text-gray-500 italic mt-2">
-                                    * Các nhân tố có Eigenvalue &gt; 1 được giữ lại theo tiêu chuẩn Kaiser.
-                                </p>
-                            </div>
-                        </div>
+                    <CardContent className="overflow-x-auto pt-6">
+                        <table className="w-full text-left text-sm whitespace-nowrap text-slate-700">
+                            <thead className="bg-slate-50 text-slate-700">
+                                <tr className="border-y-2 border-slate-300">
+                                    <th className="py-3 px-4 font-semibold text-center">Component / Factor</th>
+                                    <th className="py-3 px-4 font-semibold text-right">Initial Eigenvalues</th>
+                                    <th className="py-3 px-4 font-semibold text-right">% of Variance</th>
+                                    <th className="py-3 px-4 font-semibold text-right">Cumulative %</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {(() => {
+                                    const totalVar = results.eigenvalues.reduce((s:number,v:number)=>s+v, 0);
+                                    let cumVar = 0;
+                                    return results.eigenvalues.map((ev: number, i: number) => {
+                                        const pct = (ev / totalVar) * 100;
+                                        cumVar += pct;
+                                        const isExtracted = i < results.nFactorsUsed;
+                                        return (
+                                            <tr key={i} className={`border-b border-slate-200 hover:bg-slate-50 transition-colors ${isExtracted ? 'bg-indigo-50/30' : ''}`}>
+                                                <td className={`py-3 px-4 font-bold text-center ${isExtracted ? 'text-indigo-900' : 'text-slate-500'}`}>{i + 1}</td>
+                                                <td className={`py-3 px-4 text-right ${isExtracted ? 'font-bold text-slate-900' : 'text-slate-600'}`}>{ev.toFixed(3)}</td>
+                                                <td className={`py-3 px-4 text-right ${isExtracted ? 'font-bold text-slate-900' : 'text-slate-600'}`}>{pct.toFixed(2)}%</td>
+                                                <td className={`py-3 px-4 text-right ${isExtracted ? 'font-bold text-slate-900' : 'text-slate-600'}`}>{cumVar.toFixed(2)}%</td>
+                                            </tr>
+                                        );
+                                    });
+                                })()}
+                            </tbody>
+                        </table>
+                        <p className="text-xs text-slate-500 italic mt-4">
+                            * Trích xuất {results.nFactorsUsed} nhân tố (vùng tô màu). Các nhân tố có Eigenvalue &gt; 1 được giữ lại theo tiêu chuẩn Kaiser.
+                        </p>
                     </CardContent>
                 </Card>
             )}
 
             {/* KMO and Bartlett's Test */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>KMO and Bartlett&apos;s Test</CardTitle>
+            <Card className="border-slate-200 shadow-sm">
+                <CardHeader className="border-b bg-slate-50/50 pb-4">
+                    <CardTitle className="text-slate-800">KMO and Bartlett&apos;s Test</CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <table className="w-full text-sm">
+                <CardContent className="pt-6">
+                    <table className="w-full text-sm text-slate-700">
                         <tbody>
-                            <tr className="border-b border-gray-200">
-                                <td className="py-2 font-medium">Kaiser-Meyer-Olkin Measure of Sampling Adequacy</td>
-                                <td className={`py-2 text-right font-bold ${kmoAcceptable ? 'text-green-600' : 'text-red-600'}`}>
+                            <tr className="border-b border-slate-200 hover:bg-slate-50">
+                                <td className="py-3 px-4 font-medium">Kaiser-Meyer-Olkin Measure of Sampling Adequacy</td>
+                                <td className={`py-3 px-4 text-right font-bold ${kmoAcceptable ? 'text-green-700' : 'text-red-600'}`}>
                                     {kmo.toFixed(3)}
                                 </td>
                             </tr>
-                            <tr className="border-b border-gray-200">
-                                <td className="py-2 font-medium">Bartlett&apos;s Test of Sphericity (Sig.)</td>
-                                <td className={`py-2 text-right font-bold ${bartlettSignificant ? 'text-green-600' : 'text-red-600'}`}>
+                            <tr className="border-b border-slate-200 hover:bg-slate-50">
+                                <td className="py-3 px-4 font-medium">Bartlett&apos;s Test of Sphericity (Sig.)</td>
+                                <td className={`py-3 px-4 text-right font-bold ${bartlettSignificant ? 'text-green-700' : 'text-red-600'}`}>
                                     {bartlettP < 0.001 ? '< .001' : bartlettP.toFixed(4)} {bartlettSignificant && '***'}
                                 </td>
                             </tr>
@@ -108,38 +118,42 @@ export const EFAResults = React.memo(function EFAResults({ results, columns, onP
 
             {/* Factor Loadings Matrix */}
             {results.loadings && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Factor Loadings (Rotated)</CardTitle>
+                <Card className="border-slate-200 shadow-sm">
+                    <CardHeader className="border-b bg-slate-50/50 pb-4">
+                        <CardTitle className="text-slate-800">{results.factorMethod === 'none' ? 'Component Matrix' : 'Pattern / Factor Matrix (Rotated)'}</CardTitle>
                     </CardHeader>
-                    <CardContent className="overflow-x-auto">
-                        <table className="w-full text-sm whitespace-nowrap">
-                            <thead>
-                                <tr className="border-b border-gray-200 bg-gray-50">
-                                    <th className="py-2 px-3 text-left font-semibold text-gray-700">Variable</th>
+                    <CardContent className="overflow-x-auto pt-6">
+                        <table className="w-full text-sm whitespace-nowrap text-slate-700">
+                            <thead className="bg-slate-50 text-slate-700">
+                                <tr className="border-y-2 border-slate-300">
+                                    <th className="py-3 px-4 text-left font-semibold">Variable</th>
                                     {Array.isArray(results.loadings[0]) && results.loadings[0].map((_: any, idx: number) => (
-                                        <th key={idx} className="py-2 px-3 text-right font-semibold text-gray-700">Factor {idx + 1}</th>
+                                        <th key={idx} className="py-3 px-4 text-right font-semibold">Factor {idx + 1}</th>
                                     ))}
                                 </tr>
                             </thead>
                             <tbody>
                                 {columns.map((col, rowIdx) => (
-                                    <tr key={rowIdx} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                                        <td className="py-2 px-3 font-medium text-gray-900">{col}</td>
-                                        {Array.isArray(results.loadings[rowIdx]) && results.loadings[rowIdx].map((val: number, colIdx: number) => (
-                                            <td
-                                                key={colIdx}
-                                                className={`py-2 px-3 text-right ${Math.abs(val) >= 0.5 ? 'font-bold text-blue-700' : Math.abs(val) >= 0.3 ? 'text-gray-700' : 'text-gray-300'}`}
-                                            >
-                                                {val?.toFixed(3) || '-'}
-                                            </td>
-                                        ))}
+                                    <tr key={rowIdx} className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
+                                        <td className="py-3 px-4 font-bold text-slate-800">{col}</td>
+                                        {Array.isArray(results.loadings[rowIdx]) && results.loadings[rowIdx].map((val: number, colIdx: number) => {
+                                            const isSuppressed = Math.abs(val) < 0.3;
+                                            const isStrong = Math.abs(val) >= 0.5;
+                                            return (
+                                                <td
+                                                    key={colIdx}
+                                                    className={`py-3 px-4 text-right ${isStrong ? 'font-bold text-blue-700' : isSuppressed ? 'text-slate-300 font-light' : 'text-slate-700 font-medium'}`}
+                                                >
+                                                    {isSuppressed ? '' : val?.toFixed(3)}
+                                                </td>
+                                            );
+                                        })}
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
-                        <p className="text-xs text-gray-500 italic mt-2 p-2 bg-gray-50 rounded">
-                            * Factor loadings ≥ 0.5 được tô đậm. Loadings ≥ 0.3 được giữ lại.
+                        <p className="text-xs text-slate-500 italic mt-4">
+                            * Các hệ số tải (loadings) nhỏ hơn 0.3 đã được ẩn (Suppressed) để cấu trúc nhân tố rõ ràng hơn (Chuẩn SPSS). Loadings ≥ 0.5 được tô đậm xanh biểu thị độ hội tụ mạnh.
                         </p>
                     </CardContent>
                 </Card>
@@ -147,32 +161,35 @@ export const EFAResults = React.memo(function EFAResults({ results, columns, onP
 
             {/* Communalities */}
             {results.communalities && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Communalities</CardTitle>
+                <Card className="border-slate-200 shadow-sm">
+                    <CardHeader className="border-b bg-slate-50/50 pb-4">
+                        <CardTitle className="text-slate-800">Communalities</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <table className="w-full text-sm">
-                            <thead>
-                                <tr className="border-b border-gray-200 bg-gray-50">
-                                    <th className="py-2 px-3 text-left font-semibold">Variable</th>
-                                    <th className="py-2 px-3 text-right font-semibold">Extraction</th>
+                    <CardContent className="overflow-x-auto pt-6">
+                        <table className="w-full text-sm text-slate-700">
+                            <thead className="bg-slate-50 text-slate-700">
+                                <tr className="border-y-2 border-slate-300">
+                                    <th className="py-3 px-4 text-left font-semibold">Variable</th>
+                                    <th className="py-3 px-4 text-right font-semibold">Initial</th>
+                                    <th className="py-3 px-4 text-right font-semibold">Extraction</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {columns.map((col, idx) => (
-                                    <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                                        <td className="py-2 px-3 font-medium">{col}</td>
-                                        <td className={`py-2 px-3 text-right ${results.communalities[idx] < 0.4 ? 'text-red-500 font-bold' : 'text-gray-700'}`}>
+                                    <tr key={idx} className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
+                                        <td className="py-3 px-4 font-bold text-slate-800">{col}</td>
+                                        <td className="py-3 px-4 text-right text-slate-600">1.000</td>
+                                        <td className={`py-3 px-4 text-right ${results.communalities[idx] < 0.4 ? 'text-red-600 bg-red-50 font-bold' : 'text-slate-700'}`}>
                                             {results.communalities[idx]?.toFixed(3) || '-'}
                                         </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
-                        <p className="text-xs text-gray-500 italic mt-2 p-2 bg-gray-50 rounded">
-                            * Communality &lt; 0.4 được đánh dấu đỏ (biến giải thích kém).
-                        </p>
+                        <div className="text-xs text-slate-500 italic p-4 bg-slate-50 mt-4 rounded-md border border-slate-200">
+                            * Initial communalities được giả định bằng 1 (theo phương pháp Principal Components).
+                            Communality (Extraction) &lt; 0.4 được đánh dấu màn nền đỏ (biến giải thích kém phương sai chung, cần cân nhắc loại bỏ).
+                        </div>
                     </CardContent>
                 </Card>
             )}

@@ -102,8 +102,8 @@ export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing }: Analy
                 borderColor: 'border-orange-200',
                 options: [
                     { id: 'efa-select', title: 'EFA', desc: 'Exploratory Factor Analysis + Parallel Analysis', icon: Grid3x3, action: 'select', recommended: true, costType: 'efa' },
-                    { id: 'cfa-select', title: 'CFA', desc: 'Confirmatory Factor Analysis (Lavaan)', icon: Network, action: 'select', costType: 'cfa' },
-                    { id: 'sem-select', title: 'SEM', desc: 'Structural Equation Modeling (Lavaan)', icon: Layers, action: 'select', costType: 'sem' },
+                    { id: 'cfa-select', title: 'CFA', desc: 'Confirmatory Factor Analysis (Lavaan)', icon: Network, disabled: true, badge: 'Soon', action: 'select', costType: 'cfa' },
+                    { id: 'sem-select', title: 'SEM', desc: 'Structural Equation Modeling (Lavaan)', icon: Layers, disabled: true, badge: 'Soon', action: 'select', costType: 'sem' },
                 ]
             }
         },
