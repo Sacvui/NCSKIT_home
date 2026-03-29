@@ -1,332 +1,387 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
     BarChart2, Shield, Network, GitCompare, Layers, TrendingUp, Grid3x3,
     Activity, Binary, Target, ArrowRightLeft, Users, ChevronDown, ChevronRight,
-    BookOpen, Code, ExternalLink, CircleDot, Server, Lock, CreditCard, FileDown
+    BookOpen, Code, ExternalLink, CircleDot, Server, Lock, CreditCard, FileDown,
+    CheckCircle2, AlertCircle, Info, BookMarked, HelpCircle
 } from 'lucide-react';
+import { getStoredLocale, t, type Locale } from '@/lib/i18n';
 
 interface Method {
     id: string;
-    name: string;
-    category: string;
-    description: string;
+    nameVi: string;
+    nameEn: string;
+    categoryVi: string;
+    categoryEn: string;
+    descriptionVi: string;
+    descriptionEn: string;
     rFunction: string;
-    whenToUse: string;
-    assumptions?: string[];
-    output: string[];
+    whenToUseVi: string;
+    whenToUseEn: string;
+    assumptionsVi?: string[];
+    assumptionsEn?: string[];
+    outputVi: string[];
+    outputEn: string[];
 }
 
 const METHODS: Method[] = [
-    // Reliability & Descriptive
     {
         id: 'descriptive',
-        name: 'Descriptive Statistics',
-        category: 'Reliability & Descriptive',
-        description: 'Calculate basic summary statistics for your data.',
+        nameVi: 'Thống kê mô tả',
+        nameEn: 'Descriptive Statistics',
+        categoryVi: 'Độ tin cậy & Mô tả',
+        categoryEn: 'Reliability & Descriptive',
+        descriptionVi: 'Tính toán các chỉ số thống kê cơ bản để hiểu đặc điểm dữ liệu.',
+        descriptionEn: 'Calculate basic summary statistics to understand data characteristics.',
         rFunction: 'psych::describe()',
-        whenToUse: 'Always run first to understand data distribution and check for anomalies.',
-        output: ['Mean, SD, Min, Max, Median', 'Skewness & Kurtosis', 'Missing value count']
+        whenToUseVi: 'Luôn thực hiện đầu tiên để kiểm tra phân phối và các giá trị bất thường.',
+        whenToUseEn: 'Always run first to check distributions and find anomalies.',
+        outputVi: ['Trung bình, Độ lệch chuẩn, Min, Max', 'Độ lệch (Skewness) & Độ nhọn (Kurtosis)', 'Số lượng giá trị thiếu (NA)'],
+        outputEn: ['Mean, SD, Min, Max', 'Skewness & Kurtosis', 'Missing value counts']
     },
     {
         id: 'cronbach',
-        name: "Cronbach's Alpha & McDonald's Omega",
-        category: 'Reliability & Descriptive',
-        description: "Assess internal consistency reliability of measurement scales.",
+        nameVi: 'Độ tin cậy Cronbach Alpha',
+        nameEn: "Scale Reliability (Cronbach's α)",
+        categoryVi: 'Độ tin cậy & Mô tả',
+        categoryEn: 'Reliability & Descriptive',
+        descriptionVi: 'Đánh giá tính nhất quán nội tại của các thang đo đa biến.',
+        descriptionEn: 'Assess internal consistency of multi-item measurement scales.',
         rFunction: 'psych::alpha(), psych::omega()',
-        whenToUse: 'When validating multi-item scales before further analysis.',
-        assumptions: ['Items measure same construct', 'Likert-type scales'],
-        output: ['Cronbach α coefficient', 'McDonald ω coefficient', 'Item-total correlations', 'Alpha if item deleted']
-    },
-    // Group Comparison
-    {
-        id: 'ttest',
-        name: 'Independent Samples T-Test',
-        category: 'Group Comparison',
-        description: 'Compare means between two independent groups.',
-        rFunction: 't.test(var.equal = FALSE)',
-        whenToUse: 'Comparing two groups (e.g., male vs female, treatment vs control).',
-        assumptions: ['Continuous dependent variable', 'Normal distribution or n > 30', 'Independent samples'],
-        output: ['t-statistic, df, p-value', "Cohen's d effect size", "Welch's correction if variances unequal"]
+        whenToUseVi: 'Dùng để kiểm tra chất lượng thang đo trước khi phân tích EFA/CFA.',
+        whenToUseEn: 'Use to validate scale quality before factor analysis.',
+        assumptionsVi: ['Các biến cùng đo lường một khái niệm', 'Thang đo dạng Likert'],
+        assumptionsEn: ['Items measure the same construct', 'Likert-type scales'],
+        outputVi: ['Hệ số Cronbach Alpha', 'Tương quan biến tổng', 'Alpha nếu loại biến'],
+        outputEn: ["Cronbach's Alpha coefficient", 'Item-total correlations', 'Alpha if item deleted']
     },
     {
-        id: 'ttest-paired',
-        name: 'Paired Samples T-Test',
-        category: 'Group Comparison',
-        description: 'Compare means for the same group at two time points.',
-        rFunction: 't.test(paired = TRUE)',
-        whenToUse: 'Before-after comparisons, matched pairs.',
-        assumptions: ['Paired observations', 'Normal distribution of differences'],
-        output: ['t-statistic, df, p-value', "Cohen's d effect size"]
-    },
-    // ... (Previous methods)
-    {
-        id: 'anova',
-        name: 'One-Way ANOVA / Welch ANOVA',
-        category: 'Group Comparison',
-        description: 'Compare means across three or more groups.',
-        rFunction: 'aov() or oneway.test()',
-        whenToUse: 'Comparing multiple groups (e.g., education levels, age groups).',
-        assumptions: ['Continuous DV', 'Normal distribution', 'Homogeneity of variance'],
-        output: ['F-statistic, p-value', 'Eta-squared effect size', 'Welch correction']
+        id: 'efa',
+        nameVi: 'Phân tích nhân tố khám phá (EFA)',
+        nameEn: 'Exploratory Factor Analysis (EFA)',
+        categoryVi: 'Cấu trúc & Nhân tố',
+        categoryEn: 'Structure & Factor',
+        descriptionVi: 'Rút gọn các biến quan sát thành các nhóm nhân tố có ý nghĩa.',
+        descriptionEn: 'Reduce variables into meaningful latent factors.',
+        rFunction: 'psych::fa() or stats::factanal()',
+        whenToUseVi: 'Khi muốn khám phá cấu trúc của thang đo hoặc rút gọn dữ liệu.',
+        whenToUseEn: 'To discover scale structure or reduce data dimensionality.',
+        assumptionsVi: ['Mẫu đủ lớn (N > 100)', 'KMO >= 0.6', 'Bartlett < 0.05'],
+        assumptionsEn: ['Adequate sample size (N > 100)', 'KMO >= 0.6', 'Bartlett test sig.'],
+        outputVi: ['Hệ số KMO & Bartlett', 'Tổng phương sai trích', 'Ma trận xoay nhân tố'],
+        outputEn: ['KMO & Bartlett tests', 'Total variance explained', 'Rotated factor matrix']
     },
     {
-        id: 'twoway-anova',
-        name: 'Two-Way ANOVA',
-        category: 'Group Comparison',
-        description: 'Compare means with two factors and interaction effects.',
-        rFunction: 'aov(y ~ x1 * x2)',
-        whenToUse: 'Analyzing effect of two categorical variables and their interaction on a continuous DV.',
-        assumptions: ['Normality', 'Homogeneity of variance', 'Independence'],
-        output: ['Main effects F-tests', 'Interaction F-test', 'Interaction plot']
+        id: 'correlation',
+        nameVi: 'Phân tích tương quan Pearson',
+        nameEn: 'Pearson Correlation',
+        categoryVi: 'Tương quan & Hồi quy',
+        categoryEn: 'Correlation & Regression',
+        descriptionVi: 'Đo lường mức độ quan hệ tuyến tính giữa hai biến định lượng.',
+        descriptionEn: 'Measure the strength of linear relationship between two variables.',
+        rFunction: 'stats::cor.test()',
+        whenToUseVi: 'Kiểm tra mối liên hệ sơ bộ giữa các biến trước khi chạy hồi quy.',
+        whenToUseEn: 'Check preliminary relationships before regression.',
+        outputVi: ['Hệ số tương quan (r)', 'Mức ý nghĩa (p-value)', 'Ma trận tương quan'],
+        outputEn: ['Correlation coefficient (r)', 'Significance (p-value)', 'Correlation matrix']
     },
-    // ... (Non-parametric)
-    // ... (Correlation)
     {
-        id: 'moderation',
-        name: 'Moderation Analysis',
-        category: 'Correlation & Regression',
-        description: 'Test if variable Z alters the relationship between X and Y.',
-        rFunction: 'lm(y ~ x * z)',
-        whenToUse: 'When the effect of X on Y depends on the level of Z.',
-        output: ['Interaction term significance', 'Simple slopes', 'Johnson-Neyman interval']
-    },
-    // ... (SEM)
-    // ... (Categorical)
-    {
-        id: 'fisher',
-        name: "Fisher's Exact Test",
-        category: 'Categorical',
-        description: 'Exact test of independence for small samples.',
-        rFunction: 'fisher.test()',
-        whenToUse: 'Analyzing 2x2 tables where expected count < 5.',
-        output: ['p-value (Exact)', 'Odds Ratio']
-    },
-    // Clustering
-    {
-        id: 'cluster',
-        name: 'Cluster Analysis (K-Means)',
-        category: 'Clustering & Segmentation',
-        description: 'Group similar observations into clusters.',
-        rFunction: 'stats::kmeans(), cluster::silhouette()',
-        whenToUse: 'Market segmentation, profiling groups.',
-        assumptions: ['Standardized variables', 'No outliers'],
-        output: ['Cluster centers', 'Cluster membership', 'Silhouette score']
+        id: 'regression',
+        nameVi: 'Hồi quy tuyến tính bội',
+        nameEn: 'Multiple Linear Regression',
+        categoryVi: 'Tương quan & Hồi quy',
+        categoryEn: 'Correlation & Regression',
+        descriptionVi: 'Dự báo tác động của nhiều biến độc lập lên một biến phụ thuộc.',
+        descriptionEn: 'Predict the impact of multiple independent variables on a dependent variable.',
+        rFunction: 'stats::lm()',
+        whenToUseVi: 'Kiểm tra các giả thuyết về mối quan hệ nhân quả trong mô hình nghiên cứu.',
+        whenToUseEn: 'Testing causal hypotheses in research models.',
+        assumptionsVi: ['Quan hệ tuyến tính', 'Không đa cộng tuyến (VIF < 10)', 'Phần dư phân phối chuẩn'],
+        assumptionsEn: ['Linear relationship', 'No multicollinearity (VIF < 10)', 'Normal residuals'],
+        outputVi: ['R-Square (Hệ số xác định)', 'Bảng ANOVA', 'Hệ số Beta (chuẩn hóa & chưa chuẩn hóa)'],
+        outputEn: ['R-Square (R2)', 'ANOVA table', 'Standardized and Unstandardized Betas']
     }
 ];
 
 const CATEGORIES = [
-    { name: 'Reliability & Descriptive', color: 'blue', icon: Shield },
-    { name: 'Group Comparison', color: 'green', icon: GitCompare },
-    { name: 'Correlation & Regression', color: 'purple', icon: TrendingUp },
-    { name: 'Factor Analysis & SEM', color: 'orange', icon: Layers },
-    { name: 'Categorical', color: 'teal', icon: Grid3x3 },
-    { name: 'Clustering & Segmentation', color: 'pink', icon: CircleDot }
+    { nameVi: 'Độ tin cậy & Mô tả', nameEn: 'Reliability & Descriptive', icon: BarChart2, color: 'blue' },
+    { nameVi: 'Cấu trúc & Nhân tố', nameEn: 'Structure & Factor', icon: Layers, color: 'purple' },
+    { nameVi: 'Tương quan & Hồi quy', nameEn: 'Correlation & Regression', icon: TrendingUp, color: 'green' },
+    { nameVi: 'So sánh nhóm', nameEn: 'Group Comparison', icon: GitCompare, color: 'orange' },
+    { nameVi: 'Mô hình nâng cao (SEM/CFA)', nameEn: 'Advanced Models (SEM/CFA)', icon: Network, color: 'teal' }
 ];
 
 export default function DocsPage() {
+    const [locale, setLocale] = useState<Locale>('vi');
     const [expandedMethod, setExpandedMethod] = useState<string | null>(null);
 
-    return (
-        <div className="bg-slate-50 min-h-screen pb-12">
-            {/* Documentation Hero */}
-            <div className="bg-white border-b border-slate-200 py-16 px-6">
-                <div className="max-w-5xl mx-auto text-center">
-                    <div className="inline-flex items-center justify-center p-3 bg-indigo-100 rounded-2xl mb-6">
-                        <BookOpen className="w-10 h-10 text-indigo-600" />
-                    </div>
-                    <h1 className="text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">
-                        ncsStat Documentation
-                    </h1>
-                    <p className="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
-                        Complete guide to statistical tools, WebR technology, and system features aimed at empowering your PhD research.
-                    </p>
-                </div>
-            </div>
+    useEffect(() => {
+        setLocale(getStoredLocale());
+        const handleLocaleChange = () => setLocale(getStoredLocale());
+        window.addEventListener('localeChange', handleLocaleChange);
+        return () => window.removeEventListener('localeChange', handleLocaleChange);
+    }, []);
 
-            {/* Intro - Hai Rong Choi */}
-            <div className="max-w-5xl mx-auto px-6 pt-10 pb-4">
-                <div className="bg-white rounded-2xl p-8 border border-indigo-100 shadow-sm relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-2 h-full bg-indigo-600"></div>
-                    <div className="relative z-10">
-                        <h3 className="text-2xl font-bold text-slate-900 mb-4 flex items-center gap-3">
-                            <span className="text-indigo-600">Hai Rong Choi</span> greets you.
-                        </h3>
-                        <div className="space-y-4 text-slate-700 leading-relaxed text-lg font-light">
-                            <p>
-                                Welcome to the sanctuary of rigorous analysis. This documentation is not merely a manual; it is a testament to the precision that defines <strong className="font-semibold text-slate-900">ncsStat</strong>.
-                            </p>
-                            <p>
-                                Every function here has been battle-tested against standard academic benchmarks to ensure that your results are unassailable. Research is a lonely path, but here, you walk with certainty. Let us walk through the tools that will empower your thesis.
+    const isVi = locale === 'vi';
+
+    return (
+        <div className="min-h-screen bg-slate-50 pb-20 font-sans">
+            {/* Hero Header */}
+            <div className="bg-slate-900 text-white py-16 mb-12">
+                <div className="container mx-auto px-4 max-w-5xl">
+                    <div className="flex flex-col md:flex-row items-center gap-8">
+                        <div className="bg-indigo-600/20 p-4 rounded-2xl border border-indigo-500/30">
+                            <BookOpen className="w-16 h-16 text-indigo-400" />
+                        </div>
+                        <div>
+                            <h1 className="text-3xl md:text-4xl font-extrabold mb-4">
+                                {isVi ? 'Hướng dẫn Phân tích & Tài liệu Hệ thống' : 'Analysis Guide & System Documentation'}
+                            </h1>
+                            <p className="text-slate-400 text-lg max-w-2xl leading-relaxed">
+                                {isVi 
+                                    ? 'Cẩm nang toàn diện về các phương pháp thống kê, cách diễn giải kết quả và kiến trúc vận hành của ncsStat.'
+                                    : 'A comprehensive guide to statistical methods, result interpretation, and ncsStat system architecture.'}
                             </p>
                         </div>
                     </div>
-                    {/* Decorative Watermark */}
-                    <div className="absolute -bottom-10 -right-10 text-slate-50 opacity-10 transform -rotate-12 pointer-events-none">
-                        <Code className="w-64 h-64" />
-                    </div>
                 </div>
             </div>
 
-            <div className="max-w-5xl mx-auto px-6 py-8">
-                {/* Quick Links */}
-                <div className="bg-white rounded-xl border shadow-sm p-6 mb-8">
-                    <h2 className="text-lg font-semibold mb-4">Quick Navigation</h2>
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                        {CATEGORIES.map(cat => (
-                            <a
-                                key={cat.name}
-                                href={`#${cat.name.toLowerCase().replace(/\s+/g, '-')}`}
-                                className={`flex items-center gap-2 p-3 rounded-lg border hover:shadow-md transition-all text-sm
-                                    ${cat.color === 'blue' ? 'bg-blue-50 border-blue-200 text-blue-700' : ''}
-                                    ${cat.color === 'green' ? 'bg-green-50 border-green-200 text-green-700' : ''}
-                                    ${cat.color === 'purple' ? 'bg-purple-50 border-purple-200 text-purple-700' : ''}
-                                    ${cat.color === 'orange' ? 'bg-orange-50 border-orange-200 text-orange-700' : ''}
-                                    ${cat.color === 'teal' ? 'bg-teal-50 border-teal-200 text-teal-700' : ''}
-                                `}
-                            >
-                                <cat.icon className="w-4 h-4" />
-                                <span className="font-medium">{cat.name}</span>
-                            </a>
-                        ))}
+            <div className="container mx-auto px-4 max-w-5xl">
+                
+                {/* Interpretation Dashboard */}
+                <div className="grid md:grid-cols-3 gap-6 mb-16">
+                    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600">
+                            <Target className="w-6 h-6" />
+                        </div>
+                        <h3 className="font-bold text-slate-800">
+                            {isVi ? 'Cách đọc Sig.' : 'Interpreting Sig.'}
+                        </h3>
+                        <p className="text-sm text-slate-500">
+                            {isVi 
+                                ? 'p < 0.05: Có ý nghĩa thống kê. p > 0.05: Không có bằng chứng thực nghiệm.'
+                                : 'p < .05: Statistically significant. p > .05: Insufficient evidence.'}
+                        </p>
+                    </div>
+                    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center text-amber-600">
+                            <AlertCircle className="w-6 h-6" />
+                        </div>
+                        <h3 className="font-bold text-slate-800">
+                            {isVi ? 'Đánh dấu sao (*)' : 'Star Notation (*)'}
+                        </h3>
+                        <p className="text-sm text-slate-500">
+                            *: p &lt; .05; **: p &lt; .01; ***: p &lt; .001. 
+                            {isVi ? ' Càng nhiều sao càng có ý nghĩa.' : ' More stars indicate higher significance.'}
+                        </p>
+                    </div>
+                    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600">
+                            <Shield className="w-6 h-6" />
+                        </div>
+                        <h3 className="font-bold text-slate-800">
+                            {isVi ? 'Bảo mật Dữ liệu' : 'Data Privacy'}
+                        </h3>
+                        <p className="text-sm text-slate-500">
+                            {isVi 
+                                ? 'Dữ liệu được xử lý 100% tại trình duyệt. Không có dữ liệu tải lên Server.'
+                                : 'Data processed 100% in-browser. No files uploaded to server.'}
+                        </p>
                     </div>
                 </div>
 
-                {/* Methods by Category */}
-                {CATEGORIES.map(cat => (
-                    <section key={cat.name} id={cat.name.toLowerCase().replace(/\s+/g, '-')} className="mb-8">
-                        <h2 className={`text-xl font-bold mb-4 flex items-center gap-2
+                {/* Methods Sections */}
+                {CATEGORIES.map((cat, idx) => (
+                    <section key={idx} className="mb-12">
+                        <h2 className={`text-xl font-bold mb-6 flex items-center gap-2
                             ${cat.color === 'blue' ? 'text-blue-700' : ''}
-                            ${cat.color === 'green' ? 'text-green-700' : ''}
                             ${cat.color === 'purple' ? 'text-purple-700' : ''}
+                            ${cat.color === 'green' ? 'text-green-700' : ''}
                             ${cat.color === 'orange' ? 'text-orange-700' : ''}
                             ${cat.color === 'teal' ? 'text-teal-700' : ''}
                         `}>
                             <cat.icon className="w-6 h-6" />
-                            {cat.name}
+                            {isVi ? cat.nameVi : cat.nameEn}
                         </h2>
 
-                        <div className="space-y-3">
-                            {METHODS.filter(m => m.category === cat.name).map(method => (
-                                <div
-                                    key={method.id}
-                                    className="bg-white rounded-lg border shadow-sm overflow-hidden"
-                                >
-                                    <button
-                                        onClick={() => setExpandedMethod(
-                                            expandedMethod === method.id ? null : method.id
-                                        )}
-                                        className="w-full px-5 py-4 flex items-center justify-between hover:bg-slate-50 transition-colors"
-                                    >
-                                        <div className="text-left">
-                                            <h3 className="font-semibold text-slate-800">{method.name}</h3>
-                                            <p className="text-sm text-slate-500">{method.description}</p>
-                                        </div>
-                                        {expandedMethod === method.id ? (
-                                            <ChevronDown className="w-5 h-5 text-slate-400" />
-                                        ) : (
-                                            <ChevronRight className="w-5 h-5 text-slate-400" />
-                                        )}
-                                    </button>
-
-                                    {expandedMethod === method.id && (
-                                        <div className="px-5 pb-5 border-t bg-slate-50">
-                                            <div className="grid md:grid-cols-2 gap-4 mt-4">
-                                                <div>
-                                                    <h4 className="font-medium text-slate-700 mb-2">When to Use</h4>
-                                                    <p className="text-sm text-slate-600">{method.whenToUse}</p>
-                                                </div>
-                                                <div>
-                                                    <h4 className="font-medium text-slate-700 mb-2 flex items-center gap-2">
-                                                        <Code className="w-4 h-4" />
-                                                        R Function
-                                                    </h4>
-                                                    <code className="text-sm bg-slate-800 text-green-400 px-2 py-1 rounded">
-                                                        {method.rFunction}
-                                                    </code>
-                                                </div>
-                                            </div>
-
-                                            {method.assumptions && (
-                                                <div className="mt-4">
-                                                    <h4 className="font-medium text-slate-700 mb-2">Assumptions</h4>
-                                                    <ul className="text-sm text-slate-600 list-disc list-inside">
-                                                        {method.assumptions.map((a, i) => (
-                                                            <li key={i}>{a}</li>
-                                                        ))}
-                                                    </ul>
-                                                </div>
-                                            )}
-
-                                            <div className="mt-4">
-                                                <h4 className="font-medium text-slate-700 mb-2">Output</h4>
-                                                <ul className="text-sm text-slate-600 list-disc list-inside">
-                                                    {method.output.map((o, i) => (
-                                                        <li key={i}>{o}</li>
-                                                    ))}
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    )}
+                        <div className="space-y-4">
+                            {METHODS.filter(m => m.categoryEn === cat.nameEn).length === 0 ? (
+                                <div className="p-8 text-center bg-slate-100 rounded-xl border-2 border-dashed border-slate-200 text-slate-400">
+                                    {isVi ? 'Tài liệu đang được cập nhật...' : 'Documentation being updated...'}
                                 </div>
-                            ))}
+                            ) : (
+                                METHODS.filter(m => m.categoryEn === cat.nameEn).map(method => (
+                                    <div
+                                        key={method.id}
+                                        className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden"
+                                    >
+                                        <button
+                                            onClick={() => setExpandedMethod(
+                                                expandedMethod === method.id ? null : method.id
+                                            )}
+                                            className="w-full px-6 py-5 flex items-center justify-between hover:bg-slate-50 transition-colors"
+                                        >
+                                            <div className="text-left">
+                                                <h3 className="font-bold text-slate-800">
+                                                    {method.nameVi} <span className="text-slate-400 font-normal">({method.nameEn})</span>
+                                                </h3>
+                                                <p className="text-sm text-slate-500 mt-1">
+                                                    {isVi ? method.descriptionVi : method.descriptionEn}
+                                                </p>
+                                            </div>
+                                            {expandedMethod === method.id ? (
+                                                <ChevronDown className="w-5 h-5 text-slate-400" />
+                                            ) : (
+                                                <ChevronRight className="w-5 h-5 text-slate-400" />
+                                            )}
+                                        </button>
+
+                                        {expandedMethod === method.id && (
+                                            <div className="px-6 pb-6 border-t bg-slate-50/50">
+                                                <div className="grid md:grid-cols-2 gap-8 mt-6">
+                                                    <div>
+                                                        <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                                                            <Target className="w-4 h-4" />
+                                                            {isVi ? 'Khi nào sử dụng' : 'When to Use'}
+                                                        </h4>
+                                                        <p className="text-sm text-slate-700 leading-relaxed">
+                                                            {isVi ? method.whenToUseVi : method.whenToUseEn}
+                                                        </p>
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                                                            <Code className="w-4 h-4" />
+                                                            R-Engine Internal
+                                                        </h4>
+                                                        <code className="text-[13px] bg-slate-900 text-teal-400 px-3 py-1.5 rounded-lg flex items-center">
+                                                            {method.rFunction}
+                                                        </code>
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid md:grid-cols-2 gap-8 mt-6">
+                                                    {method.assumptionsVi && (
+                                                        <div>
+                                                            <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                                                                <HelpCircle className="w-4 h-4" />
+                                                                {isVi ? 'Giả định thống kê' : 'Statistical Assumptions'}
+                                                            </h4>
+                                                            <ul className="space-y-2">
+                                                                {(isVi ? method.assumptionsVi : method.assumptionsEn)?.map((a, i) => (
+                                                                    <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                                                                        <CircleDot className="w-3 h-3 mt-1 text-slate-300 flex-shrink-0" />
+                                                                        {a}
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                        </div>
+                                                    )}
+                                                    <div>
+                                                        <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                                                            <Info className="w-4 h-4" />
+                                                            {isVi ? 'Kết quả đầu ra' : 'Standard Output'}
+                                                        </h4>
+                                                        <ul className="space-y-2">
+                                                            {(isVi ? method.outputVi : method.outputEn).map((o, i) => (
+                                                                <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                                                                    <CheckCircle2 className="w-3.5 h-3.5 mt-0.5 text-green-500 flex-shrink-0" />
+                                                                    {o}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </section>
                 ))}
 
-                {/* System Features */}
-                <div className="mt-16 bg-white rounded-xl border shadow-sm overflow-hidden">
-                    <div className="bg-slate-50 p-6 border-b border-slate-100">
-                        <h2 className="text-xl font-bold flex items-center gap-2 text-slate-800">
-                            <Server className="w-6 h-6 text-indigo-600" />
-                            System Architecture & Workflow
+                {/* Core Architecture */}
+                <div className="mt-20 border-t pt-16">
+                    <div className="text-center mb-12">
+                        <h2 className="text-2xl font-bold text-slate-900 mb-4 italic">
+                            {isVi ? 'Kiến trúc & Vận hành' : 'Architecture & Operations'}
                         </h2>
+                        <p className="text-slate-500">
+                            {isVi ? 'Nền tảng được xây dựng trên các công nghệ hiện đại nhất.' : 'Building on the most modern technologies.'}
+                        </p>
                     </div>
-                    <div className="p-6 grid md:grid-cols-2 gap-8">
-                        <div>
-                            <h3 className="font-semibold text-slate-800 flex items-center gap-2 mb-3">
-                                <Code className="w-5 h-5 text-blue-500" />
-                                WebR Technology
+
+                    <div className="grid md:grid-cols-2 gap-8">
+                        <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                <Server className="w-24 h-24" />
+                            </div>
+                            <h3 className="font-bold text-slate-900 text-lg mb-4 flex items-center gap-2">
+                                <Code className="w-6 h-6 text-indigo-600" />
+                                WebR (WebAssembly)
                             </h3>
-                            <p className="text-slate-600 text-sm leading-relaxed">
-                                ncsStat runs R directly in your browser using <strong>WebAssembly (WASM)</strong>.
-                                This means the R engine is downloaded once and executes locally on your machine.
-                                <strong> No data is ever uploaded to our servers</strong> for analysis, ensuring absolute privacy.
+                            <p className="text-slate-600 text-sm leading-relaxed mb-4">
+                                {isVi 
+                                    ? 'ncsStat tích hợp máy chủ R trực tiếp vào trình duyệt qua chuẩn WebAssembly. Dữ liệu của bạn KHÔNG bao giờ rời khỏi máy tính cá nhân khi tính toán.'
+                                    : 'ncsStat integrates the R engine directly into your browser via WebAssembly. Your data NEVER leaves your computer during calculation.'}
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                                <span className="px-2 py-1 bg-slate-100 rounded text-[10px] font-bold text-slate-500">WASM</span>
+                                <span className="px-2 py-1 bg-slate-100 rounded text-[10px] font-bold text-slate-500">R 4.3.0</span>
+                                <span className="px-2 py-1 bg-slate-100 rounded text-[10px] font-bold text-slate-500">LAVAAN</span>
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                <Shield className="w-24 h-24" />
+                            </div>
+                            <h3 className="font-bold text-slate-900 text-lg mb-4 flex items-center gap-2">
+                                <Lock className="w-6 h-6 text-blue-600" />
+                                {isVi ? 'Quyền riêng tư Tuyệt đối' : 'Privacy & Compliance'}
+                            </h3>
+                            <p className="text-slate-600 text-sm leading-relaxed mb-4">
+                                {isVi 
+                                    ? 'Chúng tôi tuân thủ triết lý "Client-side First". Chỉ các thông tin hồ sơ (Tên, Email) được lưu trữ tại Supabase Auth để đồng bộ hóa thiết bị.'
+                                    : 'We follow a "Client-side First" philosophy. Only profile info (Name, Email) is stored at Supabase for synchronization across devices.'}
+                            </p>
+                            <Link href="/privacy" className="text-indigo-600 text-xs font-bold hover:underline flex items-center gap-1">
+                                {isVi ? 'Đọc Chính sách bảo mật' : 'Read Privacy Policy'}
+                                <ExternalLink className="w-3 h-3" />
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+
+                {/* FAQ / Download */}
+                <div className="mt-16 bg-gradient-to-br from-indigo-900 to-slate-900 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden">
+                    <div className="absolute bottom-0 right-0 opacity-10">
+                        <Target className="w-64 h-64 -mb-12 -mr-12" />
+                    </div>
+                    <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                        <div>
+                            <h2 className="text-2xl font-bold mb-4 italic">
+                                {isVi ? 'Bạn cần thêm trợ giúp?' : 'Need more help?'}
+                            </h2>
+                            <p className="text-indigo-200">
+                                {isVi 
+                                    ? 'Kết nối với cộng đồng Nghiên cứu sinh ncsStat để trao đổi về phương pháp và kỹ thuật xử lý dữ liệu.'
+                                    : 'Connect with the ncsStat community to discuss methods and data processing techniques.'}
                             </p>
                         </div>
-                        <div>
-                            <h3 className="font-semibold text-slate-800 flex items-center gap-2 mb-3">
-                                <CreditCard className="w-5 h-5 text-green-500" />
-                                Credits System
-                            </h3>
-                            <p className="text-slate-600 text-sm leading-relaxed">
-                                Advanced analyses (like SEM, CFA) consume <strong>NCS Credits</strong>.
-                                You receive 200 free credits upon registration. Additional credits can be obtained by
-                                inviting colleagues or contacting support.
-                            </p>
-                        </div>
-                        <div>
-                            <h3 className="font-semibold text-slate-800 flex items-center gap-2 mb-3">
-                                <Lock className="w-5 h-5 text-purple-500" />
-                                Secure Authentication
-                            </h3>
-                            <p className="text-slate-600 text-sm leading-relaxed">
-                                We support secure login via Google and Email (Magic Link).
-                                Your session is protected by Supabase Auth with RLS (Row Level Security)
-                                ensuring only you can access your profile and history.
-                            </p>
-                        </div>
-                        <div>
-                            <h3 className="font-semibold text-slate-800 flex items-center gap-2 mb-3">
-                                <FileDown className="w-5 h-5 text-orange-500" />
-                                Persistence & Export
-                            </h3>
-                            <p className="text-slate-600 text-sm leading-relaxed">
-                                Analysis results are stored locally in your browser (IndexedDB) so you can resume work later.
-                                Reports can be exported to standardized PDF formats ready for thesis inclusion.
-                            </p>
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            <button className="px-8 py-3 bg-white text-slate-900 font-bold rounded-xl hover:bg-white/90 transition-colors shadow-lg flex items-center gap-2">
+                                <Users className="w-5 h-5" />
+                                {isVi ? 'Tham gia Group' : 'Join Community'}
+                            </button>
+                            <button className="px-8 py-3 bg-transparent border-2 border-white/20 text-white font-bold rounded-xl hover:bg-white/10 transition-colors flex items-center gap-2">
+                                <ExternalLink className="w-5 h-5" />
+                                {isVi ? 'Liên hệ Admin' : 'Contact Support'}
+                            </button>
                         </div>
                     </div>
                 </div>

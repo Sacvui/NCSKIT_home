@@ -51,6 +51,7 @@ export default function Header({ centerContent, rightActions, hideNav = false, u
                     {!hideNav && !centerContent && (
                         <nav className="hidden md:flex items-center gap-1">
                             <NavLink href="/analyze" active={pathname?.startsWith('/analyze')}>{t(locale, 'nav.analyze')}</NavLink>
+                            <NavLink href="/docs" active={pathname?.startsWith('/docs')}>{t(locale, 'nav.docs')}</NavLink>
                             {user && (
                                 <NavLink href="/profile" active={pathname?.startsWith('/profile')}>{t(locale, 'nav.profile')}</NavLink>
                             )}

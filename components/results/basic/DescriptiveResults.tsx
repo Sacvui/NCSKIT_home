@@ -4,6 +4,8 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { ChartWrapper } from '../shared/ChartWrapper';
 
+import { getStoredLocale, t, type Locale } from '@/lib/i18n';
+
 interface DescriptiveResultsProps {
     results: any;
     columns: string[];
@@ -20,24 +22,30 @@ const safeToFixed = (val: any, digits = 3) => {
 };
 
 export const DescriptiveResults = React.memo(function DescriptiveResults({ results, columns }: DescriptiveResultsProps) {
+    const [locale, setLocale] = React.useState<Locale>('vi');
+
+    React.useEffect(() => {
+        setLocale(getStoredLocale());
+    }, []);
+
     return (
         <div className="space-y-8">
             <Card className="border-slate-200 shadow-sm">
                 <CardHeader className="border-b bg-slate-50/50 pb-4">
-                    <CardTitle className="text-slate-800">Descriptive Statistics</CardTitle>
+                    <CardTitle className="text-slate-800">{t(locale, 'tables.summary')}</CardTitle>
                 </CardHeader>
                 <CardContent className="overflow-x-auto pt-6">
                     <table className="w-full text-left text-sm whitespace-nowrap text-slate-700">
                         <thead className="bg-slate-50 text-slate-700">
                             <tr className="border-y-2 border-slate-300">
-                                <th className="py-3 px-4 font-semibold">Variable</th>
-                                <th className="py-3 px-4 font-semibold text-center">N</th>
-                                <th className="py-3 px-4 font-semibold text-right">Min</th>
-                                <th className="py-3 px-4 font-semibold text-right">Max</th>
-                                <th className="py-3 px-4 font-semibold text-right">Mean</th>
-                                <th className="py-3 px-4 font-semibold text-right">SD</th>
-                                <th className="py-3 px-4 font-semibold text-right">Skewness</th>
-                                <th className="py-3 px-4 font-semibold text-right">Kurtosis</th>
+                                <th className="py-3 px-4 font-semibold">{t(locale, 'tables.variable')}</th>
+                                <th className="py-3 px-4 font-semibold text-center">{t(locale, 'tables.n')}</th>
+                                <th className="py-3 px-4 font-semibold text-right">{t(locale, 'tables.min')}</th>
+                                <th className="py-3 px-4 font-semibold text-right">{t(locale, 'tables.max')}</th>
+                                <th className="py-3 px-4 font-semibold text-right">{t(locale, 'tables.mean')}</th>
+                                <th className="py-3 px-4 font-semibold text-right">{t(locale, 'tables.sd')}</th>
+                                <th className="py-3 px-4 font-semibold text-right">{t(locale, 'tables.skew')}</th>
+                                <th className="py-3 px-4 font-semibold text-right">{t(locale, 'tables.kurtosis')}</th>
                             </tr>
                         </thead>
                         <tbody>

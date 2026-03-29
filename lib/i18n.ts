@@ -9,6 +9,7 @@ export const translations = {
         nav: {
             analyze: 'Phân tích Dữ liệu',
             profile: 'Hồ sơ Nghiên cứu',
+            docs: 'Hướng dẫn',
             login: 'Đăng nhập',
             logout: 'Đăng xuất'
         },
@@ -99,6 +100,31 @@ export const translations = {
             selectMethod: 'Lựa chọn phương pháp kiểm định',
             processing: 'Đang xử lý dữ liệu...',
             complete: 'Phân tích hoàn tất'
+        },
+        // Results Tables (Bilingual)
+        tables: {
+            variable: 'Biến (Variable)',
+            mean: 'Trung bình (Mean)',
+            sd: 'Độ lệch chuẩn (SD)',
+            min: 'Nhỏ nhất (Min)',
+            max: 'Lớn nhất (Max)',
+            skew: 'Độ lệch (Skewness)',
+            kurtosis: 'Độ nhọn (Kurtosis)',
+            n: 'Cỡ mẫu (N)',
+            sig: 'Mức ý nghĩa (Sig.)',
+            model: 'Mô hình (Model)',
+            coefficients: 'Hệ số hồi quy (Coefficients)',
+            summary: 'Tóm tắt mô hình (Model Summary)',
+            anova: 'Phân tích phương sai (ANOVA)',
+            correlations: 'Ma trận tương quan (Correlations)',
+            reliability: 'Thống kê độ tin cậy (Reliability Statistics)',
+            itemTotal: 'Thống kê biến tổng (Item-Total Statistics)',
+            alpha: "Cronbach's Alpha",
+            standardized: 'Chuẩn hóa (Standardized)',
+            unstandardized: 'Chưa chuẩn hóa (Unstandardized)',
+            tolerance: 'Dung sai (Tolerance)',
+            vif: 'Hệ số VIF',
+            source: 'Nguồn biến thiên (Source)'
         }
     },
     en: {
@@ -106,6 +132,7 @@ export const translations = {
         nav: {
             analyze: 'Data Analysis',
             profile: 'Researcher Profile',
+            docs: 'Documentation',
             login: 'Login',
             logout: 'Logout'
         },
@@ -196,6 +223,31 @@ export const translations = {
             selectMethod: 'Select Analysis Method',
             processing: 'Processing data...',
             complete: 'Analysis Complete'
+        },
+        // Results Tables (Bilingual)
+        tables: {
+            variable: 'Variable',
+            mean: 'Mean',
+            sd: 'SD',
+            min: 'Min',
+            max: 'Max',
+            skew: 'Skewness',
+            kurtosis: 'Kurtosis',
+            n: 'N',
+            sig: 'Sig.',
+            model: 'Model',
+            coefficients: 'Coefficients',
+            summary: 'Model Summary',
+            anova: 'ANOVA',
+            correlations: 'Correlations',
+            reliability: 'Reliability Statistics',
+            itemTotal: 'Item-Total Statistics',
+            alpha: "Cronbach's Alpha",
+            standardized: 'Standardized',
+            unstandardized: 'Unstandardized',
+            tolerance: 'Tolerance',
+            vif: 'VIF',
+            source: 'Source'
         }
     }
 } as const;

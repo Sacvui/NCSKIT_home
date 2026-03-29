@@ -3,6 +3,8 @@
 import React, { useMemo, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
+import { getStoredLocale, t, type Locale } from '@/lib/i18n';
+
 interface EFAResultsProps {
     results: any;
     columns: string[];
@@ -14,6 +16,12 @@ interface EFAResultsProps {
  * Displays KMO, Bartlett's test, factor loadings, and communalities
  */
 export const EFAResults = React.memo(function EFAResults({ results, columns, onProceedToCFA }: EFAResultsProps) {
+    const [locale, setLocale] = React.useState<Locale>('vi');
+
+    React.useEffect(() => {
+        setLocale(getStoredLocale());
+    }, []);
+
     const kmo = results.kmo || 0;
     const bartlettP = results.bartlettP || 1;
     const kmoAcceptable = kmo >= 0.6;
@@ -52,16 +60,16 @@ export const EFAResults = React.memo(function EFAResults({ results, columns, onP
             {results.eigenvalues && results.eigenvalues.length > 0 && (
                 <Card className="border-slate-200 shadow-sm">
                     <CardHeader className="border-b bg-slate-50/50 pb-4">
-                        <CardTitle className="text-slate-800">Total Variance Explained</CardTitle>
+                        <CardTitle className="text-slate-800">Tổng phương sai trích (Total Variance Explained)</CardTitle>
                     </CardHeader>
                     <CardContent className="overflow-x-auto pt-6">
                         <table className="w-full text-left text-sm whitespace-nowrap text-slate-700">
                             <thead className="bg-slate-50 text-slate-700">
                                 <tr className="border-y-2 border-slate-300">
-                                    <th className="py-3 px-4 font-semibold text-center">Component / Factor</th>
-                                    <th className="py-3 px-4 font-semibold text-right">Initial Eigenvalues</th>
-                                    <th className="py-3 px-4 font-semibold text-right">% of Variance</th>
-                                    <th className="py-3 px-4 font-semibold text-right">Cumulative %</th>
+                                    <th className="py-3 px-4 font-semibold text-center">Nhân tố (Component/Factor)</th>
+                                    <th className="py-3 px-4 font-semibold text-right">Giá trị riêng (Eigenvalues)</th>
+                                    <th className="py-3 px-4 font-semibold text-right">% Phương sai (% of Variance)</th>
+                                    <th className="py-3 px-4 font-semibold text-right">% Tích lũy (Cumulative %)</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -94,19 +102,19 @@ export const EFAResults = React.memo(function EFAResults({ results, columns, onP
             {/* KMO and Bartlett's Test */}
             <Card className="border-slate-200 shadow-sm">
                 <CardHeader className="border-b bg-slate-50/50 pb-4">
-                    <CardTitle className="text-slate-800">KMO and Bartlett&apos;s Test</CardTitle>
+                    <CardTitle className="text-slate-800">Kiểm định KMO và Bartlett (KMO & Bartlett&apos;s Test)</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6">
                     <table className="w-full text-sm text-slate-700">
                         <tbody>
                             <tr className="border-b border-slate-200 hover:bg-slate-50">
-                                <td className="py-3 px-4 font-medium">Kaiser-Meyer-Olkin Measure of Sampling Adequacy</td>
+                                <td className="py-3 px-4 font-medium">Hệ số KMO (Kaiser-Meyer-Olkin Measure)</td>
                                 <td className={`py-3 px-4 text-right font-bold ${kmoAcceptable ? 'text-green-700' : 'text-red-600'}`}>
                                     {kmo.toFixed(3)}
                                 </td>
                             </tr>
                             <tr className="border-b border-slate-200 hover:bg-slate-50">
-                                <td className="py-3 px-4 font-medium">Bartlett&apos;s Test of Sphericity (Sig.)</td>
+                                <td className="py-3 px-4 font-medium">Kiểm định Bartlett (Sig.)</td>
                                 <td className={`py-3 px-4 text-right font-bold ${bartlettSignificant ? 'text-green-700' : 'text-red-600'}`}>
                                     {bartlettP < 0.001 ? '< .001' : bartlettP.toFixed(4)} {bartlettSignificant && '***'}
                                 </td>
@@ -120,13 +128,15 @@ export const EFAResults = React.memo(function EFAResults({ results, columns, onP
             {results.loadings && (
                 <Card className="border-slate-200 shadow-sm">
                     <CardHeader className="border-b bg-slate-50/50 pb-4">
-                        <CardTitle className="text-slate-800">{results.factorMethod === 'none' ? 'Component Matrix' : 'Pattern / Factor Matrix (Rotated)'}</CardTitle>
+                        <CardTitle className="text-slate-800">
+                            {results.factorMethod === 'none' ? 'Ma trận nhân tố (Component Matrix)' : 'Ma trận xoay (Pattern / Factor Matrix)'}
+                        </CardTitle>
                     </CardHeader>
                     <CardContent className="overflow-x-auto pt-6">
                         <table className="w-full text-sm whitespace-nowrap text-slate-700">
                             <thead className="bg-slate-50 text-slate-700">
                                 <tr className="border-y-2 border-slate-300">
-                                    <th className="py-3 px-4 text-left font-semibold">Variable</th>
+                                    <th className="py-3 px-4 text-left font-semibold">{t(locale, 'tables.variable')}</th>
                                     {Array.isArray(results.loadings[0]) && results.loadings[0].map((_: any, idx: number) => (
                                         <th key={idx} className="py-3 px-4 text-right font-semibold">Factor {idx + 1}</th>
                                     ))}
@@ -163,15 +173,15 @@ export const EFAResults = React.memo(function EFAResults({ results, columns, onP
             {results.communalities && (
                 <Card className="border-slate-200 shadow-sm">
                     <CardHeader className="border-b bg-slate-50/50 pb-4">
-                        <CardTitle className="text-slate-800">Communalities</CardTitle>
+                        <CardTitle className="text-slate-800">Phương sai trích của biến (Communalities)</CardTitle>
                     </CardHeader>
                     <CardContent className="overflow-x-auto pt-6">
                         <table className="w-full text-sm text-slate-700">
                             <thead className="bg-slate-50 text-slate-700">
                                 <tr className="border-y-2 border-slate-300">
-                                    <th className="py-3 px-4 text-left font-semibold">Variable</th>
-                                    <th className="py-3 px-4 text-right font-semibold">Initial</th>
-                                    <th className="py-3 px-4 text-right font-semibold">Extraction</th>
+                                    <th className="py-3 px-4 text-left font-semibold">{t(locale, 'tables.variable')}</th>
+                                    <th className="py-3 px-4 text-right font-semibold">Ban đầu (Initial)</th>
+                                    <th className="py-3 px-4 text-right font-semibold">Trích xuất (Extraction)</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -196,7 +206,7 @@ export const EFAResults = React.memo(function EFAResults({ results, columns, onP
 
             {/* Interpretation */}
             <div className="bg-gray-50 border border-gray-200 p-6 rounded-lg">
-                <h4 className="font-bold mb-4 text-gray-800 uppercase text-xs tracking-wider">Đánh giá & Khuyến nghị</h4>
+                <h4 className="font-bold mb-4 text-gray-800 uppercase text-xs tracking-wider">Đánh giá & Khuyến nghị (Evaluation)</h4>
                 <div className="space-y-3 text-sm text-gray-800">
                     <p>
                         <strong>KMO = {kmo.toFixed(3)}:</strong>{' '}

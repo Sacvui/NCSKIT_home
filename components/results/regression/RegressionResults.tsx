@@ -4,6 +4,8 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Scatter } from 'react-chartjs-2';
 
+import { getStoredLocale, t, type Locale } from '@/lib/i18n';
+
 interface RegressionResultsProps {
     results: any;
     columns: string[];
@@ -26,6 +28,14 @@ const fmtP = (p: number) => {
  * Displays: Equation → Model Summary → ANOVA → Coefficients → Assumption Checks → Chart
  */
 export const RegressionResults = React.memo(function RegressionResults({ results, columns }: RegressionResultsProps) {
+    const [locale, setLocale] = React.useState<Locale>('vi');
+
+    React.useEffect(() => {
+        setLocale(getStoredLocale());
+    }, []);
+
+    const isVi = locale === 'vi';
+
     if (!results || !results.modelFit) return null;
 
     const { modelFit, coefficients, equation } = results;
@@ -53,7 +63,7 @@ export const RegressionResults = React.memo(function RegressionResults({ results
         <div className="space-y-8 font-sans text-slate-900">
             {/* Equation */}
             <div className="bg-gradient-to-r from-indigo-600 to-blue-700 p-6 rounded-xl text-white shadow-lg">
-                <h4 className="font-bold text-sm uppercase tracking-wider mb-2 opacity-80">Regression Equation</h4>
+                <h4 className="font-bold text-sm uppercase tracking-wider mb-2 opacity-80">Phương trình hồi quy (Regression Equation)</h4>
                 <div className="text-lg md:text-xl font-mono font-bold break-all">
                     {equation}
                 </div>
@@ -62,17 +72,17 @@ export const RegressionResults = React.memo(function RegressionResults({ results
             {/* ─── 1. Model Summary (SPSS Style) ─── */}
             <Card className="border-slate-200 shadow-sm">
                 <CardHeader className="border-b bg-slate-50/50 pb-4">
-                    <CardTitle className="text-slate-800">Model Summary</CardTitle>
+                    <CardTitle className="text-slate-800">{t(locale, 'tables.summary')}</CardTitle>
                 </CardHeader>
                 <CardContent className="overflow-x-auto pt-6">
                     <table className="w-full text-sm text-slate-700">
                         <thead className="bg-slate-50 text-slate-700">
                             <tr className="border-y-2 border-slate-300">
-                                <th className="py-3 px-4 font-semibold text-center">Model</th>
+                                <th className="py-3 px-4 font-semibold text-center">{t(locale, 'tables.model')}</th>
                                 <th className="py-3 px-4 font-semibold text-center">R</th>
-                                <th className="py-3 px-4 font-semibold text-center">R Square</th>
-                                <th className="py-3 px-4 font-semibold text-center">Adjusted R Square</th>
-                                <th className="py-3 px-4 font-semibold text-center">Std. Error of the Estimate</th>
+                                <th className="py-3 px-4 font-semibold text-center">R Square<br/><span className="text-[10px] lowercase italic">(Hệ số xác định)</span></th>
+                                <th className="py-3 px-4 font-semibold text-center">Adjusted R Square<br/><span className="text-[10px] lowercase italic">(R2 hiệu chỉnh)</span></th>
+                                <th className="py-3 px-4 font-semibold text-center">Std. Error <br/><span className="text-[10px] lowercase italic">(Sai số tiêu chuẩn)</span></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -94,17 +104,17 @@ export const RegressionResults = React.memo(function RegressionResults({ results
             {/* ─── 2. ANOVA Table (SPSS Style) ─── */}
             <Card className="border-slate-200 shadow-sm">
                 <CardHeader className="border-b bg-slate-50/50 pb-4">
-                    <CardTitle className="text-slate-800">ANOVA<sup>a</sup></CardTitle>
+                    <CardTitle className="text-slate-800">{t(locale, 'tables.anova')}<sup>a</sup></CardTitle>
                 </CardHeader>
                 <CardContent className="overflow-x-auto pt-6">
                     <table className="w-full text-sm text-slate-700">
                         <thead className="bg-slate-50 text-slate-700">
                             <tr className="border-y-2 border-slate-300">
-                                <th className="py-3 px-4 font-semibold text-center">Model</th>
-                                <th className="py-3 px-4 font-semibold text-left">Source</th>
-                                <th className="py-3 px-4 font-semibold text-right">Sum of Squares</th>
-                                <th className="py-3 px-4 font-semibold text-right">df</th>
-                                <th className="py-3 px-4 font-semibold text-right">Mean Square</th>
+                                <th className="py-3 px-4 font-semibold text-center">{t(locale, 'tables.model')}</th>
+                                <th className="py-3 px-4 font-semibold text-left">{t(locale, 'tables.source')}</th>
+                                <th className="py-3 px-4 font-semibold text-right">Sum of Squares<br/><span className="text-[10px] lowercase italic">(Tổng bình phương)</span></th>
+                                <th className="py-3 px-4 font-semibold text-right">df<br/><span className="text-[10px] lowercase italic">(Bậc tự do)</span></th>
+                                <th className="py-3 px-4 font-semibold text-right">Mean Square<br/><span className="text-[10px] lowercase italic">(Bình phương TB)</span></th>
                                 <th className="py-3 px-4 font-semibold text-right">F</th>
                                 <th className="py-3 px-4 font-semibold text-right">Sig.</th>
                             </tr>
@@ -155,9 +165,9 @@ export const RegressionResults = React.memo(function RegressionResults({ results
                     <table className="w-full text-sm whitespace-nowrap text-slate-700">
                         <thead className="bg-slate-50 text-slate-700">
                             <tr className="border-y-2 border-slate-300">
-                                <th rowSpan={2} className="py-3 px-4 font-semibold text-left border-r border-slate-200">Model</th>
-                                <th colSpan={2} className="py-2 px-4 font-semibold text-center border-b border-slate-200">Unstandardized Coefficients</th>
-                                <th rowSpan={2} className="py-3 px-4 font-semibold text-center border-l border-r border-slate-200">Standardized<br/>Coefficients Beta</th>
+                                <th rowSpan={2} className="py-3 px-4 font-semibold text-left border-r border-slate-200">{t(locale, 'tables.model')}</th>
+                                <th colSpan={2} className="py-2 px-4 font-semibold text-center border-b border-slate-200">{isVi ? 'Hệ số chưa chuẩn hóa' : 'Unstandardized Coefficients'}</th>
+                                <th rowSpan={2} className="py-3 px-4 font-semibold text-center border-l border-r border-slate-200">{isVi ? 'Hệ số chuẩn hóa Beta' : 'Standardized Coefficients Beta'}</th>
                                 <th rowSpan={2} className="py-3 px-4 font-semibold text-center">t</th>
                                 <th rowSpan={2} className="py-3 px-4 font-semibold text-center">Sig.</th>
                                 <th colSpan={2} className="py-2 px-4 font-semibold text-center border-l border-slate-200 border-b border-slate-200">Collinearity Statistics</th>
@@ -209,7 +219,7 @@ export const RegressionResults = React.memo(function RegressionResults({ results
             {/* ─── 4. Assumption Checks ─── */}
             <Card className="border-slate-200 shadow-sm">
                 <CardHeader className="border-b bg-slate-50/50 pb-4">
-                    <CardTitle className="text-slate-800">Assumption Checks</CardTitle>
+                    <CardTitle className="text-slate-800">{isVi ? 'Kiểm tra các giả định' : 'Assumption Checks'} <span className="text-slate-400 font-normal text-sm">({isVi ? 'Assumption Checks' : ''})</span></CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -250,7 +260,9 @@ export const RegressionResults = React.memo(function RegressionResults({ results
 
             {/* ─── 5. Conclusion ─── */}
             <div className="bg-slate-50 border border-slate-200 p-6 rounded-lg">
-                <h4 className="font-bold mb-3 text-slate-800 uppercase text-xs tracking-wider">Interpretation</h4>
+                <h4 className="font-bold mb-3 text-slate-800 uppercase text-xs tracking-wider">
+                    {isVi ? 'Diễn giải kết quả mẫu (Interpretation)' : 'Sample Interpretation'}
+                </h4>
                 <ul className="list-disc pl-5 space-y-2 text-sm text-slate-700">
                     <li>
                         The regression model is <strong>{modelFit.pValue < 0.05 ? 'statistically significant' : 'not statistically significant'}</strong> (F({dfRegression}, {dfResidual}) = {modelFit.fStatistic.toFixed(2)}, p {modelFit.pValue < 0.001 ? '< .001' : `= ${modelFit.pValue.toFixed(3)}`}).
@@ -274,7 +286,7 @@ export const RegressionResults = React.memo(function RegressionResults({ results
             {results.chartData && (
                 <Card className="border-slate-200 shadow-sm">
                     <CardHeader className="border-b bg-slate-50/50 pb-4">
-                        <CardTitle className="text-slate-800">Actual vs. Predicted Values</CardTitle>
+                        <CardTitle className="text-slate-800">{isVi ? 'Biểu đồ Thực tế vs Dự báo' : 'Actual vs. Predicted Values'}</CardTitle>
                     </CardHeader>
                     <CardContent className="pt-6">
                         <div className="h-80 w-full">

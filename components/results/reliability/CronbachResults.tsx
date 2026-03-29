@@ -4,6 +4,8 @@ import React, { useMemo, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { TemplateInterpretation } from '@/components/TemplateInterpretation';
 
+import { getStoredLocale, t, type Locale } from '@/lib/i18n';
+
 interface CronbachResultsProps {
     results: any;
     columns?: string[];
@@ -23,6 +25,12 @@ export const CronbachResults = React.memo(function CronbachResults({
     scaleName,
     analysisType
 }: CronbachResultsProps) {
+    const [locale, setLocale] = React.useState<Locale>('vi');
+
+    React.useEffect(() => {
+        setLocale(getStoredLocale());
+    }, []);
+
     const alpha = results.alpha || results.rawAlpha || 0;
     const nItems = results.nItems || 'N/A';
     const itemTotalStats = results.itemTotalStats || [];
@@ -46,30 +54,32 @@ export const CronbachResults = React.memo(function CronbachResults({
             {/* Reliability Statistics Table */}
             <Card className="border-slate-200 shadow-sm">
                 <CardHeader className="border-b bg-slate-50/50 pb-4">
-                    <CardTitle className="text-slate-800">{analysisType === 'omega' ? 'McDonald\'s Omega Reliability' : 'Reliability Statistics'}</CardTitle>
+                    <CardTitle className="text-slate-800">
+                        {analysisType === 'omega' ? 'McDonald\'s Omega Reliability' : t(locale, 'tables.reliability')}
+                    </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6">
                     <table className="w-full text-left text-sm text-slate-700">
                         <thead className="bg-slate-50 text-slate-700">
                             <tr className="border-y-2 border-slate-300">
                                 <th className="py-3 px-4 font-semibold">Measure</th>
-                                <th className="py-3 px-4 font-semibold text-center">Value</th>
-                                <th className="py-3 px-4 font-semibold text-center border-l-2 border-slate-300">N of Items</th>
+                                <th className="py-3 px-4 font-semibold text-center text-slate-900 border-l border-slate-200">Value (Giá trị)</th>
+                                <th className="py-3 px-4 font-semibold text-center border-l-2 border-slate-300">{t(locale, 'tables.n')}</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
                                 <td className={`py-3 px-4 font-bold ${analysisType !== 'omega' ? 'text-slate-900' : 'text-slate-500 font-medium'}`}>Cronbach&apos;s Alpha</td>
-                                <td className={`py-3 px-4 text-center ${analysisType !== 'omega' ? 'font-bold text-slate-900' : 'text-slate-600'}`}>{alpha.toFixed(3)}</td>
+                                <td className={`py-3 px-4 text-center border-l border-slate-200 ${analysisType !== 'omega' ? 'font-bold text-slate-900' : 'text-slate-600'}`}>{alpha.toFixed(3)}</td>
                                 <td className="py-3 px-4 text-center row-span-3 align-middle border-l-2 border-slate-300 font-bold text-slate-800 text-base">{nItems}</td>
                             </tr>
                             <tr className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
                                 <td className={`py-3 px-4 font-bold ${analysisType === 'omega' ? 'text-slate-900' : 'text-slate-500 font-medium'}`}>McDonald&apos;s Omega (Total)</td>
-                                <td className={`py-3 px-4 text-center ${analysisType === 'omega' ? 'font-bold text-slate-900' : 'text-slate-600'}`}>{results.omega ? results.omega.toFixed(3) : '-'}</td>
+                                <td className={`py-3 px-4 text-center border-l border-slate-200 ${analysisType === 'omega' ? 'font-bold text-slate-900' : 'text-slate-600'}`}>{results.omega ? results.omega.toFixed(3) : '-'}</td>
                             </tr>
                             <tr className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
                                 <td className="py-3 px-4 font-medium text-slate-400 text-xs">Omega Hierarchical</td>
-                                <td className="py-3 px-4 text-center text-slate-400 text-xs">{results.omegaHierarchical ? results.omegaHierarchical.toFixed(3) : '-'}</td>
+                                <td className="py-3 px-4 text-center border-l border-slate-200 text-slate-400 text-xs">{results.omegaHierarchical ? results.omegaHierarchical.toFixed(3) : '-'}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -80,17 +90,17 @@ export const CronbachResults = React.memo(function CronbachResults({
             {itemTotalStats.length > 0 && (
                 <Card className="border-slate-200 shadow-sm">
                     <CardHeader className="border-b bg-slate-50/50 pb-4">
-                        <CardTitle className="text-slate-800">Item-Total Statistics</CardTitle>
+                        <CardTitle className="text-slate-800">{t(locale, 'tables.itemTotal')}</CardTitle>
                     </CardHeader>
                     <CardContent className="overflow-x-auto pt-6">
                         <table className="w-full text-left text-sm whitespace-nowrap text-slate-700">
                             <thead className="bg-slate-50 text-slate-700">
                                 <tr className="border-y-2 border-slate-300">
-                                    <th className="py-3 px-4 font-semibold">Variable</th>
-                                    <th className="py-3 px-4 font-semibold text-right">Scale Mean if Item Deleted</th>
-                                    <th className="py-3 px-4 font-semibold text-right">Scale Variance if Item Deleted</th>
-                                    <th className="py-3 px-4 font-semibold text-right">Corrected Item-Total <br/>Correlation</th>
-                                    <th className="py-3 px-4 font-semibold text-right">Cronbach&apos;s Alpha if <br/>Item Deleted</th>
+                                    <th className="py-3 px-4 font-semibold">{t(locale, 'tables.variable')}</th>
+                                    <th className="py-3 px-4 font-semibold text-right">Scale Mean if Item Deleted <br/><span className="text-[10px] lowercase italic">(Trung bình l.b)</span></th>
+                                    <th className="py-3 px-4 font-semibold text-right">Scale Var if Item Deleted <br/><span className="text-[10px] lowercase italic">(Phương sai l.b)</span></th>
+                                    <th className="py-3 px-4 font-semibold text-right">Item-Total Correlation <br/><span className="text-[10px] lowercase italic">(Tương quan biến tổng)</span></th>
+                                    <th className="py-3 px-4 font-semibold text-right">Alpha if Item Deleted <br/><span className="text-[10px] lowercase italic">(Alpha nếu loại biến)</span></th>
                                 </tr>
                             </thead>
                             <tbody>
