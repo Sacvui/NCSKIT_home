@@ -22,6 +22,11 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(url, { status: 301 })
     }
 
+    // Skip session update for static assets
+    if (request.nextUrl.pathname.startsWith('/_next') || request.nextUrl.pathname.includes('.')) {
+        return NextResponse.next()
+    }
+
     return await updateSession(request)
 }
 

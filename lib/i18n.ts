@@ -10,6 +10,7 @@ export const translations = {
             analyze: 'Phân tích Dữ liệu',
             profile: 'Hồ sơ Nghiên cứu',
             docs: 'Hướng dẫn',
+            scales: 'Thư viện Thang đo',
             login: 'Đăng nhập',
             logout: 'Đăng xuất'
         },
@@ -135,8 +136,41 @@ export const translations = {
             standardized: 'Chuẩn hóa (Standardized)',
             unstandardized: 'Chưa chuẩn hóa (Unstandardized)',
             tolerance: 'Dung sai (Tolerance)',
-            vif: 'Hệ số VIF',
+            vif: 'Hệ hệ VIF',
             source: 'Nguồn biến thiên (Source)'
+        },
+        // Scale Hub
+        scales: {
+            title: 'Thư viện Thang đo Chuẩn hóa',
+            subtitle: 'Kho lưu trữ các bộ câu hỏi nghiên cứu đã được kiểm định và dịch thuật chuẩn xác.',
+            searchPlaceholder: 'Tìm kiếm bộ thang đo (Ví dụ: TAM, SERVQUAL...)',
+            categories: 'Chuyên ngành',
+            economics: 'Kinh tế',
+            marketing: 'Marketing',
+            hr: 'Nhân sự',
+            logistics: 'Logistics & SCM',
+            mis: 'MIS & Digital',
+            accounting: 'Kế toán & Kiểm toán',
+            innovation: 'Đổi mới & Chiến lược',
+            author: 'Tác giả',
+            year: 'Năm',
+            items: 'Số câu hỏi',
+            citation: 'Trích dẫn',
+            viewItems: 'Xem chi tiết câu hỏi',
+            exportTemplate: 'Xuất File mẫu Excel',
+            comingSoon: 'Sắp ra mắt',
+            advisor: {
+                title: 'Trình Cố vấn Nghiên cứu',
+                subtitle: 'Để hệ thống gợi ý lý thuyết phù hợp cho bạn:',
+                q1: 'Mục tiêu nghiên cứu của bạn là gì?',
+                q2: 'Đối tượng bạn muốn tác động là ai?',
+                opt1: 'Đo lường sự chấp nhận/hành vi mới',
+                opt2: 'Đánh giá chất lượng/hiệu quả dịch vụ',
+                opt3: 'Phân tích nhân sự/tổ chức/lãnh đạo',
+                opt4: 'Hệ thống/Quản trị Logistics & MIS',
+                resultText: 'Dựa trên mục tiêu của bạn, chúng tôi đề xuất:',
+                loginRequired: 'Vui lòng đăng nhập để xem chi tiết câu hỏi'
+            }
         }
     },
     en: {
@@ -145,6 +179,7 @@ export const translations = {
             analyze: 'Data Analysis',
             profile: 'Researcher Profile',
             docs: 'Documentation',
+            scales: 'Scale Hub',
             login: 'Login',
             logout: 'Logout'
         },
@@ -272,6 +307,39 @@ export const translations = {
             tolerance: 'Tolerance',
             vif: 'VIF',
             source: 'Source'
+        },
+        // Scale Hub
+        scales: {
+            title: 'Standardized Scale Hub',
+            subtitle: 'Repository of validated and accurately translated research constructs.',
+            searchPlaceholder: 'Search scales (e.g., TAM, SERVQUAL...)',
+            categories: 'Categories',
+            economics: 'Economics',
+            marketing: 'Marketing',
+            hr: 'Human Resources',
+            logistics: 'Logistics & SCM',
+            mis: 'MIS & Digital',
+            accounting: 'Accounting & Finance',
+            innovation: 'Innovation & Strategy',
+            author: 'Author',
+            year: 'Year',
+            items: 'Items',
+            citation: 'Citation',
+            viewItems: 'View Scale Items',
+            exportTemplate: 'Export Excel Template',
+            comingSoon: 'Coming Soon',
+            advisor: {
+                title: 'Research Advisor',
+                subtitle: 'Let the system suggest a theory for you:',
+                q1: 'What is your research objective?',
+                q2: 'Who is your target focus?',
+                opt1: 'Measuring acceptance / new behavior',
+                opt2: 'Evaluating service quality / performance',
+                opt3: 'Analyzing HR / Organization / Leadership',
+                opt4: 'Logistics Systems & MIS Management',
+                resultText: 'Based on your goal, we recommend:',
+                loginRequired: 'Please login to view scale items'
+            }
         }
     }
 } as const;
