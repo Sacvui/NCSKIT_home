@@ -59,7 +59,7 @@ export default function ScaleHubPage() {
         window.addEventListener('localeChange', handleLocaleChange);
         
         // Initial session check
-        supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+        supabase.auth.getSession().then(({ data: { session: currentSession } }: { data: { session: Session | null } }) => {
             setSession(currentSession);
         });
 
