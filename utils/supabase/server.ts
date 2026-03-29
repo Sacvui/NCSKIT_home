@@ -35,7 +35,7 @@ export async function createClient() {
                 },
             },
             cookieOptions: {
-                // Remove fixed domain to let the browser manage based on current host
+                domain: '.ncskit.org',
                 sameSite: 'lax',
                 secure: process.env.NODE_ENV === 'production' || process.env.VERCEL === '1',
                 path: '/',

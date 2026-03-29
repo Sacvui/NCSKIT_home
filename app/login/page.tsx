@@ -4,8 +4,9 @@ import { getSupabase } from '@/utils/supabase/client'
 import { useState, Suspense, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { ProjectFlowAnimation } from '@/components/login/ProjectFlowAnimation'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Info, RefreshCw } from 'lucide-react'
 import { NCSLoader } from '@/components/ui/NCSLoader'
+import { getStoredLocale } from '@/lib/i18n'
 export default function LoginPage() {
     return (
         <Suspense fallback={<div>Loading...</div>}>
@@ -21,6 +22,41 @@ function LoginForm() {
     const next = searchParams.get('next')
     const [loading, setLoading] = useState<string | null>(null)
     const [errorMsg, setErrorMsg] = useState<string | null>(null)
+    const [locale, setLocale] = useState('vi')
+    const isVi = locale === 'vi'
+
+    useEffect(() => {
+        setLocale(getStoredLocale())
+    }, [])
+
+    const handleHardReset = async () => {
+        setLoading('reset')
+        try {
+            // 1. Clear all cookies for both current domain and .ncskit.org
+            const cookies = document.cookie.split(';')
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i]
+                const eqPos = cookie.indexOf('=')
+                const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim()
+                
+                // Clear from current host
+                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;`
+                // Clear from .ncskit.org
+                document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; domain=.ncskit.org;`
+            }
+
+            // 2. Clear storage
+            localStorage.clear()
+            sessionStorage.clear()
+
+            console.log('Session hard reset complete')
+            // 3. Reload
+            window.location.href = window.location.origin + window.location.pathname
+        } catch (err) {
+            console.error('Hard reset error:', err)
+            setLoading(null)
+        }
+    }
 
     // Real OAuth flow with Supabase
     const handleLogin = async (provider: 'google' | 'linkedin_oidc') => {
@@ -156,6 +192,28 @@ function LoginForm() {
                             <span className="text-gray-500">Đăng nhập với ORCID (Đang bảo trì)</span>
                         </button>
                     </div>
+
+                    {/* Hard Reset Link for Persistent Errors */}
+                    {(searchParams.get('error') || searchParams.get('auth_code')) && (
+                        <div className="mt-8 p-4 bg-blue-50/50 border border-blue-100 rounded-2xl animate-in fade-in slide-in-from-top-4">
+                            <h4 className="text-sm font-bold text-blue-900 mb-1 flex items-center gap-2">
+                                <Info className="w-4 h-4" />
+                                {isVi ? 'Gặp sự cố đăng nhập?' : 'Having login issues?'}
+                            </h4>
+                            <p className="text-xs text-blue-700/70 mb-3 leading-relaxed">
+                                {isVi 
+                                    ? 'Nếu bạn liên tục gặp lỗi xác định mã PKCE, hệ thống có thể đang lưu giữ phiên làm việc cũ bị lỗi.' 
+                                    : 'If you consistently see PKCE errors, your browser might be holding a stale session.'}
+                            </p>
+                            <button 
+                                onClick={handleHardReset}
+                                className="w-full py-2.5 px-4 bg-white border border-blue-200 text-blue-700 text-xs font-bold rounded-xl hover:bg-blue-100 hover:border-blue-300 transition-all flex items-center justify-center gap-2 shadow-sm"
+                            >
+                                <RefreshCw className={`w-3.5 h-3.5 ${loading === 'reset' ? 'animate-spin' : ''}`} />
+                                {isVi ? 'Dọn dẹp & Làm mới ngay' : 'Clean session & Reset now'}
+                            </button>
+                        </div>
+                    )}
 
                     {/* Footer Links */}
                     <div className="mt-8 pt-8 border-t border-gray-100">

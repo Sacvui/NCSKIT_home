@@ -63,7 +63,7 @@ export async function updateSession(request: NextRequest) {
                         cookiesToSet.forEach(({ name, value, options }) =>
                             response.cookies.set(name, value, {
                                 ...options,
-                                // Remove fixed domain
+                                domain: '.ncskit.org',
                                 secure: useSecureCookies,
                                 sameSite: 'lax',
                                 path: '/',
@@ -72,6 +72,7 @@ export async function updateSession(request: NextRequest) {
                     },
                 },
                 cookieOptions: {
+                    domain: '.ncskit.org',
                     secure: useSecureCookies,
                     sameSite: 'lax',
                     path: '/',
