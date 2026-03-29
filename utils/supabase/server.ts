@@ -35,6 +35,7 @@ export async function createClient() {
                 },
             },
             cookieOptions: {
+                domain: '',
                 sameSite: 'lax',
                 secure: true,
                 path: '/',
