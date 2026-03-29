@@ -33,6 +33,10 @@ export async function runMediationAnalysis(
         indirectLower: number;
         indirectUpper: number;
     };
+    sobelTest: {
+        z: number;
+        p: number;
+    };
     rCode: string;
 }> {
     const webR = await initWebR();
@@ -47,61 +51,75 @@ export async function runMediationAnalysis(
     df <- as.data.frame(data_mat)
     colnames(df) <- c(${columns.map(c => `"${c}"`).join(',')})
     
-    # Run Mediation using psych::mediate
-    # This automatically does bootstrapping if n.iter > 0
-    # Formula style: y ~ x + (m)
-    
     # Ensure variables exist
     if(!all(c("${xVar}", "${mVar}", "${yVar}") %in% colnames(df))) {
         stop("Biến không tồn tại trong dữ liệu")
     }
     
-    # Normalize data to avoid convergence issues? Usually psych handles it well.
-    # We use std=FALSE generally unless requested, but psych::mediate defaults to standardized 
-    # if not specified? Let's use raw for now but maybe return std as well.
+    # === Step 1: Path a (X -> M) ===
+    model_a <- lm(${mVar} ~ ${xVar}, data = df)
+    sa <- summary(model_a)$coefficients
+    a_est <- sa["${xVar}", "Estimate"]
+    a_p <- sa["${xVar}", "Pr(>|t|)"]
     
-    # Formula: Y ~ X + (M)
-    f_str <- paste("${yVar} ~ ${xVar} + (${mVar})")
+    # === Step 2: Path c (X -> Y, Total Effect) ===
+    model_c <- lm(${yVar} ~ ${xVar}, data = df)
+    sc <- summary(model_c)$coefficients
+    c_est <- sc["${xVar}", "Estimate"]
+    c_p <- sc["${xVar}", "Pr(>|t|)"]
     
-    model <- mediate(as.formula(f_str), data = df, n.iter = ${nBoot}, plot = FALSE)
+    # === Step 3: Path b and c' (M -> Y controlling for X, Direct Effect) ===
+    model_bc <- lm(${yVar} ~ ${xVar} + ${mVar}, data = df)
+    sbc <- summary(model_bc)$coefficients
+    b_est <- sbc["${mVar}", "Estimate"]
+    b_p <- sbc["${mVar}", "Pr(>|t|)"]
+    c_prime_est <- sbc["${xVar}", "Estimate"]
+    c_prime_p <- sbc["${xVar}", "Pr(>|t|)"]
     
-    # Extract Effects
-    total <- model$total
-    direct <- model$direct
-    indirect <- model$indirect
+    # === Indirect effect ===
+    indirect <- a_est * b_est
+    total <- c_est
+    direct <- c_prime_est
     
-    # Path Coefficients (a, b, c, c')
-    # psych::mediate returns these in $a, $b, $c, $c.prime vectors normally
-    # But dealing with structure can be tricky, let's look at summary print
+    # === Sobel Test ===
+    se_a <- sa["${xVar}", "Std. Error"]
+    se_b <- sbc["${mVar}", "Std. Error"]
+    sobel_se <- sqrt(b_est^2 * se_a^2 + a_est^2 * se_b^2)
+    sobel_z <- indirect / sobel_se
+    sobel_p <- 2 * (1 - pnorm(abs(sobel_z)))
     
-    a_est <- model$a
-    b_est <- model$b
-    c_est <- model$c
-    c_prime_est <- model$direct
-    
-    # Significance (p-values) - usually in specific matrices or summary
-    # model$print probably has it, but let's try to extract from 'boot' or 'prob'
-    # Actually mediate returns simple vectors for estimates. 
-    # For p-values, we might need to rely on the bootstrapped CI or standard normal approx.
-    
-    # This is a simplification. psych::mediate structure is complex. I'll focus on extraction.
+    # === Bootstrap CI for indirect effect ===
+    set.seed(123)
+    n_boot <- ${nBoot}
+    boot_indirect <- numeric(n_boot)
+    for(i in 1:n_boot) {
+        idx <- sample(1:nrow(df), replace = TRUE)
+        boot_df <- df[idx, ]
+        boot_a <- coef(lm(${mVar} ~ ${xVar}, data = boot_df))["${xVar}"]
+        boot_b <- coef(lm(${yVar} ~ ${xVar} + ${mVar}, data = boot_df))["${mVar}"]
+        boot_indirect[i] <- boot_a * boot_b
+    }
+    boot_ci <- quantile(boot_indirect, c(0.025, 0.975))
     
     list(
-        total = as.numeric(model$total),
-        direct = as.numeric(model$direct),
-        indirect = as.numeric(model$indirect),
+        total = as.numeric(total),
+        direct = as.numeric(direct),
+        indirect = as.numeric(indirect),
         
-        a_est = as.numeric(model$a),
-        b_est = as.numeric(model$b),
-        c_est = as.numeric(model$c),
-        c_p_est = as.numeric(model$direct),
+        a_est = as.numeric(a_est),
+        a_p = as.numeric(a_p),
+        b_est = as.numeric(b_est),
+        b_p = as.numeric(b_p),
+        c_est = as.numeric(c_est),
+        c_p = as.numeric(c_p),
+        c_p_est = as.numeric(c_prime_est),
+        c_p_p = as.numeric(c_prime_p),
         
-        # P-values not always directly exposed as single properties, 
-        # often in 'prob' which matches the coefficients matrix
-        # But let's assume we want at least the boot CI for indirect
+        sobel_z = as.numeric(sobel_z),
+        sobel_p = as.numeric(sobel_p),
         
-        boot_lower = model$boot$ci.ab[1],
-        boot_upper = model$boot$ci.ab[2]
+        boot_lower = as.numeric(boot_ci[1]),
+        boot_upper = as.numeric(boot_ci[2])
     )
     `;
 
@@ -110,19 +128,23 @@ export async function runMediationAnalysis(
 
     return {
         effects: {
-            total: getValue('total')?.[0] || 0,
-            direct: getValue('direct')?.[0] || 0,
-            indirect: getValue('indirect')?.[0] || 0,
+            total: getValue('total')?.[0] ?? 0,
+            direct: getValue('direct')?.[0] ?? 0,
+            indirect: getValue('indirect')?.[0] ?? 0,
         },
         paths: {
-            a: { est: getValue('a_est')?.[0] || 0, p: 0 }, // P-value extraction tricky without parsing summary
-            b: { est: getValue('b_est')?.[0] || 0, p: 0 },
-            c: { est: getValue('c_est')?.[0] || 0, p: 0 },
-            c_prime: { est: getValue('c_p_est')?.[0] || 0, p: 0 }
+            a: { est: getValue('a_est')?.[0] ?? 0, p: getValue('a_p')?.[0] ?? 1 },
+            b: { est: getValue('b_est')?.[0] ?? 0, p: getValue('b_p')?.[0] ?? 1 },
+            c: { est: getValue('c_est')?.[0] ?? 0, p: getValue('c_p')?.[0] ?? 1 },
+            c_prime: { est: getValue('c_p_est')?.[0] ?? 0, p: getValue('c_p_p')?.[0] ?? 1 }
+        },
+        sobelTest: {
+            z: getValue('sobel_z')?.[0] ?? 0,
+            p: getValue('sobel_p')?.[0] ?? 1
         },
         bootstrap: {
-            indirectLower: getValue('boot_lower')?.[0] || 0,
-            indirectUpper: getValue('boot_upper')?.[0] || 0
+            indirectLower: getValue('boot_lower')?.[0] ?? 0,
+            indirectUpper: getValue('boot_upper')?.[0] ?? 0
         },
         rCode
     };

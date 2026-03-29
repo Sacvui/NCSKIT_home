@@ -874,7 +874,44 @@ export default function AnalyzePage() {
                             setStep={setStep}
                             setNcsBalance={setNcsBalance}
                             showToast={showToast}
+                            setAnalysisType={setAnalysisType}
+                            setRequiredCredits={setRequiredCredits}
+                            setCurrentAnalysisCost={setCurrentAnalysisCost}
+                            setShowInsufficientCredits={setShowInsufficientCredits}
+                        />
+                    )}
 
+                    {/* Reliability & Factor Analysis */}
+                    {['cronbach-select', 'cronbach-batch-select', 'omega-select', 'efa-select', 'cfa-select', 'sem-select'].includes(step) && (
+                        <ReliabilityView
+                            step={step}
+                            data={data}
+                            columns={getNumericColumns()}
+                            user={user}
+                            setResults={setResults}
+                            setStep={setStep}
+                            setNcsBalance={setNcsBalance}
+                            showToast={showToast}
+                            setScaleName={setScaleName}
+                            setMultipleResults={setMultipleResults}
+                            setAnalysisType={setAnalysisType}
+                            setRequiredCredits={setRequiredCredits}
+                            setCurrentAnalysisCost={setCurrentAnalysisCost}
+                            setShowInsufficientCredits={setShowInsufficientCredits}
+                        />
+                    )}
+
+                    {/* Regression Analysis */}
+                    {['regression-select', 'logistic-select'].includes(step) && (
+                        <RegressionView
+                            step={step}
+                            data={data}
+                            columns={getNumericColumns()}
+                            user={user}
+                            setResults={setResults}
+                            setStep={setStep}
+                            setNcsBalance={setNcsBalance}
+                            showToast={showToast}
                             setAnalysisType={setAnalysisType}
                             setRequiredCredits={setRequiredCredits}
                             setCurrentAnalysisCost={setCurrentAnalysisCost}

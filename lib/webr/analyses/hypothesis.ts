@@ -426,15 +426,18 @@ export async function runMannWhitneyU(
     g2 <- c(${group2.join(',')})
     
     test <- wilcox.test(g1, g2, conf.int = TRUE)
-    z_score <- qnorm(test$p.value / 2)
-    effect_r <- abs(z_score) / sqrt(length(g1) + length(g2))
+    
+    # Effect size r: Convert p-value to z-score correctly
+    # Use lower.tail=FALSE to get the positive z corresponding to the upper tail
+    z_score <- qnorm(test$p.value / 2, lower.tail = FALSE)
+    effect_r <- z_score / sqrt(length(g1) + length(g2))
     
     # Check distribution shapes using Skewness
     sk1 <- skew(g1)
     sk2 <- skew(g2)
     
     # Heuristic: If skewness signs are same and diff < 1, shapes are "similar"
-    similar_shape <- sign(sk1) == sign(sk2) && abs(sk1 - sk2) < 1.0
+    similar_shape <- (sign(sk1) == sign(sk2)) & (abs(sk1 - sk2) < 1.0)
     dist_msg <- if(similar_shape) "Phân phối tương đồng (kiểm định Trung vị)" else "Phân phối khác biệt (kiểm định Mean Rank)"
     
     list(
@@ -575,6 +578,7 @@ export async function runKruskalWallis(
     pValue: number;
     medians: number[];
     method: string;
+    postHoc: { comparison: string; pAdj: number }[];
     rCode: string;
 }> {
     // Lazy load required packages (uses built-in stats)
@@ -586,22 +590,53 @@ export async function runKruskalWallis(
     test <- kruskal.test(values ~ groups)
     group_medians <- tapply(values, groups, median)
     
+    # Pairwise Wilcoxon tests (Dunn-like post-hoc with Bonferroni correction)
+    pw <- tryCatch({
+        result <- pairwise.wilcox.test(values, groups, p.adjust.method = "bonferroni")
+        pmat <- result$p.value
+        
+        # Extract pairwise comparisons
+        comps <- c()
+        padjs <- c()
+        for(i in 1:nrow(pmat)) {
+            for(j in 1:ncol(pmat)) {
+                if(!is.na(pmat[i, j])) {
+                    comps <- c(comps, paste0(rownames(pmat)[i], "-", colnames(pmat)[j]))
+                    padjs <- c(padjs, pmat[i, j])
+                }
+            }
+        }
+        list(comparisons = comps, p_adjs = padjs)
+    }, error = function(e) list(comparisons = c(), p_adjs = c()))
+    
     list(
         statistic = test$statistic,
         df = test$parameter,
         p_value = test$p.value,
         medians = as.numeric(group_medians),
-        method = test$method
+        method = test$method,
+        ph_comparisons = pw$comparisons,
+        ph_p_adjs = pw$p_adjs
     )
     `;
     const result = await executeRWithRecovery(rCode);
     const getValue = parseWebRResult(result);
+    
+    const phComps = getValue('ph_comparisons') || [];
+    const phPAdjs = getValue('ph_p_adjs') || [];
+    const postHoc = [];
+    const len = Math.min(phComps.length, phPAdjs.length);
+    for (let i = 0; i < len; i++) {
+        postHoc.push({ comparison: phComps[i], pAdj: phPAdjs[i] });
+    }
+    
     return {
-        statistic: getValue('statistic')?.[0] || 0,
-        df: getValue('df')?.[0] || 0,
-        pValue: getValue('p_value')?.[0] || 0,
+        statistic: getValue('statistic')?.[0] ?? 0,
+        df: getValue('df')?.[0] ?? 0,
+        pValue: getValue('p_value')?.[0] ?? 0,
         medians: getValue('medians') || [],
         method: getValue('method')?.[0] || "Kruskal-Wallis rank sum test",
+        postHoc,
         rCode
     };
 }

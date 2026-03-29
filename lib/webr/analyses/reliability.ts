@@ -107,10 +107,10 @@ export async function runCronbachAlpha(
     const result = await executeRWithRecovery(rCode);
     const getValue = parseWebRResult(result);
 
-    const rawAlpha = getValue('raw_alpha')?.[0] || 0;
-    const stdAlpha = getValue('std_alpha')?.[0] || 0;
-    const omegaTotal = getValue('omega_total')?.[0] || 0;
-    const omegaH = getValue('omega_h')?.[0] || 0;
+    const rawAlpha = getValue('raw_alpha')?.[0] ?? 0;
+    const stdAlpha = getValue('std_alpha')?.[0] ?? 0;
+    const omegaTotal = getValue('omega_total')?.[0] ?? 0;
+    const omegaH = getValue('omega_h')?.[0] ?? 0;
     const nItems = getValue('n_items')?.[0] || 'N/A';
 
     const scaleMeanDeleted = getValue('scale_mean_deleted') || [];
@@ -250,8 +250,8 @@ export async function runEFA(data: number[][], nFactors: number, rotation: strin
     const nFactorsUsed = getValue('n_factors_used')?.[0] || nFactors || 1;
 
     return {
-        kmo: getValue('kmo')?.[0] || 0,
-        bartlettP: getValue('bartlett_p')?.[0] || 1,
+        kmo: getValue('kmo')?.[0] ?? 0,
+        bartlettP: getValue('bartlett_p')?.[0] ?? 1,
         loadings: parseMatrix(getValue('loadings'), nFactorsUsed),
         communalities: getValue('communalities') || [],
         structure: parseMatrix(getValue('structure'), nFactorsUsed),
@@ -337,12 +337,24 @@ export async function runCFA(data: number[][], columns: string[], modelSyntax: s
         }
     }
     
+    # Calculate SRMR from residual correlation matrix (more accurate than fa$rms)
+    srmr_val <- tryCatch({
+        resid_cor <- efa_result$residual
+        if(!is.null(resid_cor)) {
+            # SRMR = sqrt(mean of squared lower-triangle residual correlations)
+            lt <- resid_cor[lower.tri(resid_cor)]
+            sqrt(mean(lt^2, na.rm = TRUE))
+        } else if(!is.null(efa_result$rms)) {
+            as.numeric(efa_result$rms)  # Fallback to RMS if residual matrix unavailable
+        } else { 0 }
+    }, error = function(e) 0)
+    
     list(
         fit = list(
             cfi = if(is.na(cfi_val)) 0 else as.numeric(cfi_val),
             tli = if(is.na(tli_val)) 0 else as.numeric(tli_val),
             rmsea = if(is.na(rmsea_val)) 0 else as.numeric(rmsea_val),
-            srmr = if(!is.null(fa_result$rms)) as.numeric(fa_result$rms) else 0,
+            srmr = as.numeric(srmr_val),
             chisq = if(is.na(chi_sq)) 0 else as.numeric(chi_sq),
             df = if(is.na(df_val)) 0 else as.numeric(df_val),
             pvalue = if(is.na(p_val)) 0 else as.numeric(p_val)
