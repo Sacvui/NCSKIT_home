@@ -6,7 +6,7 @@ import {
     BarChart2, Shield, Network, GitCompare, Layers, TrendingUp, Grid3x3,
     Activity, Binary, Target, ArrowRightLeft, Users, ChevronDown, ChevronRight,
     BookOpen, Code, ExternalLink, CircleDot, Server, Lock, CreditCard, FileDown,
-    CheckCircle2, AlertCircle, Info, BookMarked, HelpCircle
+    CheckCircle2, AlertCircle, Info, BookMarked, HelpCircle, ListChecks
 } from 'lucide-react';
 import { getStoredLocale, t, type Locale } from '@/lib/i18n';
 
@@ -21,6 +21,8 @@ interface Method {
     rFunction: string;
     whenToUseVi: string;
     whenToUseEn: string;
+    stepsVi: string[];
+    stepsEn: string[];
     assumptionsVi?: string[];
     assumptionsEn?: string[];
     outputVi: string[];
@@ -39,6 +41,16 @@ const METHODS: Method[] = [
         rFunction: 'psych::describe()',
         whenToUseVi: 'Luôn thực hiện đầu tiên để kiểm tra phân phối và các giá trị bất thường.',
         whenToUseEn: 'Always run first to check distributions and find anomalies.',
+        stepsVi: [
+            'Chọn menu Descriptive.',
+            'Chọn các biến cần tính toán (có thể chọn nhiều biến cùng lúc).',
+            'Nhấn Chạy Phân Tích.'
+        ],
+        stepsEn: [
+            'Select the Descriptive menu.',
+            'Select required variables (multi-select supported).',
+            'Click Run Analysis.'
+        ],
         outputVi: ['Trung bình, Độ lệch chuẩn, Min, Max', 'Độ lệch (Skewness) & Độ nhọn (Kurtosis)', 'Số lượng giá trị thiếu (NA)'],
         outputEn: ['Mean, SD, Min, Max', 'Skewness & Kurtosis', 'Missing value counts']
     },
@@ -53,6 +65,16 @@ const METHODS: Method[] = [
         rFunction: 'psych::alpha(), psych::omega()',
         whenToUseVi: 'Dùng để kiểm tra chất lượng thang đo trước khi phân tích EFA/CFA.',
         whenToUseEn: 'Use to validate scale quality before factor analysis.',
+        stepsVi: [
+            'Chọn menu Cronbach\'s Alpha.',
+            'Chọn tất cả các biến quan sát (items) của nhân tố (Ví dụ: DL1, DL2, DL3).',
+            'Nhấn Chạy Phân Tích.'
+        ],
+        stepsEn: [
+            'Select the Cronbach\'s Alpha menu.',
+            'Select all indicators for a single construct (e.g., DL1, DL2, DL3).',
+            'Click Run Analysis.'
+        ],
         assumptionsVi: ['Các biến cùng đo lường một khái niệm', 'Thang đo dạng Likert'],
         assumptionsEn: ['Items measure the same construct', 'Likert-type scales'],
         outputVi: ['Hệ số Cronbach Alpha', 'Tương quan biến tổng', 'Alpha nếu loại biến'],
@@ -69,10 +91,80 @@ const METHODS: Method[] = [
         rFunction: 'psych::fa() or stats::factanal()',
         whenToUseVi: 'Khi muốn khám phá cấu trúc của thang đo hoặc rút gọn dữ liệu.',
         whenToUseEn: 'To discover scale structure or reduce data dimensionality.',
+        stepsVi: [
+            'Chọn menu EFA.',
+            'Chọn tất cả các biến quan sát (indicators) dự kiến đưa vào phân tích.',
+            'Chọn số nhân tố (để mặc định Auto để Eigenvalue > 1).',
+            'Chọn phép trích PAF và phép quay Promax (thông dụng nhất).',
+            'Nhấn Chạy EFA.'
+        ],
+        stepsEn: [
+            'Select the EFA menu.',
+            'Select all relevant observation variables.',
+            'Set number of factors (Auto recommended for Eigenvalue > 1).',
+            'Select extraction (PAF) and rotation (Promax) methods.',
+            'Click Run EFA.'
+        ],
         assumptionsVi: ['Mẫu đủ lớn (N > 100)', 'KMO >= 0.6', 'Bartlett < 0.05'],
         assumptionsEn: ['Adequate sample size (N > 100)', 'KMO >= 0.6', 'Bartlett test sig.'],
         outputVi: ['Hệ số KMO & Bartlett', 'Tổng phương sai trích', 'Ma trận xoay nhân tố'],
         outputEn: ['KMO & Bartlett tests', 'Total variance explained', 'Rotated factor matrix']
+    },
+    {
+        id: 'ttest',
+        nameVi: 'Kiểm định T-Test độc lập',
+        nameEn: 'Independent Samples T-Test',
+        categoryVi: 'So sánh nhóm',
+        categoryEn: 'Group Comparison',
+        descriptionVi: 'So sánh giá trị trung bình giữa hai nhóm độc lập (Ví dụ: Nam/Nữ).',
+        descriptionEn: 'Compare means between two independent groups (e.g., Male vs Female).',
+        rFunction: 'stats::t.test(var.equal = FALSE)',
+        whenToUseVi: 'Dùng so sánh sự khác biệt của biến số giữa 2 phân loại đối tượng.',
+        whenToUseEn: 'Compare numeric variations between two categorical groups.',
+        stepsVi: [
+            'Chọn menu T-Test.',
+            'Chọn 1 biến phân nhóm (Ví dụ: Giới tính).',
+            'Chọn 1 hoặc nhiều biến định lượng cần kiểm định.',
+            'Nhấn Chạy Phân Tích.'
+        ],
+        stepsEn: [
+            'Select the T-Test menu.',
+            'Choose exactly 1 Grouping Variable (with 2 categories).',
+            'Choose one or more Test Variables (numeric).',
+            'Click Run Analysis.'
+        ],
+        assumptionsVi: ['Biến độc lập có 2 nhóm', 'Biến phụ thuộc phân phối chuẩn', 'Mẫu độc lập'],
+        assumptionsEn: ['Independent variable has 2 levels', 'Normality of DV distribution', 'Independent samples'],
+        outputVi: ['Kiểm định Levene (Phương sai)', 'Giá trị thống kê t, df, p', 'Kích thước ảnh hưởng Cohen\'s d'],
+        outputEn: ['Levene\'s test (Equality of Variance)', 't-statistic, df, p-value', 'Cohen\'s d effect size']
+    },
+    {
+        id: 'anova',
+        nameVi: 'Phân tích phương sai One-way ANOVA',
+        nameEn: 'One-way ANOVA',
+        categoryVi: 'So sánh nhóm',
+        categoryEn: 'Group Comparison',
+        descriptionVi: 'So sánh giá trị trung bình của 3 hoặc nhiều nhóm trở lên.',
+        descriptionEn: 'Compare means across three or more categories.',
+        rFunction: 'stats::aov() or stats::oneway.test()',
+        whenToUseVi: 'Khi biến phân nhóm có từ 3 mức độ trở lên (Ví dụ: Trình độ, Độ tuổi).',
+        whenToUseEn: 'When grouping variable has 3+ levels (e.g., Education, Age group).',
+        stepsVi: [
+            'Chọn menu ANOVA.',
+            'Chọn 1 biến phân nhóm (Factor).',
+            'Chọn 1 biến phụ thuộc định lượng (Dependent).',
+            'Nhấn Chạy ANOVA.'
+        ],
+        stepsEn: [
+            'Select the ANOVA menu.',
+            'Choose 1 Factor (Categorical variable).',
+            'Choose 1 Dependent Variable (Numeric).',
+            'Click Run ANOVA.'
+        ],
+        assumptionsVi: ['Biến phụ thuộc phân phối chuẩn', 'Phương sai đồng nhất', 'Mẫu độc lập'],
+        assumptionsEn: ['Normality of DV', 'Homogeneity of variance', 'Independent samples'],
+        outputVi: ['Bảng ANOVA (F, p)', 'Kiểm định Post-hoc (Tukey/LSD/Games-Howell)', 'Biểu đồ so sánh trung bình'],
+        outputEn: ['ANOVA table (F, p-value)', 'Post-hoc tests (Tukey/LSD)', 'Mean comparison plot']
     },
     {
         id: 'correlation',
@@ -85,6 +177,16 @@ const METHODS: Method[] = [
         rFunction: 'stats::cor.test()',
         whenToUseVi: 'Kiểm tra mối liên hệ sơ bộ giữa các biến trước khi chạy hồi quy.',
         whenToUseEn: 'Check preliminary relationships before regression.',
+        stepsVi: [
+            'Chọn menu Correlation.',
+            'Chọn các biến cần xem xét tương quan.',
+            'Nhấn Chạy Phân Tích.'
+        ],
+        stepsEn: [
+            'Select the Correlation menu.',
+            'Select variables to correlate.',
+            'Click Run Analysis.'
+        ],
         outputVi: ['Hệ số tương quan (r)', 'Mức ý nghĩa (p-value)', 'Ma trận tương quan'],
         outputEn: ['Correlation coefficient (r)', 'Significance (p-value)', 'Correlation matrix']
     },
@@ -99,18 +201,82 @@ const METHODS: Method[] = [
         rFunction: 'stats::lm()',
         whenToUseVi: 'Kiểm tra các giả thuyết về mối quan hệ nhân quả trong mô hình nghiên cứu.',
         whenToUseEn: 'Testing causal hypotheses in research models.',
+        stepsVi: [
+            'Chọn menu Regression.',
+            'Chọn đúng 1 biến phụ thuộc (Y).',
+            'Chọn các biến độc lập (X1, X2...).',
+            'Nhấn Chạy Hồi Quy.'
+        ],
+        stepsEn: [
+            'Select the Regression menu.',
+            'Choose exactly 1 Dependent Variable (Y).',
+            'Choose one or more Independent Variables (X).',
+            'Click Run Regression.'
+        ],
         assumptionsVi: ['Quan hệ tuyến tính', 'Không đa cộng tuyến (VIF < 10)', 'Phần dư phân phối chuẩn'],
         assumptionsEn: ['Linear relationship', 'No multicollinearity (VIF < 10)', 'Normal residuals'],
         outputVi: ['R-Square (Hệ số xác định)', 'Bảng ANOVA', 'Hệ số Beta (chuẩn hóa & chưa chuẩn hóa)'],
         outputEn: ['R-Square (R2)', 'ANOVA table', 'Standardized and Unstandardized Betas']
+    },
+    {
+        id: 'chisquare',
+        nameVi: 'Kiểm định Chi-bình phương',
+        nameEn: 'Chi-Square Test',
+        categoryVi: 'So sánh nhóm',
+        categoryEn: 'Group Comparison',
+        descriptionVi: 'Kiểm tra mối quan hệ giữa hai biến phân loại (định danh).',
+        descriptionEn: 'Test for independence between two categorical variables.',
+        rFunction: 'stats::chisq.test()',
+        whenToUseVi: 'Khi muốn biết liệu hai biến phân loại có phụ thuộc nhau không (Ví dụ: Nhóm khách hàng vs Sở thích).',
+        whenToUseEn: 'To determine if there is a significant association between two categorical variables.',
+        stepsVi: [
+            'Chọn menu Chi-Square.',
+            'Chọn biến hàng (Row).',
+            'Chọn biến cột (Column).',
+            'Nhấn Chạy Kiểm Định.'
+        ],
+        stepsEn: [
+            'Select the Chi-Square menu.',
+            'Select Row variable.',
+            'Select Column variable.',
+            'Click Run Test.'
+        ],
+        outputVi: ['Bảng chéo (Crosstab)', 'Giá trị Chi-square', 'Mức ý nghĩa p-value'],
+        outputEn: ['Contingency table (Crosstab)', 'Chi-square statistic', 'Significance (p-value)']
+    },
+    {
+        id: 'mannwhitney',
+        nameVi: 'Kiểm định phi tham số Mann-Whitney U',
+        nameEn: 'Mann-Whitney U Test',
+        categoryVi: 'So sánh nhóm',
+        categoryEn: 'Group Comparison',
+        descriptionVi: 'So sánh thứ hạng giữa hai nhóm khi dữ liệu khônng đạt chuẩn.',
+        descriptionEn: 'Non-parametric alternative to independent t-test.',
+        rFunction: 'stats::wilcox.test()',
+        whenToUseVi: 'Dùng thay thế T-test khi dữ liệu phân phối không chuẩn hoặc cỡ mẫu quá nhỏ.',
+        whenToUseEn: 'Alternative to T-test when normality is violated or sample size is very small.',
+        stepsVi: [
+            'Chọn menu Mann-Whitney U.',
+            'Chọn biến thứ nhất.',
+            'Chọn biến thứ hai.',
+            'Nhấn Chạy Kiểm Định.'
+        ],
+        stepsEn: [
+            'Select the Mann-Whitney U menu.',
+            'Select Variable 1.',
+            'Select Variable 2.',
+            'Click Run Test.'
+        ],
+        outputVi: ['Thống kê U', 'Mức ý nghĩa p-value', 'Kích thước ảnh hưởng (r)'],
+        outputEn: ['U statistic', 'Significance (p-value)', 'Effect size (r)']
     }
 ];
 
 const CATEGORIES = [
     { nameVi: 'Độ tin cậy & Mô tả', nameEn: 'Reliability & Descriptive', icon: BarChart2, color: 'blue' },
-    { nameVi: 'Cấu trúc & Nhân tố', nameEn: 'Structure & Factor', icon: Layers, color: 'purple' },
-    { nameVi: 'Tương quan & Hồi quy', nameEn: 'Correlation & Regression', icon: TrendingUp, color: 'green' },
     { nameVi: 'So sánh nhóm', nameEn: 'Group Comparison', icon: GitCompare, color: 'orange' },
+    { nameVi: 'Tương quan & Hồi quy', nameEn: 'Correlation & Regression', icon: TrendingUp, color: 'green' },
+    { nameVi: 'Cấu trúc & Nhân tố', nameEn: 'Structure & Factor', icon: Layers, color: 'purple' },
     { nameVi: 'Mô hình nâng cao (SEM/CFA)', nameEn: 'Advanced Models (SEM/CFA)', icon: Network, color: 'teal' }
 ];
 
@@ -254,16 +420,21 @@ export default function DocsPage() {
                                                     </div>
                                                     <div>
                                                         <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
-                                                            <Code className="w-4 h-4" />
-                                                            R-Engine Internal
+                                                            <ListChecks className="w-4 h-4" />
+                                                            {isVi ? 'Quy trình thực hiện' : 'Operational Steps'}
                                                         </h4>
-                                                        <code className="text-[13px] bg-slate-900 text-teal-400 px-3 py-1.5 rounded-lg flex items-center">
-                                                            {method.rFunction}
-                                                        </code>
+                                                        <ol className="space-y-2">
+                                                            {(isVi ? method.stepsVi : method.stepsEn).map((step, i) => (
+                                                                <li key={i} className="text-sm text-slate-600 flex items-start gap-2">
+                                                                    <span className="w-5 h-5 rounded-full bg-slate-200 text-[10px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">{i + 1}</span>
+                                                                    {step}
+                                                                </li>
+                                                            ))}
+                                                        </ol>
                                                     </div>
                                                 </div>
 
-                                                <div className="grid md:grid-cols-2 gap-8 mt-6">
+                                                <div className="grid md:grid-cols-2 gap-8 mt-6 pt-6 border-t border-slate-200/50">
                                                     {method.assumptionsVi && (
                                                         <div>
                                                             <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
@@ -294,6 +465,16 @@ export default function DocsPage() {
                                                             ))}
                                                         </ul>
                                                     </div>
+                                                </div>
+
+                                                <div className="mt-6 pt-6 border-t border-slate-200/50">
+                                                     <h4 className="font-bold text-xs uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
+                                                        <Code className="w-4 h-4" />
+                                                        R-Engine Internal
+                                                    </h4>
+                                                    <code className="text-[13px] bg-slate-900 text-teal-400 px-3 py-1.5 rounded-lg flex items-center w-full overflow-x-auto">
+                                                        {method.rFunction}
+                                                    </code>
                                                 </div>
                                             </div>
                                         )}

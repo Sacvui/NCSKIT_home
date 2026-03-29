@@ -13,6 +13,11 @@ export const translations = {
             login: 'Đăng nhập',
             logout: 'Đăng xuất'
         },
+        // Status labels
+        status: {
+            available: 'Sẵn sàng',
+            coming: 'Sắp ra mắt'
+        },
         // Beta warning
         beta: {
             warning: 'Hệ thống đang trong giai đoạn thử nghiệm (Beta). Vui lòng kiểm tra lại kết quả trước khi sử dụng cho các công bố chính thức.',
@@ -26,6 +31,13 @@ export const translations = {
             description: 'Nền tảng phân tích dữ liệu chuyên sâu, tích hợp R-Engine mạnh mẽ và Trợ lý AI. Chính xác tuyệt đối, bảo mật tối đa, không cần cài đặt.',
             cta: 'Bắt đầu Nghiên cứu',
             learn: 'Quy trình hoạt động'
+        },
+        // PLS-SEM Banner (New)
+        plssem: {
+            badge: 'BETA WORKFLOW',
+            title: 'Tiến trình PLS-SEM 🏗️',
+            description: 'Quy trình phân tích chuyên nghiệp: Làm sạch → Kiểm định → Mô hình → Đào sâu',
+            cta: 'Thử ngay'
         },
         // Workflow (New)
         workflow: {
@@ -136,6 +148,11 @@ export const translations = {
             login: 'Login',
             logout: 'Logout'
         },
+        // Status labels
+        status: {
+            available: 'Available',
+            coming: 'Coming Soon'
+        },
         // Beta warning
         beta: {
             warning: 'System is in Beta testing phase. Please verify results before using for official publications.',
@@ -149,6 +166,13 @@ export const translations = {
             description: 'Professional data analysis platform powered by R-Engine and AI Assistant. Absolute accuracy, maximum security, zero installation.',
             cta: 'Start Researching',
             learn: 'How it works'
+        },
+        // PLS-SEM Banner (New)
+        plssem: {
+            badge: 'BETA WORKFLOW',
+            title: 'PLS-SEM Workflow 🏗️',
+            description: 'Professional analysis workflow: Clean → Test → Model → Insights',
+            cta: 'Try Now'
         },
         // Workflow (New)
         workflow: {

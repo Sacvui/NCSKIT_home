@@ -114,13 +114,13 @@ export default function HomeContent() {
                                 <div className="flex-1 text-center md:text-left">
                                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-yellow-300 text-xs font-bold mb-3 uppercase tracking-wide">
                                         <Sparkles className="w-3 h-3" />
-                                        <span>BETA WORKFLOW</span>
+                                        <span>{t(locale, 'plssem.badge')}</span>
                                     </div>
                                     <h3 className="text-2xl md:text-3xl font-extrabold text-white mb-2">
-                                        PLS-SEM Workflow 🏗️
+                                        {t(locale, 'plssem.title')}
                                     </h3>
                                     <p className="text-purple-100 text-sm md:text-base leading-relaxed">
-                                        Quy trình phân tích chuyên nghiệp: <span className="font-bold text-white">Làm sạch → Kiểm định → Mô hình → Đào sâu</span>
+                                        {t(locale, 'plssem.description')}
                                     </p>
                                     <div className="mt-4 flex flex-wrap gap-2 justify-center md:justify-start">
                                         <span className="px-2 py-1 bg-white/10 rounded text-xs text-white font-medium">McDonald's Omega</span>
@@ -131,7 +131,7 @@ export default function HomeContent() {
                                 </div>
                                 <div className="flex-shrink-0">
                                     <div className="px-6 py-3 bg-white text-purple-600 rounded-lg font-bold hover:bg-purple-50 transition-all shadow-lg group-hover:shadow-xl flex items-center gap-2">
-                                        <span>Thử ngay</span>
+                                        <span>{t(locale, 'plssem.cta')}</span>
                                         <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                                     </div>
                                 </div>
@@ -230,14 +230,14 @@ export default function HomeContent() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {[
-                        { icon: NcsIconReliability, key: 'reliability', color: 'text-blue-600 bg-blue-50', status: 'Available' },
-                        { icon: NcsIconEFA, key: 'efa', color: 'text-purple-600 bg-purple-50', status: 'Available' },
-                        { icon: NcsIconCFA, key: 'cfa', color: 'text-pink-600 bg-pink-50', status: 'Coming Soon' },
-                        { icon: NcsIconSEM, key: 'sem', color: 'text-red-600 bg-red-50', status: 'Coming Soon' },
-                        { icon: NcsIconRegression, key: 'regression', color: 'text-orange-600 bg-orange-50', status: 'Available' },
-                        { icon: NcsIconComparison, key: 'comparison', color: 'text-amber-600 bg-amber-50', status: 'Available' },
-                        { icon: NcsIconCorrelation, key: 'correlation', color: 'text-green-600 bg-green-50', status: 'Available' },
-                        { icon: NcsIconNonParam, key: 'nonparam', color: 'text-teal-600 bg-teal-50', status: 'Available' }
+                        { icon: NcsIconReliability, key: 'reliability', color: 'text-blue-600 bg-blue-50', statusKey: 'available' },
+                        { icon: NcsIconEFA, key: 'efa', color: 'text-purple-600 bg-purple-50', statusKey: 'available' },
+                        { icon: NcsIconCFA, key: 'cfa', color: 'text-pink-600 bg-pink-50', statusKey: 'coming' },
+                        { icon: NcsIconSEM, key: 'sem', color: 'text-red-600 bg-red-50', statusKey: 'coming' },
+                        { icon: NcsIconRegression, key: 'regression', color: 'text-orange-600 bg-orange-50', statusKey: 'available' },
+                        { icon: NcsIconComparison, key: 'comparison', color: 'text-amber-600 bg-amber-50', statusKey: 'available' },
+                        { icon: NcsIconCorrelation, key: 'correlation', color: 'text-green-600 bg-green-50', statusKey: 'available' },
+                        { icon: NcsIconNonParam, key: 'nonparam', color: 'text-teal-600 bg-teal-50', statusKey: 'available' }
                     ].map((item) => (
                         <div key={item.key} className="group bg-white rounded-xl p-4 border border-slate-100 shadow-sm hover:shadow-md hover:border-indigo-100 transition-all cursor-default relative overflow-hidden">
                             <div className="flex items-center gap-4">
@@ -248,8 +248,8 @@ export default function HomeContent() {
                                     <h4 className="text-sm font-bold text-slate-800 group-hover:text-indigo-700 transition-colors truncate">
                                         {t(locale, `methods.${item.key}`)}
                                     </h4>
-                                    <p className={`text-[10px] mt-0.5 font-medium uppercase tracking-wider ${item.status === 'Coming Soon' ? 'text-amber-500' : 'text-slate-400'}`}>
-                                        {item.status}
+                                    <p className={`text-[10px] mt-0.5 font-medium uppercase tracking-wider ${item.statusKey === 'coming' ? 'text-amber-500' : 'text-slate-400'}`}>
+                                        {t(locale, `status.${item.statusKey}`)}
                                     </p>
 
                                 </div>
