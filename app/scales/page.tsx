@@ -102,7 +102,7 @@ export default function ScaleHubPage() {
         }
     };
 
-    const categories = ['All', 'Economics', 'Marketing', 'HR', 'Logistics', 'MIS', 'Accounting', 'Innovation'];
+    const categories = ['All', 'Economics', 'Marketing', 'HR', 'Logistics', 'MIS', 'Accounting', 'Innovation', 'Tourism'];
 
     const handleExpandScale = (id: string) => {
         if (!session) {
