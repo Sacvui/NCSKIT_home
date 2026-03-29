@@ -102,7 +102,7 @@ export default function ScaleHubPage() {
         }
     };
 
-    const categories = ['All', 'Economics', 'Marketing', 'HR', 'Logistics', 'MIS', 'Accounting', 'Innovation', 'Tourism'];
+    const categories = ['All', 'Economics', 'Marketing', 'HR', 'Logistics', 'MIS', 'Accounting', 'Innovation', 'Tourism', 'Modern (2020+)'];
 
     const handleExpandScale = (id: string) => {
         if (!session) {
@@ -120,18 +120,22 @@ export default function ScaleHubPage() {
                 scale.author?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 scale.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
             
-            const matchesCategory = selectedCategory === 'All' || scale.category.includes(selectedCategory);
+            const matchesCategory = selectedCategory === 'All' || 
+                                    scale.category.includes(selectedCategory) ||
+                                    (selectedCategory === 'Modern (2020+)' && scale.tags?.includes('Modern (2020+)'));
             
             let matchesAdvisor = true;
             if (advisorSelection) {
                 if (advisorSelection === 'acceptance') {
-                    matchesAdvisor = scale.tags?.some(t => ['Technology', 'Acceptance', 'Behavior', 'Intent'].includes(t)) || false;
+                    matchesAdvisor = scale.tags?.some(t => ['Technology', 'Acceptance', 'Behavior', 'Intent', 'AI', 'ChatGPT'].includes(t)) || false;
                 } else if (advisorSelection === 'service') {
-                    matchesAdvisor = scale.tags?.some(t => ['Service', 'Quality', 'Satisfaction', 'Signal', 'Communication'].includes(t)) || false;
+                    matchesAdvisor = scale.tags?.some(t => ['Service', 'Quality', 'Satisfaction', 'Signal', 'Communication', 'Chatbot'].includes(t)) || false;
                 } else if (advisorSelection === 'hr') {
-                    matchesAdvisor = scale.category.includes('HR') || scale.tags?.some(t => ['Leadership', 'Employee', 'Trust', 'Transparency'].includes(t)) || false;
+                    matchesAdvisor = scale.category.includes('HR') || scale.tags?.some(t => ['Leadership', 'Employee', 'Trust', 'Transparency', 'Remote Work', 'Zoom Fatigue'].includes(t)) || false;
                 } else if (advisorSelection === 'systems') {
-                    matchesAdvisor = scale.category.some(cat => ['Logistics', 'MIS'].includes(cat));
+                    matchesAdvisor = scale.category.some(cat => ['Logistics', 'MIS'].includes(cat)) || (scale.tags?.includes('Digitalization') ?? false);
+                } else if (advisorSelection === 'modern') {
+                    matchesAdvisor = scale.tags?.includes('Modern (2020+)') ?? false;
                 }
             }
 
@@ -195,7 +199,8 @@ export default function ScaleHubPage() {
                                     { id: 'acceptance', icon: <Cpu className="w-6 h-6" />, label: t(locale, 'scales.advisor.opt1') },
                                     { id: 'service', icon: <Sparkles className="w-6 h-6" />, label: t(locale, 'scales.advisor.opt2') },
                                     { id: 'hr', icon: <UserCheck className="w-6 h-6" />, label: t(locale, 'scales.advisor.opt3') },
-                                    { id: 'systems', icon: <Settings className="w-6 h-6" />, label: t(locale, 'scales.advisor.opt4') }
+                                    { id: 'systems', icon: <Settings className="w-6 h-6" />, label: t(locale, 'scales.advisor.opt4') },
+                                    { id: 'modern', icon: <Target className="w-6 h-6" />, label: t(locale, 'scales.advisor.modern') }
                                 ].map(opt => (
                                     <button
                                         key={opt.id}

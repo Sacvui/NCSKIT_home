@@ -149,9 +149,11 @@ export const translations = {
             marketing: 'Marketing',
             hr: 'Nhân sự',
             logistics: 'Logistics & SCM',
-            mis: 'MIS & Digital',
+            mis: 'MIS & Kỹ thuật số',
             accounting: 'Kế toán & Kiểm toán',
             innovation: 'Đổi mới & Chiến lược',
+            tourism: 'Du lịch & Khách sạn',
+            'modern (2020+)': 'Nghiên cứu Hiện đại (2020+)',
             author: 'Tác giả',
             year: 'Năm',
             items: 'Số câu hỏi',
@@ -168,6 +170,7 @@ export const translations = {
                 opt2: 'Đánh giá chất lượng/hiệu quả dịch vụ',
                 opt3: 'Phân tích nhân sự/tổ chức/lãnh đạo',
                 opt4: 'Hệ thống/Quản trị Logistics & MIS',
+                modern: 'Nghiên cứu Hiện đại (AI/Digital/Hybrid)',
                 resultText: 'Dựa trên mục tiêu của bạn, chúng tôi đề xuất:',
                 loginRequired: 'Vui lòng đăng nhập để xem chi tiết câu hỏi'
             }
@@ -321,6 +324,8 @@ export const translations = {
             mis: 'MIS & Digital',
             accounting: 'Accounting & Finance',
             innovation: 'Innovation & Strategy',
+            tourism: 'Tourism & Hospitality',
+            'modern (2020+)': 'Modern Research (2020+)',
             author: 'Author',
             year: 'Year',
             items: 'Items',
@@ -337,6 +342,7 @@ export const translations = {
                 opt2: 'Evaluating service quality / performance',
                 opt3: 'Analyzing HR / Organization / Leadership',
                 opt4: 'Logistics Systems & MIS Management',
+                modern: 'Modern Research (AI/Digital/Hybrid)',
                 resultText: 'Based on your goal, we recommend:',
                 loginRequired: 'Please login to view scale items'
             }
