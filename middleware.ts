@@ -9,7 +9,17 @@ export async function middleware(request: NextRequest) {
     if (host.includes('stat.ncskit.org') && !host.includes('ncsstat.ncskit.org')) {
         console.log(`[Middleware] Redirecting from ${host} to ncsstat.ncskit.org`)
         url.hostname = 'ncsstat.ncskit.org'
+        url.protocol = 'https:'
         url.port = '' // Ensure port is stripped in production
+        return NextResponse.redirect(url, { status: 301 })
+    }
+
+    // FORCE HTTPS in production for all routes to ensure Secure cookies work
+    const forwardedProto = request.headers.get('x-forwarded-proto')
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1'
+    
+    if (isProduction && forwardedProto === 'http') {
+        url.protocol = 'https:'
         return NextResponse.redirect(url, { status: 301 })
     }
 

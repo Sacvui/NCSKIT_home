@@ -3,11 +3,14 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
-    const { searchParams, origin } = new URL(request.url);
+    const { searchParams } = new URL(request.url);
     const code = searchParams.get('code');
     const next = searchParams.get('next') ?? '/analyze';
+    
+    // Use the site URL from environment variables to ensure correct protocol (https) in production
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
 
-    console.log('[Auth Callback Route] Processing exchange using standard cookies store...');
+    console.log(`[Auth Callback Route] Processing exchange. Code: ${code ? 'present' : 'missing'}, Next: ${next}, SiteUrl: ${siteUrl}`);
 
     if (code) {
         const cookieStore = await cookies();
@@ -23,10 +26,9 @@ export async function GET(request: Request) {
                     setAll(cookiesToSet) {
                         try {
                             cookiesToSet.forEach(({ name, value, options }) =>
-                            cookieStore.set(name, value, options)
+                                cookieStore.set(name, value, options)
                             );
                         } catch (err) {
-                            // This catch is expected in some server environments
                             console.warn('[Auth Callback Route] setAll error (ignored):', err);
                         }
                     },
@@ -37,13 +39,13 @@ export async function GET(request: Request) {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         
         if (!error) {
-            console.log('[Auth Callback Route] Exchange successful.');
-            return NextResponse.redirect(`${origin}${next}`);
+            console.log('[Auth Callback Route] Exchange successful. Redirecting to:', `${siteUrl}${next}`);
+            return NextResponse.redirect(`${siteUrl}${next}`);
         } else {
             console.error('[Auth Callback Route] Exchange error:', error.message);
-            return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error.message)}`);
+            return NextResponse.redirect(`${siteUrl}/login?error=${encodeURIComponent(error.message)}`);
         }
     }
 
-    return NextResponse.redirect(`${origin}/login?error=no_code`);
+    return NextResponse.redirect(`${siteUrl}/login?error=no_code`);
 }

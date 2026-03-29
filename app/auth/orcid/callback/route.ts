@@ -61,17 +61,17 @@ export async function GET(request: NextRequest) {
         );
     }
 
-    const origin = request.nextUrl.origin;
-    const redirectUri = `${origin}/auth/orcid/callback`;
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || request.nextUrl.origin;
+    const redirectUri = `${siteUrl}/auth/orcid/callback`;
 
     try {
         // Exchange code for tokens
-        console.log('[ORCID Callback] Exchanging code for tokens');
+        console.log('[ORCID Callback] Exchanging code for tokens. RedirectUri:', redirectUri);
         const tokenData = await exchangeOrcidCode(code, redirectUri);
         if (!tokenData) {
             console.error('[ORCID Callback] Token exchange failed');
             return NextResponse.redirect(
-                new URL('/login?error=orcid_token_exchange_failed', request.url)
+                new URL('/login?error=orcid_token_exchange_failed', siteUrl)
             );
         }
 
@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
         if (!profile) {
             console.error('[ORCID Callback] Profile fetch failed');
             return NextResponse.redirect(
-                new URL('/login?error=orcid_profile_failed', request.url)
+                new URL('/login?error=orcid_profile_failed', siteUrl)
             );
         }
 
@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
         if (profileError && profileError.code !== 'PGRST116') {
             console.error('[ORCID Callback] Database error checking profile:', profileError);
             return NextResponse.redirect(
-                new URL('/login?error=database_error', request.url)
+                new URL('/login?error=database_error', siteUrl)
             );
         }
 
@@ -118,10 +118,10 @@ export async function GET(request: NextRequest) {
                 .eq('id', existingProfile.id);
 
             // Create a secure session cookie
-            const response = NextResponse.redirect(new URL(nextUrl, request.url));
+            const response = NextResponse.redirect(new URL(nextUrl, siteUrl));
             response.cookies.set('orcid_user', existingProfile.id, {
                 httpOnly: true, // Secure: Prevent XSS attacks
-                secure: process.env.NODE_ENV === 'production',
+                secure: true, // Force secure since we are forcing https redirect
                 sameSite: 'lax',
                 maxAge: 60 * 60 * 24 * 7, // 1 week
                 path: '/',
@@ -136,7 +136,7 @@ export async function GET(request: NextRequest) {
         // New ORCID user - redirect to complete profile
         // Store ORCID data temporarily for registration
         const response = NextResponse.redirect(
-            new URL(`/auth/complete-profile?orcid=${tokenData.orcid}&name=${encodeURIComponent(profile.name)}`, request.url)
+            new URL(`/auth/complete-profile?orcid=${tokenData.orcid}&name=${encodeURIComponent(profile.name)}`, siteUrl)
         );
 
         response.cookies.set('orcid_pending', JSON.stringify({
@@ -146,7 +146,7 @@ export async function GET(request: NextRequest) {
             // access_token removed for security - will re-fetch if needed
         }), {
             httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
+            secure: true, // Force secure
             sameSite: 'lax',
             maxAge: 60 * 10, // 10 minutes
             path: '/',
@@ -157,7 +157,7 @@ export async function GET(request: NextRequest) {
     } catch (error: any) {
         console.error('[ORCID Callback] Unexpected error:', error);
         return NextResponse.redirect(
-            new URL(`/login?error=${encodeURIComponent('Lỗi ORCID không mong muốn: ' + error.message)}`, request.url)
+            new URL(`/login?error=${encodeURIComponent('Lỗi ORCID không mong muốn: ' + error.message)}`, siteUrl)
         );
     }
 }
