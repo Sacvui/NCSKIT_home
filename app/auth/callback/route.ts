@@ -7,7 +7,11 @@ export async function GET(request: Request) {
     const code = searchParams.get('code');
     const next = searchParams.get('next') ?? '/analyze';
     
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
+    // Explicitly check for host to handle production redirects
+    const host = request.headers.get('host') || 'ncsstat.ncskit.org';
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || `https://${host}`;
+    
+    // Create the redirect response first
     let response = NextResponse.redirect(`${siteUrl}${next}`);
 
     console.log(`[Auth Callback Route] Processing exchange. Code: ${code ? 'present' : 'missing'}, Next: ${next}, SiteUrl: ${siteUrl}`);
@@ -25,10 +29,19 @@ export async function GET(request: Request) {
                     },
                     setAll(cookiesToSet) {
                         try {
-                            // Update both the underlying cookie store and the response object
+                            console.log('[Auth Callback Route] Setting cookies from exchange successfully.');
                             cookiesToSet.forEach(({ name, value, options }) => {
-                                cookieStore.set(name, value, options);
-                                response.cookies.set(name, value, options);
+                                // Strip domain to avoid cross-subdomain issues, force secure and lax
+                                const cookieOptions = {
+                                    ...options,
+                                    domain: '', // Force null to use current host
+                                    secure: true,
+                                    sameSite: 'lax' as const,
+                                    path: '/',
+                                };
+                                
+                                cookieStore.set(name, value, cookieOptions);
+                                response.cookies.set(name, value, cookieOptions);
                             });
                         } catch (err) {
                             console.warn('[Auth Callback Route] setAll error (ignored):', err);
@@ -41,10 +54,11 @@ export async function GET(request: Request) {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         
         if (!error) {
-            console.log('[Auth Callback Route] Exchange successful. Redirecting to:', `${siteUrl}${next}`);
+            console.log('[Auth Callback Route] Exchange successful. Cookies set. Redirecting to:', `${siteUrl}${next}`);
             return response;
         } else {
             console.error('[Auth Callback Route] Exchange error:', error.message);
+            // On error, we still want to redirect but to the login page with the error
             return NextResponse.redirect(`${siteUrl}/login?error=${encodeURIComponent(error.message)}`);
         }
     }
