@@ -112,9 +112,9 @@ export default function HomeContent() {
 
                             <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
                                 <div className="flex-1 text-center md:text-left">
-                                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-white text-xs font-bold mb-3 uppercase tracking-wide">
+                                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-yellow-300 text-xs font-bold mb-3 uppercase tracking-wide">
                                         <Sparkles className="w-3 h-3" />
-                                        <span>NEW WORKFLOW</span>
+                                        <span>BETA WORKFLOW</span>
                                     </div>
                                     <h3 className="text-2xl md:text-3xl font-extrabold text-white mb-2">
                                         PLS-SEM Workflow 🏗️
@@ -230,16 +230,16 @@ export default function HomeContent() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {[
-                        { icon: NcsIconReliability, key: 'reliability', color: 'text-blue-600 bg-blue-50' },
-                        { icon: NcsIconEFA, key: 'efa', color: 'text-purple-600 bg-purple-50' },
-                        { icon: NcsIconCFA, key: 'cfa', color: 'text-pink-600 bg-pink-50' },
-                        { icon: NcsIconSEM, key: 'sem', color: 'text-red-600 bg-red-50' },
-                        { icon: NcsIconRegression, key: 'regression', color: 'text-orange-600 bg-orange-50' },
-                        { icon: NcsIconComparison, key: 'comparison', color: 'text-amber-600 bg-amber-50' },
-                        { icon: NcsIconCorrelation, key: 'correlation', color: 'text-green-600 bg-green-50' },
-                        { icon: NcsIconNonParam, key: 'nonparam', color: 'text-teal-600 bg-teal-50' }
+                        { icon: NcsIconReliability, key: 'reliability', color: 'text-blue-600 bg-blue-50', status: 'Available' },
+                        { icon: NcsIconEFA, key: 'efa', color: 'text-purple-600 bg-purple-50', status: 'Available' },
+                        { icon: NcsIconCFA, key: 'cfa', color: 'text-pink-600 bg-pink-50', status: 'Coming Soon' },
+                        { icon: NcsIconSEM, key: 'sem', color: 'text-red-600 bg-red-50', status: 'Coming Soon' },
+                        { icon: NcsIconRegression, key: 'regression', color: 'text-orange-600 bg-orange-50', status: 'Available' },
+                        { icon: NcsIconComparison, key: 'comparison', color: 'text-amber-600 bg-amber-50', status: 'Available' },
+                        { icon: NcsIconCorrelation, key: 'correlation', color: 'text-green-600 bg-green-50', status: 'Available' },
+                        { icon: NcsIconNonParam, key: 'nonparam', color: 'text-teal-600 bg-teal-50', status: 'Available' }
                     ].map((item) => (
-                        <div key={item.key} className="group bg-white rounded-xl p-4 border border-slate-100 shadow-sm hover:shadow-md hover:border-indigo-100 transition-all cursor-default">
+                        <div key={item.key} className="group bg-white rounded-xl p-4 border border-slate-100 shadow-sm hover:shadow-md hover:border-indigo-100 transition-all cursor-default relative overflow-hidden">
                             <div className="flex items-center gap-4">
                                 <div className={`w-12 h-12 ${item.color} rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}>
                                     <item.icon size={24} strokeWidth={1.5} />
@@ -248,7 +248,10 @@ export default function HomeContent() {
                                     <h4 className="text-sm font-bold text-slate-800 group-hover:text-indigo-700 transition-colors truncate">
                                         {t(locale, `methods.${item.key}`)}
                                     </h4>
-                                    <p className="text-[10px] text-slate-400 mt-0.5 font-medium uppercase tracking-wider">Available</p>
+                                    <p className={`text-[10px] mt-0.5 font-medium uppercase tracking-wider ${item.status === 'Coming Soon' ? 'text-amber-500' : 'text-slate-400'}`}>
+                                        {item.status}
+                                    </p>
+
                                 </div>
                             </div>
                         </div>
