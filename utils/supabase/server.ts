@@ -24,7 +24,13 @@ export async function createClient() {
                     try {
                         console.log('[Supabase Server] Setting cookies:', cookiesToSet.map(c => c.name))
                         cookiesToSet.forEach(({ name, value, options }) =>
-                            cookieStore.set(name, value, options)
+                            cookieStore.set(name, value, {
+                                ...options,
+                                domain: '.ncskit.org',
+                                secure: process.env.NODE_ENV === 'production' || process.env.VERCEL === '1',
+                                sameSite: 'lax',
+                                path: '/',
+                            })
                         )
                     } catch (error) {
                         // The `setAll` method was called from a Server Component.

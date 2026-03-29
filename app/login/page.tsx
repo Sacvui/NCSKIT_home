@@ -67,9 +67,18 @@ function LoginForm() {
             const supabase = getSupabase()
             // ALWAYS redirect to the primary production domain to avoid cookie/session mismatches
             const origin = window.location.origin
+            const isProduction = origin.includes('ncskit.org')
+            const siteUrl = isProduction ? 'https://ncsstat.ncskit.org' : origin
 
-            const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(next || '/analyze')}`
-            console.log('Redirecting to:', redirectTo)
+            const redirectTo = `${siteUrl}/auth/callback?next=${encodeURIComponent(next || '/analyze')}`
+            console.log('[Login Debug] Initiating Auth Flow:', {
+                provider,
+                origin,
+                siteUrl,
+                redirectTo,
+                isHttps: window.location.protocol === 'https:',
+                env: process.env.NODE_ENV
+            })
 
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: provider,
@@ -83,14 +92,13 @@ function LoginForm() {
             })
 
             if (error) {
-                console.error('OAuth error:', error)
-                setErrorMsg(error.message)
+                console.error('[Login Debug] OAuth error caught:', error)
+                setErrorMsg(`Auth Error: ${error.message} (${error.name})`)
                 setLoading(null)
             } else {
-                console.log('OAuth initiated successfully', data)
-                // Manually redirect if data.url is provided (sometimes needed for specific browser behaviors)
+                console.log('[Login Debug] OAuth redirect data:', data)
                 if (data.url) {
-                    console.log('Manual redirecting to:', data.url)
+                    console.log('[Login Debug] Manual redirecting to Supabase flow:', data.url)
                     window.location.href = data.url
                 }
             }
