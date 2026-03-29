@@ -7,8 +7,8 @@ export async function GET(request: Request) {
     const code = searchParams.get('code');
     const next = searchParams.get('next') ?? '/analyze';
     
-    // Use the site URL from environment variables to ensure correct protocol (https) in production
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || new URL(request.url).origin;
+    let response = NextResponse.redirect(`${siteUrl}${next}`);
 
     console.log(`[Auth Callback Route] Processing exchange. Code: ${code ? 'present' : 'missing'}, Next: ${next}, SiteUrl: ${siteUrl}`);
 
@@ -25,9 +25,11 @@ export async function GET(request: Request) {
                     },
                     setAll(cookiesToSet) {
                         try {
-                            cookiesToSet.forEach(({ name, value, options }) =>
-                                cookieStore.set(name, value, options)
-                            );
+                            // Update both the underlying cookie store and the response object
+                            cookiesToSet.forEach(({ name, value, options }) => {
+                                cookieStore.set(name, value, options);
+                                response.cookies.set(name, value, options);
+                            });
                         } catch (err) {
                             console.warn('[Auth Callback Route] setAll error (ignored):', err);
                         }
@@ -40,7 +42,7 @@ export async function GET(request: Request) {
         
         if (!error) {
             console.log('[Auth Callback Route] Exchange successful. Redirecting to:', `${siteUrl}${next}`);
-            return NextResponse.redirect(`${siteUrl}${next}`);
+            return response;
         } else {
             console.error('[Auth Callback Route] Exchange error:', error.message);
             return NextResponse.redirect(`${siteUrl}/login?error=${encodeURIComponent(error.message)}`);
