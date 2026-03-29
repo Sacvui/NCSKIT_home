@@ -33,10 +33,9 @@ export function getSupabase() {
                 supabaseAnonKey,
                 {
                     cookieOptions: {
-                        domain: '',
                         path: '/',
                         sameSite: 'lax',
-                        secure: (typeof window !== 'undefined' && window.location.protocol === 'https:') || process.env.NODE_ENV === 'production'
+                        secure: typeof window !== 'undefined' && (window.location.protocol === 'https:' || process.env.NODE_ENV === 'production')
                     }
                 }
             )

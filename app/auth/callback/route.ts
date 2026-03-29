@@ -6,15 +6,21 @@ export async function GET(request: Request) {
     const code = searchParams.get('code');
     const next = searchParams.get('next') ?? '/analyze';
     
-    // Determine the definitive site URL. 
-    // On Vercel production, we MUST use https and the configured domain.
-    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
-    const siteUrl = isProduction ? 'https://ncsstat.ncskit.org' : origin;
+    // Use absolute site URL for production to avoid protocol/host mismatches in redirects
+    const host = request.headers.get('host') || '';
+    const protocol = (request.headers.get('x-forwarded-proto') || 'https').split(',')[0];
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1' || host.includes('ncskit.org');
+    
+    // Fallback to origin but prioritize the production domain if we know we are there
+    let siteUrl = `${protocol}://${host}`;
+    if (isProduction && !host.includes('localhost')) {
+        siteUrl = 'https://ncsstat.ncskit.org';
+    }
     
     // Ensure redirectUrl is absolute and uses the correct host/protocol
     const redirectUrl = new URL(next, siteUrl);
 
-    console.log(`[Auth Callback] Processing exchange. Origin: ${origin}, siteUrl: ${siteUrl}, Code: ${code ? 'present' : 'missing'}`);
+    console.log(`[Auth Callback] Processing exchange. Proto: ${protocol}, Host: ${host}, siteUrl: ${siteUrl}, Code: ${code ? 'present' : 'missing'}`);
 
     if (code) {
         const supabase = await createClient();
@@ -24,12 +30,13 @@ export async function GET(request: Request) {
             console.log('[Auth Callback] Exchange successful. Redirecting to:', redirectUrl.toString());
             return NextResponse.redirect(redirectUrl.toString());
         } else {
-            console.error('[Auth Callback] Exchange error:', error.message);
+            console.error('[Auth Callback] Exchange error:', error.message, error.name);
             const errorUrl = new URL('/login', siteUrl);
             errorUrl.searchParams.set('error', error.message);
             // Include extra info for debugging PKCE errors
-            if (error.message.includes('verifier')) {
-                errorUrl.searchParams.set('auth_reason', 'pkce_verifier_error');
+            if (error.message.includes('verifier') || error.message.includes('found')) {
+                errorUrl.searchParams.set('auth_code', 'pkce_missing');
+                errorUrl.searchParams.set('debug_host', host);
             }
             return NextResponse.redirect(errorUrl.toString());
         }
