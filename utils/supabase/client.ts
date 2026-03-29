@@ -33,10 +33,10 @@ export function getSupabase() {
                 supabaseAnonKey,
                 {
                     cookieOptions: {
-                        domain: (process.env.NEXT_PUBLIC_SITE_URL?.includes('ncskit.org')) ? '.ncskit.org' : undefined,
+                        domain: '',
                         path: '/',
                         sameSite: 'lax',
-                        secure: true
+                        secure: (typeof window !== 'undefined' && window.location.protocol === 'https:') || process.env.NODE_ENV === 'production'
                     }
                 }
             )
