@@ -4,22 +4,21 @@ import { updateSession } from '@/utils/supabase/middleware'
 export async function middleware(request: NextRequest) {
     const url = request.nextUrl.clone()
     const host = request.headers.get('host') || ''
+    const forwardedProto = request.headers.get('x-forwarded-proto')
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1'
     
-    // FORCE PRIMARY DOMAIN: Avoid PKCE/Cookie mismatch between stat.ncskit.org and ncsstat.ncskit.org
+    // 1. FORCE HTTPS: Core security - secure cookies won't be sent over HTTP
+    if (isProduction && forwardedProto === 'http') {
+        url.protocol = 'https:'
+        return NextResponse.redirect(url, { status: 301 })
+    }
+
+    // 2. FORCE PRIMARY DOMAIN: Avoid PKCE/Cookie mismatch between stat.ncskit.org and ncsstat.ncskit.org
     if (host.includes('stat.ncskit.org') && !host.includes('ncsstat.ncskit.org')) {
         console.log(`[Middleware] Redirecting from ${host} to ncsstat.ncskit.org`)
         url.hostname = 'ncsstat.ncskit.org'
         url.protocol = 'https:'
         url.port = '' // Ensure port is stripped in production
-        return NextResponse.redirect(url, { status: 301 })
-    }
-
-    // FORCE HTTPS in production for all routes to ensure Secure cookies work
-    const forwardedProto = request.headers.get('x-forwarded-proto')
-    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1'
-    
-    if (isProduction && forwardedProto === 'http') {
-        url.protocol = 'https:'
         return NextResponse.redirect(url, { status: 301 })
     }
 
