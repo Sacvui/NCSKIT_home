@@ -174,6 +174,26 @@ export const translations = {
                 resultText: 'Dựa trên mục tiêu của bạn, chúng tôi đề xuất:',
                 loginRequired: 'Vui lòng đăng nhập để xem chi tiết câu hỏi'
             }
+        },
+        // Docs Page
+        docs: {
+            tabs: {
+                theory: 'Lý thuyết Thống kê',
+                casestudy: 'Kịch bản Nghiên cứu',
+                userguide: 'Hướng dẫn Sử dụng'
+            },
+            theory: {
+                title: 'Nền tảng Thống kê và Giải thích Kết quả',
+                subtitle: 'Phân tích sâu các khái niệm then chốt nhằm hỗ trợ diễn giải dữ liệu khoa học.'
+            },
+            casestudy: {
+                title: 'Quy trình Nghiên cứu và Công bố Quốc tế',
+                subtitle: 'Hướng dẫn phối hợp các phương pháp phân tích để hoàn thiện bài nghiên cứu chuẩn APA.'
+            },
+            userguide: {
+                title: 'Hướng dẫn Vận hành Hệ thống ncsStat',
+                subtitle: 'Các bước thao tác chi tiết cho từng tính năng phân tích và xử lý dữ liệu.'
+            }
         }
     },
     en: {
@@ -345,6 +365,26 @@ export const translations = {
                 modern: 'Modern Research (AI/Digital/Hybrid)',
                 resultText: 'Based on your goal, we recommend:',
                 loginRequired: 'Please login to view scale items'
+            }
+        },
+        // Docs Page
+        docs: {
+            tabs: {
+                theory: 'Statistical Theory',
+                casestudy: 'Research Scenarios',
+                userguide: 'User Guide'
+            },
+            theory: {
+                title: 'Statistical Foundations and Interpretation',
+                subtitle: 'In-depth analysis of key concepts to support scientific data interpretation.'
+            },
+            casestudy: {
+                title: 'Research Workflow and International Publication',
+                subtitle: 'Guidance on coordinating analysis methods to complete an APA-standard research paper.'
+            },
+            userguide: {
+                title: 'ncsStat System Operation Guide',
+                subtitle: 'Detailed operational steps for each analysis and data processing feature.'
             }
         }
     }
