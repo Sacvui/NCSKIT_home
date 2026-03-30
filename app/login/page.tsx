@@ -65,10 +65,10 @@ function LoginForm() {
         setErrorMsg(null)
         try {
             const supabase = getSupabase()
-            // ALWAYS redirect to the primary production domain to avoid cookie/session mismatches
             const origin = window.location.origin
-            const isProduction = origin.includes('ncskit.org')
-            const siteUrl = isProduction ? 'https://ncsstat.ncskit.org' : origin
+            const isLocalhost = origin.includes('localhost')
+            // Only force the primary production domain if we are clearly on a production sub-environment
+            const siteUrl = isLocalhost ? origin : origin.replace('stat.ncskit.org', 'ncsstat.ncskit.org')
 
             const redirectTo = `${siteUrl}/auth/callback?next=${encodeURIComponent(next || '/analyze')}`
             console.log('[Login Debug] Initiating Auth Flow:', {
@@ -77,7 +77,6 @@ function LoginForm() {
                 siteUrl,
                 redirectTo,
                 isHttps: window.location.protocol === 'https:',
-                env: process.env.NODE_ENV
             })
 
             const { data, error } = await supabase.auth.signInWithOAuth({

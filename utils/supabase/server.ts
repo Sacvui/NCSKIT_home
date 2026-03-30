@@ -22,26 +22,25 @@ export async function createClient() {
                 },
                 setAll(cookiesToSet) {
                     try {
-                        console.log('[Supabase Server] Setting cookies:', cookiesToSet.map(c => c.name))
+                        const isProd = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1'
+                        const domain = isProd ? '.ncskit.org' : undefined
+
                         cookiesToSet.forEach(({ name, value, options }) =>
                             cookieStore.set(name, value, {
                                 ...options,
-                                domain: '.ncskit.org',
-                                secure: process.env.NODE_ENV === 'production' || process.env.VERCEL === '1',
+                                domain: name.includes('supabase') ? domain : options?.domain,
+                                secure: isProd,
                                 sameSite: 'lax',
                                 path: '/',
                             })
                         )
                     } catch (error) {
-                        // The `setAll` method was called from a Server Component.
-                        // This can be ignored if you have middleware refreshing
-                        // user sessions.
                         console.error('[Supabase Server] Error setting cookies:', error)
                     }
                 },
             },
             cookieOptions: {
-                domain: '.ncskit.org',
+                domain: process.env.NODE_ENV === 'production' ? '.ncskit.org' : undefined,
                 sameSite: 'lax',
                 secure: process.env.NODE_ENV === 'production' || process.env.VERCEL === '1',
                 path: '/',

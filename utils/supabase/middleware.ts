@@ -2,10 +2,10 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 // Routes that require full user verification (server-side getUser)
-const PROTECTED_ROUTES = ['/analyze', '/profile', '/admin']
+const PROTECTED_ROUTES = ['/profile', '/admin']
 
 // Routes that can skip auth check entirely (public)
-const PUBLIC_ROUTES = ['/', '/login', '/terms', '/privacy', '/docs', '/methods', '/auth']
+const PUBLIC_ROUTES = ['/', '/login', '/terms', '/privacy', '/docs', '/methods', '/auth', '/analyze', '/scales']
 
 export async function updateSession(request: NextRequest) {
     let response = NextResponse.next({
@@ -60,10 +60,11 @@ export async function updateSession(request: NextRequest) {
                         response = NextResponse.next({
                             request,
                         })
+                        const domain = isProduction && request.nextUrl.hostname.includes('ncskit.org') ? '.ncskit.org' : undefined
                         cookiesToSet.forEach(({ name, value, options }) =>
                             response.cookies.set(name, value, {
                                 ...options,
-                                domain: '.ncskit.org',
+                                domain,
                                 secure: useSecureCookies,
                                 sameSite: 'lax',
                                 path: '/',
@@ -72,7 +73,7 @@ export async function updateSession(request: NextRequest) {
                     },
                 },
                 cookieOptions: {
-                    domain: '.ncskit.org',
+                    domain: isProduction && request.nextUrl.hostname.includes('ncskit.org') ? '.ncskit.org' : undefined,
                     secure: useSecureCookies,
                     sameSite: 'lax',
                     path: '/',

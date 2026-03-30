@@ -28,12 +28,15 @@ export function getSupabase() {
             )
         } else {
             console.log('[Supabase Client] Initializing with environment variables')
+            const isProd = process.env.NODE_ENV === 'production' || 
+                           (typeof window !== 'undefined' && window.location.hostname.includes('ncskit.org'));
+            
             supabaseInstance = createBrowserClient(
                 supabaseUrl, 
                 supabaseAnonKey,
                 {
                     cookieOptions: {
-                        domain: '.ncskit.org',
+                        domain: isProd ? '.ncskit.org' : undefined,
                         path: '/',
                         sameSite: 'lax',
                         secure: typeof window !== 'undefined' && (window.location.protocol === 'https:' || process.env.NODE_ENV === 'production')

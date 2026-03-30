@@ -105,10 +105,6 @@ export default function ScaleHubPage() {
     const categories = ['All', 'Economics', 'Marketing', 'HR', 'Logistics', 'MIS', 'Accounting', 'Innovation', 'Tourism', 'Modern (2020+)'];
 
     const handleExpandScale = (id: string) => {
-        if (!session) {
-            router.push(`/login?next=/scales&auth_reason=view_scale`);
-            return;
-        }
         setExpandedScale(expandedScale === id ? null : id);
     };
 
@@ -231,12 +227,7 @@ export default function ScaleHubPage() {
                         </div>
                     )}
 
-                    {!session && (
-                        <div className="mb-8 p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-3 text-amber-700">
-                            <Lock className="w-5 h-5 flex-shrink-0" />
-                            <p className="text-sm font-medium">{t(locale, 'scales.advisor.loginRequired')}</p>
-                        </div>
-                    )}
+                    {/* {t(locale, 'scales.advisor.loginRequired')} - Temporarily disabled */}
 
                     <div className="bg-white p-6 rounded-2xl shadow-xl border border-slate-200 mb-12 flex flex-col lg:flex-row gap-6">
                         <div className="relative flex-1">
@@ -340,7 +331,6 @@ export default function ScaleHubPage() {
                                                 : 'text-indigo-600 hover:bg-indigo-50'
                                             }`}
                                         >
-                                            {!session && <Lock className="w-3.5 h-3.5" />}
                                             {expandedScale === scale.id ? (isVi ? 'Đóng chi tiết' : 'Close details') : (isVi ? 'Xem câu hỏi' : 'View Scale')}
                                         </button>
                                         <div className="flex items-center gap-4">
@@ -350,7 +340,7 @@ export default function ScaleHubPage() {
                                         </div>
                                     </div>
 
-                                    {expandedScale === scale.id && session && (
+                                    {expandedScale === scale.id && (
                                         <div className="p-10 bg-white border-t border-slate-100 animate-in slide-in-from-bottom-2 duration-500">
                                             <div className="grid lg:grid-cols-3 gap-16">
                                                 <div className="lg:col-span-2">
