@@ -36,8 +36,8 @@ export default function DocNav() {
         { id: 'user-guide', href: '/docs/user-guide', icon: BookOpen, label: t(locale, 'docs.tabs.userguide') },
     ];
 
-    const currentSection = sections.find(s => pathname.startsWith(s.href)) || { label: isVi ? 'Tổng quan' : 'Overview', icon: PanelsTopLeft };
     const isVi = locale === 'vi';
+    const currentSection = sections.find(s => pathname.startsWith(s.href)) || { label: isVi ? 'Tổng quan' : 'Overview', icon: PanelsTopLeft };
 
     return (
         <nav className="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm py-2">
