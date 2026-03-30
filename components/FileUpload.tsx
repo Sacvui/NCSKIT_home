@@ -5,11 +5,14 @@ import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import { Upload, FileSpreadsheet } from 'lucide-react';
 
+import { Locale, t } from '@/lib/i18n';
+
 interface FileUploadProps {
     onDataLoaded: (data: any[], filename: string) => void;
+    locale: Locale;
 }
 
-export function FileUpload({ onDataLoaded }: FileUploadProps) {
+export function FileUpload({ onDataLoaded, locale }: FileUploadProps) {
     const [isDragging, setIsDragging] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -29,12 +32,12 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
                         if (results.data && results.data.length > 0) {
                             onDataLoaded(results.data, file.name);
                         } else {
-                            setError('File CSV trống hoặc không hợp lệ');
+                            setError(t(locale, 'analyze.upload.errorEmpty'));
                         }
                         setIsProcessing(false);
                     },
                     error: (error) => {
-                        setError(`Lỗi đọc CSV: ${error.message}`);
+                        setError(`${t(locale, 'analyze.upload.errorRead')} (CSV): ${error.message}`);
                         setIsProcessing(false);
                     }
                 });
@@ -47,15 +50,15 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
                 if (data && data.length > 0) {
                     onDataLoaded(data, file.name);
                 } else {
-                    setError('File Excel trống hoặc không hợp lệ');
+                    setError(t(locale, 'analyze.upload.errorEmpty'));
                 }
                 setIsProcessing(false);
             } else {
-                setError('Chỉ hỗ trợ file .csv, .xlsx, .xls');
+                setError(t(locale, 'analyze.upload.errorFormat'));
                 setIsProcessing(false);
             }
         } catch (err) {
-            setError(`Lỗi xử lý file: ${err}`);
+            setError(`${t(locale, 'analyze.upload.errorRead')}: ${err}`);
             setIsProcessing(false);
         }
     }, [onDataLoaded]);
@@ -110,10 +113,10 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
 
                         <div>
                             <p className="text-xl font-bold text-gray-700 mb-2">
-                                {isProcessing ? 'Đang xử lý...' : 'Kéo thả file vào đây'}
+                                {isProcessing ? t(locale, 'analyze.upload.processing') : t(locale, 'analyze.upload.dropzone')}
                             </p>
                             <p className="text-gray-500">
-                                hoặc click để chọn file (CSV, Excel)
+                                {t(locale, 'analyze.upload.orClick')}
                             </p>
                         </div>
 
@@ -140,7 +143,7 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
                         setIsProcessing(true);
                         try {
                             const response = await fetch('/sample_data_large.csv');
-                            if (!response.ok) throw new Error('Không tìm thấy file mẫu');
+                            if (!response.ok) throw new Error(t(locale, 'analyze.upload.errorSample'));
                             const text = await response.text();
 
                             Papa.parse(text, {
@@ -150,24 +153,24 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
                                     if (results.data && results.data.length > 0) {
                                         onDataLoaded(results.data, 'sample_data_large.csv');
                                     } else {
-                                        setError('File mẫu bị lỗi');
+                                        setError(t(locale, 'analyze.upload.errorEmpty'));
                                     }
                                     setIsProcessing(false);
                                 },
                                 error: (err: Error) => {
-                                    setError('Lỗi đọc file mẫu: ' + err.message);
+                                    setError(`${t(locale, 'analyze.upload.errorRead')}: ` + err.message);
                                     setIsProcessing(false);
                                 }
                             });
                         } catch (err: any) {
-                            setError('Lỗi tải file mẫu: ' + (err.message || err));
+                            setError(`${t(locale, 'analyze.upload.errorRead')}: ` + (err.message || err));
                             setIsProcessing(false);
                         }
                     }}
                     disabled={isProcessing}
                     className="text-sm text-blue-600 hover:text-blue-800 hover:underline font-medium"
                 >
-                    Dùng thử dữ liệu mẫu (N=300)
+                    {t(locale, 'analyze.upload.sampleData')}
                 </button>
 
                 <span className="text-gray-300 mx-2">|</span>
@@ -179,7 +182,7 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
                         setIsProcessing(true);
                         try {
                             const response = await fetch('/test_data_sem_cfa.csv');
-                            if (!response.ok) throw new Error('Không tìm thấy file test SEM/CFA');
+                            if (!response.ok) throw new Error(t(locale, 'analyze.upload.errorSample'));
                             const text = await response.text();
 
                             Papa.parse(text, {
@@ -189,24 +192,24 @@ export function FileUpload({ onDataLoaded }: FileUploadProps) {
                                     if (results.data && results.data.length > 0) {
                                         onDataLoaded(results.data, 'test_data_sem_cfa.csv');
                                     } else {
-                                        setError('File test bị lỗi');
+                                        setError(t(locale, 'analyze.upload.errorEmpty'));
                                     }
                                     setIsProcessing(false);
                                 },
                                 error: (err: Error) => {
-                                    setError('Lỗi đọc file test: ' + err.message);
+                                    setError(`${t(locale, 'analyze.upload.errorRead')}: ` + err.message);
                                     setIsProcessing(false);
                                 }
                             });
                         } catch (err: any) {
-                            setError('Lỗi tải file test: ' + (err.message || err));
+                            setError(`${t(locale, 'analyze.upload.errorRead')}: ` + (err.message || err));
                             setIsProcessing(false);
                         }
                     }}
                     disabled={isProcessing}
                     className="text-sm text-purple-600 hover:text-purple-800 hover:underline font-medium"
                 >
-                    Test SEM/CFA (N=500, 8 constructs)
+                    {t(locale, 'analyze.upload.testData')}
                 </button>
             </div>
 

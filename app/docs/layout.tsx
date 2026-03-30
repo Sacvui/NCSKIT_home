@@ -1,21 +1,25 @@
-import type { Metadata } from 'next';
+'use client';
+
+import React, { useState, useEffect } from 'react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import DocNav from '@/components/docs/DocNav';
-
-export const metadata: Metadata = {
-    title: {
-        template: '%s | ncsStat Documentation',
-        default: 'ncsStat Documentation | Statistical Analysis Guide',
-    },
-    description: 'Comprehensive guide to ncsStat analysis tools, statistical theory, and research workflows.',
-};
+import { getStoredLocale, type Locale } from '@/lib/i18n';
 
 export default function DocsLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    const [locale, setLocale] = useState<Locale>('vi');
+
+    useEffect(() => {
+        setLocale(getStoredLocale());
+        const handleLocaleChange = () => setLocale(getStoredLocale());
+        window.addEventListener('localeChange', handleLocaleChange);
+        return () => window.removeEventListener('localeChange', handleLocaleChange);
+    }, []);
+
     return (
         <div className="flex flex-col min-h-screen">
             <Header hideNav={false} />
@@ -23,7 +27,7 @@ export default function DocsLayout({
             <main className="flex-grow">
                 {children}
             </main>
-            <Footer />
+            <Footer locale={locale} />
         </div>
     );
 }

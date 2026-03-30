@@ -2,179 +2,164 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-    BarChart2, GitCompare, TrendingUp, Layers, Network, 
-    ChevronDown, ChevronRight, Target, ListChecks, HelpCircle, Info, Code, CheckCircle2, CircleDot
+    BarChart2, GitCompare, TrendingUp, Layers, 
+    ChevronDown, ChevronRight, Target, HelpCircle, Code, CheckCircle2, CircleDot
 } from 'lucide-react';
 import { getStoredLocale, t, type Locale } from '@/lib/i18n';
 
-interface Method {
-    id: string;
-    nameVi: string;
-    nameEn: string;
-    categoryVi: string;
-    categoryEn: string;
-    descriptionVi: string;
-    descriptionEn: string;
-    rFunction: string;
-    whenToUseVi: string;
-    whenToUseEn: string;
-    stepsVi: string[];
-    stepsEn: string[];
-    assumptionsVi?: string[];
-    assumptionsEn?: string[];
-    outputVi: string[];
-    outputEn: string[];
-}
-
-const METHODS: Method[] = [
-    {
-        id: 'descriptive',
-        nameVi: 'Thống kê mô tả',
-        nameEn: 'Descriptive Statistics',
-        categoryVi: 'Độ tin cậy & Mô tả',
-        categoryEn: 'Reliability & Descriptive',
-        descriptionVi: 'Tính toán các chỉ số thống kê cơ bản để hiểu đặc điểm dữ liệu.',
-        descriptionEn: 'Calculate basic summary statistics to understand data characteristics.',
-        rFunction: 'psych::describe()',
-        whenToUseVi: 'Luôn thực hiện đầu tiên để kiểm tra phân phối và các giá trị bất thường.',
-        whenToUseEn: 'Always run first to check distributions and find anomalies.',
-        stepsVi: ['Chọn menu Descriptive.', 'Chọn các biến cần tính toán.', 'Nhấn Chạy Phân Tích.'],
-        stepsEn: ['Select Descriptive.', 'Select variables.', 'Click Run Analysis.'],
-        outputVi: ['Trung bình, SD, Min, Max', 'Skewness & Kurtosis'],
-        outputEn: ['Mean, SD, Min, Max', 'Skewness & Kurtosis']
-    },
-    {
-        id: 'cronbach',
-        nameVi: 'Cronbach Alpha',
-        nameEn: "Cronbach's α",
-        categoryVi: 'Độ tin cậy & Mô tả',
-        categoryEn: 'Reliability & Descriptive',
-        descriptionVi: 'Đánh giá tính nhất quán nội tại của thang đo.',
-        descriptionEn: 'Assess internal consistency of measurement scales.',
-        rFunction: 'psych::alpha()',
-        whenToUseVi: 'Kiểm tra chất lượng thang đo trước khi phân tích nhân tố.',
-        whenToUseEn: 'Validate scale quality before factor analysis.',
-        stepsVi: ['Chọn menu Cronbach\'s Alpha.', 'Chọn các items của nhân tố.', 'Nhấn Chạy Phân Tích.'],
-        stepsEn: ['Select Cronbach\'s Alpha.', 'Select factor items.', 'Click Run Analysis.'],
-        outputVi: ['Hệ số Alpha', 'Cronbach Alpha if item deleted'],
-        outputEn: ['Alpha coefficient', 'Alpha if item deleted']
-    },
-    {
-        id: 'efa',
-        nameVi: 'EFA',
-        nameEn: 'Exploratory Factor Analysis',
-        categoryVi: 'Cấu trúc & Nhân tố',
-        categoryEn: 'Structure & Factor',
-        descriptionVi: 'Rút gọn các biến quan sát thành các nhóm nhân tố.',
-        descriptionEn: 'Reduce variables into meaningful latent factors.',
-        rFunction: 'psych::fa()',
-        whenToUseVi: 'Khám phá cấu trúc của thang đo hoặc rút gọn dữ liệu.',
-        whenToUseEn: 'Discover scale structure or reduce data dimensionality.',
-        stepsVi: ['Chọn menu EFA.', 'Chọn tất cả các biến quan sát.', 'Cấu hình phép trích & phép quay.', 'Nhấn Chạy EFA.'],
-        stepsEn: ['Select EFA.', 'Select all indicators.', 'Set extraction/rotation.', 'Click Run EFA.'],
-        outputVi: ['KMO & Bartlett', 'Ma trận xoay nhân tố'],
-        outputEn: ['KMO & Bartlett', 'Rotated factor matrix']
-    },
-    {
-        id: 'regression',
-        nameVi: 'Hồi quy tuyến tính',
-        nameEn: 'Linear Regression',
-        categoryVi: 'Tương quan & Hồi quy',
-        categoryEn: 'Correlation & Regression',
-        descriptionVi: 'Dự báo tác động của biến độc lập lên biến phụ thuộc.',
-        descriptionEn: 'Predict the impact of IVs on a DV.',
-        rFunction: 'stats::lm()',
-        whenToUseVi: 'Kiểm tra mối quan hệ nhân quả trong mô hình nghiên cứu.',
-        whenToUseEn: 'Testing causal hypotheses.',
-        stepsVi: ['Chọn menu Regression.', 'Chọn 1 biến phụ thuộc (Y).', 'Chọn các biến độc lập (X).', 'Nhấn Chạy Hồi Quy.'],
-        stepsEn: ['Select Regression.', 'Choose 1 DV (Y).', 'Choose IVs (X).', 'Click Run Regression.'],
-        outputVi: ['R-Square (R2)', 'Hệ số Beta'],
-        outputEn: ['R-Square', 'Beta coefficients']
-    }
-];
-
-const CATEGORIES = [
-    { nameVi: 'Độ tin cậy & Mô tả', nameEn: 'Reliability & Descriptive', icon: BarChart2, color: 'blue' },
-    { nameVi: 'So sánh nhóm', nameEn: 'Group Comparison', icon: GitCompare, color: 'orange' },
-    { nameVi: 'Tương quan & Hồi quy', nameEn: 'Correlation & Regression', icon: TrendingUp, color: 'green' },
-    { nameVi: 'Cấu trúc & Nhân tố', nameEn: 'Structure & Factor', icon: Layers, color: 'purple' }
-];
-
 export default function UserGuidePage() {
     const [locale, setLocale] = useState<Locale>('vi');
+    const [mounted, setMounted] = useState(false);
     const [expandedMethod, setExpandedMethod] = useState<string | null>(null);
 
     useEffect(() => {
         setLocale(getStoredLocale());
+        setMounted(true);
+
         const handleLocaleChange = () => setLocale(getStoredLocale());
         window.addEventListener('localeChange', handleLocaleChange);
         return () => window.removeEventListener('localeChange', handleLocaleChange);
     }, []);
 
-    const isVi = locale === 'vi';
+    if (!mounted) return null;
+
+    const categories = [
+        { key: 'reliability', icon: BarChart2, color: 'text-blue-700', methods: ['descriptive', 'cronbach'] },
+        { key: 'comparison', icon: GitCompare, color: 'text-orange-700', methods: ['ttest', 'anova'] },
+        { key: 'correlation', icon: TrendingUp, color: 'text-green-700', methods: ['correlation', 'regression'] },
+        { key: 'structure', icon: Layers, color: 'text-purple-700', methods: ['efa'] }
+    ];
 
     return (
-        <div className="bg-slate-50 min-h-screen pt-12 pb-20">
-            <div className="container mx-auto px-4 max-w-5xl">
-                <div className="text-center mb-16">
-                    <h1 className="text-3xl font-extrabold text-slate-900 mb-4">{t(locale, 'docs.userguide.title')}</h1>
-                    <p className="text-slate-500 text-lg">{t(locale, 'docs.userguide.subtitle')}</p>
-                </div>
+        <div className="bg-slate-50 min-h-screen selection:bg-indigo-100 selection:text-indigo-900 pb-24">
+            {/* Background Pattern */}
+            <div className="fixed inset-0 z-0 opacity-[0.03] pointer-events-none" 
+                 style={{ backgroundImage: 'radial-gradient(#4f46e5 1px, transparent 1px)', backgroundSize: '24px 24px' }}>
+            </div>
 
-                <div className="grid md:grid-cols-3 gap-6 mb-16">
-                    <div className="bg-white p-6 rounded-xl border border-slate-200">
-                        <Target className="w-6 h-6 text-blue-600 mb-3" />
-                        <h3 className="font-bold text-slate-800 mb-2">{isVi ? 'Cách chọn biến' : 'Selecting Variables'}</h3>
-                        <p className="text-xs text-slate-500">Giữ phím Shift hoặc Ctrl để chọn nhiều biến cùng lúc trong các bảng menu.</p>
+            <div className="relative z-10">
+                <main className="container mx-auto px-6 max-w-5xl py-16 md:py-24">
+                    <div className="text-center mb-16">
+                        <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 mb-6 tracking-tight">
+                            {t(locale, 'docs.userguide.title')}
+                        </h1>
+                        <p className="text-slate-500 text-xl max-w-3xl mx-auto leading-relaxed font-light">
+                            {t(locale, 'docs.userguide.subtitle')}
+                        </p>
                     </div>
-                    <div className="bg-white p-6 rounded-xl border border-slate-200">
-                        <CheckCircle2 className="w-6 h-6 text-emerald-600 mb-3" />
-                        <h3 className="font-bold text-slate-800 mb-2">{isVi ? 'Kết quả chuẩn APA' : 'APA Reporting'}</h3>
-                        <p className="text-xs text-slate-500">Hệ thống tự động định dạng bảng biểu và biểu đồ theo đúng chuẩn APA mới nhất.</p>
-                    </div>
-                    <div className="bg-white p-6 rounded-xl border border-slate-200">
-                        <HelpCircle className="w-6 h-6 text-amber-600 mb-3" />
-                        <h3 className="font-bold text-slate-800 mb-2">{isVi ? 'Hỗ trợ 24/7' : 'Support'}</h3>
-                        <p className="text-xs text-slate-500">Tham gia cộng đồng ncsStat để được giải đáp các thắc mắc về phương pháp xử lý.</p>
-                    </div>
-                </div>
 
-                {CATEGORIES.map((cat, idx) => (
-                    <section key={idx} className="mb-12">
-                        <h2 className={`text-xl font-bold mb-6 flex items-center gap-2 ${cat.color === 'blue' ? 'text-blue-700' : ''}`}>
-                            <cat.icon className="w-6 h-6" />
-                            {isVi ? cat.nameVi : cat.nameEn}
-                        </h2>
-                        <div className="space-y-4">
-                            {METHODS.filter(m => m.categoryEn === cat.nameEn).map(method => (
-                                <div key={method.id} className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-                                    <button onClick={() => setExpandedMethod(expandedMethod === method.id ? null : method.id)} className="w-full px-6 py-5 flex items-center justify-between hover:bg-slate-50">
-                                        <div className="text-left font-bold">{method.nameVi}</div>
-                                        {expandedMethod === method.id ? <ChevronDown /> : <ChevronRight />}
-                                    </button>
-                                    {expandedMethod === method.id && (
-                                        <div className="p-6 border-t bg-slate-50/50">
-                                            <div className="grid md:grid-cols-2 gap-8">
-                                                <div>
-                                                    <h4 className="text-xs font-bold uppercase text-slate-400 mb-2">Quy trình thực hiện</h4>
-                                                    <ol className="text-sm space-y-1">
-                                                        {method.stepsVi.map((s, i) => <li key={i}>{i+1}. {s}</li>)}
-                                                    </ol>
-                                                </div>
-                                                <div>
-                                                    <h4 className="text-xs font-bold uppercase text-slate-400 mb-2">Đầu ra tiêu chuẩn</h4>
-                                                    <ul className="text-sm space-y-1">
-                                                        {method.outputVi.map((o, i) => <li key={i}>• {o}</li>)}
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
+                    <div className="grid md:grid-cols-3 gap-8 mb-20">
+                        <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                            <Target className="w-8 h-8 text-blue-600 mb-4" />
+                            <h3 className="font-bold text-slate-900 mb-3">{t(locale, 'docs_userguide_labels.selecting_title')}</h3>
+                            <p className="text-sm text-slate-500 leading-relaxed font-light">{t(locale, 'docs_userguide_labels.selecting_desc')}</p>
                         </div>
-                    </section>
-                ))}
+                        <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                            <CheckCircle2 className="w-8 h-8 text-emerald-600 mb-4" />
+                            <h3 className="font-bold text-slate-900 mb-3">{t(locale, 'docs_userguide_labels.apa_title')}</h3>
+                            <p className="text-sm text-slate-500 leading-relaxed font-light">{t(locale, 'docs_userguide_labels.apa_desc')}</p>
+                        </div>
+                        <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                            <HelpCircle className="w-8 h-8 text-amber-600 mb-4" />
+                            <h3 className="font-bold text-slate-900 mb-3">{t(locale, 'docs_userguide_labels.support_title')}</h3>
+                            <p className="text-sm text-slate-500 leading-relaxed font-light">{t(locale, 'docs_userguide_labels.support_desc')}</p>
+                        </div>
+                    </div>
+
+                    <div className="space-y-16">
+                        {categories.map((cat) => (
+                            <section key={cat.key}>
+                                <h2 className={`text-2xl font-extrabold mb-8 flex items-center gap-3 ${cat.color}`}>
+                                    <cat.icon className="w-8 h-8" />
+                                    {t(locale, `methods.${cat.key}`)}
+                                </h2>
+                                <div className="grid gap-4">
+                                    {cat.methods.map((methodId) => {
+                                        const steps = t(locale, `methods_guide.${methodId}.steps`);
+                                        const stepsArray = Array.isArray(steps) ? steps : [];
+                                        const output = t(locale, `methods_guide.${methodId}.output`);
+                                        const outputArray = Array.isArray(output) ? output : [];
+
+                                        return (
+                                            <div key={methodId} className="bg-white rounded-[2rem] border border-slate-200 shadow-sm overflow-hidden transition-all duration-300">
+                                                <button 
+                                                    onClick={() => setExpandedMethod(expandedMethod === methodId ? null : methodId)} 
+                                                    className={`w-full px-8 py-6 flex items-center justify-between hover:bg-slate-50 text-left transition-colors ${expandedMethod === methodId ? 'bg-indigo-50/30' : ''}`}
+                                                >
+                                                    <div className="flex flex-col">
+                                                        <span className="font-extrabold text-slate-900 text-lg">
+                                                            {t(locale, `methods_guide.${methodId}.name`)}
+                                                        </span>
+                                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                                                            {t(locale, `methods_guide.${methodId}.desc`)}
+                                                        </span>
+                                                    </div>
+                                                    <div className={`w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center transition-transform duration-300 ${expandedMethod === methodId ? 'rotate-180 bg-white shadow-sm' : ''}`}>
+                                                        <ChevronDown className="w-4 h-4 text-slate-400" />
+                                                    </div>
+                                                </button>
+                                                
+                                                {expandedMethod === methodId && (
+                                                    <div className="px-8 py-10 border-t border-slate-100 bg-slate-50/30 animate-in fade-in slide-in-from-top-2 duration-500">
+                                                        <p className="text-base text-slate-600 mb-10 italic leading-relaxed font-light">
+                                                            {t(locale, `methods_guide.${methodId}.purpose`)}
+                                                        </p>
+                                                        
+                                                        <div className="grid md:grid-cols-2 gap-12">
+                                                            <div>
+                                                                <h4 className="text-[10px] font-black uppercase text-indigo-600 tracking-[0.2em] mb-6 flex items-center gap-2">
+                                                                    <div className="w-1.5 h-1.5 bg-indigo-600 rounded-full"></div>
+                                                                    {t(locale, 'docs_userguide_labels.procedure_title')}
+                                                                </h4>
+                                                                <ol className="space-y-4">
+                                                                    {stepsArray.map((s: string, i: number) => (
+                                                                        <li key={i} className="flex gap-4">
+                                                                            <span className="w-6 h-6 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-[10px] font-black text-slate-900 shrink-0 shadow-sm">{i+1}</span>
+                                                                            <span className="text-slate-600 text-sm leading-snug">{s}</span>
+                                                                        </li>
+                                                                    ))}
+                                                                </ol>
+                                                            </div>
+                                                            <div>
+                                                                <h4 className="text-[10px] font-black uppercase text-emerald-600 tracking-[0.2em] mb-6 flex items-center gap-2">
+                                                                    <div className="w-1.5 h-1.5 bg-emerald-600 rounded-full"></div>
+                                                                    {t(locale, 'docs_userguide_labels.output_title')}
+                                                                </h4>
+                                                                <ul className="space-y-4">
+                                                                    {outputArray.map((o: string, i: number) => (
+                                                                        <li key={i} className="flex items-center gap-4">
+                                                                            <div className="p-1.5 bg-emerald-50 rounded-lg">
+                                                                                <CircleDot className="w-3.5 h-3.5 text-emerald-500" />
+                                                                            </div>
+                                                                            <span className="text-slate-600 text-sm font-medium">{o}</span>
+                                                                        </li>
+                                                                    ))}
+                                                                </ul>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* R Function Tag */}
+                                                        <div className="mt-12 pt-8 border-t border-slate-100 flex items-center justify-between">
+                                                            <div className="flex items-center gap-3 px-5 py-2.5 bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
+                                                                <Code className="w-4 h-4 text-indigo-400" />
+                                                                <span className="text-[11px] font-mono font-bold text-indigo-100/80">
+                                                                    R: dynamic_call_engine()
+                                                                </span>
+                                                            </div>
+                                                            <a href="/analyze" className="text-xs font-black text-indigo-600 uppercase tracking-widest hover:text-indigo-800 transition-colors">
+                                                                {t(locale, 'methods_guide.cta')} &rarr;
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </section>
+                        ))}
+                    </div>
+                </main>
             </div>
         </div>
     );

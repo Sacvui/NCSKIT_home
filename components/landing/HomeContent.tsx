@@ -64,12 +64,12 @@ export default function HomeContent() {
                             <Sparkles className="w-4 h-4 text-white" />
                         </div>
                         <p className="text-sm font-medium leading-relaxed">
-                            <span className="font-bold uppercase tracking-wide bg-white/20 text-white px-2 py-0.5 rounded text-[10px] mr-2 align-middle">Beta Phase</span>
-                            {t(locale, 'beta.warning') || "Hệ thống đang trong giai đoạn thử nghiệm (Beta). Vui lòng kiểm tra lại kết quả trước khi sử dụng cho các công bố chính thức."}
+                            <span className="font-bold uppercase tracking-wide bg-white/20 text-white px-2 py-0.5 rounded text-[10px] mr-2 align-middle">{locale === 'vi' ? 'GIAI ĐOẠN BETA' : 'BETA PHASE'}</span>
+                            {t(locale, 'beta.warning')}
                         </p>
                     </div>
                     <Link href="/legal/disclaimer" className="whitespace-nowrap text-xs font-bold underline hover:text-orange-100 flex-shrink-0">
-                        {t(locale, 'beta.learnMore') || "Xem miễn trừ trách nhiệm →"}
+                        {t(locale, 'beta.learnMore')}
                     </Link>
                 </div>
             </div>
@@ -101,7 +101,7 @@ export default function HomeContent() {
                     </Link>
                 </div>
 
-                {/* NEW: Analyze2 PLS-SEM Banner */}
+                {/* PLS-SEM Banner */}
                 <div className="mt-12 max-w-4xl mx-auto">
                     <Link href="/analyze2" className="block group">
                         <div className="relative overflow-hidden bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 rounded-2xl p-8 shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 hover:scale-[1.02]">
@@ -123,10 +123,10 @@ export default function HomeContent() {
                                         {t(locale, 'plssem.description')}
                                     </p>
                                     <div className="mt-4 flex flex-wrap gap-2 justify-center md:justify-start">
-                                        <span className="px-2 py-1 bg-white/10 rounded text-xs text-white font-medium">McDonald's Omega</span>
-                                        <span className="px-2 py-1 bg-white/10 rounded text-xs text-white font-medium">HTMT Matrix</span>
-                                        <span className="px-2 py-1 bg-white/10 rounded text-xs text-white font-medium">Bootstrapping</span>
-                                        <span className="px-2 py-1 bg-white/10 rounded text-xs text-white font-medium">IPMA</span>
+                                        <span className="px-2 py-1 bg-white/10 rounded text-xs text-white font-medium">{t(locale, 'plssem.methods.omega')}</span>
+                                        <span className="px-2 py-1 bg-white/10 rounded text-xs text-white font-medium">{t(locale, 'plssem.methods.htmt')}</span>
+                                        <span className="px-2 py-1 bg-white/10 rounded text-xs text-white font-medium">{t(locale, 'plssem.methods.bootstrap')}</span>
+                                        <span className="px-2 py-1 bg-white/10 rounded text-xs text-white font-medium">{t(locale, 'plssem.methods.ipma')}</span>
                                     </div>
                                 </div>
                                 <div className="flex-shrink-0">
@@ -141,7 +141,7 @@ export default function HomeContent() {
                 </div>
             </div>
 
-            {/* Workflow Section (New) */}
+            {/* Workflow Section */}
             <div className="container mx-auto px-6 py-12 border-b border-slate-100">
                 <div className="text-center mb-12">
                     <h2 className="text-2xl md:text-3xl font-bold text-slate-900">{t(locale, 'workflow.title')}</h2>

@@ -3,12 +3,15 @@
 import { DataProfile } from '@/lib/data-profiler';
 import { AlertCircle, AlertTriangle, Info, TrendingUp, Database } from 'lucide-react';
 
+import { Locale, t } from '@/lib/i18n';
+
 interface DataProfilerProps {
     profile: DataProfile;
     onProceed?: () => void;
+    locale: Locale;
 }
 
-export function DataProfiler({ profile, onProceed }: DataProfilerProps) {
+export function DataProfiler({ profile, onProceed, locale }: DataProfilerProps) {
     const getSeverityIcon = (severity: string) => {
         switch (severity) {
             case 'critical': return <AlertCircle className="w-5 h-5 text-red-500" />;
@@ -36,7 +39,7 @@ export function DataProfiler({ profile, onProceed }: DataProfilerProps) {
                     <div className="flex items-center gap-3 mb-2">
                         <Database className="w-8 h-8" />
                         <div>
-                            <p className="text-blue-100 text-sm">Tổng số dòng</p>
+                            <p className="text-blue-100 text-sm">{t(locale, 'analyze.profile.summary.rows')}</p>
                             <p className="text-3xl font-bold">{profile.rows.toLocaleString()}</p>
                         </div>
                     </div>
@@ -46,7 +49,7 @@ export function DataProfiler({ profile, onProceed }: DataProfilerProps) {
                     <div className="flex items-center gap-3 mb-2">
                         <TrendingUp className="w-8 h-8" />
                         <div>
-                            <p className="text-purple-100 text-sm">Số cột</p>
+                            <p className="text-purple-100 text-sm">{t(locale, 'analyze.profile.summary.cols')}</p>
                             <p className="text-3xl font-bold">{profile.columns}</p>
                         </div>
                     </div>
@@ -56,7 +59,7 @@ export function DataProfiler({ profile, onProceed }: DataProfilerProps) {
                     <div className="flex items-center gap-3 mb-2">
                         <AlertTriangle className="w-8 h-8" />
                         <div>
-                            <p className="text-orange-100 text-sm">Vấn đề phát hiện</p>
+                            <p className="text-orange-100 text-sm">{t(locale, 'analyze.profile.summary.issues')}</p>
                             <p className="text-3xl font-bold">{profile.issues.length}</p>
                         </div>
                     </div>
@@ -68,7 +71,7 @@ export function DataProfiler({ profile, onProceed }: DataProfilerProps) {
                 <div className="bg-white rounded-xl shadow-lg p-6">
                     <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
                         <AlertTriangle className="w-6 h-6 text-orange-500" />
-                        Vấn Đề Chất Lượng Dữ Liệu
+                        {t(locale, 'analyze.profile.issues.title')}
                     </h3>
 
                     <div className="space-y-3">
@@ -82,10 +85,10 @@ export function DataProfiler({ profile, onProceed }: DataProfilerProps) {
                                     <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-1">
                                             <span className="font-semibold text-gray-800">
-                                                {issue.column || 'Toàn bộ dữ liệu'}
+                                                {issue.column || t(locale, 'analyze.profile.issues.allData')}
                                             </span>
                                             <span className="px-2 py-0.5 bg-white rounded-full text-xs font-medium">
-                                                {issue.count} {issue.type === 'missing' ? 'giá trị' : 'dòng'}
+                                                {issue.count} {t(locale, 'analyze.profile.issues.countLabel')}
                                             </span>
                                         </div>
                                         <p className="text-sm text-gray-700">{issue.suggestedFix}</p>
@@ -99,19 +102,19 @@ export function DataProfiler({ profile, onProceed }: DataProfilerProps) {
 
             {/* Column Statistics */}
             <div className="bg-white rounded-xl shadow-lg p-6">
-                <h3 className="text-xl font-bold mb-4">Thống Kê Từng Cột</h3>
+                <h3 className="text-xl font-bold mb-4">{t(locale, 'analyze.profile.table.title')}</h3>
 
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
                             <tr className="border-b">
-                                <th className="text-left py-3 px-4 font-semibold">Tên cột</th>
-                                <th className="text-left py-3 px-4 font-semibold">Loại</th>
-                                <th className="text-right py-3 px-4 font-semibold">Thiếu</th>
-                                <th className="text-right py-3 px-4 font-semibold">Mean</th>
-                                <th className="text-right py-3 px-4 font-semibold">SD</th>
-                                <th className="text-right py-3 px-4 font-semibold">Min</th>
-                                <th className="text-right py-3 px-4 font-semibold">Max</th>
+                                <th className="text-left py-3 px-4 font-semibold">{t(locale, 'analyze.profile.table.colName')}</th>
+                                <th className="text-left py-3 px-4 font-semibold">{t(locale, 'analyze.profile.table.type')}</th>
+                                <th className="text-right py-3 px-4 font-semibold">{t(locale, 'analyze.profile.table.missing')}</th>
+                                <th className="text-right py-3 px-4 font-semibold">{t(locale, 'analyze.profile.table.mean')}</th>
+                                <th className="text-right py-3 px-4 font-semibold">{t(locale, 'analyze.profile.table.sd')}</th>
+                                <th className="text-right py-3 px-4 font-semibold">{t(locale, 'analyze.profile.table.min')}</th>
+                                <th className="text-right py-3 px-4 font-semibold">{t(locale, 'analyze.profile.table.max')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -161,7 +164,7 @@ export function DataProfiler({ profile, onProceed }: DataProfilerProps) {
                         onClick={onProceed}
                         className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
                     >
-                        Tiếp tục phân tích →
+                        {t(locale, 'analyze.profile.proceed')}
                     </button>
                 </div>
             )}

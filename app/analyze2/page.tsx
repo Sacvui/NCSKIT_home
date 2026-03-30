@@ -32,6 +32,7 @@ import { MediationView } from '@/components/analyze/views/MediationView';
 import AdvancedMethodView from '@/components/analyze/views/AdvancedMethodView';
 import { ResultSkeleton } from '@/components/results/shared/ResultSkeleton';
 import dynamicImport from 'next/dynamic';
+import { Locale, t, getStoredLocale } from '@/lib/i18n';
 
 // Import PLS-SEM analysis functions
 import {
@@ -149,6 +150,12 @@ export default function Analyze2Page() {
         profile, setProfile,
     } = useAnalysisSession();
 
+    const [locale, setLocale] = useState<Locale>('vi');
+
+    useEffect(() => {
+        setLocale(getStoredLocale());
+    }, []);
+
     // Local state
     const [phase, setPhase] = useState<AnalysisPhase>('upload');
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -204,11 +211,11 @@ export default function Analyze2Page() {
             initWebR()
                 .then(() => {
                     console.log('[WebR] Auto-initialization successful');
-                    setToast({ message: 'R Engine đã sẵn sàng với PLS-SEM!', type: 'success' });
+                    setToast({ message: locale === 'vi' ? 'R Engine đã sẵn sàng với PLS-SEM!' : 'R Engine ready for PLS-SEM!', type: 'success' });
                 })
                 .catch(err => {
                     console.error('[WebR] Auto-initialization failed:', err);
-                    setToast({ message: 'Lỗi khởi tạo R Engine. Vui lòng tải lại trang.', type: 'error' });
+                    setToast({ message: locale === 'vi' ? 'Lỗi khởi tạo R Engine. Vui lòng tải lại trang.' : 'R Engine initialization failed. Please reload.', type: 'error' });
                 });
         }
     }, []);
@@ -226,10 +233,10 @@ export default function Analyze2Page() {
 
         let processedData = loadedData;
         if (loadedData.length > 10000) {
-            showToast(`Dữ liệu lớn (${loadedData.length} rows). Đang lấy mẫu ngẫu nhiên 10,000 rows...`, 'info');
+            showToast(locale === 'vi' ? `Dữ liệu lớn (${loadedData.length} rows). Đang lấy mẫu ngẫu nhiên 10,000 rows...` : `Large dataset (${loadedData.length} rows). Randomly sampling 10,000 rows...`, 'info');
             const shuffled = [...loadedData].sort(() => 0.5 - Math.random());
             processedData = shuffled.slice(0, 10000);
-            showToast('Đã lấy mẫu 10,000 rows. Kết quả đại diện cho toàn bộ dữ liệu.', 'success');
+            showToast(locale === 'vi' ? 'Đã lấy mẫu 10,000 rows. Kết quả đại diện cho toàn bộ dữ liệu.' : 'Sampled 10,000 rows. Results represent the entire dataset.', 'success');
         }
 
         setData(processedData);
@@ -260,7 +267,7 @@ export default function Analyze2Page() {
     const handleDescriptiveStats = async () => {
         try {
             setIsAnalyzing(true);
-            showToast('Đang tính toán thống kê mô tả...', 'info');
+            showToast(locale === 'vi' ? 'Đang tính toán thống kê mô tả...' : 'Calculating descriptive statistics...', 'info');
 
             // Get numeric columns
             const numericCols = getNumericColumns();
@@ -288,7 +295,7 @@ export default function Analyze2Page() {
             };
 
             setDescriptiveResults(resultsWithNames);
-            showToast('Thống kê mô tả hoàn tất!', 'success');
+            showToast(locale === 'vi' ? 'Thống kê mô tả hoàn tất!' : 'Descriptive statistics completed!', 'success');
         } catch (error: any) {
             console.error('Descriptive stats error:', error);
             showToast(error.message || 'Lỗi khi tính toán thống kê', 'error');
@@ -300,13 +307,13 @@ export default function Analyze2Page() {
 
     // Phase navigation
     const phases = [
-        { id: 'upload', label: 'Upload', icon: Upload, tooltip: 'Tải dữ liệu lên hệ thống' },
-        { id: 'profile', label: 'Check', icon: Search, tooltip: 'Kiểm tra chất lượng dữ liệu' },
-        { id: 'phase1', label: 'Prepare', icon: Eraser, tooltip: 'Làm sạch dữ liệu & Đánh giá độ tin cậy' },
-        { id: 'phase2', label: 'Measure', icon: Ruler, tooltip: 'Kiểm định thang đo (HTMT, VIF, EFA, CFA)' },
-        { id: 'phase3', label: 'Structure', icon: Building2, tooltip: 'Mô hình cấu trúc (Regression, Mediation, Bootstrap)' },
-        { id: 'phase4', label: 'Advanced', icon: Zap, tooltip: 'Phân tích nâng cao (IPMA, MGA, Blindfolding)' },
-        { id: 'results', label: 'Results', icon: CheckCircle2, tooltip: 'Xem kết quả & Xuất báo cáo' },
+        { id: 'upload' as AnalysisPhase, label: t(locale, 'analyze.steps.upload'), icon: Upload, tooltip: locale === 'vi' ? 'Tải dữ liệu lên hệ thống' : 'Upload dataset' },
+        { id: 'profile' as AnalysisPhase, label: t(locale, 'analyze.steps.profile'), icon: Search, tooltip: locale === 'vi' ? 'Kiểm tra chất lượng dữ liệu' : 'Data quality check' },
+        { id: 'phase1' as AnalysisPhase, label: t(locale, 'pls_workflow.phases.phase1.title'), icon: Eraser, tooltip: t(locale, 'pls_workflow.phases.phase1.desc') },
+        { id: 'phase2' as AnalysisPhase, label: t(locale, 'pls_workflow.phases.phase2.title'), icon: Ruler, tooltip: t(locale, 'pls_workflow.phases.phase2.desc') },
+        { id: 'phase3' as AnalysisPhase, label: t(locale, 'pls_workflow.phases.phase3.title'), icon: Building2, tooltip: t(locale, 'pls_workflow.phases.phase3.desc') },
+        { id: 'phase4' as AnalysisPhase, label: t(locale, 'pls_workflow.phases.phase4.title'), icon: Zap, tooltip: t(locale, 'pls_workflow.phases.phase4.desc') },
+        { id: 'results' as AnalysisPhase, label: t(locale, 'analyze.steps.results'), icon: CheckCircle2, tooltip: locale === 'vi' ? 'Xem kết quả & Xuất báo cáo' : 'View results & export' },
     ];
 
     const getCurrentPhaseIndex = () => {
@@ -319,9 +326,9 @@ export default function Analyze2Page() {
             <div className="min-h-screen flex items-center justify-center bg-slate-50">
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-slate-600 font-medium">Đang xác thực...</p>
+                    <p className="text-slate-600 font-medium">{locale === 'vi' ? 'Đang xác thực...' : 'Authenticating...'}</p>
                     {webRStatus.isReady && (
-                        <p className="text-green-600 text-sm">✓ R Engine đã sẵn sàng</p>
+                        <p className="text-green-600 text-sm">✓ {locale === 'vi' ? 'R Engine đã sẵn sàng' : 'R Engine is ready'}</p>
                     )}
                 </div>
             </div>
@@ -340,7 +347,7 @@ export default function Analyze2Page() {
             {!isOnline && (
                 <div className="fixed top-0 left-0 right-0 bg-red-600 text-white py-2 px-4 text-center z-50 flex items-center justify-center gap-2">
                     <WifiOff className="w-5 h-5" />
-                    <span className="font-semibold">Không có kết nối Internet. Một số tính năng có thể không hoạt động.</span>
+                    <span className="font-semibold">{locale === 'vi' ? 'Không có kết nối Internet. Một số tính năng có thể không hoạt động.' : 'No internet connection. Some features may be limited.'}</span>
                 </div>
             )}
 
@@ -372,7 +379,7 @@ export default function Analyze2Page() {
                             setIsPrivateMode={setIsPrivateMode}
                             clearSession={() => {
                                 clearSession();
-                                showToast('Đã xóa dữ liệu phiên làm việc', 'info');
+                                showToast(locale === 'vi' ? 'Đã xóa dữ liệu phiên làm việc' : 'Session data cleared', 'info');
                             }}
                             filename={filename}
                             onSave={() => setIsSaveModalOpen(true)}
@@ -384,8 +391,8 @@ export default function Analyze2Page() {
             <div className="bg-purple-50/50 border-b border-purple-100 py-1">
                 <div className="container mx-auto px-6 flex items-center justify-center gap-2 text-[11px] text-purple-600/80">
                     <Shield className="w-3 h-3" />
-                    <span className="font-semibold">Bảo mật:</span>
-                    <span>Dữ liệu xử lý cục bộ 100% (Client-side), an toàn tuyệt đối.</span>
+                    <span className="font-semibold">{locale === 'vi' ? 'Bảo mật:' : 'Security:'}</span>
+                    <span>{t(locale, 'pls_workflow.security')}</span>
                 </div>
             </div>
 
@@ -438,13 +445,13 @@ export default function Analyze2Page() {
                         <div className="space-y-6">
                             <div className="text-center mb-8">
                                 <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                                    Tải lên dữ liệu của bạn
+                                    {t(locale, 'analyze.upload.title')}
                                 </h2>
                                 <p className="text-gray-600">
-                                    Hỗ trợ file CSV và Excel (.xlsx, .xls)
+                                    {t(locale, 'analyze.upload.desc')}
                                 </p>
                             </div>
-                            <FileUpload onDataLoaded={handleDataLoaded} />
+                            <FileUpload onDataLoaded={handleDataLoaded} locale={locale} />
                         </div>
                     )}
 
@@ -452,13 +459,13 @@ export default function Analyze2Page() {
                         <div className="space-y-6">
                             <div className="text-center mb-8">
                                 <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                                    Báo cáo chất lượng dữ liệu
+                                    {t(locale, 'analyze.profile.title')}
                                 </h2>
                                 <p className="text-gray-600">
-                                    Kiểm tra và xác nhận dữ liệu trước khi phân tích
+                                    {t(locale, 'analyze.profile.desc')}
                                 </p>
                             </div>
-                            <DataProfiler profile={profile} onProceed={handleProceedToPhase1} />
+                            <DataProfiler profile={profile} onProceed={handleProceedToPhase1} locale={locale} />
                         </div>
                     )}
 
@@ -466,12 +473,14 @@ export default function Analyze2Page() {
                         <div className="max-w-6xl mx-auto">
                             <div className="bg-white rounded-xl shadow-lg p-8 border border-purple-100">
                                 <div className="flex items-center gap-3 mb-6">
-                                    <span className="text-4xl">🧹</span>
+                                    <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                        <Eraser className="w-8 h-8 text-purple-600" />
+                                    </div>
                                     <div>
                                         <h2 className="text-2xl font-bold text-gray-800">
-                                            Nhóm 1: Sơ chế & Độ tin cậy (The Foundation)
+                                            {t(locale, 'pls_workflow.phases.phase1.title')}
                                         </h2>
-                                        <p className="text-gray-600">Làm sạch dữ liệu và kiểm tra độ tin cậy thang đo</p>
+                                        <p className="text-gray-600">{t(locale, 'pls_workflow.phases.phase1.desc')}</p>
                                     </div>
                                 </div>
 
@@ -537,20 +546,20 @@ export default function Analyze2Page() {
                                 {/* Descriptive Statistics Results */}
                                 {descriptiveResults && (
                                     <div className="mt-6 bg-purple-50 rounded-lg p-6 border border-purple-200">
-                                        <h3 className="text-lg font-bold text-purple-900 mb-4">📊 Descriptive Statistics Results</h3>
+                                        <h3 className="text-lg font-bold text-purple-900 mb-4">{locale === 'vi' ? '📊 Kết quả Thống kê mô tả' : '📊 Descriptive Statistics Results'}</h3>
                                         <div className="overflow-x-auto">
                                             <table className="w-full text-sm">
                                                 <thead>
                                                     <tr className="bg-purple-100">
-                                                        <th className="px-4 py-2 text-left font-semibold">Variable</th>
-                                                        <th className="px-4 py-2 text-right font-semibold">N</th>
-                                                        <th className="px-4 py-2 text-right font-semibold">Mean</th>
-                                                        <th className="px-4 py-2 text-right font-semibold">SD</th>
-                                                        <th className="px-4 py-2 text-right font-semibold">Min</th>
-                                                        <th className="px-4 py-2 text-right font-semibold">Max</th>
+                                                        <th className="px-4 py-2 text-left font-semibold">{t(locale, 'tables.variable')}</th>
+                                                        <th className="px-4 py-2 text-right font-semibold">{t(locale, 'tables.n')}</th>
+                                                        <th className="px-4 py-2 text-right font-semibold">{t(locale, 'tables.mean')}</th>
+                                                        <th className="px-4 py-2 text-right font-semibold">{t(locale, 'tables.sd')}</th>
+                                                        <th className="px-4 py-2 text-right font-semibold">{t(locale, 'tables.min')}</th>
+                                                        <th className="px-4 py-2 text-right font-semibold">{t(locale, 'tables.max')}</th>
                                                         <th className="px-4 py-2 text-right font-semibold">Median</th>
-                                                        <th className="px-4 py-2 text-right font-semibold">Skew</th>
-                                                        <th className="px-4 py-2 text-right font-semibold">Kurtosis</th>
+                                                        <th className="px-4 py-2 text-right font-semibold">{t(locale, 'tables.skew')}</th>
+                                                        <th className="px-4 py-2 text-right font-semibold">{t(locale, 'tables.kurtosis')}</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -570,24 +579,16 @@ export default function Analyze2Page() {
                                                 </tbody>
                                             </table>
                                         </div>
-                                        <div className="mt-4 text-xs text-gray-600">
-                                            <p><strong>Interpretation:</strong></p>
-                                            <ul className="list-disc list-inside space-y-1">
-                                                <li><strong>Mean</strong>: Average value</li>
-                                                <li><strong>SD</strong>: Standard deviation (spread of data)</li>
-                                                <li><strong>Skewness</strong>: &lt; -1 or &gt; 1 indicates non-normal distribution</li>
-                                                <li><strong>Kurtosis</strong>: &lt; -1 or &gt; 1 indicates heavy/light tails</li>
-                                            </ul>
-                                        </div>
                                     </div>
                                 )}
 
                                 <div className="mt-6 flex justify-end">
                                     <button
                                         onClick={() => setPhase('phase2')}
-                                        className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow-lg transition-all"
+                                        className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow-lg transition-all flex items-center gap-2"
                                     >
-                                        Tiếp tục → Kiểm định thang đo
+                                        <span>{t(locale, 'analyze.common.continue')}</span>
+                                        <TrendingUp className="w-5 h-5" />
                                     </button>
                                 </div>
                             </div>
@@ -598,12 +599,14 @@ export default function Analyze2Page() {
                         <div className="max-w-6xl mx-auto">
                             <div className="bg-white rounded-xl shadow-lg p-8 border border-blue-100">
                                 <div className="flex items-center gap-3 mb-6">
-                                    <span className="text-4xl">📏</span>
+                                    <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                        <Ruler className="w-8 h-8 text-blue-600" />
+                                    </div>
                                     <div>
                                         <h2 className="text-2xl font-bold text-gray-800">
-                                            Nhóm 2: Kiểm định thang đo (Measurement Validation)
+                                            {t(locale, 'pls_workflow.phases.phase2.title')}
                                         </h2>
-                                        <p className="text-gray-600">Cực kỳ quan trọng cho PLS-SEM</p>
+                                        <p className="text-gray-600">{t(locale, 'pls_workflow.phases.phase2.desc')}</p>
                                     </div>
                                 </div>
 
@@ -668,15 +671,17 @@ export default function Analyze2Page() {
                                 <div className="mt-6 flex justify-between">
                                     <button
                                         onClick={() => setPhase('phase1')}
-                                        className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-all"
+                                        className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-all flex items-center gap-2"
                                     >
-                                        ← Quay lại
+                                        <RotateCcw className="w-4 h-4" />
+                                        <span>{t(locale, 'analyze.common.back')}</span>
                                     </button>
                                     <button
                                         onClick={() => setPhase('phase3')}
-                                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-lg transition-all"
+                                        className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-lg transition-all flex items-center gap-2"
                                     >
-                                        Tiếp tục → Mô hình cấu trúc
+                                        <span>{t(locale, 'analyze.common.continue')}</span>
+                                        <TrendingUp className="w-5 h-5" />
                                     </button>
                                 </div>
                             </div>
@@ -687,12 +692,14 @@ export default function Analyze2Page() {
                         <div className="max-w-6xl mx-auto">
                             <div className="bg-white rounded-xl shadow-lg p-8 border border-green-100">
                                 <div className="flex items-center gap-3 mb-6">
-                                    <span className="text-4xl">🏗️</span>
+                                    <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                        <Building2 className="w-8 h-8 text-green-600" />
+                                    </div>
                                     <div>
                                         <h2 className="text-2xl font-bold text-gray-800">
-                                            Nhóm 3: Mô hình cấu trúc (Structural Model - Tâm điểm)
+                                            {t(locale, 'pls_workflow.phases.phase3.title')}
                                         </h2>
-                                        <p className="text-gray-600">PLS-SEM và các phân tích nâng cao</p>
+                                        <p className="text-gray-600">{t(locale, 'pls_workflow.phases.phase3.desc')}</p>
                                     </div>
                                 </div>
 
@@ -769,15 +776,17 @@ export default function Analyze2Page() {
                                 <div className="mt-6 flex justify-between">
                                     <button
                                         onClick={() => setPhase('phase2')}
-                                        className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-all"
+                                        className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-all flex items-center gap-2"
                                     >
-                                        ← Quay lại
+                                        <RotateCcw className="w-4 h-4" />
+                                        <span>{t(locale, 'analyze.common.back')}</span>
                                     </button>
                                     <button
                                         onClick={() => setPhase('phase4')}
-                                        className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-lg transition-all"
+                                        className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-lg transition-all flex items-center gap-2"
                                     >
-                                        Tiếp tục → Phân tích nâng cao
+                                        <span>{t(locale, 'analyze.common.continue')}</span>
+                                        <TrendingUp className="w-5 h-5" />
                                     </button>
                                 </div>
                             </div>
@@ -788,12 +797,14 @@ export default function Analyze2Page() {
                         <div className="max-w-6xl mx-auto">
                             <div className="bg-white rounded-xl shadow-lg p-8 border border-amber-100">
                                 <div className="flex items-center gap-3 mb-6">
-                                    <span className="text-4xl">🎯</span>
+                                    <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
+                                        <Target className="w-8 h-8 text-amber-600" />
+                                    </div>
                                     <div>
                                         <h2 className="text-2xl font-bold text-gray-800">
-                                            Nhóm 4: Phân tích thực nghiệm & So sánh
+                                            {t(locale, 'pls_workflow.phases.phase4.title')}
                                         </h2>
-                                        <p className="text-gray-600">Experimental & Groups Analysis</p>
+                                        <p className="text-gray-600">{t(locale, 'pls_workflow.phases.phase4.desc')}</p>
                                     </div>
                                 </div>
 
@@ -804,7 +815,7 @@ export default function Analyze2Page() {
                                             <BarChart3 className="w-6 h-6 text-amber-600" />
                                             <h3 className="font-bold text-lg group-hover:text-amber-600">T-test</h3>
                                         </div>
-                                        <p className="text-sm text-gray-600">So sánh 2 nhóm</p>
+                                        <p className="text-sm text-gray-600">{locale === 'vi' ? 'So sánh 2 nhóm' : 'Compare 2 groups'}</p>
                                     </button>
 
                                     {/* ANOVA */}
@@ -813,7 +824,7 @@ export default function Analyze2Page() {
                                             <FileText className="w-6 h-6 text-amber-600" />
                                             <h3 className="font-bold text-lg group-hover:text-amber-600">ANOVA</h3>
                                         </div>
-                                        <p className="text-sm text-gray-600">So sánh nhiều nhóm</p>
+                                        <p className="text-sm text-gray-600">{locale === 'vi' ? 'So sánh nhiều nhóm' : 'Compare multiple groups'}</p>
                                     </button>
 
                                     {/* Chi-square */}
@@ -822,7 +833,7 @@ export default function Analyze2Page() {
                                             <BarChart3 className="w-6 h-6 text-amber-600" />
                                             <h3 className="font-bold text-lg group-hover:text-amber-600">Chi-square</h3>
                                         </div>
-                                        <p className="text-sm text-gray-600">Kiểm định độc lập</p>
+                                        <p className="text-sm text-gray-600">{locale === 'vi' ? 'Kiểm định độc lập' : 'Independence test'}</p>
                                     </button>
 
                                     {/* Cluster Analysis */}
@@ -886,15 +897,16 @@ export default function Analyze2Page() {
                                 <div className="mt-6 flex justify-between">
                                     <button
                                         onClick={() => setPhase('phase3')}
-                                        className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-all"
+                                        className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-lg transition-all flex items-center gap-2"
                                     >
-                                        ← Quay lại
+                                        <RotateCcw className="w-4 h-4" />
+                                        <span>{t(locale, 'analyze.common.back')}</span>
                                     </button>
                                     <button
-                                        onClick={() => showToast('Tính năng xuất kết quả đang được phát triển!', 'info')}
+                                        onClick={() => showToast(locale === 'vi' ? 'Tính năng xuất kết quả đang được phát triển!' : 'Export feature is under development!', 'info')}
                                         className="px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg shadow-lg transition-all"
                                     >
-                                        Hoàn thành & Xuất báo cáo
+                                        {locale === 'vi' ? 'Hoàn thành & Xuất báo cáo' : 'Complete & Export Report'}
                                     </button>
                                 </div>
                             </div>
@@ -1334,18 +1346,23 @@ export default function Analyze2Page() {
                                     <button
                                         onClick={() => {
                                             // Determine which phase to go back to
-                                            if (results.type === 'omega' || results.type === 'outlier') {
+                                            if (results.type === 'omega' || results.type === 'outlier' || results.type === 'cronbach') {
                                                 setPhase('phase1');
-                                            } else if (results.type === 'htmt' || results.type === 'vif') {
+                                            } else if (results.type === 'htmt' || results.type === 'vif' || results.type === 'efa' || results.type === 'cfa') {
                                                 setPhase('phase2');
+                                            } else if (results.type === 'regression' || results.type === 'mediation' || results.type === 'plssem' || results.type === 'bootstrap' || results.type === 'cbsem') {
+                                                setPhase('phase3');
+                                            } else if (results.type === 'ipma' || results.type === 'mga' || results.type === 'blindfolding' || results.type === 'cluster') {
+                                                setPhase('phase4');
                                             } else {
                                                 setPhase('phase1');
                                             }
                                             setResults(null);
                                         }}
-                                        className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg transition-colors"
+                                        className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg transition-colors flex items-center gap-2"
                                     >
-                                        ← Quay lại chọn phân tích khác
+                                        <RotateCcw className="w-4 h-4" />
+                                        <span>{t(locale, 'analyze.results.back')}</span>
                                     </button>
                                     <button
                                         onClick={() => {
@@ -1354,7 +1371,7 @@ export default function Analyze2Page() {
                                         }}
                                         className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
                                     >
-                                        Chạy phân tích mới
+                                        {t(locale, 'analyze.results.newAnalysis')}
                                     </button>
                                 </div>
                             </div>

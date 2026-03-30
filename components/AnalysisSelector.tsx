@@ -6,6 +6,7 @@ interface AnalysisSelectorProps {
     onSelect: (step: string) => void;
     onRunAnalysis: (type: string) => void;
     isAnalyzing: boolean;
+    mode?: string | null;
 }
 
 interface AnalysisOption {
@@ -29,8 +30,19 @@ interface AnalysisCategory {
     options: AnalysisOption[];
 }
 
-export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing }: AnalysisSelectorProps) {
-    const [expandedCategories, setExpandedCategories] = useState<string[]>(['reliability', 'comparison']);
+export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing, mode }: AnalysisSelectorProps) {
+    const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
+
+    // Auto-expand categories based on mode
+    React.useEffect(() => {
+        if (mode === '1') {
+            setExpandedCategories(['reliability', 'comparison', 'categorical']);
+        } else if (mode === '2') {
+            setExpandedCategories(['relationship', 'factor', 'clustering']);
+        } else {
+            setExpandedCategories(['reliability', 'comparison']); // Default
+        }
+    }, [mode]);
 
     const toggleCategory = (categoryId: string) => {
         setExpandedCategories(prev =>

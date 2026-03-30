@@ -4,7 +4,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { FileUpload } from '@/components/FileUpload';
 import { DataProfiler } from '@/components/DataProfiler';
 import { ResultsDisplay } from '@/components/ResultsDisplay';
@@ -43,11 +43,20 @@ import { MobileWebRFallback, useSharedArrayBufferSupport } from '@/components/Mo
 import { getORCIDUser } from '@/utils/cookie-helper';
 import { useAuth } from '@/context/AuthContext';
 import { useAnalysisPersistence } from '@/hooks/useAnalysisPersistence';
+import { Locale, t, getStoredLocale } from '@/lib/i18n';
 
 export default function AnalyzePage() {
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const mode = searchParams.get('mode')
     const { user, profile: userProfile, loading: authLoading } = useAuth();
     const [loading, setLoading] = useState(true);
+    const [locale, setLocale] = useState<Locale>('vi');
+
+    // Sync locale with storage
+    useEffect(() => {
+        setLocale(getStoredLocale());
+    }, []);
 
     // Synchronize balance with profile tokens
     useEffect(() => {
@@ -242,22 +251,22 @@ export default function AnalyzePage() {
         if (!status.isReady && !status.isLoading) {
             console.log('[WebR] Starting auto-initialization...');
 
-            // Subscribe to progress updates
             setProgressCallback((msg) => {
-                setToast({ message: msg, type: 'info' });
+                const translatedMsg = msg.includes('Cleaning') ? t(locale, 'analyze.common.processing') : msg;
+                setToast({ message: translatedMsg, type: 'info' });
             });
 
             initWebR()
                 .then(() => {
                     console.log('[WebR] Auto-initialization successful');
-                    setToast({ message: 'R Engine đã sẵn sàng!', type: 'success' });
+                    setToast({ message: 'R Engine ' + (locale === 'vi' ? 'đã sẵn sàng!' : 'is ready!'), type: 'success' });
                 })
                 .catch(err => {
                     console.error('[WebR] Auto-initialization failed:', err);
-                    setToast({ message: 'Lỗi khởi tạo R Engine. Vui lòng tải lại trang.', type: 'error' });
+                    setToast({ message: locale === 'vi' ? 'Lỗi khởi tạo R Engine. Vui lòng tải lại trang.' : 'R Engine initialization failed. Please reload page.', type: 'error' });
                 });
         }
-    }, []); // Run once on mount
+    }, [locale]);
 
     // Check for Demographics Survey (Part 1)
     useEffect(() => {
@@ -640,7 +649,7 @@ export default function AnalyzePage() {
             {!isOnline && (
                 <div className="fixed top-0 left-0 right-0 bg-red-600 text-white py-2 px-4 text-center z-50 flex items-center justify-center gap-2">
                     <WifiOff className="w-5 h-5" />
-                    <span className="font-semibold">Không có kết nối Internet. Một số tính năng có thể không hoạt động.</span>
+                    <span className="font-semibold">{locale === 'vi' ? 'Không có kết nối Internet. Một số tính năng có thể không hoạt động.' : 'No Internet connection. Some features may not work.'}</span>
                 </div>
             )}
 
@@ -663,7 +672,7 @@ export default function AnalyzePage() {
                         <div className="flex items-center gap-3">
                             <RotateCcw className="w-5 h-5 text-amber-600" />
                             <p className="text-sm text-amber-800">
-                                <span className="font-bold">Khôi phục phiên làm việc:</span> Chúng tôi tìm thấy dữ liệu chưa lưu từ phiên làm việc trước.
+                                <span className="font-bold">{locale === 'vi' ? 'Khôi phục phiên làm việc:' : 'Restore Session:'}</span> {locale === 'vi' ? 'Chúng tôi tìm thấy dữ liệu chưa lưu từ phiên làm việc trước.' : 'We found unsaved data from a previous session.'}
                             </p>
                         </div>
                         <div className="flex items-center gap-3">
@@ -671,13 +680,13 @@ export default function AnalyzePage() {
                                 onClick={handleRestore}
                                 className="px-4 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
                             >
-                                Khôi phục ngay
+                                {locale === 'vi' ? 'Khôi phục ngay' : 'Restore Now'}
                             </button>
                             <button
                                 onClick={discardSaved}
                                 className="px-3 py-1.5 text-amber-700 hover:bg-amber-100 text-sm font-medium rounded-lg transition-colors"
                             >
-                                Bỏ qua
+                                {locale === 'vi' ? 'Bỏ qua' : 'Discard'}
                             </button>
                         </div>
                     </div>
@@ -696,7 +705,7 @@ export default function AnalyzePage() {
                         setIsPrivateMode={setIsPrivateMode}
                         clearSession={() => {
                             clearSession();
-                            showToast('Đã xóa dữ liệu phiên làm việc', 'info');
+                            showToast(locale === 'vi' ? 'Đã xóa dữ liệu phiên làm việc' : 'Session data cleared', 'info');
                         }}
                         filename={filename}
                         onSave={() => setIsSaveModalOpen(true)}
@@ -707,8 +716,8 @@ export default function AnalyzePage() {
             <div className="bg-blue-50/50 border-b border-blue-100 py-1">
                 <div className="container mx-auto px-6 flex items-center justify-center gap-2 text-[11px] text-blue-600/80">
                     <Shield className="w-3 h-3" />
-                    <span className="font-semibold">Bảo mật:</span>
-                    <span>Dữ liệu xử lý cục bộ 100% (Client-side), an toàn tuyệt đối.</span>
+                    <span className="font-semibold">{locale === 'vi' ? 'Bảo mật:' : 'Security:'}</span>
+                    <span>{t(locale, 'analyze.common.security')}</span>
                 </div>
             </div>
 
@@ -773,13 +782,13 @@ export default function AnalyzePage() {
                         <div className="space-y-6">
                             <div className="text-center mb-8">
                                 <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                                    Tải lên dữ liệu của bạn
+                                    {t(locale, 'analyze.upload.title')}
                                 </h2>
                                 <p className="text-gray-600">
-                                    Hỗ trợ file CSV và Excel (.xlsx, .xls)
+                                    {t(locale, 'analyze.upload.desc')}
                                 </p>
                             </div>
-                            <FileUpload onDataLoaded={handleDataLoaded} />
+                            <FileUpload onDataLoaded={handleDataLoaded} locale={locale} />
                         </div>
                     )}
 
@@ -787,13 +796,13 @@ export default function AnalyzePage() {
                         <div className="space-y-6">
                             <div className="text-center mb-8">
                                 <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                                    Báo cáo chất lượng dữ liệu
+                                    {t(locale, 'analyze.profile.title')}
                                 </h2>
                                 <p className="text-gray-600">
-                                    Kiểm tra và xác nhận dữ liệu trước khi phân tích
+                                    {t(locale, 'analyze.profile.desc')}
                                 </p>
                             </div>
-                            <DataProfiler profile={profile} onProceed={handleProceedToAnalysis} />
+                            <DataProfiler profile={profile} onProceed={handleProceedToAnalysis} locale={locale} />
                         </div>
                     )}
 
@@ -801,10 +810,10 @@ export default function AnalyzePage() {
                         <div className="max-w-4xl mx-auto space-y-6">
                             <div className="text-center mb-8">
                                 <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                                    Chọn phương pháp phân tích
+                                    {t(locale, 'analyze.selector.title')}
                                 </h2>
                                 <p className="text-gray-600">
-                                    Chọn phương pháp phù hợp với mục tiêu nghiên cứu
+                                    {t(locale, 'analyze.selector.desc')}
                                 </p>
                             </div>
 
@@ -812,12 +821,13 @@ export default function AnalyzePage() {
                                 onSelect={(s) => setStep(s as AnalysisStep)}
                                 onRunAnalysis={runAnalysis}
                                 isAnalyzing={isAnalyzing}
+                                mode={mode}
                             />
 
                             {isAnalyzing && (
                                 <div className="text-center py-8">
                                     <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-                                    <p className="mt-4 text-gray-600">Đang phân tích...</p>
+                                    <p className="mt-4 text-gray-600">{t(locale, 'analyze.common.analyzing')}</p>
                                 </div>
                             )}
                         </div>
@@ -930,15 +940,15 @@ export default function AnalyzePage() {
                         <div className="max-w-6xl mx-auto space-y-6" id="results-container">
                             <div className="text-center mb-8">
                                 <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                                    Kết quả phân tích
+                                    {t(locale, 'analyze.results.title')}
                                 </h2>
                                 <p className="text-gray-600">
                                     {analysisType === 'cronbach' && `Cronbach's Alpha${results?.scaleName ? ` - ${results.scaleName}` : ''}`}
                                     {analysisType === 'omega' && `McDonald's Omega${results?.scaleName ? ` - ${results.scaleName}` : ''}`}
-                                    {analysisType === 'cronbach-batch' && `Cronbach's Alpha - ${multipleResults.length} thang đo`}
-                                    {analysisType === 'omega-batch' && `McDonald's Omega - ${multipleResults.length} thang đo`}
-                                    {analysisType === 'correlation' && "Ma trận tương quan"}
-                                    {analysisType === 'descriptive' && "Thống kê mô tả"}
+                                    {analysisType === 'cronbach-batch' && `Cronbach's Alpha - ${multipleResults.length} ${locale === 'vi' ? 'thang đo' : 'scales'}`}
+                                    {analysisType === 'omega-batch' && `McDonald's Omega - ${multipleResults.length} ${locale === 'vi' ? 'thang đo' : 'scales'}`}
+                                    {analysisType === 'correlation' && (locale === 'vi' ? "Ma trận tương quan" : "Correlation Matrix")}
+                                    {analysisType === 'descriptive' && (locale === 'vi' ? "Thống kê mô tả" : "Descriptive Statistics")}
                                     {analysisType === 'ttest' && "Independent Samples T-test"}
                                     {analysisType === 'ttest-paired' && "Paired Samples T-test"}
                                     {analysisType === 'anova' && "One-Way ANOVA"}
@@ -974,15 +984,15 @@ export default function AnalyzePage() {
                                 <div className="space-y-8">
                                     {/* Summary Table */}
                                     <div className="bg-white rounded-xl shadow-lg p-6 border border-slate-200">
-                                        <h3 className="text-xl font-bold text-slate-800 mb-4 border-b pb-2">Tổng hợp độ tin cậy các thang đo</h3>
+                                        <h3 className="text-xl font-bold text-slate-800 mb-4 border-b pb-2">{locale === 'vi' ? 'Tổng hợp độ tin cậy các thang đo' : 'Aggregated Scale Reliability'}</h3>
                                         <div className="overflow-x-auto">
                                             <table className="w-full text-left text-sm text-slate-800">
                                                 <thead className="bg-slate-50 text-slate-700">
                                                     <tr className="border-b-2 border-slate-300">
-                                                        <th className="py-3 px-4 font-semibold rounded-tl-lg">Thang đo</th>
-                                                        <th className="py-3 px-4 font-semibold text-center">Số biến</th>
+                                                        <th className="py-3 px-4 font-semibold rounded-tl-lg">{locale === 'vi' ? 'Thang đo' : 'Scale'}</th>
+                                                        <th className="py-3 px-4 font-semibold text-center">{locale === 'vi' ? 'Số biến' : 'Items'}</th>
                                                         <th className="py-3 px-4 font-semibold text-center">Cronbach&apos;s Alpha</th>
-                                                        <th className="py-3 px-4 font-semibold text-center rounded-tr-lg">Đánh giá</th>
+                                                        <th className="py-3 px-4 font-semibold text-center rounded-tr-lg">{locale === 'vi' ? 'Đánh giá' : 'Evaluation'}</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
@@ -990,11 +1000,11 @@ export default function AnalyzePage() {
                                                         const alpha = r.data?.alpha || r.data?.rawAlpha || 0;
                                                         let evaluation = '';
                                                         let evalColor = '';
-                                                        if (alpha >= 0.9) { evaluation = 'Xuất sắc'; evalColor = 'text-green-800 bg-green-100 ring-1 ring-green-200'; }
-                                                        else if (alpha >= 0.8) { evaluation = 'Tốt'; evalColor = 'text-green-700 bg-emerald-50 ring-1 ring-emerald-200'; }
-                                                        else if (alpha >= 0.7) { evaluation = 'Chấp nhận'; evalColor = 'text-blue-700 bg-blue-50 ring-1 ring-blue-200'; }
-                                                        else if (alpha >= 0.6) { evaluation = 'Khá'; evalColor = 'text-amber-700 bg-amber-50 ring-1 ring-amber-200'; }
-                                                        else { evaluation = 'Kém'; evalColor = 'text-red-700 bg-red-50 ring-1 ring-red-200'; }
+                                                        if (alpha >= 0.9) { evaluation = locale === 'vi' ? 'Xuất sắc' : 'Excellent'; evalColor = 'text-green-800 bg-green-100 ring-1 ring-green-200'; }
+                                                        else if (alpha >= 0.8) { evaluation = locale === 'vi' ? 'Tốt' : 'Good'; evalColor = 'text-green-700 bg-emerald-50 ring-1 ring-emerald-200'; }
+                                                        else if (alpha >= 0.7) { evaluation = locale === 'vi' ? 'Chấp nhận' : 'Acceptable'; evalColor = 'text-blue-700 bg-blue-50 ring-1 ring-blue-200'; }
+                                                        else if (alpha >= 0.6) { evaluation = locale === 'vi' ? 'Khá' : 'Fair'; evalColor = 'text-amber-700 bg-amber-50 ring-1 ring-amber-200'; }
+                                                        else { evaluation = locale === 'vi' ? 'Kém' : 'Poor'; evalColor = 'text-red-700 bg-red-50 ring-1 ring-red-200'; }
 
                                                         return (
                                                             <tr key={idx} className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
@@ -1018,7 +1028,7 @@ export default function AnalyzePage() {
                                     {multipleResults.map((r, idx) => (
                                         <div key={idx} className="border-t pt-6">
                                             <h4 className="text-lg font-bold text-gray-800 mb-4">
-                                                Chi tiết: {r.scaleName} ({r.columns.join(', ')})
+                                                {locale === 'vi' ? 'Chi tiết' : 'Details'}: {r.scaleName} ({r.columns.join(', ')})
                                             </h4>
                                             <ResultsDisplay
                                                 analysisType="cronbach"
@@ -1041,14 +1051,14 @@ export default function AnalyzePage() {
                                     }}
                                     className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg transition-colors"
                                 >
-                                    ← Phân tích khác
+                                    {t(locale, 'analyze.results.back')}
                                 </button>
                                 <button
                                     onClick={handleExportPDF}
                                     className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors flex items-center gap-2 shadow-sm"
                                 >
                                     <FileText className="w-5 h-5" />
-                                    Xuất PDF
+                                    {t(locale, 'analyze.results.exportPdf')}
                                 </button>
                                 <div className="relative group">
                                     <button
@@ -1056,7 +1066,7 @@ export default function AnalyzePage() {
                                         className="px-6 py-3 bg-blue-400 text-white font-semibold rounded-lg flex items-center gap-2 cursor-not-allowed opacity-70"
                                     >
                                         <FileText className="w-5 h-5" />
-                                        Xuất Word
+                                        {t(locale, 'analyze.results.exportWord')}
                                     </button>
                                     <span className="absolute -top-3 -right-3 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
                                         Soon
@@ -1072,7 +1082,7 @@ export default function AnalyzePage() {
                                     }}
                                     className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
                                 >
-                                    Tải file mới
+                                    {t(locale, 'analyze.results.newAnalysis')}
                                 </button>
                             </div>
                         </div>
@@ -1088,7 +1098,7 @@ export default function AnalyzePage() {
                 isOpen={showDemographics}
                 onComplete={() => {
                     setShowDemographics(false);
-                    showToast('Cảm ơn bạn đã cung cấp thông tin!', 'success');
+                    showToast(locale === 'vi' ? 'Cảm ơn bạn đã cung cấp thông tin!' : 'Thank you for your feedback!', 'success');
                 }}
             />
 
