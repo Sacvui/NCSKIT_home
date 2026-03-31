@@ -3,189 +3,276 @@
 import React, { useState, useEffect } from 'react';
 import { 
     ArrowLeft, Clock, Share2, Bookmark, User, 
-    BookOpen, ShieldCheck, CheckCircle2, AlertCircle,
-    Info, Target, Layers, TrendingUp
+    ShieldCheck, CheckCircle2, TrendingUp
 } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import { getStoredLocale, t, type Locale } from '@/lib/i18n';
+import { getStoredLocale, type Locale } from '@/lib/i18n';
 import Link from 'next/link';
 
-// Mock content for the first authority article
 const articleData = {
     'cronbach-alpha': {
-        title_vi: 'Kiểm định độ tin cậy Cronbach\'s Alpha: Hướng dẫn từ A-Z',
-        title_en: 'Cronbach\'s Alpha Reliability Test: A-Z Guide',
+        title_vi: 'Kiểm định độ tin cậy Cronbach\'s Alpha: Bản giao hưởng của Tin cậy nội tại',
+        title_en: 'Cronbach\'s Alpha Reliability Test: The Symphony of Internal Consistency',
         category: 'Preliminary Analysis',
         author: 'ncsStat Editorial',
         date: '31 March 2026',
-        expert_tip_vi: 'Đừng quá ám ảnh việc đạt Alpha > 0.9. Trong nhiều trường hợp, Alpha quá cao (> 0.95) có thể là dấu hiệu của việc các câu hỏi quá giống nhau (trùng lặp ý), gây lãng phí dữ liệu. Hãy hướng tới ngưỡng 0.7 - 0.9 để thang đo vừa tin cậy vừa có tính phân biệt tốt.',
-        expert_tip_en: 'Don\'t be obsessed with Alpha > 0.9. In many cases, an extremely high Alpha (> 0.95) might indicate redundant questions. Aim for 0.7 - 0.9 for a reliable yet non-redundant scale.',
+        expert_tip_vi: 'Đừng để bị đánh lừa bởi một con số Alpha tổng cao chót vót. Hãy luôn dành sự tập trung tối đa vào cột "Corrected Item-Total Correlation". Bất kỳ biến nào có hệ số này dưới 0.3 đều là "biến rác" đang làm yếu đi sức mạnh của thang đo.',
+        expert_tip_en: 'Don\'t be fooled by a sky-high total Alpha. Always focus on the "Corrected Item-Total Correlation" column. Any variable with a coefficient under 0.3 is a "noise variable" weakening your scale.',
         items: [
             {
-                h2_vi: '1. Bản chất của Cronbach\'s Alpha trong nghiên cứu',
-                h2_en: '1. The Essence of Cronbach\'s Alpha',
-                content_vi: 'Cronbach\'s Alpha là một phép kiểm định thống kê dùng để đo lường tính nhất quán nội tại (internal consistency). Trong các bài nghiên cứu (Thesis/Paper), đây là bước "lọc" đầu tiên để đảm bảo các biến quan sát (items) trong cùng một thang đo thực sự đang đo lường cùng một khái niệm trừu tượng. \n\nNếu Alpha thấp, có nghĩa là các câu hỏi của bạn đang "đá nhau", dẫn đến kết quả phân tích EFA hay Hồi quy sau đó sẽ hoàn toàn vô nghĩa.',
-                content_en: 'Cronbach\'s Alpha is a statistical test used to measure internal consistency. In research papers, this is the first "filtering" step to ensure that the observed variables in a scale are truly measuring the same abstract concept.'
+                h2_vi: '1. Bản chất & Triết lý nghiên cứu',
+                h2_en: '1. Essence & Research Philosophy',
+                content_vi: 'Trong thế giới của những con số, sự hỗn loạn là kẻ thù số một. Theo Hair et al. (2010), hệ số Cronbach\'s Alpha không chỉ đơn thuần là một con số thống kê; nó là linh hồn của thang đo. Nó trả lời cho câu hỏi: "Liệu các câu hỏi mà bạn đặt ra có thực sự đang cùng nhau tấu lên một bản giao hưởng về một khái niệm trừu tượng duy nhất, hay chúng đang mâu thuẫn lẫn nhau?". Thang đo là một tấm gương phản chiếu khái niệm (construct). Nếu tấm gương ấy bị rạn nứt – tức là tính nhất quán nội tại thấp – thì mọi hình ảnh bạn thấy sau đó như EFA hay Hồi quy đều sẽ bị méo mó và hoàn toàn vô nghĩa.',
+                content_en: 'In the world of numbers, chaos is the primary enemy. According to Hair et al. (2010), Cronbach\'s Alpha is more than just a statistic; it is the soul of the scale. It answers: "Are your questions playing a symphony of a single abstract concept, or are they contradicting each other?".'
             },
             {
-                h2_vi: '2. Các ngưỡng giá trị vàng (Academic Standards)',
-                h2_en: '2. Standard Gold Thresholds',
-                content_vi: 'Dựa trên tiêu chuẩn của Hair et al. (2010), chúng ta có các mốc quan trọng: \n\n• Alpha ≥ 0.8: Thang đo đạt độ tin cậy rất tốt, lý tưởng cho mọi bài công bố quốc tế.\n• 0.7 ≤ Alpha < 0.8: Độ tin cậy tốt, có thể sử dụng bình thường.\n• 0.6 ≤ Alpha < 0.7: Chấp nhận được đối với các nghiên cứu mới.\n• Alpha < 0.6: Loại bỏ thang đo vì không đạt tính nhất quán.',
-                content_en: 'Based on Hair et al. (2010), we have these key milestones: \n\n• Alpha ≥ 0.8: Excellent reliability, ideal for international publication.\n• 0.7 ≤ Alpha < 0.8: Good reliability.\n• 0.6 ≤ Alpha < 0.7: Acceptable for exploratory research.\n• Alpha < 0.6: Reject the scale due to poor consistency.'
+                h2_vi: '2. Ma trận Tiêu chuẩn học thuật (The Golden Standards)',
+                h2_en: '2. The Golden Standards Matrix',
+                content_vi: 'Dựa trên tiêu chuẩn của Hair et al. (2010) và Nunnally & Bernstein (1994):\n• 0.9 - 1.0: Rất cao (Thận trọng với trùng lặp ý).\n• 0.8 - 0.9: Tuyệt vời (Lý chuẩn cho bài báo quốc tế ISI/Scopus).\n• 0.7 - 0.8: Khá/Tốt (Sử dụng phổ biến trong luận văn).\n• 0.6 - 0.7: Đạt yêu cầu (Dành cho nghiên cứu mới).\n• < 0.6: Loại bỏ ngay lập tức.',
+                content_en: 'Based on Hair et al. (2010) and Nunnally & Bernstein (1994):\n• 0.9 - 1.0: Very High (Watch out for redundancy).\n• 0.8 - 0.9: Excellent (Standard for ISI/Scopus papers).\n• 0.7 - 0.8: Good (Standard for Masters/PhD theses).'
+            },
+            {
+                h2_vi: '3. Practical User Case: Bài toán "Lòng trung thành Thương hiệu"',
+                h2_en: '3. Practical Case: Brand Loyalty Scale',
+                content_vi: 'Hãy tưởng tượng bạn đo lường lòng trung thành bằng 4 câu: (1) Sẽ quay lại mua; (2) Sẽ giới thiệu bạn bè; (3) Tự hào khi sử dụng; (4) Thấy giá xe rẻ. \nKhi chạy ncsStat, Alpha chỉ đạt 0.52. ncsStat chỉ ra rằng câu số 4 (Nhận thức giá) hoàn toàn lạc lõng. Trong khi 3 câu đầu nói về sự gắn kết tâm lý, câu 4 nói về câu chuyện kinh tế. Hành động: Loại bỏ câu 4, Alpha vọt lên 0.78. Thang đo lúc này đã trở nên "thuần khiết" và cực kỳ đáng tin cậy.',
+                content_en: 'Imagine measuring loyalty with 4 items: (1) Re-purchase intent; (2) Referral intent; (3) Pride; (4) Price perception. ncsStat shows Alpha = 0.52. Removing item 4 (Price) boosts Alpha to 0.78 because the scale becomes psychologically pure.'
             }
         ]
     },
     'efa-factor-analysis': {
-        title_vi: 'Phân tích nhân tố khám phá (EFA): Khi nào cần xoay nhân tố?',
-        title_en: 'Exploratory Factor Analysis (EFA): Complete Guide',
+        title_vi: 'Phân tích nhân tố khám phá (EFA): Khám phá cấu trúc ẩn sau dữ liệu',
+        title_en: 'Exploratory Factor Analysis (EFA): Discovering Inner Structures',
         category: 'Factor Analysis',
         author: 'ncsStat Editorial',
         date: '31 March 2026',
-        expert_tip_vi: 'Nếu dữ liệu của bạn có các nhân tố tương quan mạnh với nhau (> 0.3), hãy ưu tiên dùng phép xoay Promax thay vì Varimax. Promax cho phép các nhân tố không vuông góc, phản ánh đúng thực tế hành vi con người hơn.',
-        expert_tip_en: 'If your factors are significantly correlated (> 0.3), prefer Promax rotation over Varimax. Promax allows non-orthogonal factors, which often reflects real human behavior more accurately.',
+        expert_tip_vi: 'Trong nghiên cứu xã hội, hãy đặc biệt chú ý đến phép xoay Promax. Thực tế hành vi con người luôn có sự đan xen, Promax cho phép các nhân tố tương quan với nhau, phản ánh đúng bản chất "đời" hơn so với phép xoay Varimax.',
+        expert_tip_en: 'In social research, pay close attention to Promax rotation. Human behavior is interconnected; Promax allows correlated factors, reflecting "real life" more accurately than Varimax.',
         items: [
             {
-                h2_vi: '1. Mục tiêu cốt lõi của EFA',
-                h2_en: '1. Core Objectives of EFA',
-                content_vi: 'EFA giúp rút gọn một tập hợp nhiều biến quan sát thành một số ít các nhân tố có ý nghĩa hơn. Tiêu chuẩn quan trọng nhất là KMO (Kaiser-Meyer-Olkin) phải ≥ 0.5 và kiểm định Bartlett phải có Sig < 0.05 để đảm bảo dữ liệu đủ điều kiện phân tích nhân tố.',
-                content_en: 'EFA reduces a large set of variables into fewer meaningful factors. KMO must be ≥ 0.5 and Bartlett\'s test p-value < 0.05 to ensure data suitability for factor analysis.'
+                h2_vi: '1. Cơ sở lý luận Chuyên sâu',
+                h2_en: '1. Deep Theoretical Foundation',
+                content_vi: 'EFA là kỹ thuật ma thuật giúp tìm thấy những "sợi dây vô hình" kết nối các biến quan sát. Nó giả định rằng đằng sau hàng chục câu hỏi khảo sát là một vài "nhân tố mẹ" đang điều khiển tất cả. Việc xác định đúng các nhóm nhân tố này chính là chìa khóa để xây dựng một mô hình nghiên cứu mạch lạc và có chiều sâu.',
+                content_en: 'EFA is a magical technique that finds "invisible strings" connecting observed variables. It assumes a few "mother factors" control dozens of survey questions.'
+            },
+            {
+                h2_vi: '2. Những chỉ số kiểm soát "Cửa ngõ"',
+                h2_en: '2. Gateway Control Indices',
+                content_vi: '• KMO (Factor Adequacy): ≥ 0.5 (Tốt nhất > 0.7). \n• Bartlett\'s Test: Sig < 0.05. \n• Factor Loading: Hệ số tải ≥ 0.5 là mốc lý tưởng. \n• Phương sai trích (Cumulative Variance): Phải > 50% để đảm bảo các nhân tố mới đại diện được linh hồn dữ liệu.',
+                content_en: '• KMO: ≥ 0.5 (Ideally > 0.7). \n• Bartlett\'s Test: Sig < 0.05. \n• Factor Loading: ≥ 0.5 is ideal. \n• Cumulative Variance: Must be > 50%.'
+            },
+            {
+                h2_vi: '3. Practical User Case: Nghiên cứu Động lực làm việc',
+                h2_en: '3. Practical Case: Employee Motivation',
+                content_vi: 'Bạn khảo sát 30 yếu tố. ncsStat tự động gom thành 5 cột: (1) Phúc lợi tài chính; (2) Môi trường làm việc; (3) Giá trị tự thân;... Một biến "Sự thoải mái" nhảy vào cả 2 nhóm. ncsStat khuyên bỏ biến chéo này để mô hình sắc nét.',
+                content_en: 'Surveying 30 factors, ncsStat groups them into: (1) Financial welfare; (2) Work environment; (3) Self-value. If an item cross-loads, ncsStat suggests removing it for a sharp model.'
             }
         ]
     },
     'regression-vif-multicollinearity': {
-        title_vi: 'Hồi quy đa biến và kiểm tra Đa cộng tuyến (VIF)',
-        title_en: 'Multiple Regression & VIF: Assessing Impact',
+        title_vi: 'Hồi quy đa biến và Đa cộng tuyến (VIF): Dự báo Tương lai',
+        title_en: 'Multiple Regression & VIF: Predicting the Future',
         category: 'Impact Analysis',
         author: 'ncsStat Editorial',
         date: '31 March 2026',
-        expert_tip_vi: 'Mặc dù lý thuyết cho phép VIF < 10, nhưng thực tế nghiên cứu quản trị và kinh tế học hiện đại ưu tiên VIF < 2 hoặc 5 để đảm bảo các biến độc lập không "nuốt chửng" lẫn nhau, làm sai lệch hệ số Beta.',
-        expert_tip_en: 'While theory allows VIF < 10, modern research in management and economics prefers VIF < 2 or 5 to ensure independent variables do not "overlap" too much, which can bias Beta coefficients.',
+        expert_tip_vi: 'Hãy luôn ưu tiên đọc hệ số Beta chuẩn hóa (Standardized Beta). Nó cho phép bạn so sánh công bình giữa các biến độc lập có đơn vị đo khác nhau (vd: số năm kinh nghiệm và số tiền thu nhập).',
+        expert_tip_en: 'Always prioritize Standardized Beta. It allows fair comparison between independent variables with different units (e.g., years of experience vs. income amount).',
         items: [
             {
-                h2_vi: '1. Đọc hiểu hệ số Beta chuẩn hóa',
-                h2_en: '1. Interpreting Standardized Beta',
-                content_vi: 'Hệ số Beta chuẩn hóa giúp bạn so sánh mức độ tác động mạnh/yếu của các biến độc lập lên biến phụ thuộc. Biến nào có Beta (giá trị tuyệt đối) lớn hơn sẽ có ảnh hưởng mạnh hơn trong mô hình.',
-                content_en: 'Standardized Beta allows you to compare the relative impact of independent variables on the dependent variable. A higher absolute Beta signifies a stronger influence.'
+                h2_vi: '1. Lý thuyết Hồi quy & La bàn quản trị',
+                h2_en: '1. Regression Theory & Management Compass',
+                content_vi: 'Hồi quy tuyến tính (OLS) trả lời câu hỏi: "Nếu tôi thay đổi X một đơn vị, Y sẽ thay đổi bao nhiêu?". Trong kinh doanh, đây là "la bàn" để lãnh đạo phân bổ nguồn lực. Phương trình mô phỏng cách thế giới vận hành thông qua các biến số.',
+                content_en: 'OLS regression answers: "If I change X by one unit, how much will Y change?". In business, this is the compass for resource allocation.'
+            },
+            {
+                h2_vi: '2. Những rào cản kiểm định Chặt chẽ',
+                h2_en: '2. Strict Verification Barriers',
+                content_vi: '1. R² (R-Square): Ngưỡng 0.3 - 0.7 là lý tưởng cho xã hội. \n2. F-test Sig: Phải < 0.05. \n3. VIF: Phải < 10 (Học thuật khắt khe yêu cầu < 2 hoặc 5).',
+                content_en: '1. R-Square: 0.3 - 0.7 is ideal for social sciences. \n2. F-test Sig: Must be < 0.05. \n3. VIF: Must be < 10 (Strictly < 2 or 5).'
+            },
+            {
+                h2_vi: '3. Practical User Case: Tác động của Marketing Mix lên Doanh thu',
+                h2_en: '3. Practical Case: Marketing Mix Impact on Revenue',
+                content_vi: 'Biến: Ngân sách TikTok (X1), FB Ads (X2). ncsStat chỉ ra Beta TikTok = 0.45, FB = 0.22. KOLs/TikTok mang hiệu quả gấp đôi. Nếu VIF > 10, X1 và X2 chồng lấn, làm sai lệch kết luận.',
+                content_en: 'Variables: TikTok Budget (X1), FB Ads (X2). ncsStat shows Beta TikTok = 0.45, FB = 0.22. TikTok is twice as effective. High VIF indicates overlap, biasing results.'
+            }
+        ]
+    },
+    'descriptive-statistics-interpretation': {
+        title_vi: 'Thống kê mô tả: Nghệ thuật kể chuyện qua những con số',
+        title_en: 'Descriptive Statistics: Storytelling through Numbers',
+        category: 'Preliminary Analysis',
+        author: 'ncsStat Editorial',
+        date: '31 March 2026',
+        expert_tip_vi: 'Một báo cáo chuyên nghiệp chuẩn quốc tế luôn phải đi kèm cột Std. Deviation. Độ lệch chuẩn thấp thể hiện sự đồng thuận; độ lệch chuẩn cao thể hiện sự phân hóa thị trường mạnh.',
+        expert_tip_en: 'A professional international report must include Std. Deviation. Low SD shows consensus; high SD shows strong market polarization.',
+        items: [
+            {
+                h2_vi: '1. Ngôn ngữ đầu tiên của Dữ liệu',
+                h2_en: '1. The First Language of Data',
+                content_vi: 'Thống kê mô tả không chỉ là đếm. Nó bao gồm Mean (Phổ quát), Median (Chuẩn xác khi có Outlier) và Skewness/Kurtosis (Kiểm tra Phân phối chuẩn cho bước sau). Một báo cáo tốt giúp người đọc cảm nhận độ dày của mẫu.',
+                content_en: 'Descriptive stats isn\'t just counting. It includes Mean, Median (for Outliers), and Skewness/Kurtosis (Normality test).'
+            },
+            {
+                h2_vi: '2. Practical User Case: Khảo sát thu nhập Gen Z',
+                h2_en: '2. Practical Case: Gen Z Income Survey',
+                content_vi: 'Mean 15tr nhưng có bạn thu nhập 500tr (Outlier) làm Mean bị nhiễu. ncsStat khuyên dùng Median (8tr) để phản ánh thực tế Gen Z gần gũi hơn.',
+                content_en: 'Mean might be 15M, but a 500M outlier skews it. ncsStat suggests using Median (8M) for a more realistic Gen Z profile.'
             }
         ]
     },
     'independent-t-test-guide': {
-        title_vi: 'Kiểm định Independent T-test: So sánh giới tính và đặc điểm mẫu',
-        title_en: 'Independent T-test Guide: Analyzing Group Differences',
+        title_vi: 'Independent T-test: Cuộc đối đầu giữa các nhóm độc lập',
+        title_en: 'Independent T-test: The Confrontation of Groups',
         category: 'Comparison Analysis',
         author: 'ncsStat Editorial',
         date: '31 March 2026',
-        expert_tip_vi: 'Hãy luôn kiểm tra bảng Levene\'s Test trước. Nếu Sig của Levene < 0.05, bạn phải đọc kết quả ở dòng "Equal variances not assumed" để tránh sai số loại I.',
-        expert_tip_en: 'Always check Levene\'s Test first. If Levene\'s p-value < 0.05, you must read the "Equal variances not assumed" row to avoid Type I error.',
+        expert_tip_vi: 'Đừng chỉ báo cáo T-test. Hãy dùng hệ số Cohen\'s d của ncsStat để nói mức độ khác biệt đó là Rất lớn hay Nhỏ. Khoa học hiện đại coi trọng Effect size hơn là Sig đơn thuần.',
+        expert_tip_en: 'Don\'t just report T-test. Use Cohen\'s d from ncsStat to state if the effect size is Large or Small. Effect size matters more than just Sig in modern science.',
         items: [
             {
-                h2_vi: '1. Ý nghĩa phép thử T-test',
-                h2_en: '1. Significance of T-test',
-                content_vi: 'Dùng để kiểm định xem liệu sự khác biệt về giá trị trung bình giữa 2 nhóm (ví dụ: Sự hài lòng của nam giới và nữ giới) có ý nghĩa thống kê hay chỉ là do ngẫu nhiên.',
-                content_en: 'Used to determine if the mean difference between two groups (e.g., satisfaction for males vs females) is statistically significant or just due to chance.'
+                h2_vi: '1. Ma trận Kiểm định APA',
+                h2_en: '1. APA Testing Matrix',
+                content_vi: 'Bước 1: Levene\'s Test. Sig > 0.05 -> Dòng 1 (Phương sai đồng nhất). Sig < 0.05 -> Dòng 2. Bước 2: Sig (2-tailed) < 0.05 là bằng chứng thép khẳng định sự khác biệt thực tế.',
+                content_en: 'Step 1: Levene\'s Test. Sig > 0.05 (Equal variances). Step 2: T-test Sig < 0.05 is the steel evidence for real differences.'
+            },
+            {
+                h2_vi: '2. Practical User Case: Local Brand vs Global Brand',
+                h2_en: '2. Practical Case: Local vs Global Brand',
+                content_vi: 'So sánh sự trung thành. Mean Global 4.2 > Local 3.8. Nếu Sig < 0.05, Global Brand thực sự nắm giữ vị thế trung thành của khách hàng một cách khoa học.',
+                content_en: 'Comparing loyalty: Global 4.2 vs Local 3.8. If Sig < 0.05, Global Brand holds a scientifically superior loyalty position.'
             }
         ]
     },
     'one-way-anova-post-hoc': {
-        title_vi: 'Phân tích ANOVA và kiểm định Post-hoc chuyên sâu',
-        title_en: 'One-way ANOVA & Post-hoc: Comparing Multi-groups',
+        title_vi: 'Phân tích ANOVA: So sánh Đa nhóm cực hạn',
+        title_en: 'One-way ANOVA: Extreme Multi-group Comparison',
         category: 'Comparison Analysis',
         author: 'ncsStat Editorial',
         date: '31 March 2026',
-        expert_tip_vi: 'Nếu phương sai không đồng nhất (Sig Levene < 0.05), đừng dùng kiểm định Tukey. Thay vào đó, hãy dùng phép thử Games-Howell trong ncsStat để có kết quả so sánh cặp chính xác nhất.',
-        expert_tip_en: 'If variances are not homogeneous (Levene p < 0.05), avoid Tukey. Use Games-Howell test in ncsStat instead for the most accurate pairwise comparisons.',
+        expert_tip_vi: 'Nếu dữ liệu vi phạm tính đồng nhất phương sai (Sig Levene < 0.05), đừng dùng Tukey. Hãy dùng phép thử Games-Howell có sẵn trong ncsStat để đạt điểm tuyệt đối chuyên môn.',
+        expert_tip_en: 'If variances aren\'t homogeneous (Levene < 0.05), avoid Tukey. Use Games-Howell in ncsStat for perfect professional scoring.',
         items: [
             {
                 h2_vi: '1. ANOVA vs T-test',
                 h2_en: '1. ANOVA vs T-test',
-                content_vi: 'Trong khi T-test chỉ so sánh được 2 nhóm, ANOVA cho phép so sánh từ 3 nhóm trở lên (vd: Độ tuổi 18-25, 26-35, Trên 35) để tìm ra nhóm nào có sự khác biệt thực sự.',
-                content_en: 'While T-test compares 2 groups, ANOVA handles 3 or more (e.g., ages 18-25, 26-35, 35+) to identify which specific groups differ.'
+                content_vi: 'ANOVA so sánh phương sai giữa nhóm và nội bộ nhóm. Giai đoạn 1: Omnibus F-test báo có khác biệt. Giai đoạn 2: Post-hoc (Tukey/Bonferroni) vạch trần đúng cặp khác biệt.',
+                content_en: 'ANOVA compares between-group and within-group variance. Stage 1: Omnibus F-test. Stage 2: Post-hoc (Tukey/Bonferroni) reveals the exact differing pairs.'
+            },
+            {
+                h2_vi: '2. Practical User Case: Chi tiêu theo Trình độ học vấn',
+                h2_en: '2. Practical Case: Spending by Education',
+                content_vi: 'Nhóm: Đại học, Thạc sĩ, Tiến sĩ. Tukey chỉ ra Thạc sĩ chi nhiều hơn Đại học, nhưng Tiến sĩ ngang Thạc sĩ. Insight: Thạc sĩ là tệp khách hàng Luxury tối ưu.',
+                content_en: 'Groups: Bachelors, Masters, PhD. Tukey shows Masters spend more than Bachelors, but PhD spend similarly to Masters. Insight: Masters are the optimal luxury target.'
             }
         ]
     },
     'pearson-correlation-analysis': {
-        title_vi: 'Tương quan Pearson: Bước đệm trước khi chạy Hồi quy',
-        title_en: 'Pearson Correlation: Pre-regression Mandatory Step',
+        title_vi: 'Tương quan Pearson: Bản đồ các mối liên kết tiềm ẩn',
+        title_en: 'Pearson Correlation: Mapping Hidden Connections',
         category: 'Relationship Analysis',
         author: 'ncsStat Editorial',
         date: '31 March 2026',
-        expert_tip_vi: 'Tương quan chỉ cho biết mối quan hệ đi cùng nhau, không khẳng định quan hệ nhân quả. Một cặp biến có r = 0.9 không có nghĩa là biến A gây ra biến B, chúng có thể cùng chịu tác động từ một biến C ẩn giấu.',
-        expert_tip_en: 'Correlation only indicates a relationship; it does not prove causation. A coefficient r = 0.9 doesn\'t mean A causes B; both might be influenced by a hidden variable C.',
+        expert_tip_vi: 'Lưu ý cực kỳ quan trọng: Tương quan không phải là Nhân quả. Một cặp biến có r = 0.9 không có nghĩa là A gây ra B, chúng có thể cùng chịu tác động từ biến C ẩn giấu nào đó.',
+        expert_tip_en: 'Crucial note: Correlation is not Causation. r = 0.9 doesn\'t mean A causes B; both might be influenced by a hidden variable C.',
         items: [
             {
-                h2_vi: '1. Giải mã hệ số tương quan r',
-                h2_en: '1. Decoding Correlation r',
-                content_vi: 'Hệ số r dao động từ -1 đến 1. \n• r > 0.7: Tương quan rất mạnh. \n• 0.4 < r < 0.7: Tương quan trung bình. \n• r < 0.3: Tương quan yếu, có khả năng không nên đưa vào mô hình hồi quy.',
-                content_en: 'Coefficient r ranges from -1 to 1. r > 0.7 is a strong correlation, 0.4-0.7 is moderate, and < 0.3 is weak (likely unsuitable for regression).'
+                h2_vi: '1. Sức mạnh hệ số r',
+                h2_en: '1. Power of r Coefficient',
+                content_vi: 'r = 0.7-1.0: Rất mạnh. 0.5-0.7: Mạnh (Lý tưởng cho hồi quy). r < 0.3: Yếu. Tương quan là bước đệm cần thiết trước mọi mô hình tác động phức tạp.',
+                content_en: 'r 0.7-1.0: Very strong. 0.5-0.7: Strong (Ideal for regression). r < 0.3: Weak.'
+            },
+            {
+                h2_vi: '2. Practical User Case: "Xem Review" & "Ý định chốt đơn"',
+                h2_en: '2. Practical Case: "Reviews" & "Purchase Intent"',
+                content_vi: 'r = 0.68 (+). Khách dành càng nhiều thời gian xem KOLs review, khả năng chốt đơn càng cao. Insight: Đầu tư KOLs chất lượng thay vì banner khô khan.',
+                content_en: 'r = 0.68 (+). More time watching KOL reviews leads to higher purchase intent. Insight: Invest in KOL content over dry banners.'
             }
         ]
     },
     'chi-square-test-independence': {
-        title_vi: 'Kiểm định Chi-square: Phân tích sâu Biến định danh',
-        title_en: 'Chi-square Test: Categorical Variables Deep Dive',
+        title_vi: 'Kiểm định Chi-square: Liên kết những mảnh ghép định danh',
+        title_en: 'Chi-square Test: Linking Categorical Pieces',
         category: 'Categorical Analysis',
         author: 'ncsStat Editorial',
         date: '31 March 2026',
-        expert_tip_vi: 'Nếu có hơn 20% số ô trong bảng chéo có tần số kỳ vọng < 5, kết quả Chi-square có thể không tin cậy. Khi đó, hãy dùng kiểm định Fisher\'s Exact Test trong ncsStat.',
-        expert_tip_en: 'If >20% of cells have expected frequencies < 5, Chi-square might be unreliable. Use Fisher\'s Exact Test in ncsStat for accurate results.',
+        expert_tip_vi: 'Với bảng 2x2, hãy luôn dùng Yates\' Correction hoặc Fisher\'s Exact Test của ncsStat nếu mẫu nhỏ. Nó bảo vệ tính khoa học cho kết quả nghiên cứu của bạn.',
+        expert_tip_en: 'For 2x2 tables, always use Yates\' Correction or Fisher\'s Exact Test in ncsStat for small samples to protect scientific integrity.',
         items: [
             {
-                h2_vi: '1. Khi nào dùng Chi-sq?',
-                h2_en: '1. When to use Chi-sq?',
-                content_vi: 'Dùng khi bạn muốn biết liệu Nghề nghiệp (Giáo viên, Bác sĩ, Kinh doanh) có liên quan đến Sở thích mua sắm hay không. Cả hai biến đều là định danh (Nominal).',
-                content_en: 'Used to test if Profession (Teacher, Doctor, Business) is related to Shopping preference. Both variables are Nominal.'
+                h2_vi: '1. Bản chất & Ma thuật bảng chéo',
+                h2_en: '1. Essence of Crosstabs',
+                content_vi: 'Chi-square so sánh cái thực tế quan sát được với cái kỳ vọng nếu mọi thứ là ngẫu nhiên. Nó là phép thử kỳ diệu để làm việc với biến định danh (Nominal).',
+                content_en: 'Chi-square compares Observed vs Expected frequencies. It is the magic test for Nominal variables.'
+            },
+            {
+                h2_vi: '2. Practical User Case: "Khu vực" và "Gu ẩm thực"',
+                h2_en: '2. Practical Case: "Region" and "Taste Preference"',
+                content_vi: 'Sig = 0.000 có nghĩa Văn hóa vùng miền (Bắc/Trung/Nam) ảnh hưởng cực mạnh đến khẩu vị. Hãy đo độ mạnh qua Cramer\'s V (> 0.3 là rất có giá thực tiễn).',
+                content_en: 'Sig = 0.000 means regional culture (North/Cent/South) strongly influences taste. Measure strength via Cramer\'s V (> 0.3 is practical).'
             }
         ]
     },
     'mediation-analysis-sobel-test': {
-        title_vi: 'Phân tích biến trung gian (Mediation) và kiểm định Sobel',
-        title_en: 'Mediation Analysis: The Baron & Kenny Strategy',
+        title_vi: 'Biến trung gian (Mediation): Giải mã cơ chế tác động sâu',
+        title_en: 'Mediation Analysis: Decoding Deep Core Mechanisms',
         category: 'Advanced Analysis',
         author: 'ncsStat Editorial',
         date: '31 March 2026',
-        expert_tip_vi: 'Hiện nay, giới học thuật quốc tế ưa chuộng phương pháp Bootstrapping của Preacher & Hayes hơn là phép thử Sobel truyền thống vì nó không đòi hỏi giả định phân phối chuẩn.',
-        expert_tip_en: 'International scholars now prefer Preacher & Hayes\' Bootstrapping method over the traditional Sobel test as it doesn\'t require normal distribution assumptions.',
+        expert_tip_vi: 'Giới Scopus/ISI hiện nay cực kỳ ưa chuộng Bootstrapping. Nó cung cấp khoảng tin cậy 95% cực kỳ uy tín cho các kết quả tác động gián tiếp (Indirect Effect).',
+        expert_tip_en: 'Scopus/ISI journals now heavily favor Bootstrapping. It provides a highly credible 95% confidence interval for indirect effects.',
         items: [
             {
-                h2_vi: '1. Quy trình 4 bước Baron & Kenny',
-                h2_en: '1. The 4-step Baron & Kenny Process',
-                content_vi: 'Để khẳng định có biến trung gian: 1. Độc lập tác động Phụ thuộc; 2. Độc lập tác động Trung gian; 3. Trung gian tác động Phụ thuộc; 4. Khi có cả 2, mức độ tác động của Độc lập phải giảm xuống.',
-                content_en: 'To prove mediation: 1. IV affects DV; 2. IV affects Mediator; 3. Mediator affects DV; 4. When both IV and Med are present, IV\'s impact must decrease.'
+                h2_vi: '1. Cơ chế "Bắc cầu" Baron & Kenny',
+                h2_en: '1. Baron & Kenny "Bridging" Mechanism',
+                content_vi: 'Để là Trung gian, biến M phải là cầu nối. Quy trình chứng minh chuỗi mắt xích: X -> Y ý nghĩa; X -> M ý nghĩa; M -> Y ý nghĩa. ncsStat tính toán chính xác % tác động chuyển hóa qua M.',
+                content_en: 'For M to be a mediator, it must bridge X and Y. X -> Y, X -> M, and M -> Y must all be significant.'
+            },
+            {
+                h2_vi: '2. Practical User Case: "Làm thiện nguyện" & "Doanh số"',
+                h2_en: '2. Practical Case: "CSR" & "Revenue"',
+                content_vi: 'CSR (X) làm tăng Sự tin tưởng (M), và độc Sự tin tưởng mới dẫn đến Ý định mua (Y). Nếu không có M, thiện nguyện chưa chắc sinh ra doanh số ngay.',
+                content_en: 'CSR (X) increases Trust (M), and Trust leads to Purchase Intent (Y). Without Trust, charity does not directly generate revenue.'
             }
         ]
     },
     'data-cleaning-outliers-detection': {
-        title_vi: 'Làm sạch dữ liệu và xử lý giá trị ngoại lai (Outliers)',
-        title_en: 'Data Cleaning: Handling Outliers for Scientific Accuracy',
+        title_vi: 'Làm sạch dữ liệu & Outliers: Vệ sinh con số chuẩn khoa học',
+        title_en: 'Data Cleaning & Outliers: Scientific Scrubbing',
         category: 'Preliminary Analysis',
         author: 'ncsStat Editorial',
         date: '31 March 2026',
-        expert_tip_vi: 'Đừng vội xóa bỏ Outlier ngay khi thấy nó. Hãy kiểm tra xem đó là do lỗi nhập liệu hay là một trường hợp đặc biệt thực sự. Đôi khi Outlier lại chính là phát hiện thú vị nhất trong nghiên cứu của bạn!',
-        expert_tip_en: 'Don\'t delete outliers immediately. Check if it\'s a typo or a genuine extreme case. Sometimes outliers are the most interesting findings in your research!',
+        expert_tip_vi: 'Đừng xóa Outlier máy móc. Đôi khi nó là khởi đầu của một phân khúc khách hàng tiềm năng mới. Hãy phân tích kỹ lý do khác biệt trước khi quyết định gạt bỏ.',
+        expert_tip_en: 'Don\'t delete outliers mechanically. Sometimes they represent a new potential customer segment. Analyze the difference before discarding.',
         items: [
             {
-                h2_vi: '1. Phương pháp Z-score & Boxplot',
-                h2_en: '1. Z-score & Boxplot methods',
-                content_vi: 'ncsStat cung cấp biểu đồ Boxplot giúp nhận diện trực quan các điểm nằm ngoài ngưỡng 1.5 IQR. Về mặt số liệu, các điểm có Z-score > 3 hoặc < -3 nên được xem xét kỹ lưỡng.',
-                content_en: 'ncsStat provides Boxplots to visually identify points outside the 1.5 IQR range. Statistically, points with Z-score > 3 or < -3 should be closely examined.'
+                h2_vi: '1. Kỹ thuật nhận diện Bậc cao',
+                h2_en: '1. Advanced Detection Techniques',
+                content_vi: 'Boxplot định vị điểm "đi lạc". Mahalanobis Distance phát hiện đáp viên trả lời "lụi" (vd: 100 câu đều chọn mức 5). ncsStat quét sạch "tiếng nhiễu" để nghe thấy tiếng nói thực dữ liệu.',
+                content_en: 'Boxplots locate "stray" points. Mahalanobis Distance detects "random" responders. ncsStat scrubs noise to hear the true data voice.'
+            },
+            {
+                h2_vi: '2. Practical User Case: Khảo sát thu nhập',
+                h2_en: '2. Practical Case: Income Survey',
+                content_vi: 'Một người khai 1 tỷ/tháng trong khi đa số 10-20tr làm chệch hồi quy. ncsStat giúp gạt trường hợp cực đoan này để mô hình chính xác nhất cho tệp mục tiêu.',
+                content_en: 'Someone claiming 1B/month while others earn 10-20M skews regression. ncsStat filters this extreme case for target accuracy.'
             }
         ]
     },
     'sem-cfa-structural-modeling': {
-        title_vi: 'Mô hình cấu trúc tuyến tính (SEM) và CFA: Đỉnh cao nghiên cứu',
-        title_en: 'SEM & CFA: High-end Research Standards',
+        title_vi: 'Mô hình SEM và CFA: Đỉnh cao của Phân tích học thuật',
+        title_en: 'SEM & CFA: The Pinnacle of Academic Analysis',
         category: 'Advanced Analysis',
         author: 'ncsStat Editorial',
         date: '31 March 2026',
-        expert_tip_vi: 'Để mô hình SEM có độ tin cậy, kích thước mẫu tối thiểu nên gấp 10 lần số lượng biến quan sát trong mô hình (Quy tắc 10:1 của Hair). Ví dụ mô hình có 20 biến thì cần ít nhất 200 mẫu.',
-        expert_tip_en: 'For SEM reliability, your sample size should ideally be at least 10 times the number of observed variables (Hair\'s 10:1 Rule). 20 variables require at least 200 samples.',
+        expert_tip_vi: 'Để đạt chuẩn CFA, hãy chú ý RMSEA < 0.08 và CFI/TLI > 0.9. Nếu thang đo không đạt, hãy dùng các chỉ số MI (Modification Indices) để tinh chỉnh mô hình một cách thông minh.',
+        expert_tip_en: 'For CFA standards, keep RMSEA < 0.08 and CFI/TLI > 0.9. Use Modification Indices (MI) to intelligently refine the model if it fails.',
         items: [
             {
-                h2_vi: '1. Tầm quan trọng của CFA',
-                h2_en: '1. The Importance of CFA',
-                content_vi: 'CFA là bước bắt buộc trước khi chạy SEM để khẳng định tính đơn hướng, giá trị hội tụ và giá trị phân biệt của các khái niệm trong mô hình.',
-                content_en: 'CFA is mandatory before SEM to confirm unidimensionality, convergent validity, and discriminant validity of the constructs.'
+                h2_vi: '1. Tầm nhìn Thống kê Hiện đại',
+                h2_en: '1. Modern Statistical Vision',
+                content_vi: 'SEM là sự kết hợp của EFA và Hồi quy, cho phép kiểm định toàn bộ hệ thống lý thuyết phức tạp cùng lúc. CFA khẳng định tính hội tụ và phân biệt của dữ liệu thực tế trước khi chạy SEM.',
+                content_en: 'SEM combines EFA and Regression, testing complex theoretical systems simultaneously. CFA confirms convergent/discriminant validity.'
             }
         ]
     }
