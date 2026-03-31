@@ -60,6 +60,11 @@ function AnalyzeContent() {
     const mode = searchParams.get('mode')
     const { user, profile: userProfile, loading: authLoading } = useAuth();
     const [loading, setLoading] = useState(true);
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
     const [locale, setLocale] = useState<Locale>(getStoredLocale());
     const isVi = locale === 'vi';
 
@@ -643,6 +648,14 @@ function AnalyzeContent() {
                         <p className="text-green-600 text-sm">✓ {t(locale, 'analyze.common.engine_ready')}</p>
                     )}
                 </div>
+            </div>
+        );
+    }
+
+    if (!isClient) {
+        return (
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+                 <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div>
             </div>
         );
     }
