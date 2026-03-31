@@ -100,14 +100,20 @@ export default function HomeContent() {
                     <span>{t(locale, 'hero.badge')}</span>
                 </motion.div>
 
-                <motion.h1 variants={itemVariants} className="text-5xl md:text-7xl font-black text-slate-900 mb-8 leading-[1.1] tracking-tight">
+                <motion.h1 
+                    variants={itemVariants} 
+                    className="text-4xl sm:text-6xl md:text-7xl font-black text-slate-900 mb-8 leading-[1.1] tracking-tighter px-2 sm:px-0"
+                >
                     {t(locale, 'hero.title')} <br />
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-600">
                         {t(locale, 'hero.subtitle')}
                     </span>
                 </motion.h1>
 
-                <motion.p variants={itemVariants} className="text-xl md:text-2xl text-slate-500 max-w-3xl mx-auto mb-12 leading-relaxed font-light">
+                <motion.p 
+                    variants={itemVariants} 
+                    className="text-lg md:text-2xl text-slate-500 max-w-3xl mx-auto mb-12 leading-relaxed font-light px-4 sm:px-0"
+                >
                     {t(locale, 'hero.description')}
                 </motion.p>
 
@@ -141,10 +147,10 @@ export default function HomeContent() {
                                         <Cpu className="w-3.5 h-3.5" />
                                         <span>{t(locale, 'plssem.badge')}</span>
                                     </div>
-                                    <h3 className="text-3xl md:text-5xl font-black text-white mb-6 leading-tight">
+                                    <h3 className="text-2xl sm:text-4xl md:text-5xl font-black text-white mb-6 leading-tight">
                                         {t(locale, 'plssem.title')}
                                     </h3>
-                                    <p className="text-slate-400 text-lg leading-relaxed mb-8 font-light">
+                                    <p className="text-slate-400 text-base sm:text-lg leading-relaxed mb-8 font-light">
                                         {t(locale, 'plssem.description')}
                                     </p>
                                     <div className="flex flex-wrap gap-3 justify-center lg:justify-start">

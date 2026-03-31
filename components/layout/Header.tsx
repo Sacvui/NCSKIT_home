@@ -8,7 +8,7 @@ import { NcsBalanceBadge } from '@/components/NcsBalanceBadge'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { getStoredLocale, t, type Locale } from '@/lib/i18n'
 import { useAuth } from '@/context/AuthContext'
-import { ChevronDown, BarChart3, Layout, BookOpen, GraduationCap, Microscope, FileText, Network, Brain } from 'lucide-react'
+import { ChevronDown, BarChart3, Layout, BookOpen, GraduationCap, Microscope, FileText, Network, Brain, Menu, X } from 'lucide-react'
 
 interface HeaderProps {
     user?: any
@@ -28,6 +28,7 @@ function HeaderContent({ centerContent, rightActions, hideNav = false, user: pro
     const user = authUser || propUser;
     const profile = authProfile || propProfile;
     const [locale, setLocale] = useState<Locale>('vi')
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const isVi = locale === 'vi'
 
     useEffect(() => {
@@ -121,29 +122,81 @@ function HeaderContent({ centerContent, rightActions, hideNav = false, user: pro
                 )}
 
                 {/* Right: Actions & User */}
-                <div className="flex items-center gap-3 shrink-0">
-                    {rightActions}
+                <div className="flex items-center gap-2 md:gap-3 shrink-0">
+                    <div className="hidden sm:flex items-center gap-2 md:gap-3">
+                        {rightActions}
+                        {rightActions && <div className="h-6 w-px bg-slate-200 mx-1" />}
+                    </div>
 
-                    {/* Separator if actions exist */}
-                    {rightActions && <div className="h-6 w-px bg-slate-200 mx-1 hidden sm:block" />}
-
-                    {/* NCS Balance Badge - show when user is logged in */}
-                    {user && (
-                        <NcsBalanceBadge balance={profile?.tokens || 0} size="sm" />
-                    )}
-
-                    {/* Language Switcher */}
-                    <LanguageSwitcher compact />
+                    {/* Language Switcher - Hide on ultra small */}
+                    <div className="hidden xs:block">
+                        <LanguageSwitcher compact />
+                    </div>
 
                     {user ? (
-                        <UserMenu user={user} profile={profile} />
+                        <UserMenu user={user} profile={propProfile || authProfile} />
                     ) : (
-                        <Link href="/login" className="px-5 py-2 text-sm font-medium text-white bg-slate-900 rounded-lg hover:bg-slate-800 transition-all shadow-sm">
+                        <Link href="/login" className="hidden sm:block px-5 py-2 text-sm font-medium text-white bg-slate-900 rounded-lg hover:bg-slate-800 transition-all shadow-sm">
                             {t(locale, 'nav.login')}
                         </Link>
                     )}
+
+                    {/* Mobile Menu Toggle */}
+                    <button 
+                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                        className="p-2 text-slate-600 hover:text-slate-900 md:hidden bg-slate-50 rounded-lg"
+                    >
+                        {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                    </button>
                 </div>
             </div>
+
+            {/* Mobile Navigation Drawer */}
+            {isMobileMenuOpen && (
+                <div className="md:hidden border-t border-slate-100 bg-white p-4 space-y-2 animate-in slide-in-from-top duration-300">
+                    <div className="flex flex-col gap-1 pb-4 border-b border-slate-50">
+                        <Link 
+                            href="/analyze" 
+                            className="flex items-center gap-3 p-3 rounded-xl text-slate-700 font-bold hover:bg-slate-50 active:bg-indigo-50 active:text-indigo-600"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                            <BarChart3 className="w-5 h-5 text-indigo-500" />
+                            {t(locale, 'nav.analyze1')}
+                        </Link>
+                        <Link 
+                            href="/scales" 
+                            className="flex items-center gap-3 p-3 rounded-xl text-slate-700 font-bold hover:bg-slate-50 active:bg-indigo-50 active:text-indigo-600"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                            <Layout className="w-5 h-5 text-indigo-500" />
+                            {t(locale, 'nav.research_model')}
+                        </Link>
+                        <Link 
+                            href="/knowledge" 
+                            className="flex items-center gap-3 p-3 rounded-xl text-slate-700 font-bold hover:bg-slate-50 active:bg-indigo-50 active:text-indigo-600"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                            <Brain className="w-5 h-5 text-indigo-500" />
+                            {isVi ? 'Thư viện Tri thức' : 'Knowledge Hub'}
+                        </Link>
+                    </div>
+                    
+                    {!user && (
+                        <Link 
+                            href="/login" 
+                            className="flex items-center justify-center w-full p-4 rounded-xl bg-slate-900 text-white font-black uppercase text-xs tracking-widest mt-4"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                            {t(locale, 'nav.login')}
+                        </Link>
+                    )}
+                    
+                    <div className="flex items-center justify-between pt-4">
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Ngôn ngữ / Language</span>
+                        <LanguageSwitcher />
+                    </div>
+                </div>
+            )}
         </header>
     )
 }
