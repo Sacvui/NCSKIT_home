@@ -194,8 +194,8 @@ export default function KnowledgeAdmin() {
                                             </td>
                                             <td className="px-10 py-8 text-right">
                                                 <div className="flex items-center justify-end gap-3 translate-x-2 group-hover:translate-x-0 transition-transform duration-300">
-                                                    <Link href={`/knowledge/${article.slug}`} className="flex items-center gap-2 px-6 py-3.5 bg-white border border-slate-200 text-slate-900 hover:bg-slate-900 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm">
-                                                        <Edit3 className="w-4 h-4" /> Edit Bài viết
+                                                    <Link href={`/knowledge/admin/edit/${article.slug}`} className="flex items-center gap-2 px-6 py-3.5 bg-indigo-600 text-white hover:bg-slate-900 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-100">
+                                                        <Edit3 className="w-4 h-4" /> Biên tập Content
                                                     </Link>
                                                 </div>
                                             </td>

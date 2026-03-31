@@ -106,7 +106,7 @@ export default function EditorialWorkplace({ params: paramsPromise }: { params: 
                         <ArrowLeft className="w-5 h-5" />
                     </Link>
                     <div>
-                        <h1 className="text-lg font-black tracking-tight leading-none mb-1">{article.title_vi}</h1>
+                        <h1 className="text-lg font-black tracking-tight leading-none mb-1">{article.title_vi || article.slug}</h1>
                         <p className="text-[10px] font-black uppercase text-indigo-400 tracking-widest">ncsStat Authority CMS — Editing Article</p>
                     </div>
                 </div>
@@ -124,7 +124,7 @@ export default function EditorialWorkplace({ params: paramsPromise }: { params: 
                         className="flex items-center gap-3 px-8 py-3 bg-indigo-600 hover:bg-emerald-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-900/40"
                     >
                         {saving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                        Lưu bản thảo
+                        Cập nhật Hệ thống
                     </button>
                 </div>
             </header>
