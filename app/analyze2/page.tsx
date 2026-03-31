@@ -379,10 +379,10 @@ function Analyze2Content() {
                 profile={userProfile}
                 hideNav={false}
                 centerContent={
-                    <div className="flex items-center gap-3">
-                        <Sparkles className="w-5 h-5 text-purple-600" />
-                        <span className="font-bold text-lg bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                            PLS-SEM Workflow
+                    <div className="flex flex-wrap items-center gap-3 overflow-hidden">
+                        <Sparkles className="w-5 h-5 text-purple-600 shrink-0" />
+                        <span className="font-bold text-lg bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent shrink-0">
+                            PLS-SEM Academy
                         </span>
                         <AnalysisToolbar
                             isPrivateMode={isPrivateMode}

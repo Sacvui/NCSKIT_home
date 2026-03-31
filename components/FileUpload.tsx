@@ -142,7 +142,7 @@ export function FileUpload({ onDataLoaded, locale }: FileUploadProps) {
                         e.stopPropagation();
                         setIsProcessing(true);
                         try {
-                            const response = await fetch('/sample_data_large.csv');
+                            const response = await fetch('/data/ncsstat_sample_300.csv');
                             if (!response.ok) throw new Error(t(locale, 'analyze.upload.errorSample'));
                             const text = await response.text();
 
@@ -151,7 +151,7 @@ export function FileUpload({ onDataLoaded, locale }: FileUploadProps) {
                                 skipEmptyLines: true,
                                 complete: (results) => {
                                     if (results.data && results.data.length > 0) {
-                                        onDataLoaded(results.data, 'sample_data_large.csv');
+                                        onDataLoaded(results.data, 'ncsstat_sample_300 (N=300).csv');
                                     } else {
                                         setError(t(locale, 'analyze.upload.errorEmpty'));
                                     }
@@ -170,7 +170,7 @@ export function FileUpload({ onDataLoaded, locale }: FileUploadProps) {
                     disabled={isProcessing}
                     className="text-sm text-blue-600 hover:text-blue-800 hover:underline font-medium"
                 >
-                    {t(locale, 'analyze.upload.sampleData')}
+                    {locale === 'vi' ? 'Dùng thử dữ liệu ncsStat (N=300)' : 'Try ncsStat Sample (N=300)'}
                 </button>
 
                 <span className="text-gray-300 mx-2">|</span>
@@ -181,7 +181,7 @@ export function FileUpload({ onDataLoaded, locale }: FileUploadProps) {
                         e.stopPropagation();
                         setIsProcessing(true);
                         try {
-                            const response = await fetch('/test_data_sem_cfa.csv');
+                            const response = await fetch('/data/ncsstat_sample_500.csv');
                             if (!response.ok) throw new Error(t(locale, 'analyze.upload.errorSample'));
                             const text = await response.text();
 
@@ -190,7 +190,7 @@ export function FileUpload({ onDataLoaded, locale }: FileUploadProps) {
                                 skipEmptyLines: true,
                                 complete: (results) => {
                                     if (results.data && results.data.length > 0) {
-                                        onDataLoaded(results.data, 'test_data_sem_cfa.csv');
+                                        onDataLoaded(results.data, 'ncsstat_sample_500 (N=500).csv');
                                     } else {
                                         setError(t(locale, 'analyze.upload.errorEmpty'));
                                     }
@@ -209,7 +209,7 @@ export function FileUpload({ onDataLoaded, locale }: FileUploadProps) {
                     disabled={isProcessing}
                     className="text-sm text-purple-600 hover:text-purple-800 hover:underline font-medium"
                 >
-                    {t(locale, 'analyze.upload.testData')}
+                    {locale === 'vi' ? 'Dùng thử dữ liệu ncsStat (N=500)' : 'Try ncsStat Sample (N=500)'}
                 </button>
             </div>
 
