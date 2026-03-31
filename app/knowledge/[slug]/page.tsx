@@ -10,7 +10,6 @@ import Footer from '@/components/layout/Footer';
 import { getStoredLocale, type Locale } from '@/lib/i18n';
 import Link from 'next/link';
 import { getSupabase } from '@/utils/supabase/client';
-import { toast } from 'react-hot-toast';
 
 // This ensures Next.js knows these slugs exist during build for SEO & Performance
 export async function generateStaticParams() {
@@ -155,7 +154,7 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
                     setArticle(localFallback);
                     setEditedArticle(localFallback);
                 } else {
-                    toast.error('Không tìm thấy dữ liệu bài viết');
+                    alert('Không tìm thấy dữ liệu bài viết');
                 }
             }
         } catch (err) {
@@ -175,9 +174,9 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
         if (passcode === SECRET_CODE) {
             setIsAuthorized(true);
             setShowPasscodePrompt(false);
-            toast.success('Đã mở khóa quyền truy cập CMS!');
+            console.log('CMS Unlocked');
         } else {
-            toast.error('Mã số bí mật không chính xác');
+            console.error('Invalid Passcode');
         }
     };
 
@@ -190,11 +189,11 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
             .eq('slug', editedArticle.slug);
 
         if (error) {
-            toast.error('Lỗi khi lưu bài viết');
+            console.error('Save failed');
         } else {
             setArticle(editedArticle);
             setIsEditing(false);
-            toast.success('Đã lưu bài viết thành công!');
+            console.log('Article saved!');
         }
     };
 
