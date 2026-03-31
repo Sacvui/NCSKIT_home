@@ -51,7 +51,7 @@ function HeaderContent({ centerContent, rightActions, hideNav = false, user: pro
                     </Link>
 
                     {/* Desktop Nav */}
-                    {!hideNav && !centerContent && (
+                    {!hideNav && (
                         <nav className="hidden md:flex items-center gap-1">
                             <NavDropdown
                                 label={t(locale, 'nav.analyze')}
@@ -106,7 +106,7 @@ function HeaderContent({ centerContent, rightActions, hideNav = false, user: pro
 
                 {/* Center: Custom Content (e.g. Toolbar) or Spacer */}
                 {centerContent ? (
-                    <div className="flex-1 flex justify-center min-w-0">
+                    <div className="flex-1 flex justify-center min-w-0 max-w-2xl px-4 hidden lg:flex">
                         {centerContent}
                     </div>
                 ) : (

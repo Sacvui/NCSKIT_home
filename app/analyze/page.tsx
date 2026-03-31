@@ -707,7 +707,7 @@ function AnalyzeContent() {
             <Header
                 user={user}
                 profile={userProfile}
-                hideNav={true}
+                hideNav={false}
                 centerContent={
                     <AnalysisToolbar
                         isPrivateMode={isPrivateMode}
