@@ -12,6 +12,19 @@ import Link from 'next/link';
 import { getSupabase } from '@/utils/supabase/client';
 import { toast } from 'react-hot-toast';
 
+// This ensures Next.js knows these slugs exist during build for SEO & Performance
+export async function generateStaticParams() {
+    const slugs = [
+        'cronbach-alpha', 'efa-factor-analysis', 'regression-vif-multicollinearity',
+        'descriptive-statistics-interpretation', 'independent-t-test-guide', 'one-way-anova-post-hoc',
+        'pearson-correlation-analysis', 'chi-square-test-independence', 'mediation-analysis-sobel-test',
+        'data-cleaning-outliers-detection', 'sem-cfa-structural-modeling'
+    ];
+    return slugs.map((slug) => ({ slug }));
+}
+
+export const dynamicParams = true;
+
 const supabase = getSupabase();
 
 interface ArticleSection {
