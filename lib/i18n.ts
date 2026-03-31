@@ -8,14 +8,16 @@ export const translations = {
         // Header
         nav: {
             analyze: 'Thống kê & Phân tích',
-            analyze1: 'Phân tích Sơ bộ & Đo lường',
-            analyze2: 'Mô hình Cấu trúc & Giả thuyết',
+            analyze1: 'Phân tích Thống kê Cơ bản',
+            analyze2: 'Hệ thống PLS-SEM Academy (Chuẩn Quốc tế)',
             research_model: 'Thang đo & Mô hình',
             docs: 'Tài liệu hướng dẫn',
             theory: 'Lý thuyết Thống kê',
             casestudy: 'Kịch bản Nghiên cứu',
             userguide: 'Hướng dẫn Sử dụng',
             profile: 'Hồ sơ',
+            knowledge_hub: 'Thư viện Tri thức',
+            knowledge_guides: 'Kiến thức & Hướng dẫn',
             login: 'Đăng nhập',
             logout: 'Đăng xuất'
         },
@@ -470,14 +472,16 @@ export const translations = {
         // Header
         nav: {
             analyze: 'Statistics & Analysis',
-            analyze1: 'Preliminary & Measurement Analysis',
-            analyze2: 'Structural & Hypothesis Analysis',
+            analyze1: 'Standard Statistical Engine',
+            analyze2: 'Advanced PLS-SEM Academy',
             research_model: 'Scales & Models',
             docs: 'Documentation',
             theory: 'Statistical Theory',
             casestudy: 'Research Scenarios',
             userguide: 'User Guide',
             profile: 'Profile',
+            knowledge_hub: 'Knowledge Hub',
+            knowledge_guides: 'Knowledge & Guides',
             login: 'Login',
             logout: 'Logout'
         },

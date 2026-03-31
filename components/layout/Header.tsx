@@ -79,14 +79,14 @@ function HeaderContent({ centerContent, rightActions, hideNav = false, user: pro
                             </NavLink>
 
                             <NavDropdown
-                                label={isVi ? 'Kiến thức & Hướng dẫn' : 'Knowledge & Guides'}
+                                label={t(locale, 'nav.knowledge_guides')}
                                 active={pathname?.startsWith('/docs') || pathname?.startsWith('/knowledge')}
                                 icon={BookOpen}
                             >
                                 <NavDropdownItem
                                     href="/knowledge"
                                     active={pathname?.startsWith('/knowledge')}
-                                    label={isVi ? 'Thư viện Tri thức' : 'Knowledge Hub'}
+                                    label={t(locale, 'nav.knowledge_hub')}
                                     icon={Brain}
                                 />
                                 <NavDropdownItem
@@ -177,7 +177,7 @@ function HeaderContent({ centerContent, rightActions, hideNav = false, user: pro
                             onClick={() => setIsMobileMenuOpen(false)}
                         >
                             <Brain className="w-5 h-5 text-indigo-500" />
-                            {isVi ? 'Thư viện Tri thức' : 'Knowledge Hub'}
+                            {t(locale, 'nav.knowledge_hub')}
                         </Link>
                     </div>
                     
