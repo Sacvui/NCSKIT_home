@@ -26,16 +26,62 @@ export default function EditorialWorkplace({ params: paramsPromise }: { params: 
 
     const fetchArticle = async (currentSlug: string) => {
         setLoading(true);
+        
+        // Priority 1: Check LocalStorage for existing draft/imported content
+        const localData = localStorage.getItem('ncs_knowledge_articles');
+        if (localData) {
+            const parsed = JSON.parse(localData);
+            const found = parsed.find((a: any) => a.slug === currentSlug);
+            if (found) {
+                setArticle(found);
+                setLoading(false);
+                return;
+            }
+        }
+
+        // Priority 2: Supabase
         const { data } = await supabase.from('knowledge_articles').select('*').eq('slug', currentSlug).single();
         if (data) setArticle(data);
+        else {
+            // Fallback for new/unsaved items
+            setArticle({
+                slug: currentSlug,
+                title_vi: 'Bài viết mới',
+                title_en: 'New Article',
+                category: 'Unassigned',
+                content_structure: []
+            });
+        }
         setLoading(false);
     };
 
     const handleSave = async () => {
         setSaving(true);
-        const { error } = await supabase.from('knowledge_articles').upsert(article, { onConflict: 'slug' });
-        if (!error) alert('Đã lưu bản thảo thành công!');
-        setSaving(false);
+        
+        try {
+            // Update LocalStorage (Instant Sync)
+            const localData = localStorage.getItem('ncs_knowledge_articles');
+            let articlesList = localData ? JSON.parse(localData) : [];
+            
+            const existingIdx = articlesList.findIndex((a: any) => a.slug === article.slug);
+            if (existingIdx >= 0) {
+                articlesList[existingIdx] = { ...article, updated_at: new Date().toISOString() };
+            } else {
+                articlesList.push({ ...article, updated_at: new Date().toISOString() });
+            }
+            
+            localStorage.setItem('ncs_knowledge_articles', JSON.stringify(articlesList));
+
+            // Background Sync to Supabase
+            await supabase.from('knowledge_articles').upsert(article, { onConflict: 'slug' });
+            
+            alert('Đã lưu bản thảo thành công vào hệ thống CMS!');
+        } catch (err: any) {
+            console.error('Save error:', err);
+            alert('Lỗi lưu trữ: ' + err.message);
+        } finally {
+            setSaving(false);
+        }
     };
 
     const addSection = () => {

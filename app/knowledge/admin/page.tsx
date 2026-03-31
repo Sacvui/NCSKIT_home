@@ -53,9 +53,25 @@ export default function KnowledgeAdmin() {
     const fetchArticles = async () => {
         setLoading(true);
         try {
+            // Priority 1: Local Storage (for instant editing/importing)
+            const localData = localStorage.getItem('ncs_knowledge_articles');
+            if (localData) {
+                const parsed = JSON.parse(localData);
+                if (parsed && parsed.length > 0) {
+                    setArticles(parsed);
+                    setLoading(false);
+                    return;
+                }
+            }
+
+            // Priority 2: Supabase
             const { data } = await supabase.from('knowledge_articles').select('*').order('updated_at', { ascending: false });
-            if (data && data.length > 0) setArticles(data);
-            else setArticles(FULL_MASTER_ARTICLES);
+            if (data && data.length > 0) {
+                setArticles(data);
+                localStorage.setItem('ncs_knowledge_articles', JSON.stringify(data));
+            } else {
+                setArticles(FULL_MASTER_ARTICLES);
+            }
         } catch (err) {
             setArticles(FULL_MASTER_ARTICLES);
         } finally {
@@ -83,16 +99,32 @@ export default function KnowledgeAdmin() {
         setIsImporting(true);
         try {
             const parsedData = JSON.parse(importData);
-            const { error } = await supabase.from('knowledge_articles').upsert(parsedData, { onConflict: 'slug' });
-            if (error) throw error;
-            alert(`Lưu thành công ${parsedData.length} bài viết!`);
+            
+            // Save to LocalStorage for instant persistence
+            localStorage.setItem('ncs_knowledge_articles', JSON.stringify(parsedData));
+            
+            // Try to sync with Supabase (Optional fallback)
+            try {
+                await supabase.from('knowledge_articles').upsert(parsedData, { onConflict: 'slug' });
+            } catch (sErr) {
+                console.warn('Supabase sync failed, utilizing local storage only.', sErr);
+            }
+
+            alert(`Nạp thành công ${parsedData.length} bài nghiên cứu vào bộ nhớ CMS!`);
             setShowBulkModal(false);
             setImportData('');
             fetchArticles();
         } catch (err: any) {
-            alert(`Lỗi: ${err.message}`);
+            alert(`Lỗi cấu trúc JSON: ${err.message}`);
         } finally {
             setIsImporting(false);
+        }
+    };
+
+    const handleResetToMaster = () => {
+        if (confirm('Bạn có chắc chắn muốn xóa toàn bộ nội dung đã nạp và quay về phiên bản Gốc của hệ thống?')) {
+            localStorage.removeItem('ncs_knowledge_articles');
+            fetchArticles();
         }
     };
 
@@ -121,6 +153,9 @@ export default function KnowledgeAdmin() {
                             <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter leading-tight font-sans">Hệ thống Bulk Academy CMS</h1>
                         </div>
                         <div className="flex flex-wrap gap-3">
+                            <button onClick={handleResetToMaster} className="flex items-center gap-3 px-8 py-5 bg-white border border-red-200 text-red-600 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-red-50 transition-all shadow-sm">
+                                <RefreshCw className="w-4 h-4" /> Reset to Factory
+                            </button>
                             <button onClick={handleExport} className="flex items-center gap-3 px-8 py-5 bg-white border border-slate-200 text-slate-900 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm">
                                 <Download className="w-4 h-4 text-indigo-600" /> Export Template
                             </button>

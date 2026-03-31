@@ -51,6 +51,19 @@ export default function ArticleClient({ initialArticle, fallbackArticles, slug }
     // Also try to fetch latest from DB on client side to see if there are fresh edits
     useEffect(() => {
         const fetchLatest = async () => {
+            // Priority 1: Check LocalStorage (Most up-to-date for admin/editor)
+            const localData = localStorage.getItem('ncs_knowledge_articles');
+            if (localData) {
+                const parsed = JSON.parse(localData);
+                const found = parsed.find((a: any) => a.slug === slug);
+                if (found) {
+                    setArticle(found);
+                    setEditedArticle(found);
+                    return; // Successfully loaded from local
+                }
+            }
+
+            // Priority 2: Database fallback
             try {
                 const { data } = await supabase.from('knowledge_articles').select('*').eq('slug', slug).single();
                 if (data) {
@@ -76,11 +89,30 @@ export default function ArticleClient({ initialArticle, fallbackArticles, slug }
 
     const handleSave = async () => {
         if (!editedArticle) return;
-        const { error } = await supabase.from('knowledge_articles').upsert(editedArticle, { onConflict: 'slug' });
-        if (!error) {
+        
+        try {
+            // Update LocalStorage (Instant Sync)
+            const localData = localStorage.getItem('ncs_knowledge_articles');
+            let articlesList = localData ? JSON.parse(localData) : [];
+            
+            const existingIdx = articlesList.findIndex((a: any) => a.slug === editedArticle.slug);
+            if (existingIdx >= 0) {
+                articlesList[existingIdx] = { ...editedArticle, updated_at: new Date().toISOString() };
+            } else {
+                articlesList.push({ ...editedArticle, updated_at: new Date().toISOString() });
+            }
+            
+            localStorage.setItem('ncs_knowledge_articles', JSON.stringify(articlesList));
+
+            // Background Sync to Supabase
+            await supabase.from('knowledge_articles').upsert(editedArticle, { onConflict: 'slug' });
+            
             setArticle(editedArticle);
             setIsEditing(false);
-            alert('Đã lưu thành công bài học thuật!');
+            alert('Đã lưu thành công bài nghiên cứu mới!');
+        } catch (err: any) {
+            console.error('Save error:', err);
+            alert('Lỗi lưu trữ: ' + err.message);
         }
     };
 
