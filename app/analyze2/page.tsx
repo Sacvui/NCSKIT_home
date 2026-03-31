@@ -653,16 +653,16 @@ function Analyze2Content() {
 
                                     {/* CFA */}
                                     <button
-                                        onClick={() => setPhase('cfa-select')}
-                                        className="p-6 border-2 border-blue-200 rounded-lg hover:border-blue-400 hover:shadow-lg transition-all text-left group bg-blue-50"
+                                        disabled
+                                        className="p-6 border-2 border-gray-200 rounded-lg opacity-75 cursor-not-allowed text-left bg-gray-50"
                                         title="Confirmatory Factor Analysis - Validate measurement model (Lavaan)"
                                     >
                                         <div className="flex items-center gap-3 mb-2">
-                                            <FileText className="w-6 h-6 text-blue-600" />
-                                            <h3 className="font-bold text-lg group-hover:text-blue-600">CFA</h3>
-                                            <Badge variant="success">{t(locale, 'analyze.common.working')}</Badge>
+                                            <FileText className="w-6 h-6 text-gray-500" />
+                                            <h3 className="font-bold text-lg text-gray-600">CFA</h3>
+                                            <Badge variant="warning">Coming Soon</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">Confirmatory Factor Analysis - {locale === 'vi' ? 'Kiểm định mô hình đo lường' : 'Validate measurement model'}</p>
+                                        <p className="text-sm text-gray-500">Confirmatory Factor Analysis - {locale === 'vi' ? 'Kiểm định mô hình đo lường' : 'Validate measurement model'}</p>
                                     </button>
 
                                     {/* HTMT Matrix */}
@@ -745,16 +745,16 @@ function Analyze2Content() {
 
                                     {/* CB-SEM */}
                                     <button
-                                        onClick={() => setPhase('cbsem-select')}
-                                        className="p-6 border-2 border-green-200 rounded-lg hover:border-green-400 hover:shadow-lg transition-all text-left group bg-green-50"
+                                        disabled
+                                        className="p-6 border-2 border-gray-200 rounded-lg opacity-75 cursor-not-allowed text-left bg-gray-50"
                                         title="Covariance-based SEM - AMOS style Structural Equation Modeling (Lavaan)"
                                     >
                                         <div className="flex items-center gap-3 mb-2">
-                                            <Network className="w-6 h-6 text-green-600" />
-                                            <h3 className="font-bold text-lg group-hover:text-green-600">CB-SEM</h3>
-                                            <Badge variant="success">{t(locale, 'analyze.common.working')}</Badge>
+                                            <Network className="w-6 h-6 text-gray-500" />
+                                            <h3 className="font-bold text-lg text-gray-600">CB-SEM</h3>
+                                            <Badge variant="warning">Coming Soon</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">Covariance-based Structural Equation Modeling (Amos Style)</p>
+                                        <p className="text-sm text-gray-500">Covariance-based Structural Equation Modeling (Amos Style)</p>
                                     </button>
 
                                     {/* SmartPLS Algorithm */}
