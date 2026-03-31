@@ -15,32 +15,31 @@ on:
 jobs:
   ping-supabase:
     runs-on: ubuntu-latest
-    env:
-      HAS_SECRET: ${{ secrets.SUPABASE_ANON_KEY != '' }}
     
     steps:
-      - name: Ping Supabase Public Health (No Secrets Required)
+      - name: Ping Supabase REST API
         run: |
-          echo "Pinging health endpoints to ensure Vercel sees the project as active..."
+          echo "Pinging Supabase to keep it alive..."
           
-          # Ping the Auth Health (always public)
-          curl -s -o /dev/null -w "Auth Health: %{http_code}\n" \
-            "https://nflmoaclnyjwuloydmmv.supabase.co/auth/v1/health"
-          
-          # Ping the REST Root (returns 401 if no key, but still signals activity to the instance)
-          curl -s -o /dev/null -w "REST Root: %{http_code}\n" \
-            "https://nflmoaclnyjwuloydmmv.supabase.co/rest/v1/"
-          echo "✅ Public pings completed."
-
-      - name: Ping Supabase REST API (Requires SUPABASE_ANON_KEY secret)
-        if: env.HAS_SECRET == 'true'
-        run: |
-          echo "Pinging REST API with credentials..."
+          # Ping the REST API endpoint
+          # Project URL used: https://nflmoaclnyjwuloydmmv.supabase.co
           response=$(curl -s -o /dev/null -w "%{http_code}" \
-            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "apikey: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" \
             "https://nflmoaclnyjwuloydmmv.supabase.co/rest/v1/")
+          
           echo "Response code: $response"
-
+          
+          if [ "$response" -eq 200 ] || [ "$response" -eq 401 ]; then
+            echo "✅ Supabase is alive!"
+          else
+            echo "⚠️ Unexpected response: $response"
+          fi
+      - name: Ping Auth endpoint
+        run: |
+          # Also ping the auth endpoint to ensure it's warm
+          curl -s -o /dev/null \
+            "https://nflmoaclnyjwuloydmmv.supabase.co/auth/v1/health"
+          echo "✅ Auth endpoint pinged"
       - name: Log timestamp
         run: |
           echo "Keep-alive ping completed at: $(date -u)"
