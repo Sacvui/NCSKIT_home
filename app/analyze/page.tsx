@@ -674,9 +674,15 @@ function AnalyzeContent() {
                 </div>
             )}
 
-            {/* Restore Session Banner */}
+            {/* Status Indicators */}
+            <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100 text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
+                        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" /> R Engine Ready
+                </div>
+            </div>
+
             {showRestoreBanner && (
-                <div className="bg-amber-50 border-b border-amber-200 py-3 relative z-30">
+                 <div className="bg-amber-50 border-b border-amber-200 py-3 relative z-30">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
                             <RotateCcw className="w-5 h-5 text-amber-600" />
