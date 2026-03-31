@@ -4,6 +4,7 @@ export interface DataProfile {
   columns: number;
   issues: Issue[];
   columnStats: Record<string, ColumnStats>;
+  factors: Record<string, string[]>; // New: Auto-detected factors/groups
 }
 
 export interface Issue {
@@ -131,7 +132,8 @@ export function profileData(data: any[]): DataProfile {
       rows: 0,
       columns: 0,
       issues: [],
-      columnStats: {}
+      columnStats: {},
+      factors: {}
     };
   }
   
@@ -190,6 +192,26 @@ export function profileData(data: any[]): DataProfile {
     });
   }
   
+  // 5. Detect Factors (Variable Grouping)
+  const factors: Record<string, string[]> = {};
+  columns.forEach(col => {
+    // Look for patterns like F1_1, F1_2, Factor1_1, etc.
+    const match = col.match(/^([a-zA-Z]+[0-9]*)[_-][0-9]+$/) || col.match(/^([a-zA-Z]+)([0-9]+)$/);
+    if (match) {
+      const factorName = match[1];
+      if (!factors[factorName]) factors[factorName] = [];
+      factors[factorName].push(col);
+    }
+  });
+
+  // Filter out "factors" that only have 1 variable
+  const filteredFactors: Record<string, string[]> = {};
+  Object.keys(factors).forEach(f => {
+    if (factors[f].length > 1) {
+      filteredFactors[f] = factors[f].sort();
+    }
+  });
+
   return {
     rows: data.length,
     columns: columns.length,
@@ -197,6 +219,7 @@ export function profileData(data: any[]): DataProfile {
       const severityOrder = { critical: 0, warning: 1, info: 2 };
       return severityOrder[a.severity] - severityOrder[b.severity];
     }),
-    columnStats
+    columnStats,
+    factors: filteredFactors
   };
 }

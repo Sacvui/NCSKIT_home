@@ -3,7 +3,7 @@
 import { Eye, EyeOff, Trash2, FileText, Settings, Shield, Save, PlusCircle, FolderOpen } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { WebRStatus } from '@/components/WebRStatus'
-import { Locale, t } from '@/lib/i18n'
+import { Locale, t, setStoredLocale } from '@/lib/i18n'
 
 interface ToolbarProps {
     isPrivateMode: boolean
@@ -29,11 +29,32 @@ export default function AnalysisToolbar({
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-                <div className="h-6 w-px bg-slate-200 mx-2 hidden md:block" />
+                <div className="flex bg-slate-800 rounded-lg p-0.5 border border-slate-700">
+                    <button
+                        onClick={() => {
+                            setStoredLocale('vi');
+                            window.location.reload();
+                        }}
+                        className={`px-3 py-1 text-[10px] font-black rounded-md transition-all ${locale === 'vi' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40' : 'text-slate-500 hover:text-white'}`}
+                    >
+                        VI
+                    </button>
+                    <button
+                        onClick={() => {
+                            setStoredLocale('en');
+                            window.location.reload();
+                        }}
+                        className={`px-3 py-1 text-[10px] font-black rounded-md transition-all ${locale === 'en' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40' : 'text-slate-500 hover:text-white'}`}
+                    >
+                        EN
+                    </button>
+                </div>
+
+                <div className="h-6 w-px bg-slate-700 mx-2" />
 
                 <button
                     onClick={onSave}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white hover:bg-slate-900 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-100"
+                    className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white hover:bg-slate-900 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-900/40"
                 >
                     <Save className="w-3.5 h-3.5" />
                     <span>{locale === 'vi' ? 'Lưu dự án' : 'Save Academy'}</span>

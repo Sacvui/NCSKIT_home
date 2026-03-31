@@ -64,6 +64,28 @@ export function DataProfiler({ profile, onProceed, locale }: DataProfilerProps) 
                         </div>
                     </div>
                 </div>
+
+                {/* New: Factor Detection Summary */}
+                <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl p-6 text-white md:col-span-3">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <span className="p-2 bg-white/20 rounded-lg">
+                                <Database className="w-6 h-6" />
+                            </span>
+                            <div>
+                                <p className="text-indigo-100 text-sm">{locale === 'vi' ? 'Nhóm biến (Nhân tố) tự động' : 'Auto-detected Factors'}</p>
+                                <p className="text-xl font-extrabold uppercase tracking-widest">{Object.keys(profile.factors).length} {locale === 'vi' ? 'NHÓM' : 'GROUPS'}</p>
+                            </div>
+                        </div>
+                        <div className="flex flex-wrap gap-2 max-w-[60%] justify-end">
+                            {Object.keys(profile.factors).map(f => (
+                                <span key={f} className="px-2 py-1 bg-white/10 rounded text-[10px] font-black border border-white/20">
+                                    {f} ({profile.factors[f].length})
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* Issues List */}
@@ -107,48 +129,48 @@ export function DataProfiler({ profile, onProceed, locale }: DataProfilerProps) 
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
-                            <tr className="border-b">
-                                <th className="text-left py-3 px-4 font-semibold">{t(locale, 'analyze.profile.table.colName')}</th>
-                                <th className="text-left py-3 px-4 font-semibold">{t(locale, 'analyze.profile.table.type')}</th>
-                                <th className="text-right py-3 px-4 font-semibold">{t(locale, 'analyze.profile.table.missing')}</th>
-                                <th className="text-right py-3 px-4 font-semibold">{t(locale, 'analyze.profile.table.mean')}</th>
-                                <th className="text-right py-3 px-4 font-semibold">{t(locale, 'analyze.profile.table.sd')}</th>
-                                <th className="text-right py-3 px-4 font-semibold">{t(locale, 'analyze.profile.table.min')}</th>
-                                <th className="text-right py-3 px-4 font-semibold">{t(locale, 'analyze.profile.table.max')}</th>
+                            <tr className="border-b bg-slate-50">
+                                <th className="text-left py-4 px-6 font-black text-slate-900 uppercase text-[10px] tracking-widest">{t(locale, 'analyze.profile.table.colName')}</th>
+                                <th className="text-left py-4 px-6 font-black text-slate-900 uppercase text-[10px] tracking-widest">{t(locale, 'analyze.profile.table.type')}</th>
+                                <th className="text-right py-4 px-6 font-black text-slate-900 uppercase text-[10px] tracking-widest">{t(locale, 'analyze.profile.table.missing')}</th>
+                                <th className="text-right py-4 px-6 font-black text-slate-900 uppercase text-[10px] tracking-widest">{t(locale, 'analyze.profile.table.mean')}</th>
+                                <th className="text-right py-4 px-6 font-black text-slate-900 uppercase text-[10px] tracking-widest">{t(locale, 'analyze.profile.table.sd')}</th>
+                                <th className="text-right py-4 px-6 font-black text-slate-900 uppercase text-[10px] tracking-widest">{t(locale, 'analyze.profile.table.min')}</th>
+                                <th className="text-right py-4 px-6 font-black text-slate-900 uppercase text-[10px] tracking-widest">{t(locale, 'analyze.profile.table.max')}</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="divide-y divide-slate-100">
                             {Object.values(profile.columnStats).map((stat, idx) => (
-                                <tr key={idx} className="border-b hover:bg-gray-50">
-                                    <td className="py-3 px-4 font-medium">{stat.name}</td>
-                                    <td className="py-3 px-4">
-                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${stat.type === 'numeric' ? 'bg-blue-100 text-blue-700' :
-                                                stat.type === 'text' ? 'bg-gray-100 text-gray-700' :
-                                                    'bg-green-100 text-green-700'
+                                <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                                    <td className="py-4 px-6 font-bold text-slate-900">{stat.name}</td>
+                                    <td className="py-4 px-6">
+                                        <span className={`px-2 py-1 rounded text-[10px] font-black uppercase tracking-tighter ${stat.type === 'numeric' ? 'bg-blue-100 text-blue-700 border border-blue-200' :
+                                                stat.type === 'text' ? 'bg-slate-100 text-slate-600 border border-slate-200' :
+                                                    'bg-green-100 text-green-700 border border-green-200'
                                             }`}>
                                             {stat.type}
                                         </span>
                                     </td>
-                                    <td className="py-3 px-4 text-right">
+                                    <td className="py-4 px-6 text-right font-medium text-slate-900">
                                         {stat.missing > 0 ? (
-                                            <span className="text-red-600 font-medium">
+                                            <span className="text-red-600 font-black">
                                                 {stat.missing} ({(stat.missingRate * 100).toFixed(1)}%)
                                             </span>
                                         ) : (
                                             <span className="text-green-600">0</span>
                                         )}
                                     </td>
-                                    <td className="py-3 px-4 text-right">
-                                        {stat.mean !== undefined ? stat.mean.toFixed(2) : '-'}
+                                    <td className="py-4 px-6 text-right font-medium text-slate-900">
+                                        {stat.mean !== undefined ? stat.mean.toFixed(3) : '-'}
                                     </td>
-                                    <td className="py-3 px-4 text-right">
-                                        {stat.sd !== undefined ? stat.sd.toFixed(2) : '-'}
+                                    <td className="py-4 px-6 text-right font-medium text-slate-900">
+                                        {stat.sd !== undefined ? stat.sd.toFixed(3) : '-'}
                                     </td>
-                                    <td className="py-3 px-4 text-right">
-                                        {stat.min !== undefined ? stat.min.toFixed(2) : '-'}
+                                    <td className="py-4 px-6 text-right font-medium text-slate-900">
+                                        {stat.min !== undefined ? stat.min.toFixed(3) : '-'}
                                     </td>
-                                    <td className="py-3 px-4 text-right">
-                                        {stat.max !== undefined ? stat.max.toFixed(2) : '-'}
+                                    <td className="py-4 px-6 text-right font-medium text-slate-900">
+                                        {stat.max !== undefined ? stat.max.toFixed(3) : '-'}
                                     </td>
                                 </tr>
                             ))}
