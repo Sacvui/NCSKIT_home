@@ -31,12 +31,168 @@ const articleData = {
                 h2_en: '2. Key Threshold Values',
                 content_vi: 'Trong nghiên cứu học thuật, các ngưỡng sau thường được chấp nhận: \n- Alpha > 0.8: Rất tốt\n- 0.7 < Alpha < 0.8: Sử dụng được\n- 0.6 < Alpha < 0.7: Chấp nhận được (với các nghiên cứu mới)\n- Alpha < 0.6: Thang đo không đáng tin cậy.',
                 content_en: 'In academic research, the following thresholds are commonly accepted: \n- Alpha > 0.8: Excellent\n- 0.7 < Alpha < 0.8: Good\n- 0.6 < Alpha < 0.7: Acceptable (for new research)\n- Alpha < 0.6: Internal consistency is low/unreliable.'
+            }
+        ]
+    },
+    'efa-factor-analysis': {
+        title_vi: 'Phân tích nhân tố khám phá (EFA): Khi nào cần xoay nhân tố?',
+        title_en: 'Exploratory Factor Analysis (EFA): When to Rotate Factors?',
+        category: 'Factor Analysis',
+        author: 'ncsStat Editorial',
+        date: '31 March 2026',
+        items: [
+            {
+                h2_vi: '1. Mục tiêu của EFA',
+                h2_en: '1. Objectives of EFA',
+                content_vi: 'EFA giúp rút gọn một tập hợp nhiều biến quan sát thành một số ít các nhân tố có ý nghĩa hơn. Điều này giúp mô hình nghiên cứu gọn nhẹ và tập trung vào các khái niệm chính.',
+                content_en: 'EFA helps simplify a large set of observed variables into a fewer number of meaningful factors, making the research model concise and focused on core concepts.'
             },
             {
-                h2_vi: '3. Hệ số tương quan biến - tổng (Corrected Item-Total Correlation)',
-                h2_en: '3. Corrected Item-Total Correlation',
-                content_vi: 'Ngoài hệ số Alpha tổng, bạn cần kiểm tra hệ số tương quan biến - tổng của từng câu hỏi. Theo tiêu chuẩn của Hair et al. (2010), giá trị này phải lớn hơn 0.3 để câu hỏi đó có đóng góp vào thang đo.',
-                content_en: 'In addition to the total Alpha coefficient, you need to check the correlation for each question. According to Hair et al. (2010), this value must be greater than 0.3 for the question to contribute significantly to the scale.'
+                h2_vi: '2. Các chỉ số quan trọng (KMO & Bartlett)',
+                h2_en: '2. Key Metrics (KMO & Bartlett)',
+                content_vi: 'KMO phải đạt >= 0.5 và kiểm định Bartlett phải có ý nghĩa thống kê (Sig < 0.05). Ngoài ra, hệ số tải nhân tố (Factor Loading) nên >= 0.5 để đảm bảo ý nghĩa thiết thực.',
+                content_en: 'KMO must be >= 0.5 and Bartlett\'s test must be statistically significant (Sig < 0.05). Additionally, factor loadings should be >= 0.5 for practical significance.'
+            }
+        ]
+    },
+    'regression-vif-multicollinearity': {
+        title_vi: 'Hồi quy đa biến và kiểm tra Đa cộng tuyến (VIF)',
+        title_en: 'Multiple Regression and Multicollinearity (VIF) Check',
+        category: 'Impact Analysis',
+        author: 'ncsStat Editorial',
+        date: '31 March 2026',
+        items: [
+            {
+                h2_vi: '1. Kiểm tra Đa cộng tuyến',
+                h2_en: '1. Checking Multicollinearity',
+                content_vi: 'Đa cộng tuyến xảy ra khi các biến độc lập có tương quan quá mạnh với nhau. Điều này được đo qua hệ số VIF. Thông thường VIF < 10 là chấp nhận được, nhưng trong nghiên cứu khắt khe, VIF < 2 hoặc 5 là lý tưởng.',
+                content_en: 'Multicollinearity occurs when independent variables are too strongly correlated. This is measured via VIF. Generally, VIF < 10 is acceptable, but VIF < 2 or 5 is ideal for rigorous studies.'
+            }
+        ]
+    },
+    'descriptive-statistics-interpretation': {
+        title_vi: 'Thống kê mô tả: Cách trình bày Mean, Std. Deviation chuẩn APA',
+        title_en: 'Descriptive Statistics: Presenting Mean & Std. Deviation in APA',
+        category: 'Preliminary Analysis',
+        author: 'ncsStat Editorial',
+        date: '31 March 2026',
+        items: [
+            {
+                h2_vi: '1. Tại sao cần Thống kê mô tả?',
+                h2_en: '1. Why Use Descriptive Statistics?',
+                content_vi: 'Nó cung cấp cái nhìn tổng quan về mẫu nghiên cứu, đặc điểm nhân khẩu học và mức độ đánh giá trung bình của đáp viên đối với các thang đo.',
+                content_en: 'It provides an overview of the research sample, demographics, and respondents\' average ratings for the scales.'
+            }
+        ]
+    },
+    'independent-t-test-guide': {
+        title_vi: 'Kiểm định Independent T-test: So sánh trung bình hai nhóm',
+        title_en: 'Independent T-test: Comparing Means Between Two Groups',
+        category: 'Comparison Analysis',
+        author: 'ncsStat Editorial',
+        date: '31 March 2026',
+        items: [
+            {
+                h2_vi: '1. Điều kiện sử dụng',
+                h2_en: '1. Usage Conditions',
+                content_vi: 'Dùng để so sánh giá trị trung bình giữa hai nhóm độc lập (ví dụ Nam vs Nữ) về một biến định lượng nào đó.',
+                content_en: 'Used to compare the average values between two independent groups (e.g., Male vs Female) on a quantitative variable.'
+            }
+        ]
+    },
+    'one-way-anova-post-hoc': {
+        title_vi: 'Phân tích ANOVA và kiểm định Post-hoc (Bonferroni, Tukey)',
+        title_en: 'One-way ANOVA and Post-hoc Tests (Bonferroni, Tukey)',
+        category: 'Comparison Analysis',
+        author: 'ncsStat Editorial',
+        date: '31 March 2026',
+        items: [
+            {
+                h2_vi: '1. Phép thử ANOVA',
+                h2_en: '1. ANOVA Analysis',
+                content_vi: 'Dùng khi bạn muốn so sánh từ 3 nhóm trở lên (ví dụ: trình độ học vấn Đại học, Thạc sĩ, Tiến sĩ).',
+                content_en: 'Use ANOVA when comparing 3 or more groups (e.g., Education: Bachelor, Master, PhD).'
+            }
+        ]
+    },
+    'pearson-correlation-analysis': {
+        title_vi: 'Tương quan Pearson: Đo lường sức mạnh mối liên hệ',
+        title_en: 'Pearson Correlation: Measuring Relationship Strength',
+        category: 'Relationship Analysis',
+        author: 'ncsStat Editorial',
+        date: '31 March 2026',
+        items: [
+            {
+                h2_vi: '1. Hệ số tương quan r',
+                h2_en: '1. Correlation Coefficient r',
+                content_vi: 'Giá trị r nằm từ -1 đến 1. Dấu (+) là tương quan thuận, dấu (-) là tương quan nghịch.',
+                content_en: 'r values range from -1 to 1. Positive (+) indicates a direct correlation, and negative (-) indicates an inverse correlation.'
+            }
+        ]
+    },
+    'chi-square-test-independence': {
+        title_vi: 'Kiểm định Chi-square: Phân tích mối liên hệ biến định danh',
+        title_en: 'Chi-square Test: Analyzing Categorical Relationships',
+        category: 'Categorical Analysis',
+        author: 'ncsStat Editorial',
+        date: '31 March 2026',
+        items: [
+            {
+                h2_vi: '1. Ứng dụng',
+                h2_en: '1. Applications',
+                content_vi: 'Dùng để kiểm tra mối quan hệ giữa hai biến định tính (ví dụ: Nghề nghiệp có liên quan đến việc chọn loại sản phẩm hay không).',
+                content_en: 'Used to test the relationship between two qualitative variables (e.g., Is occupation related to product choice?).'
+            }
+        ]
+    },
+    'mediation-analysis-sobel-test': {
+        title_vi: 'Phân tích biến trung gian (Mediation): Mô hình Baron & Kenny',
+        title_en: 'Mediation Analysis: Baron & Kenny Model',
+        category: 'Advanced Analysis',
+        author: 'ncsStat Editorial',
+        date: '31 March 2026',
+        items: [
+            {
+                h2_vi: '1. Định nghĩa Biến trung gian',
+                h2_en: '1. Defining Mediator Variables',
+                content_vi: 'Biến trung gian giải thích tại sao một biến độc lập ảnh hưởng đến biến phụ thuộc.',
+                content_en: 'A mediator explains the mechanism through which an independent variable affects a dependent variable.'
+            }
+        ]
+    },
+    'data-cleaning-outliers-detection': {
+        title_vi: 'Làm sạch dữ liệu và xử lý giá trị ngoại lai (Outliers)',
+        title_en: 'Data Cleaning and Outliers Detection (Z-Score & Boxplot)',
+        category: 'Preliminary Analysis',
+        author: 'ncsStat Editorial',
+        date: '31 March 2026',
+        items: [
+            {
+                h2_vi: '1. Tại sao cần xử lý Outliers?',
+                h2_en: '1. Why Handle Outliers?',
+                content_vi: 'Giá trị ngoại lai có thể làm sai lệch kết quả hồi quy và các phép kiểm định tham số nếu không được xử lý.',
+                content_en: 'Outliers can skew regression results and parametric tests if left unhandled.'
+            }
+        ]
+    },
+    'sem-cfa-structural-modeling': {
+        title_vi: 'Mô hình cấu trúc tuyến tính (SEM) và CFA: Đỉnh cao nghiên cứu',
+        title_en: 'Structural Equation Modeling (SEM) & CFA: Expert Guide',
+        category: 'Advanced Analysis',
+        author: 'ncsStat Editorial',
+        date: '31 March 2026',
+        items: [
+            {
+                h2_vi: '1. CFA và SEM là gì?',
+                h2_en: '1. What are CFA & SEM?',
+                content_vi: 'CFA (Phân tích nhân tố khẳng định) dùng để kiểm định mức độ phù hợp của thang đo với dữ liệu thực tế. SEM là sự kết hợp giữa EFA và Hồi quy đa biến, cho phép kiểm định toàn bộ mô hình lý thuyết cùng lúc.',
+                content_en: 'CFA (Confirmatory Factor Analysis) tests how well your scale fits the actual data. SEM combines EFA and Multiple Regression, allowing for simultaneous testing of the entire theoretical model.'
+            },
+            {
+                h2_vi: '2. Các chỉ số độ phù hợp (Model Fit)',
+                h2_en: '2. Model Fit Indices',
+                content_vi: 'Các chỉ số phổ biến bao gồm:\n- Chi-square/df < 3 (hoặc 5)\n- GFI, CFI, TLI > 0.9\n- RMSEA < 0.08\nP-value của kiểm định Chi-square nên > 0.05, tuy nhiên với mẫu lớn ngưỡng này thường bị bỏ qua.',
+                content_en: 'Common indices include:\n- Chi-square/df < 3 (or 5)\n- GFI, CFI, TLI > 0.9\n- RMSEA < 0.08\nChi-square p-value should ideally be > 0.05, though this is often relaxed for large samples.'
             }
         ]
     }

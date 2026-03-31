@@ -4,7 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { 
     Search, BookOpen, ChevronRight, Layout, Database, 
     TrendingUp, ShieldCheck, Microscope, Layers, Brain,
-    Sparkles, ArrowUpRight, Clock, Star, Info, Target
+    Sparkles, ArrowUpRight, Clock, Star, Info, Target, Activity, Network
 } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
@@ -16,8 +16,8 @@ const articles = [
         id: 'cronbach-alpha',
         title_vi: 'Kiểm định độ tin cậy Cronbach\'s Alpha: Hướng dẫn từ A-Z',
         title_en: 'Cronbach\'s Alpha Reliability Test: A-Z Guide',
-        excerpt_vi: 'Tìm hiểu cách đánh giá tính nhất quán nội tại của thang đo nghiên cứu theo tiêu chuẩn học thuật.',
-        excerpt_en: 'Learn how to evaluate the internal consistency of research scales according to academic standards.',
+        excerpt_vi: 'Tìm hiểu cách đánh giá tính nhất quán nội tại của thang đo nghiên cứu theo tiêu chuẩn học thuật của Hair et al.',
+        excerpt_en: 'Learn how to evaluate the internal consistency of research scales according to Hair et al. academic standards.',
         category: 'Preliminary Analysis',
         readTime: '8 min',
         icon: ShieldCheck,
@@ -28,8 +28,8 @@ const articles = [
         id: 'efa-factor-analysis',
         title_vi: 'Phân tích nhân tố khám phá (EFA): Khi nào cần xoay nhân tố?',
         title_en: 'Exploratory Factor Analysis (EFA): When to Rotate Factors?',
-        excerpt_vi: 'Khám phá cấu trúc ẩn của dữ liệu và cách tối ưu hóa các nhóm nhân tố bằng phương pháp Varimax.',
-        excerpt_en: 'Explore hidden data structures and how to optimize factor groups using the Varimax method.',
+        excerpt_vi: 'Khám phá cấu trúc ẩn của dữ liệu và cách tối ưu hóa các nhóm nhân tố bằng phương pháp Varimax và Promax.',
+        excerpt_en: 'Explore hidden data structures and how to optimize factor groups using Varimax and Promax methods.',
         category: 'Factor Analysis',
         readTime: '12 min',
         icon: Layers,
@@ -40,13 +40,109 @@ const articles = [
         id: 'regression-vif-multicollinearity',
         title_vi: 'Hồi quy đa biến và kiểm tra Đa cộng tuyến (VIF)',
         title_en: 'Multiple Regression and Multicollinearity (VIF) Check',
-        excerpt_vi: 'Cách đọc hiểu các chỉ số VIF, R-Square và hệ số Beta chuẩn hóa trong mô hình tác động.',
-        excerpt_en: 'How to interpret VIF, R-Square, and standardized Beta coefficients in impact models.',
+        excerpt_vi: 'Cách đọc hiểu các chỉ số VIF, R-Square và hệ số Beta chuẩn hóa trong mô hình tác động đa biến.',
+        excerpt_en: 'How to interpret VIF, R-Square, and standardized Beta coefficients in multivariate impact models.',
         category: 'Impact Analysis',
         readTime: '10 min',
         icon: TrendingUp,
         color: 'text-orange-500',
         bg: 'bg-orange-50'
+    },
+    {
+        id: 'descriptive-statistics-interpretation',
+        title_vi: 'Thống kê mô tả: Cách trình bày Mean, Std. Deviation chuẩn APA',
+        title_en: 'Descriptive Statistics: Presenting Mean & Std. Deviation in APA',
+        excerpt_vi: 'Hướng dẫn chi tiết cách báo cáo các chỉ số xu hướng trung tâm và độ phân tán của dữ liệu khảo sát.',
+        excerpt_en: 'Detailed guide on reporting central tendency and dispersion metrics for survey data.',
+        category: 'Preliminary Analysis',
+        readTime: '6 min',
+        icon: Microscope,
+        color: 'text-blue-500',
+        bg: 'bg-blue-50'
+    },
+    {
+        id: 'independent-t-test-guide',
+        title_vi: 'Kiểm định Independent T-test: So sánh trung bình hai nhóm',
+        title_en: 'Independent T-test: Comparing Means Between Two Groups',
+        excerpt_vi: 'Phân tích sự khác biệt về giới tính, khu vực hoặc các biến định danh 2 nhóm trong nghiên cứu.',
+        excerpt_en: 'Analyzing differences in gender, region, or 2-group categorical variables in research.',
+        category: 'Comparison Analysis',
+        readTime: '7 min',
+        icon: Target,
+        color: 'text-rose-500',
+        bg: 'bg-rose-50'
+    },
+    {
+        id: 'one-way-anova-post-hoc',
+        title_vi: 'Phân tích ANOVA và kiểm định Post-hoc (Bonferroni, Tukey)',
+        title_en: 'One-way ANOVA and Post-hoc Tests (Bonferroni, Tukey)',
+        excerpt_vi: 'Khi nào cần dùng ANOVA thay cho T-test? Cách đọc bảng so sánh cặp (Multiple Comparisons).',
+        excerpt_en: 'When to use ANOVA over T-test? How to interpret Multiple Comparisons tables.',
+        category: 'Comparison Analysis',
+        readTime: '15 min',
+        icon: Database,
+        color: 'text-cyan-500',
+        bg: 'bg-cyan-50'
+    },
+    {
+        id: 'pearson-correlation-analysis',
+        title_vi: 'Tương quan Pearson: Đo lường sức mạnh mối liên hệ',
+        title_en: 'Pearson Correlation: Measuring Relationship Strength',
+        excerpt_vi: 'Phân biệt giữa tương quan (Correlation) và hồi quy (Regression). Ý nghĩa của hệ số r.',
+        excerpt_en: 'Distinguishing between Correlation and Regression. Significance of the r coefficient.',
+        category: 'Relationship Analysis',
+        readTime: '9 min',
+        icon: Sparkles,
+        color: 'text-purple-500',
+        bg: 'bg-purple-50'
+    },
+    {
+        id: 'chi-square-test-independence',
+        title_vi: 'Kiểm định Chi-square: Phân tích mối liên hệ biến định danh',
+        title_en: 'Chi-square Test: Analyzing Categorical Relationships',
+        excerpt_vi: 'Kiểm tra xem hai biến định tính có độc lập với nhau hay không bằng phép thử Chi-bình phương.',
+        excerpt_en: 'Testing whether two categorical variables are independent using the Chi-square test.',
+        category: 'Categorical Analysis',
+        readTime: '8 min',
+        icon: Activity,
+        color: 'text-teal-500',
+        bg: 'bg-teal-50'
+    },
+    {
+        id: 'mediation-analysis-sobel-test',
+        title_vi: 'Phân tích biến trung gian (Mediation): Mô hình Baron & Kenny',
+        title_en: 'Mediation Analysis: Baron & Kenny Model',
+        excerpt_vi: 'Tìm hiểu cơ chế tác động gián tiếp giữa các biến trong mô hình nghiên cứu phức tạp.',
+        excerpt_en: 'Understanding indirect impact mechanisms between variables in complex research models.',
+        category: 'Advanced Analysis',
+        readTime: '18 min',
+        icon: Brain,
+        color: 'text-pink-500',
+        bg: 'bg-pink-50'
+    },
+    {
+        id: 'data-cleaning-outliers-detection',
+        title_vi: 'Làm sạch dữ liệu và xử lý giá trị ngoại lai (Outliers)',
+        title_en: 'Data Cleaning and Outliers Detection (Z-Score & Boxplot)',
+        excerpt_vi: 'Các bước chuẩn bị dữ liệu thô trước khi đưa vào phân tích chính để tránh sai lệch kết quả.',
+        excerpt_en: 'Steps to prepare raw data before main analysis to avoid biased results.',
+        category: 'Preliminary Analysis',
+        readTime: '12 min',
+        icon: Info,
+        color: 'text-slate-500',
+        bg: 'bg-slate-100'
+    },
+    {
+        id: 'sem-cfa-structural-modeling',
+        title_vi: 'Mô hình cấu trúc tuyến tính (SEM) và CFA: Đỉnh cao nghiên cứu',
+        title_en: 'Structural Equation Modeling (SEM) & CFA: Research Standard',
+        excerpt_vi: 'Tìm hiểu cách kiểm định mô hình lý thuyết phức tạp và các chỉ số độ phù hợp (Fit Indices) như GFI, CFI, RMSEA.',
+        excerpt_en: 'Learn how to test complex theoretical models and Fit Indices like GFI, CFI, RMSEA.',
+        category: 'Advanced Analysis',
+        readTime: '25 min',
+        icon: Network,
+        color: 'text-indigo-600',
+        bg: 'bg-indigo-50'
     }
 ];
 
@@ -145,13 +241,6 @@ export default function KnowledgeBasePage() {
                                         {isVi ? 'Đọc chi tiết' : 'Read more'}
                                         <ArrowUpRight className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                                     </span>
-                                    <div className="flex -space-x-2">
-                                        {[1, 2].map(i => (
-                                            <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center overflow-hidden">
-                                                <div className="w-full h-full bg-gradient-to-br from-slate-200 to-slate-300"></div>
-                                            </div>
-                                        ))}
-                                    </div>
                                 </div>
                             </div>
                         </motion.div>
