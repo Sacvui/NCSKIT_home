@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { 
     BookOpen, Lightbulb, Workflow, PlayCircle, ChevronRight, 
-    ArrowRight, Shield, CheckCircle2 
+    ArrowRight, Shield, CheckCircle2, Layers, Network, Cpu 
 } from 'lucide-react';
 import Link from 'next/link';
 import { getStoredLocale, t, type Locale } from '@/lib/i18n';
@@ -22,6 +22,8 @@ export default function DocsOverviewPage() {
     }, []);
 
     if (!mounted) return null;
+
+
 
     const sections = [
         {

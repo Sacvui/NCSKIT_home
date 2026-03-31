@@ -6,8 +6,16 @@ import {
     ArrowRight,
     BookOpen,
     Sparkles,
-    BarChart3
+    BarChart3,
+    Library,
+    Cpu,
+    ShieldCheck,
+    Search,
+    Zap,
+    TrendingUp,
+    CheckCircle2
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import {
     NcsIconSpeed,
     NcsIconAI,
@@ -23,244 +31,263 @@ import {
 } from '../ui/NcsIcons';
 import { getStoredLocale, t, type Locale } from '@/lib/i18n';
 import Footer from '@/components/layout/Footer';
+import MethodsGuide from './MethodsGuide';
 
 export default function HomeContent() {
     const [locale, setLocale] = useState<Locale>('vi');
     const [mounted, setMounted] = useState(false);
 
-    // Get locale from localStorage on mount
     useEffect(() => {
         setLocale(getStoredLocale());
         setMounted(true);
-
-        // Listen for language changes
-        const handleStorageChange = () => {
-            setLocale(getStoredLocale());
-        };
-
-        window.addEventListener('storage', handleStorageChange);
-
-        // Custom event for same-tab changes
-        window.addEventListener('localeChange', handleStorageChange);
-
-        return () => {
-            window.removeEventListener('storage', handleStorageChange);
-            window.removeEventListener('localeChange', handleStorageChange);
-        };
+        const handleLocaleChange = () => setLocale(getStoredLocale());
+        window.addEventListener('localeChange', handleLocaleChange);
+        return () => window.removeEventListener('localeChange', handleLocaleChange);
     }, []);
 
-    // Prevent hydration mismatch
-    if (!mounted) {
-        return null;
-    }
+    if (!mounted) return null;
+
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: { staggerChildren: 0.15 }
+        }
+    };
+
+    const itemVariants = {
+        hidden: { y: 20, opacity: 0 },
+        visible: { y: 0, opacity: 1 }
+    };
 
     return (
-        <>
+        <div className="overflow-x-hidden">
             {/* Beta Warning Banner */}
-            <div className="bg-orange-600 text-white px-4 py-3 relative z-20">
+            <motion.div 
+                initial={{ y: -50 }}
+                animate={{ y: 0 }}
+                className="bg-slate-900 border-b border-indigo-500/20 text-white px-4 py-3 relative z-20"
+            >
                 <div className="container mx-auto flex items-start md:items-center justify-between gap-4">
                     <div className="flex items-start gap-3">
-                        <div className="bg-white/20 p-1.5 rounded-lg mt-0.5 md:mt-0">
-                            <Sparkles className="w-4 h-4 text-white" />
+                        <div className="bg-indigo-600 p-1.5 rounded-lg mt-0.5 md:mt-0 shadow-lg shadow-indigo-500/20">
+                            <Zap className="w-4 h-4 text-white" />
                         </div>
-                        <p className="text-sm font-medium leading-relaxed">
-                            <span className="font-bold uppercase tracking-wide bg-white/20 text-white px-2 py-0.5 rounded text-[10px] mr-2 align-middle">{locale === 'vi' ? 'GIAI ĐOẠN BETA' : 'BETA PHASE'}</span>
+                        <p className="text-sm font-medium leading-relaxed text-indigo-100">
+                            <span className="font-black uppercase tracking-wider bg-white text-slate-900 px-2 py-0.5 rounded text-[9px] mr-2 align-middle">{locale === 'vi' ? 'PHIÊN BẢN 2026' : '2026 VERSION'}</span>
                             {t(locale, 'beta.warning')}
                         </p>
                     </div>
-                    <Link href="/legal/disclaimer" className="whitespace-nowrap text-xs font-bold underline hover:text-orange-100 flex-shrink-0">
-                        {t(locale, 'beta.learnMore')}
-                    </Link>
                 </div>
-            </div>
+            </motion.div>
 
             {/* Hero Section */}
-            <div className="container mx-auto px-6 py-24 text-center">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-semibold mb-8 uppercase tracking-wide">
-                    <Sparkles className="w-3 h-3" />
-                    <span>{t(locale, 'hero.badge')}</span>
+            <motion.div 
+                variants={containerVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                className="container mx-auto px-6 py-28 text-center relative"
+            >
+                {/* Background Blobs */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-4xl opacity-10 blur-[120px] pointer-events-none -z-10">
+                    <div className="absolute top-0 left-0 w-64 h-64 bg-blue-600 rounded-full"></div>
+                    <div className="absolute bottom-0 right-0 w-64 h-64 bg-indigo-600 rounded-full"></div>
                 </div>
 
-                <h1 className="text-4xl md:text-6xl font-extrabold text-slate-900 mb-6 leading-tight">
+                <motion.div variants={itemVariants} className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-[10px] font-black uppercase tracking-[0.2em] mb-10 shadow-sm">
+                    <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+                    <span>{t(locale, 'hero.badge')}</span>
+                </motion.div>
+
+                <motion.h1 variants={itemVariants} className="text-5xl md:text-7xl font-black text-slate-900 mb-8 leading-[1.1] tracking-tight">
                     {t(locale, 'hero.title')} <br />
-                    <span className="text-indigo-600">{t(locale, 'hero.subtitle')}</span>
-                </h1>
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-blue-600 to-indigo-600">
+                        {t(locale, 'hero.subtitle')}
+                    </span>
+                </motion.h1>
 
-                <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed font-light">
+                <motion.p variants={itemVariants} className="text-xl md:text-2xl text-slate-500 max-w-3xl mx-auto mb-12 leading-relaxed font-light">
                     {t(locale, 'hero.description')}
-                </p>
+                </motion.p>
 
-                <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+                <motion.div variants={itemVariants} className="flex flex-col md:flex-row items-center justify-center gap-6">
                     <Link
                         href="/analyze"
-                        className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/30 text-lg"
+                        className="w-full md:w-auto inline-flex items-center justify-center gap-3 px-12 py-5 bg-indigo-600 text-white rounded-2xl font-black hover:bg-slate-900 transition-all shadow-2xl shadow-indigo-200 text-sm uppercase tracking-widest group"
                     >
-                        <BarChart3 className="w-6 h-6" />
+                        <BarChart3 className="w-5 h-5 group-hover:scale-110 transition-transform" />
                         {t(locale, 'hero.cta')}
-                        <ArrowRight className="w-5 h-5" />
+                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </Link>
-                </div>
+                    <Link
+                         href="/docs/user-guide"
+                         className="w-full md:w-auto inline-flex items-center justify-center gap-3 px-12 py-5 bg-white border-2 border-slate-200 text-slate-700 rounded-2xl font-black hover:bg-slate-50 transition-all text-sm uppercase tracking-widest shadow-sm"
+                    >
+                         <BookOpen className="w-5 h-5" />
+                         {t(locale, 'hero.learn')}
+                    </Link>
+                </motion.div>
 
-                {/* PLS-SEM Banner */}
-                <div className="mt-12 max-w-4xl mx-auto">
+                {/* Main Feature Highlight: PLS-SEM 2026 */}
+                <motion.div variants={itemVariants} className="mt-20 max-w-5xl mx-auto">
                     <Link href="/analyze2" className="block group">
-                        <div className="relative overflow-hidden bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 rounded-2xl p-8 shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 hover:scale-[1.02]">
-                            {/* Animated background pattern */}
-                            <div className="absolute inset-0 opacity-10">
-                                <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
-                            </div>
-
-                            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
-                                <div className="flex-1 text-center md:text-left">
-                                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-yellow-300 text-xs font-bold mb-3 uppercase tracking-wide">
-                                        <Sparkles className="w-3 h-3" />
+                        <div className="relative overflow-hidden bg-slate-900 rounded-[3rem] p-10 md:p-14 shadow-2xl border border-slate-800 transition-all duration-500 group-hover:border-indigo-500/50">
+                            <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-600/10 blur-[100px] rounded-full -mr-48 -mt-48 transition-all group-hover:bg-indigo-600/20"></div>
+                            
+                            <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-12">
+                                <div className="flex-1 text-center lg:text-left">
+                                    <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-indigo-600 text-white text-[10px] font-black mb-6 uppercase tracking-widest">
+                                        <Cpu className="w-3.5 h-3.5" />
                                         <span>{t(locale, 'plssem.badge')}</span>
                                     </div>
-                                    <h3 className="text-2xl md:text-3xl font-extrabold text-white mb-2">
+                                    <h3 className="text-3xl md:text-5xl font-black text-white mb-6 leading-tight">
                                         {t(locale, 'plssem.title')}
                                     </h3>
-                                    <p className="text-purple-100 text-sm md:text-base leading-relaxed">
+                                    <p className="text-slate-400 text-lg leading-relaxed mb-8 font-light">
                                         {t(locale, 'plssem.description')}
                                     </p>
-                                    <div className="mt-4 flex flex-wrap gap-2 justify-center md:justify-start">
-                                        <span className="px-2 py-1 bg-white/10 rounded text-xs text-white font-medium">{t(locale, 'plssem.methods.omega')}</span>
-                                        <span className="px-2 py-1 bg-white/10 rounded text-xs text-white font-medium">{t(locale, 'plssem.methods.htmt')}</span>
-                                        <span className="px-2 py-1 bg-white/10 rounded text-xs text-white font-medium">{t(locale, 'plssem.methods.bootstrap')}</span>
-                                        <span className="px-2 py-1 bg-white/10 rounded text-xs text-white font-medium">{t(locale, 'plssem.methods.ipma')}</span>
+                                    <div className="flex flex-wrap gap-3 justify-center lg:justify-start">
+                                        {['omega', 'htmt', 'bootstrap', 'ipma'].map(m => (
+                                            <span key={m} className="px-4 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-indigo-300">
+                                                {t(locale, `plssem.methods.${m}`)}
+                                            </span>
+                                        ))}
                                     </div>
                                 </div>
                                 <div className="flex-shrink-0">
-                                    <div className="px-6 py-3 bg-white text-purple-600 rounded-lg font-bold hover:bg-purple-50 transition-all shadow-lg group-hover:shadow-xl flex items-center gap-2">
-                                        <span>{t(locale, 'plssem.cta')}</span>
-                                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                    <div className="w-20 h-20 bg-indigo-600 rounded-3xl flex items-center justify-center text-white shadow-2xl shadow-indigo-500/50 group-hover:scale-110 transition-transform duration-500">
+                                        <ArrowRight className="w-10 h-10 group-hover:translate-x-1" />
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </Link>
-                </div>
-            </div>
+                </motion.div>
+            </motion.div>
 
-            {/* Workflow Section */}
-            <div className="container mx-auto px-6 py-12 border-b border-slate-100">
-                <div className="text-center mb-12">
-                    <h2 className="text-2xl md:text-3xl font-bold text-slate-900">{t(locale, 'workflow.title')}</h2>
-                </div>
-
-                <div className="grid md:grid-cols-4 gap-8 relative">
-                    {/* Connecting Line (Desktop) */}
-                    <div className="hidden md:block absolute top-12 left-[12%] right-[12%] h-0.5 bg-slate-200 -z-10"></div>
-
-                    {/* Step 1 */}
-                    <div className="flex flex-col items-center text-center group">
-                        <div className="w-20 h-20 bg-white rounded-2xl border-2 border-slate-100 shadow-sm flex items-center justify-center mb-4 relative z-10 group-hover:border-indigo-200 group-hover:shadow-md transition-all">
-                            <span className="text-2xl font-bold text-slate-300 group-hover:text-indigo-600 transition-colors">1</span>
-                        </div>
-                        <h3 className="text-lg font-bold text-slate-900 mb-1">{t(locale, 'workflow.step1.title')}</h3>
-                        <p className="text-slate-500 text-xs max-w-[200px] leading-relaxed">{t(locale, 'workflow.step1.desc')}</p>
+            {/* Smart Features Section */}
+            <div className="bg-slate-50 py-32 border-y border-slate-100 relative">
+                <div className="container mx-auto px-6">
+                    <div className="text-center mb-20">
+                        <h2 className="text-3xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight">
+                            {t(locale, 'features.why_title')}
+                        </h2>
+                        <div className="w-24 h-1.5 bg-indigo-600 mx-auto rounded-full"></div>
                     </div>
 
-                    {/* Step 2 */}
-                    <div className="flex flex-col items-center text-center group">
-                        <div className="w-20 h-20 bg-white rounded-2xl border-2 border-slate-100 shadow-sm flex items-center justify-center mb-4 relative z-10 group-hover:border-indigo-200 group-hover:shadow-md transition-all">
-                            <span className="text-2xl font-bold text-slate-300 group-hover:text-indigo-600 transition-colors">2</span>
-                        </div>
-                        <h3 className="text-lg font-bold text-slate-900 mb-1">{t(locale, 'workflow.step2.title')}</h3>
-                        <p className="text-slate-500 text-xs max-w-[200px] leading-relaxed">{t(locale, 'workflow.step2.desc')}</p>
-                    </div>
-
-                    {/* Step 3 */}
-                    <div className="flex flex-col items-center text-center group">
-                        <div className="w-20 h-20 bg-white rounded-2xl border-2 border-slate-100 shadow-sm flex items-center justify-center mb-4 relative z-10 group-hover:border-indigo-200 group-hover:shadow-md transition-all">
-                            <span className="text-2xl font-bold text-slate-300 group-hover:text-indigo-600 transition-colors">3</span>
-                        </div>
-                        <h3 className="text-lg font-bold text-slate-900 mb-1">{t(locale, 'workflow.step3.title')}</h3>
-                        <p className="text-slate-500 text-xs max-w-[200px] leading-relaxed">{t(locale, 'workflow.step3.desc')}</p>
-                    </div>
-
-                    {/* Step 4 */}
-                    <div className="flex flex-col items-center text-center group">
-                        <div className="w-20 h-20 bg-white rounded-2xl border-2 border-slate-100 shadow-sm flex items-center justify-center mb-4 relative z-10 group-hover:border-indigo-200 group-hover:shadow-md transition-all">
-                            <span className="text-2xl font-bold text-slate-300 group-hover:text-indigo-600 transition-colors">4</span>
-                        </div>
-                        <h3 className="text-lg font-bold text-slate-900 mb-1">{t(locale, 'workflow.step4.title')}</h3>
-                        <p className="text-slate-500 text-xs max-w-[200px] leading-relaxed">{t(locale, 'workflow.step4.desc')}</p>
-                    </div>
-                </div>
-            </div>
-
-            {/* Features Grid */}
-            <div className="container mx-auto px-6 py-16">
-                <div className="grid md:grid-cols-3 gap-8">
-                    {/* Speed */}
-                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100">
-                        <div className="w-12 h-12 bg-blue-500 rounded-xl flex items-center justify-center mb-4 text-white">
-                            <NcsIconSpeed size={24} />
-                        </div>
-                        <h3 className="text-xl font-bold text-slate-900 mb-2">{t(locale, 'features.speed.title')}</h3>
-                        <p className="text-slate-600">{t(locale, 'features.speed.desc')}</p>
-                    </div>
-
-                    {/* AI */}
-                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-6 border border-purple-100">
-                        <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center mb-4 text-white">
-                            <NcsIconAI size={24} />
-                        </div>
-                        <h3 className="text-xl font-bold text-slate-900 mb-2">{t(locale, 'features.ai.title')}</h3>
-                        <p className="text-slate-600">{t(locale, 'features.ai.desc')}</p>
-                    </div>
-
-                    {/* Security */}
-                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-100">
-                        <div className="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center mb-4 text-white">
-                            <NcsIconSecurity size={24} />
-                        </div>
-                        <h3 className="text-xl font-bold text-slate-900 mb-2">{t(locale, 'features.security.title')}</h3>
-                        <p className="text-slate-600">{t(locale, 'features.security.desc')}</p>
-                    </div>
-                </div>
-            </div>
-
-            {/* Methods Section */}
-            <div className="container mx-auto px-6 py-16">
-                <div className="text-center mb-12">
-                    <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">{t(locale, 'methods.title')}</h2>
-                    <p className="text-lg text-slate-600 max-w-2xl mx-auto">{t(locale, 'methods.subtitle')}</p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {[
-                        { icon: NcsIconReliability, key: 'reliability', color: 'text-blue-600 bg-blue-50', statusKey: 'available' },
-                        { icon: NcsIconEFA, key: 'efa', color: 'text-purple-600 bg-purple-50', statusKey: 'available' },
-                        { icon: NcsIconCFA, key: 'cfa', color: 'text-pink-600 bg-pink-50', statusKey: 'coming' },
-                        { icon: NcsIconSEM, key: 'sem', color: 'text-red-600 bg-red-50', statusKey: 'coming' },
-                        { icon: NcsIconRegression, key: 'regression', color: 'text-orange-600 bg-orange-50', statusKey: 'available' },
-                        { icon: NcsIconComparison, key: 'comparison', color: 'text-amber-600 bg-amber-50', statusKey: 'available' },
-                        { icon: NcsIconCorrelation, key: 'correlation', color: 'text-green-600 bg-green-50', statusKey: 'available' },
-                        { icon: NcsIconNonParam, key: 'nonparam', color: 'text-teal-600 bg-teal-50', statusKey: 'available' }
-                    ].map((item) => (
-                        <div key={item.key} className="group bg-white rounded-xl p-4 border border-slate-100 shadow-sm hover:shadow-md hover:border-indigo-100 transition-all cursor-default relative overflow-hidden">
-                            <div className="flex items-center gap-4">
-                                <div className={`w-12 h-12 ${item.color} rounded-lg flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}>
-                                    <item.icon size={24} strokeWidth={1.5} />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <h4 className="text-sm font-bold text-slate-800 group-hover:text-indigo-700 transition-colors truncate">
-                                        {t(locale, `methods.${item.key}`)}
-                                    </h4>
-                                    <p className={`text-[10px] mt-0.5 font-medium uppercase tracking-wider ${item.statusKey === 'coming' ? 'text-amber-500' : 'text-slate-400'}`}>
-                                        {t(locale, `status.${item.statusKey}`)}
-                                    </p>
-
-                                </div>
+                    <div className="grid md:grid-cols-3 gap-10">
+                        {/* Research Knowledge Base - NEW UPGRADE */}
+                        <motion.div 
+                            whileHover={{ y: -10 }}
+                            className="bg-white p-10 rounded-[3rem] border border-slate-200 shadow-sm relative overflow-hidden group"
+                        >
+                            <div className="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center mb-8 text-white shadow-lg shadow-blue-100 group-hover:rotate-6 transition-transform">
+                                <Library className="w-8 h-8" />
                             </div>
-                        </div>
-                    ))}
+                            <h3 className="text-2xl font-black text-slate-900 mb-4">
+                                {t(locale, 'features.library_title')}
+                            </h3>
+                            <p className="text-slate-500 leading-relaxed font-light mb-6">
+                                {t(locale, 'features.library_desc')}
+                            </p>
+                            <Link href="/scales" className="text-xs font-black text-blue-600 uppercase tracking-widest flex items-center gap-2 group-hover:gap-3 transition-all">
+                                {t(locale, 'features.explore_library')} <ArrowRight className="w-4 h-4" />
+                            </Link>
+                        </motion.div>
+
+                        {/* AI Assistant */}
+                        <motion.div 
+                            whileHover={{ y: -10 }}
+                            className="bg-white p-10 rounded-[3rem] border border-slate-200 shadow-sm relative overflow-hidden group"
+                        >
+                            <div className="w-16 h-16 bg-purple-500 rounded-2xl flex items-center justify-center mb-8 text-white shadow-lg shadow-purple-100 group-hover:rotate-6 transition-transform">
+                                <NcsIconAI size={32} />
+                            </div>
+                            <h3 className="text-2xl font-black text-slate-900 mb-4">{t(locale, 'features.ai.title')}</h3>
+                            <p className="text-slate-500 leading-relaxed font-light mb-6">{t(locale, 'features.ai.desc')}</p>
+                            <div className="flex items-center gap-2 text-xs font-bold text-purple-600 uppercase tracking-widest">
+                                <CheckCircle2 className="w-4 h-4" /> Interpreted results
+                            </div>
+                        </motion.div>
+
+                        {/* Security */}
+                        <motion.div 
+                            whileHover={{ y: -10 }}
+                            className="bg-white p-10 rounded-[3rem] border border-slate-200 shadow-sm relative overflow-hidden group"
+                        >
+                            <div className="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center mb-8 text-white shadow-lg shadow-emerald-100 group-hover:rotate-6 transition-transform">
+                                <ShieldCheck className="w-8 h-8" />
+                            </div>
+                            <h3 className="text-2xl font-black text-slate-900 mb-4">{t(locale, 'features.security.title')}</h3>
+                            <p className="text-slate-500 leading-relaxed font-light mb-6">{t(locale, 'features.security.desc')}</p>
+                            <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 uppercase tracking-widest">
+                                <Search className="w-4 h-4" /> Privacy-First Architecture
+                            </div>
+                        </motion.div>
+                    </div>
                 </div>
             </div>
 
-            {/* Footer */}
+            {/* Interactive Methods Guide Section */}
+            <div className="container mx-auto px-6 py-32">
+                <div className="text-center mb-20">
+                    <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 tracking-tight">
+                        {t(locale, 'methods.title')}
+                    </h2>
+                    <p className="text-xl text-slate-500 max-w-3xl mx-auto font-light leading-relaxed">
+                        {t(locale, 'methods.subtitle')}
+                    </p>
+                </div>
+
+                <MethodsGuide initialLocale={locale} />
+            </div>
+
+            {/* Standard Workflow Section */}
+            <div className="bg-slate-900 py-32 relative overflow-hidden">
+                <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(white 1px, transparent 1px)', backgroundSize: '32px 32px' }}></div>
+                
+                <div className="container mx-auto px-6 relative z-10">
+                    <div className="text-center mb-20">
+                        <h2 className="text-3xl md:text-5xl font-black text-white mb-6 tracking-tight italic underline decoration-indigo-600/50 decoration-8 underline-offset-8">
+                            {t(locale, 'workflow.title')}
+                        </h2>
+                    </div>
+
+                    <div className="grid md:grid-cols-4 gap-12">
+                        {[1, 2, 3, 4].map(step => (
+                            <motion.div 
+                                key={step}
+                                whileHover={{ scale: 1.05 }}
+                                className="bg-white/5 border border-white/10 p-10 rounded-[2.5rem] backdrop-blur-sm text-center relative group"
+                            >
+                                <div className="w-14 h-14 bg-indigo-600 text-white rounded-2xl flex items-center justify-center text-2xl font-black mb-8 mx-auto shadow-xl shadow-indigo-900/50 transition-transform group-hover:rotate-12">
+                                    {step}
+                                </div>
+                                <h3 className="text-xl font-bold text-white mb-4">{t(locale, `workflow.step${step}.title`)}</h3>
+                                <p className="text-slate-400 text-sm leading-relaxed font-light">{t(locale, `workflow.step${step}.desc`)}</p>
+                                {step < 4 && (
+                                    <div className="hidden lg:block absolute top-1/2 -right-6 -translate-y-1/2 z-20">
+                                        <ArrowRight className="w-8 h-8 text-white/20" />
+                                    </div>
+                                )}
+                            </motion.div>
+                        ))}
+                    </div>
+
+                    <div className="mt-24 text-center">
+                         <Link
+                            href="/analyze"
+                            className="inline-flex items-center justify-center gap-3 px-16 py-6 bg-white text-slate-900 rounded-[2rem] font-black hover:bg-slate-100 transition-all shadow-2xl text-lg uppercase tracking-[0.2em] group"
+                        >
+                            {t(locale, 'hero.cta')}
+                            <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
+                        </Link>
+                    </div>
+                </div>
+            </div>
+
             <Footer locale={locale} />
-        </>
+        </div>
     );
 }

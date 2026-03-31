@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-    Microscope, Shield, Grid3x3, TrendingUp, Info, GraduationCap, Scale, Cpu, FileCheck
+    Microscope, Shield, Grid3x3, TrendingUp, Info, GraduationCap, Scale, Cpu, FileCheck,
+    Sparkles, Layers, Network, FlaskConical, Activity
 } from 'lucide-react';
 import { getStoredLocale, t, type Locale } from '@/lib/i18n';
 
@@ -147,6 +148,76 @@ export default function TheoryPage() {
                                     </div>
                                 </div>
                             </div>
+
+                        {/* Modern Standards 2024-2026 (NEW SECTION) */}
+                        <section className="relative">
+                            <div className="absolute -top-16 left-0 right-0 flex justify-center opacity-10 blur-3xl pointer-events-none">
+                                <div className="w-[500px] h-64 bg-indigo-500 rounded-full"></div>
+                            </div>
+                            
+                            <div className="flex items-center gap-5 mb-12 pb-6 border-b-2 border-slate-200">
+                                <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                                    <Sparkles className="w-6 h-6 text-yellow-400" />
+                                </div>
+                                <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+                                    {t(locale, 'modern_research_standards.title')}
+                                </h2>
+                                <span className="ml-auto px-4 py-1 text-[10px] font-black bg-indigo-600 text-white rounded-full uppercase tracking-widest animate-pulse">Update 2026</span>
+                            </div>
+
+                            <div className="grid md:grid-cols-2 gap-8">
+                                <div className="bg-white p-10 rounded-[3rem] border border-slate-200 shadow-sm relative group overflow-hidden">
+                                     <div className="absolute top-0 right-0 p-8 opacity-5">
+                                        <Layers className="w-24 h-24" />
+                                    </div>
+                                    <h3 className="text-xl font-black text-slate-900 mb-4">{t(locale, 'modern_research_standards.mediation.title')}</h3>
+                                    <p className="text-slate-500 text-sm leading-relaxed mb-8 font-light">
+                                        {t(locale, 'modern_research_standards.mediation.desc')}
+                                    </p>
+                                    <div className="flex gap-4">
+                                        <div className="px-4 py-2 bg-indigo-50 rounded-xl border border-indigo-100">
+                                            <p className="text-[10px] font-black text-indigo-400 uppercase leading-none mb-1">{t(locale, 'modern_research_standards.mediation.metric')}</p>
+                                            <p className="text-sm font-bold text-indigo-700">{t(locale, 'modern_research_standards.mediation.threshold')}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-white p-10 rounded-[3rem] border border-slate-200 shadow-sm relative group overflow-hidden">
+                                    <div className="absolute top-0 right-0 p-8 opacity-5">
+                                        <Network className="w-24 h-24" />
+                                    </div>
+                                    <h3 className="text-xl font-black text-slate-900 mb-4">{t(locale, 'modern_research_standards.modelling.title')}</h3>
+                                    <p className="text-slate-500 text-sm leading-relaxed mb-8 font-light">
+                                        {t(locale, 'modern_research_standards.modelling.desc')}
+                                    </p>
+                                    <div className="flex gap-4">
+                                        <div className="px-4 py-2 bg-emerald-50 rounded-xl border border-emerald-100">
+                                            <p className="text-[10px] font-black text-emerald-400 uppercase leading-none mb-1">SRMR</p>
+                                            <p className="text-sm font-bold text-emerald-700">{t(locale, 'modern_research_standards.modelling.srmr')}</p>
+                                        </div>
+                                        <div className="px-4 py-2 bg-blue-50 rounded-xl border border-blue-100">
+                                            <p className="text-[10px] font-black text-blue-400 uppercase leading-none mb-1">NFI</p>
+                                            <p className="text-sm font-bold text-blue-700">{t(locale, 'modern_research_standards.modelling.nfi')}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-8 p-10 bg-indigo-900 text-white rounded-[3rem] relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-10 opacity-10">
+                                    <FlaskConical className="w-24 h-24" />
+                                </div>
+                                <div className="max-w-2xl">
+                                    <h3 className="text-xl font-black mb-4 flex items-center gap-3">
+                                        <Activity className="w-5 h-5 text-indigo-400" />
+                                        {t(locale, 'modern_research_standards.bootstrapping.title')}
+                                    </h3>
+                                    <p className="text-indigo-200 text-sm leading-relaxed font-light italic">
+                                        "{t(locale, 'modern_research_standards.bootstrapping.desc')}"
+                                    </p>
+                                </div>
+                            </div>
+                        </section>
 
                             <div className="mt-12 bg-slate-900 p-12 md:p-16 rounded-[4rem] border border-slate-800 shadow-2xl relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-12 opacity-[0.03] pointer-events-none">

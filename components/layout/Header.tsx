@@ -8,7 +8,7 @@ import { usePathname, useSearchParams } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
 import { getStoredLocale, t, type Locale } from '@/lib/i18n'
 import { useAuth } from '@/context/AuthContext'
-import { ChevronDown, BarChart3, Layout, BookOpen, GraduationCap, Microscope, FileText } from 'lucide-react'
+import { ChevronDown, BarChart3, Layout, BookOpen, GraduationCap, Microscope, FileText, Network } from 'lucide-react'
 
 interface HeaderProps {
     user?: any
@@ -55,20 +55,20 @@ export default function Header({ centerContent, rightActions, hideNav = false, u
                         <nav className="hidden md:flex items-center gap-1">
                             <NavDropdown
                                 label={t(locale, 'nav.analyze')}
-                                active={pathname === '/analyze'}
+                                active={pathname?.startsWith('/analyze')}
                                 icon={BarChart3}
                             >
                                 <NavDropdownItem
-                                    href="/analyze?mode=1"
-                                    active={pathname === '/analyze' && mode === '1'}
+                                    href="/analyze"
+                                    active={pathname === '/analyze'}
                                     label={t(locale, 'nav.analyze1')}
-                                    icon={BarChart3}
+                                    icon={Microscope}
                                 />
                                 <NavDropdownItem
-                                    href="/analyze?mode=2"
-                                    active={pathname === '/analyze' && mode === '2'}
+                                    href="/analyze2"
+                                    active={pathname === '/analyze2'}
                                     label={t(locale, 'nav.analyze2')}
-                                    icon={Layout}
+                                    icon={Network}
                                 />
                             </NavDropdown>
 

@@ -84,7 +84,11 @@ export const translations = {
             security: {
                 title: 'Bảo mật Cấp cao',
                 desc: 'Kiến trúc Zero-Knowledge. Dữ liệu được xử lý cục bộ 100% tại thiết bị người dùng (Client-side), đảm bảo sự riêng tư tuyệt đối.'
-            }
+            },
+            why_title: 'Tại sao chọn ncsStat?',
+            library_title: 'Thư viện Thang đo',
+            library_desc: 'Tiếp cận +500 thang đo khoa học chuẩn quốc tế (2020-2026) được tích hợp sẵn. Tư vấn mô hình nghiên cứu thông minh.',
+            explore_library: 'Khám phá thư viện'
         },
         // Methods
         methods: {
@@ -162,10 +166,10 @@ export const translations = {
         // Analyze Page
         analyze: {
             steps: {
-                upload: 'Dữ liệu',
-                profile: 'Kiểm tra',
-                analyze: 'Phân tích',
-                results: 'Kết quả'
+                upload: 'Khởi tạo dữ liệu',
+                profile: 'Kiểm duyệt dữ liệu',
+                analyze: 'Thực thi phân tích',
+                results: 'Báo cáo kết quả'
             },
             upload: {
                 title: 'Tải lên dữ liệu nghiên cứu',
@@ -221,7 +225,23 @@ export const translations = {
                 continue: 'Tiếp tục',
                 processing: 'Đang xử lý...',
                 analyzing: 'Đang phân tích...',
-                security: 'Dữ liệu được xử lý cục bộ 100% (Client-side), đảm bảo bảo mật tuyệt đối.'
+                security: 'Dữ liệu được xử lý cục bộ 100% (Client-side), đảm bảo bảo mật tuyệt đối.',
+                authenticating: 'Đang xác thực...',
+                engine_ready: 'Hệ thống tính toán đã sẵn sàng!',
+                engine_error: 'Lỗi khởi tạo hệ thống tính toán. Vui lòng tải lại trang.',
+                restored_session: 'Chúng tôi tìm thấy nội dung chưa lưu từ phiên làm việc trước.',
+                restore_now: 'Khôi phục ngay',
+                discard_session: 'Hủy bỏ',
+                session_cleared: 'Đã xóa dữ liệu phiên làm việc',
+                security_label: 'Bảo mật',
+                restored_success: 'Đã khôi phục phiên làm việc trước đó!',
+                data_cleared: 'Đã xóa dữ liệu đã lưu.',
+                internet_restored: 'Kết nối Internet đã được khôi phục!',
+                internet_lost: 'Mất kết nối Internet. Một số tính năng có thể không hoạt động.',
+                engine_initializing: 'Đang khởi tạo R Engine...',
+                working: 'Sẵn sàng',
+                file_too_large: 'File quá lớn (>50,000 dòng). Vui lòng giảm kích thước file.',
+                analysis_complete: 'Phân tích hoàn tất!'
             }
         },
         // PLS-SEM Workflow Pages
@@ -256,6 +276,7 @@ export const translations = {
             max: 'Lớn nhất (Max)',
             skew: 'Độ lệch (Skewness)',
             kurtosis: 'Độ nhọn (Kurtosis)',
+            median: 'Trung vị',
             n: 'Cỡ mẫu (N)',
             sig: 'Mức ý nghĩa (Sig.)',
             model: 'Mô hình (Model)',
@@ -375,151 +396,57 @@ export const translations = {
                 convergent_title: 'Giá trị hội tụ (AVE)',
                 convergent_desc: 'AVE (Average Variance Extracted) đo lường mức độ biến thiên mà nhân tố giải thích được từ các biến quan sát. AVE thấp cho thấy các câu hỏi chưa phản ánh tốt nhân tố.',
                 threshold: 'Ngưỡng chấp nhận:',
-                discriminant_title: 'Giá trị phân biệt (Discriminant Validity)',
-                htmt_title: 'Chỉ số HTMT (Heterotrait-Monotrait)',
-                htmt_desc: 'Tiêu chuẩn nghiêm ngặt nhất hiện nay. Đo lường tỷ lệ tương quan giữa các nhân tố so với tương quan nội bộ.',
-                htmt_threshold: 'Đạt: HTMT < 0.85 hoặc 0.90',
-                fornell_title: 'Fornell-Larcker Criterion',
-                fornell_desc: 'Căn bậc hai của AVE của mỗi nhân tố phải lớn hơn tương quan giữa nhân tố đó với bất kỳ nhân tố nào khác.',
-                structural_title: '2. Đánh giá Mô hình cấu trúc (Structural Model)',
-                rsquare_title: 'R-Square (R²)',
-                rsquare_desc: 'Đo lường năng lực giải thích của mô hình. Trong khoa học xã hội, R² trên 0.26 được coi là mức ảnh hưởng lớn.',
-                fsquare_title: 'f-Square (f²)',
-                fsquare_desc: 'Kích thước tác động. Giúp xác định vai trò của từng biến độc lập trong việc đóng góp vào R² của biến phụ thuộc.',
-                qsquare_title: 'Q-Square (Q²)',
-                qsquare_desc: 'Khả năng dự báo ngoài mẫu (Predictive Relevance). Được tính toán thông qua kỹ thuật Blindfolding.',
-                mediation_title: 'Tác động Gián tiếp và Trung gian',
-                mediation_desc: 'Hệ thống ncsStat hỗ trợ kiểm định trung gian thông qua phương pháp Bootstrapping. Để kết luận về biến trung gian, cần kiểm tra khoảng tin cậy (Confidence Interval). Nếu khoảng tin cậy không chứa giá trị 0, tác động trung gian có ý nghĩa thống kê.',
-                sig_title: 'Mức ý nghĩa thống kê (Sig.)',
-                sig_desc: 'p-value xác định xác suất của một phát hiện đạt được là do ngẫu nhiên. Trong nghiên cứu kinh tế - xã hội, ngưỡng phổ biến là 5%.',
-                beta_title: 'Hệ số Beta (Path Coefficients)',
-                beta_desc: 'Biểu thị mức độ thay đổi của biến phụ thuộc khi biến độc lập thay đổi một đơn vị. Beta có thể đạt giá trị dương (+) hoặc âm (-).',
-                beta_pos: 'Beta dương: Tác động cùng chiều (A tăng dẫn đến B tăng).',
-                beta_neg: 'Beta âm: Tác động ngược chiều (A tăng dẫn đến B giảm).',
-                beta_std: 'Beta chuẩn hóa: Dùng để so sánh cường độ tác động giữa các biến khác đơn vị đo.',
-                cta_title: 'Kiến thức là nền tảng của công bố',
-                cta_desc: 'Việc hiểu sâu các chỉ số trên không chỉ giúp bài nghiên cứu của bạn vượt qua vòng thẩm định mà còn khẳng định uy tín khoa học của nhà nghiên cứu.',
-                cta_button: 'Xem Kịch bản Nghiên cứu'
+                purpose: 'Đánh giá tác động của một hoặc nhiều biến độc lập lên một biến phụ thuộc.',
+                stepTitle: 'Cách thực hiện:',
+                whenToUse: 'Kiểm tra mối quan hệ nhân quả trong mô hình nghiên cứu.',
+                steps: [
+                    'Chọn menu Regression.',
+                    'Chọn biến phụ thuộc (Y).',
+                    'Chọn các biến độc lập (X).',
+                    'Nhấn nút Chạy Hồi Quy.'
+                ],
+                note: 'Hệ thống sẽ tự động tính toán R-bình phương, hệ số Beta và kiểm tra đa cộng tuyến (VIF).',
+                output: ['R-Square (R2)', 'Hệ số Beta']
             },
-            methods_guide: {
-                title: 'Hướng dẫn Phương pháp Thống kê',
-                select: 'Chọn một phương pháp để xem hướng dẫn chi tiết',
-                cta: 'Thực hiện ngay',
-                descriptive: {
-                    name: 'Thống Kê Mô Tả',
-                    desc: 'Tóm tắt đặc điểm dữ liệu (Mean, SD, Skewness...)',
-                    purpose: 'Tóm tắt các đặc điểm cơ bản của dữ liệu như Trung bình, Trung vị, Độ lệch chuẩn, Min, Max, Skewness, Kurtosis.',
-                    stepTitle: 'Cách thực hiện:',
-                    whenToUse: 'Luôn thực hiện đầu tiên để kiểm tra phân phối và các giá trị bất thường.',
-                    steps: [
-                        'Chọn menu Descriptive.',
-                        'Chọn các biến định lượng cần tính toán.',
-                        'Nhấn nút Chạy Phân Tích.'
-                    ],
-                    output: ['Trung bình, SD, Min, Max', 'Skewness & Kurtosis']
-                },
-                cronbach: {
-                    name: "Cronbach's Alpha",
-                    desc: 'Kiểm định độ tin cậy thang đo',
-                    purpose: 'Đánh giá mức độ chặt chẽ mà các các mục hỏi (items) trong thang đo tương quan với nhau (Internal Consistency).',
-                    stepTitle: 'Cách thực hiện:',
-                    whenToUse: 'Kiểm tra chất lượng thang đo trước khi phân tích nhân tố.',
-                    steps: [
-                        "Chọn menu Cronbach's Alpha.",
-                        'Chọn tất cả các biến quan sát thuộc cùng một nhân tố.',
-                        'Nhấn nút Chạy Phân Tích.'
-                    ],
-                    note: "Kết quả sẽ hiển thị hệ số Cronbach's Alpha tổng và bảng Cronbach's Alpha if Item Deleted giúp bạn loại biến rác.",
-                    output: ['Hệ số Alpha', 'Cronbach Alpha if item deleted']
-                },
-                efa: {
-                    name: 'Phân tích EFA',
-                    desc: 'Phân tích nhân tố khám phá',
-                    purpose: 'Rút gọn một tập hợp nhiều biến quan sát thành một số ít các nhân tố có ý nghĩa.',
-                    stepTitle: 'Cách thực hiện:',
-                    whenToUse: 'Khám phá cấu trúc của thang đo hoặc rút gọn dữ liệu.',
-                    steps: [
-                        'Chọn menu EFA.',
-                        'Chọn tất cả các biến quan sát trong mô hình.',
-                        'Điều chỉnh (nếu cần): Số nhân tố, Phép quay.',
-                        'Nhấn nút Chạy EFA.'
-                    ],
-                    output: ['KMO & Bartlett', 'Ma trận xoay nhân tố']
-                },
-                ttest: {
-                    name: 'Kiểm định T-Test',
-                    desc: 'So sánh trung bình 2 nhóm',
-                    purpose: 'So sánh xem có sự khác biệt có ý nghĩa thống kê về giá trị trung bình giữa hai nhóm độc lập hay không.',
-                    stepTitle: 'Cách thực hiện:',
-                    steps: [
-                        'Chọn menu T-Test.',
-                        'Chọn biến phân nhóm (Ví dụ: Giới tính).',
-                        'Chọn biến cần so sánh (Ví dụ: Thu nhập).',
-                        'Nhấn nút Chạy T-Test.'
-                    ]
-                },
-                anova: {
-                    name: 'Kiểm định ANOVA',
-                    desc: 'So sánh 3 nhóm trở lên',
-                    purpose: 'Kiểm định sự khác biệt về trung bình giữa 3 nhóm trở lên (One-Way ANOVA).',
-                    stepTitle: 'Cách thực hiện:',
-                    steps: [
-                        'Chọn menu ANOVA.',
-                        'Chọn biến phân nhóm (Factor) có từ 3 giá trị trở lên (Ví dụ: Học vấn).',
-                        'Chọn biến phụ thuộc (Dependent).',
-                        'Nhấn nút Chạy ANOVA.'
-                    ]
-                },
-                correlation: {
-                    name: 'Phân tích Tương Quan',
-                    desc: 'Pearson Correlation',
-                    purpose: 'Đánh giá mối quan hệ tuyến tính giữa hai biến định lượng.',
-                    stepTitle: 'Cách thực hiện:',
-                    steps: [
-                        'Chọn menu Correlation.',
-                        'Chọn các biến cần xem xét tương quan.',
-                        'Nhấn nút Chạy Phân Tích.'
-                    ]
-                },
-                regression: {
-                    name: 'Phân tích Hồi Quy',
-                    desc: 'Linear Regression',
-                    purpose: 'Đánh giá tác động của một hoặc nhiều biến độc lập lên một biến phụ thuộc.',
-                    stepTitle: 'Cách thực hiện:',
-                    whenToUse: 'Kiểm tra mối quan hệ nhân quả trong mô hình nghiên cứu.',
-                    steps: [
-                        'Chọn menu Regression.',
-                        'Chọn biến phụ thuộc (Y).',
-                        'Chọn các biến độc lập (X).',
-                        'Nhấn nút Chạy Hồi Quy.'
-                    ],
-                    note: 'Hệ thống sẽ tự động tính toán R-bình phương, hệ số Beta và kiểm tra đa cộng tuyến (VIF).',
-                    output: ['R-Square (R2)', 'Hệ số Beta']
-                },
-                chisq: {
-                    name: 'Kiểm định Chi-Square',
-                    desc: 'Kiểm định biến định danh',
-                    purpose: 'Kiểm tra mối liên hệ giữa hai biến định danh (Categorical Variables).',
-                    stepTitle: 'Cách thực hiện:',
-                    steps: [
-                        'Chọn menu Chi-Square.',
-                        'Chọn biến Hàng (Row Variable) và biến Cột (Column Variable).',
-                        'Nhấn nút Chạy Kiểm Định.'
-                    ]
-                },
-                nonparam: {
-                    name: 'Kiểm định Phi tham số',
-                    desc: 'Mann-Whitney / Kruskal-Wallis',
-                    purpose: 'So sánh trung bình hạng khi dữ liệu không phân phối chuẩn (Thay thế cho T-Test/ANOVA).',
-                    stepTitle: 'Cách thực hiện:',
-                    steps: [
-                        'Chọn menu Non-parametric.',
-                        'Chọn các biến số cần so sánh và biến phân nhóm.',
-                        'Nhấn nút Chạy Kiểm Định.'
-                    ]
-                }
+            chisq: {
+                name: 'Kiểm định Chi-Square',
+                desc: 'Kiểm định biến định danh',
+                purpose: 'Kiểm tra mối liên hệ giữa hai biến định danh (Categorical Variables).',
+                stepTitle: 'Cách thực hiện:',
+                steps: [
+                    'Chọn menu Chi-Square.',
+                    'Chọn biến Hàng (Row Variable) và biến Cột (Column Variable).',
+                    'Nhấn nút Chạy Kiểm Định.'
+                ]
+            },
+            nonparam: {
+                name: 'Kiểm định Phi tham số',
+                desc: 'Mann-Whitney / Kruskal-Wallis',
+                purpose: 'So sánh trung bình hạng khi dữ liệu không phân phối chuẩn (Thay thế cho T-Test/ANOVA).',
+                stepTitle: 'Cách thực hiện:',
+                steps: [
+                    'Chọn menu Non-parametric.',
+                    'Chọn các biến số cần số sánh và biến phân nhóm.',
+                    'Nhấn nút Chạy Kiểm Định.'
+                ]
             }
         },
+        methods_guide_labels: {
+            basic: 'Cơ bản',
+            measurement: 'Đo lường',
+            structure: 'Cấu trúc',
+            comparison: 'So sánh',
+            relationship: 'Mối quan hệ',
+            categorical: 'Định danh',
+            advanced: 'Nâng cao',
+            scientific_standard: 'Tiêu chuẩn Khoa học',
+            r_engine: 'R-ENGINE KÍCH HOẠT',
+            purpose_utility: 'MỤC TIÊU & ỨNG DỤNG',
+            expert_insights: 'Lưu ý Chuyên gia',
+            realtime_processing: 'Xử lý thời gian thực',
+            researches_done: '+2.400 nghiên cứu hoàn tất',
+            apa_report_note: 'Sử dụng chuẩn APA 7 để trình bày kết quả cho phương pháp này.'
+        }
     },
     en: {
         // Header
@@ -601,7 +528,11 @@ export const translations = {
             security: {
                 title: 'High-Level Security',
                 desc: 'Zero-Knowledge architecture. Data is processed 100% locally on your device (Client-side), ensuring absolute privacy.'
-            }
+            },
+            why_title: 'Why choose ncsStat?',
+            library_title: 'Knowledge Base',
+            library_desc: 'Access 500+ international scientific scales (2020-2026) pre-integrated. Intelligent research model advisory.',
+            explore_library: 'Explore Library'
         },
         // Methods
         methods: {
@@ -679,10 +610,10 @@ export const translations = {
         // Analyze Page
         analyze: {
             steps: {
-                upload: 'Data Import',
-                profile: 'Review',
-                analyze: 'Analysis',
-                results: 'Reporting'
+                upload: 'Data Initialization',
+                profile: 'Data Audit',
+                analyze: 'Execute Analysis',
+                results: 'Result Reporting'
             },
             upload: {
                 title: 'Import your dataset',
@@ -738,7 +669,23 @@ export const translations = {
                 continue: 'Continue',
                 processing: 'Processing...',
                 analyzing: 'Analyzing...',
-                security: 'Data processed 100% locally (Client-side), ensuring absolute privacy.'
+                security: 'Data processed 100% locally (Client-side), ensuring absolute privacy.',
+                authenticating: 'Authenticating...',
+                engine_ready: 'Computation engine is ready!',
+                engine_error: 'Computation engine initialization failed. Please reload page.',
+                restored_session: 'We found unsaved content from a previous session.',
+                restore_now: 'Restore Now',
+                discard_session: 'Discard',
+                session_cleared: 'Session data cleared',
+                security_label: 'Security',
+                restored_success: 'Previous session restored successfully!',
+                data_cleared: 'Saved data has been cleared.',
+                internet_restored: 'Internet connection restored!',
+                internet_lost: 'Internet connection lost. Some features may not work.',
+                engine_initializing: 'Initializing R Engine...',
+                working: 'Working',
+                file_too_large: 'File too large (>50,000 rows). Please reduce file size.',
+                analysis_complete: 'Analysis completed!'
             }
         },
         // PLS-SEM Workflow Pages
@@ -773,6 +720,7 @@ export const translations = {
             max: 'Max',
             skew: 'Skewness',
             kurtosis: 'Kurtosis',
+            median: 'Median',
             n: 'N',
             sig: 'Sig.',
             model: 'Model',
@@ -917,127 +865,143 @@ export const translations = {
                 cta_title: 'Knowledge is the Foundation of Publication',
                 cta_desc: 'A deep understanding of these indicators helps your research pass through peer review and affirms your scientific credibility.',
                 cta_button: 'See Research Scenarios'
-            },
-            methods_guide: {
-                title: 'Statistical Methods Guide',
-                select: 'Select a method to view detailed instructions',
-                cta: 'Execute Now',
-                descriptive: {
-                    name: 'Descriptive Statistics',
-                    desc: 'Summarize data characteristics (Mean, SD, Skewness...)',
-                    purpose: 'Summarizes basic characteristics of data such as Mean, Median, Standard Deviation, Min, Max, Skewness, Kurtosis.',
-                    stepTitle: 'How to perform:',
-                    whenToUse: 'Always run first to check distributions and find anomalies.',
-                    steps: [
-                        'Select the Descriptive menu.',
-                        'Select numeric variables for calculation.',
-                        'Click the Run Analysis button.'
-                    ],
-                    output: ['Mean, SD, Min, Max', 'Skewness & Kurtosis']
-                },
-                cronbach: {
-                    name: "Cronbach's Alpha",
-                    desc: 'Scale reliability testing',
-                    purpose: 'Evaluates the internal consistency of scale items (how closely related they are).',
-                    stepTitle: 'How to perform:',
-                    whenToUse: 'Validate scale quality before factor analysis.',
-                    steps: [
-                        "Select the Cronbach's Alpha menu.",
-                        'Select all indicators belonging to the same construct.',
-                        'Click the Run Analysis button.'
-                    ],
-                    note: "Results will show the overall Cronbach's Alpha and the 'Item-Total Statistics' table to help identify problematic items.",
-                    output: ['Alpha coefficient', 'Alpha if item deleted']
-                },
-                efa: {
-                    name: 'EFA Analysis',
-                    desc: 'Exploratory Factor Analysis',
-                    purpose: 'Reduces a large set of variables into a smaller number of meaningful factors.',
-                    stepTitle: 'How to perform:',
-                    whenToUse: 'Discover scale structure or reduce data dimensionality.',
-                    steps: [
-                        'Select the EFA menu.',
-                        'Select all relevant observation variables.',
-                        'Adjust settings if needed: Extraction, Rotation.',
-                        'Click the Run EFA button.'
-                    ],
-                    output: ['KMO & Bartlett', 'Rotated factor matrix']
-                },
-                ttest: {
-                    name: 'T-Test',
-                    desc: 'Compare means of 2 groups',
-                    purpose: 'Tests whether there is a statistically significant difference between the means of two independent groups.',
-                    stepTitle: 'How to perform:',
-                    steps: [
-                        'Select the T-Test menu.',
-                        'Select the grouping variable (e.g., Gender).',
-                        'Select the test variable (e.g., Income).',
-                        'Click the Run T-Test button.'
-                    ]
-                },
-                anova: {
-                    name: 'ANOVA Test',
-                    desc: 'Compare means of 3+ groups',
-                    purpose: 'Tests differences in means across three or more groups (One-Way ANOVA).',
-                    stepTitle: 'How to perform:',
-                    steps: [
-                        'Select the ANOVA menu.',
-                        'Select the grouping Factor variable (e.g., Education).',
-                        'Select the Dependent variable.',
-                        'Click the Run ANOVA button.'
-                    ]
-                },
-                correlation: {
-                    name: 'Correlation Analysis',
-                    desc: 'Pearson Correlation',
-                    purpose: 'Evaluates linear relationships between two quantitative variables.',
-                    stepTitle: 'How to perform:',
-                    steps: [
-                        'Select the Correlation menu.',
-                        'Select variables for correlation analysis.',
-                        'Click the Run Analysis button.'
-                    ]
-                },
-                regression: {
-                    name: 'Regression Analysis',
-                    desc: 'Linear Regression',
-                    purpose: 'Evaluates the impact of one or more independent variables on a dependent variable.',
-                    stepTitle: 'How to perform:',
-                    whenToUse: 'Testing causal hypotheses.',
-                    steps: [
-                        'Select the Regression menu.',
-                        'Select the Dependent variable (Y).',
-                        'Select Independent variables (X).',
-                        'Click the Run Regression button.'
-                    ],
-                    note: 'The system automatically calculates R-squared, Beta coefficients, and checks for multicollinearity (VIF).',
-                    output: ['R-Square', 'Beta coefficients']
-                },
-                chisq: {
-                    name: 'Chi-Square Test',
-                    desc: 'Test for categorical variables',
-                    purpose: 'Examines the association between two categorical variables.',
-                    stepTitle: 'How to perform:',
-                    steps: [
-                        'Select the Chi-Square menu.',
-                        'Select Row and Column variables.',
-                        'Click the Run Test button.'
-                    ]
-                },
-                nonparam: {
-                    name: 'Non-parametric Tests',
-                    desc: 'Mann-Whitney / Kruskal-Wallis',
-                    purpose: 'Compares ranks when data is not normally distributed (Alternative to T-Test/ANOVA).',
-                    stepTitle: 'How to perform:',
-                    steps: [
-                        'Select the Non-parametric menu.',
-                        'Select test variables and the grouping variable.',
-                        'Click the Run Test button.'
-                    ]
-                }
             }
+        },
+        methods_guide: {
+            title: 'Statistical Methods Guide',
+            select: 'Select a method to view detailed instructions',
+            cta: 'Execute Now',
+            descriptive: {
+                name: 'Descriptive Statistics',
+                desc: 'Summarize data characteristics (Mean, SD, Skewness...)',
+                purpose: 'Summarizes basic characteristics of data such as Mean, Median, Standard Deviation, Min, Max, Skewness, Kurtosis.',
+                stepTitle: 'How to perform:',
+                whenToUse: 'Always run first to check distributions and find anomalies.',
+                steps: [
+                    'Select the Descriptive menu.',
+                    'Select numeric variables for calculation.',
+                    'Click the Run Analysis button.'
+                ],
+                output: ['Mean, SD, Min, Max', 'Skewness & Kurtosis']
+            },
+            cronbach: {
+                name: "Cronbach's Alpha",
+                desc: 'Scale reliability testing',
+                purpose: 'Evaluates the internal consistency of scale items (how closely related they are).',
+                stepTitle: 'How to perform:',
+                whenToUse: 'Validate scale quality before factor analysis.',
+                steps: [
+                    "Select the Cronbach's Alpha menu.",
+                    'Select all indicators belonging to the same construct.',
+                    'Click the Run Analysis button.'
+                ],
+                note: "Results will show the overall Cronbach's Alpha and the 'Item-Total Statistics' table to help identify problematic items.",
+                output: ['Alpha coefficient', 'Alpha if item deleted']
+            },
+            efa: {
+                name: 'EFA Analysis',
+                desc: 'Exploratory Factor Analysis',
+                purpose: 'Reduces a large set of variables into a smaller number of meaningful factors.',
+                stepTitle: 'How to perform:',
+                whenToUse: 'Discover scale structure or reduce data dimensionality.',
+                steps: [
+                    'Select the EFA menu.',
+                    'Select all relevant observation variables.',
+                    'Adjust settings if needed: Extraction, Rotation.',
+                    'Click the Run EFA button.'
+                ],
+                output: ['KMO & Bartlett', 'Rotated factor matrix']
+            },
+            ttest: {
+                name: 'T-Test',
+                desc: 'Compare means of 2 groups',
+                purpose: 'Tests whether there is a statistically significant difference between the means of two independent groups.',
+                stepTitle: 'How to perform:',
+                steps: [
+                    'Select the T-Test menu.',
+                    'Select the grouping variable (e.g., Gender).',
+                    'Select the test variable (e.g., Income).',
+                    'Click the Run T-Test button.'
+                ]
+            },
+            anova: {
+                name: 'ANOVA Test',
+                desc: 'Compare means of 3+ groups',
+                purpose: 'Tests differences in means across three or more groups (One-Way ANOVA).',
+                stepTitle: 'How to perform:',
+                steps: [
+                    'Select the ANOVA menu.',
+                    'Select the grouping Factor variable (e.g., Education).',
+                    'Select the Dependent variable.',
+                    'Click the Run ANOVA button.'
+                ]
+            },
+            correlation: {
+                name: 'Correlation Analysis',
+                desc: 'Pearson Correlation',
+                purpose: 'Evaluates linear relationships between two quantitative variables.',
+                stepTitle: 'How to perform:',
+                steps: [
+                    'Select the Correlation menu.',
+                    'Select variables for correlation analysis.',
+                    'Click the Run Analysis button.'
+                ]
+            },
+            regression: {
+                name: 'Regression Analysis',
+                desc: 'Linear Regression',
+                purpose: 'Evaluates the impact of one or more independent variables on a dependent variable.',
+                stepTitle: 'How to perform:',
+                whenToUse: 'Testing causal hypotheses.',
+                steps: [
+                    'Select the Regression menu.',
+                    'Select the Dependent variable (Y).',
+                    'Select Independent variables (X).',
+                    'Click the Run Regression button.'
+                ],
+                note: 'The system automatically calculates R-squared, Beta coefficients, and checks for multicollinearity (VIF).',
+                output: ['R-Square', 'Beta coefficients']
+            },
+            chisq: {
+                name: 'Chi-Square Test',
+                desc: 'Test for categorical variables',
+                purpose: 'Examines the association between two categorical variables.',
+                stepTitle: 'How to perform:',
+                steps: [
+                    'Select the Chi-Square menu.',
+                    'Select Row and Column variables.',
+                    'Click the Run Test button.'
+                ]
+            },
+            nonparam: {
+                name: 'Non-parametric Tests',
+                desc: 'Mann-Whitney / Kruskal-Wallis',
+                purpose: 'Compares ranks when data is not normally distributed (Alternative to T-Test/ANOVA).',
+                stepTitle: 'How to perform:',
+                steps: [
+                    'Select the Non-parametric menu.',
+                    'Select test variables and the grouping variable.',
+                    'Click the Run Test button.'
+                ]
+            }
+        },
+        methods_guide_labels: {
+            basic: 'Basic',
+            measurement: 'Measurement',
+            structure: 'Structure',
+            comparison: 'Comparison',
+            relationship: 'Relationship',
+            categorical: 'Categorical',
+            advanced: 'Advanced',
+            scientific_standard: 'Scientific Standard',
+            r_engine: 'R-ENGINE ACTIVATED',
+            purpose_utility: 'PURPOSE & UTILITY',
+            expert_insights: 'Expert Insights',
+            realtime_processing: 'Real-time processing enabled',
+            researches_done: '+2,400 researches done',
+            apa_report_note: 'Use APA 7 standards for reporting results for this method.'
         }
-    }
+    },
 } as const;
 
 // Helper to get translation

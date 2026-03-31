@@ -51,7 +51,7 @@ export default function AnalyzePage() {
     const mode = searchParams.get('mode')
     const { user, profile: userProfile, loading: authLoading } = useAuth();
     const [loading, setLoading] = useState(true);
-    const [locale, setLocale] = useState<Locale>('vi');
+    const [locale, setLocale] = useState<Locale>(getStoredLocale());
 
     // Sync locale with storage
     useEffect(() => {
@@ -196,7 +196,7 @@ export default function AnalyzePage() {
             setStep(saved.currentStep);
             setResults(saved.results);
             setAnalysisType(saved.analysisType);
-            showToast('Đã khôi phục phiên làm việc trước đó!', 'success');
+            showToast(t(locale, 'analyze.common.restored_success'), 'success');
             setShowRestoreBanner(false);
         }
     };
@@ -204,7 +204,7 @@ export default function AnalyzePage() {
     const discardSaved = async () => {
         await clearWorkspace();
         setShowRestoreBanner(false);
-        showToast('Đã xóa dữ liệu đã lưu.', 'info');
+        showToast(t(locale, 'analyze.common.data_cleared'), 'info');
     };
 
     // Persist workflow state to sessionStorage (Legacy - Keeping for now)
@@ -229,11 +229,11 @@ export default function AnalyzePage() {
     // Handle online/offline events
     useEffect(() => {
         const handleOnline = () => {
-            showToast('Kết nối Internet đã được khôi phục!', 'success');
+            showToast(t(locale, 'analyze.common.internet_restored'), 'success');
         };
 
         const handleOffline = () => {
-            showToast('Mất kết nối Internet. Một số tính năng có thể không hoạt động.', 'error');
+            showToast(t(locale, 'analyze.common.internet_lost'), 'error');
         };
 
         window.addEventListener('app:online', handleOnline);
@@ -259,11 +259,11 @@ export default function AnalyzePage() {
             initWebR()
                 .then(() => {
                     console.log('[WebR] Auto-initialization successful');
-                    setToast({ message: 'R Engine ' + (locale === 'vi' ? 'đã sẵn sàng!' : 'is ready!'), type: 'success' });
+                    setToast({ message: t(locale, 'analyze.common.engine_ready'), type: 'success' });
                 })
                 .catch(err => {
                     console.error('[WebR] Auto-initialization failed:', err);
-                    setToast({ message: locale === 'vi' ? 'Lỗi khởi tạo R Engine. Vui lòng tải lại trang.' : 'R Engine initialization failed. Please reload page.', type: 'error' });
+                    setToast({ message: t(locale, 'analyze.common.engine_error'), type: 'error' });
                 });
         }
     }, [locale]);
@@ -284,9 +284,9 @@ export default function AnalyzePage() {
         if (step === 'analyze') {
             const status = getWebRStatus();
             if (!status.isReady && !status.isLoading) {
-                setToast({ message: 'Đang khởi tạo R Engine...', type: 'info' });
+                setToast({ message: t(locale, 'analyze.common.engine_initializing'), type: 'info' });
                 initWebR().then(() => {
-                    setToast({ message: 'R Engine sẵn sàng!', type: 'success' });
+                    setToast({ message: t(locale, 'analyze.common.engine_ready'), type: 'success' });
                 }).catch(err => {
                     setToast({ message: `Lỗi khởi tạo: ${err.message || err}`, type: 'error' });
                 });
@@ -366,18 +366,18 @@ export default function AnalyzePage() {
     const handleDataLoaded = (loadedData: any[], fname: string) => {
         // Validation: check file size
         if (loadedData.length > 50000) {
-            showToast('File quá lớn (>50,000 rows). Vui lòng giảm kích thước file.', 'error');
+            showToast(t(locale, 'analyze.common.file_too_large'), 'error');
             return;
         }
 
         // Large data sampling (10k-50k rows)
         let processedData = loadedData;
         if (loadedData.length > 10000) {
-            showToast(`Dữ liệu lớn (${loadedData.length} rows). Đang lấy mẫu ngẫu nhiên 10,000 rows...`, 'info');
+            showToast(locale === 'vi' ? `Dữ liệu lớn (${loadedData.length} dòng). Đang lấy mẫu ngẫu nhiên 10,000 dòng...` : `Large dataset (${loadedData.length} rows). Randomly sampling 10,000 rows...`, 'info');
             // Random sampling
             const shuffled = [...loadedData].sort(() => 0.5 - Math.random());
             processedData = shuffled.slice(0, 10000);
-            showToast('Đã lấy mẫu 10,000 rows. Kết quả đại diện cho toàn bộ dữ liệu.', 'success');
+            showToast(locale === 'vi' ? 'Đã lấy mẫu 10,000 dòng. Kết quả đại diện cho toàn bộ dữ liệu.' : 'Sampled 10,000 rows. Results represent the entire dataset.', 'success');
         }
 
         setData(processedData);
@@ -480,7 +480,7 @@ export default function AnalyzePage() {
                 columns: numericColumns
             });
             setStep('results');
-            showToast('Phân tích hoàn thành!', 'success');
+            showToast(t(locale, 'analyze.common.analysis_complete'), 'success');
         } catch (error) {
             handleAnalysisError(error);
         } finally {
@@ -616,10 +616,10 @@ export default function AnalyzePage() {
     };
 
     const steps = [
-        { id: 'upload', label: 'Tải dữ liệu' },
-        { id: 'profile', label: 'Kiểm tra' },
-        { id: 'analyze', label: 'Phân tích' },
-        { id: 'results', label: 'Kết quả' }
+        { id: 'upload', label: t(locale, 'analyze.steps.upload') },
+        { id: 'profile', label: t(locale, 'analyze.steps.profile') },
+        { id: 'analyze', label: t(locale, 'analyze.steps.analyze') },
+        { id: 'results', label: t(locale, 'analyze.steps.results') }
     ];
 
     if (loading) {
@@ -628,9 +628,9 @@ export default function AnalyzePage() {
             <div className="min-h-screen flex items-center justify-center bg-slate-50">
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-slate-600 font-medium">Đang xác thực...</p>
+                    <p className="text-slate-600 font-medium">{t(locale, 'analyze.common.authenticating')}</p>
                     {webRStatus.isReady && (
-                        <p className="text-green-600 text-sm">✓ R Engine đã sẵn sàng</p>
+                        <p className="text-green-600 text-sm">✓ {t(locale, 'analyze.common.engine_ready')}</p>
                     )}
                 </div>
             </div>
@@ -672,7 +672,7 @@ export default function AnalyzePage() {
                         <div className="flex items-center gap-3">
                             <RotateCcw className="w-5 h-5 text-amber-600" />
                             <p className="text-sm text-amber-800">
-                                <span className="font-bold">{locale === 'vi' ? 'Khôi phục phiên làm việc:' : 'Restore Session:'}</span> {locale === 'vi' ? 'Chúng tôi tìm thấy dữ liệu chưa lưu từ phiên làm việc trước.' : 'We found unsaved data from a previous session.'}
+                                <span className="font-bold">{t(locale, 'analyze.common.restored_session')}</span>
                             </p>
                         </div>
                         <div className="flex items-center gap-3">
@@ -680,13 +680,13 @@ export default function AnalyzePage() {
                                 onClick={handleRestore}
                                 className="px-4 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium rounded-lg transition-colors shadow-sm"
                             >
-                                {locale === 'vi' ? 'Khôi phục ngay' : 'Restore Now'}
+                                {t(locale, 'analyze.common.restore_now')}
                             </button>
                             <button
                                 onClick={discardSaved}
                                 className="px-3 py-1.5 text-amber-700 hover:bg-amber-100 text-sm font-medium rounded-lg transition-colors"
                             >
-                                {locale === 'vi' ? 'Bỏ qua' : 'Discard'}
+                                {t(locale, 'analyze.common.discard_session')}
                             </button>
                         </div>
                     </div>
@@ -705,7 +705,7 @@ export default function AnalyzePage() {
                         setIsPrivateMode={setIsPrivateMode}
                         clearSession={() => {
                             clearSession();
-                            showToast(locale === 'vi' ? 'Đã xóa dữ liệu phiên làm việc' : 'Session data cleared', 'info');
+                            showToast(t(locale, 'analyze.common.session_cleared'), 'info');
                         }}
                         filename={filename}
                         onSave={() => setIsSaveModalOpen(true)}
@@ -716,7 +716,7 @@ export default function AnalyzePage() {
             <div className="bg-blue-50/50 border-b border-blue-100 py-1">
                 <div className="container mx-auto px-6 flex items-center justify-center gap-2 text-[11px] text-blue-600/80">
                     <Shield className="w-3 h-3" />
-                    <span className="font-semibold">{locale === 'vi' ? 'Bảo mật:' : 'Security:'}</span>
+                    <span className="font-semibold">{t(locale, 'analyze.common.security_label')}:</span>
                     <span>{t(locale, 'analyze.common.security')}</span>
                 </div>
             </div>
@@ -761,7 +761,7 @@ export default function AnalyzePage() {
                                                 'bg-gray-200 text-gray-500 cursor-not-allowed'}
                                         ${isClickable ? 'cursor-pointer hover:shadow-lg' : ''}
                                     `}
-                                    title={isClickable ? `Quay lại: ${steps.find(st => st.id === s)?.label || s}` : undefined}
+                                    title={isClickable ? `${t(locale, 'analyze.common.back')}: ${steps.find(st => st.id === s)?.label || s}` : undefined}
                                 >
                                     {idx + 1}
                                 </button>

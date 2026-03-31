@@ -150,7 +150,7 @@ export default function Analyze2Page() {
         profile, setProfile,
     } = useAnalysisSession();
 
-    const [locale, setLocale] = useState<Locale>('vi');
+    const [locale, setLocale] = useState<Locale>(getStoredLocale());
 
     useEffect(() => {
         setLocale(getStoredLocale());
@@ -211,11 +211,11 @@ export default function Analyze2Page() {
             initWebR()
                 .then(() => {
                     console.log('[WebR] Auto-initialization successful');
-                    setToast({ message: locale === 'vi' ? 'R Engine đã sẵn sàng với PLS-SEM!' : 'R Engine ready for PLS-SEM!', type: 'success' });
+                    setToast({ message: t(locale, 'analyze.common.engine_ready'), type: 'success' });
                 })
                 .catch(err => {
                     console.error('[WebR] Auto-initialization failed:', err);
-                    setToast({ message: locale === 'vi' ? 'Lỗi khởi tạo R Engine. Vui lòng tải lại trang.' : 'R Engine initialization failed. Please reload.', type: 'error' });
+                    setToast({ message: t(locale, 'analyze.common.engine_error'), type: 'error' });
                 });
         }
     }, []);
@@ -227,16 +227,16 @@ export default function Analyze2Page() {
 
     const handleDataLoaded = (loadedData: any[], fname: string) => {
         if (loadedData.length > 50000) {
-            showToast('File quá lớn (>50,000 rows). Vui lòng giảm kích thước file.', 'error');
+            showToast(t(locale, 'analyze.common.file_too_large'), 'error');
             return;
         }
 
         let processedData = loadedData;
         if (loadedData.length > 10000) {
-            showToast(locale === 'vi' ? `Dữ liệu lớn (${loadedData.length} rows). Đang lấy mẫu ngẫu nhiên 10,000 rows...` : `Large dataset (${loadedData.length} rows). Randomly sampling 10,000 rows...`, 'info');
+            showToast(locale === 'vi' ? `Dữ liệu lớn (${loadedData.length} dòng). Đang lấy mẫu ngẫu nhiên 10,000 dòng...` : `Large dataset (${loadedData.length} rows). Randomly sampling 10,000 rows...`, 'info');
             const shuffled = [...loadedData].sort(() => 0.5 - Math.random());
             processedData = shuffled.slice(0, 10000);
-            showToast(locale === 'vi' ? 'Đã lấy mẫu 10,000 rows. Kết quả đại diện cho toàn bộ dữ liệu.' : 'Sampled 10,000 rows. Results represent the entire dataset.', 'success');
+            showToast(locale === 'vi' ? 'Đã lấy mẫu 10,000 dòng. Kết quả đại diện cho toàn bộ dữ liệu.' : 'Sampled 10,000 rows. Results represent the entire dataset.', 'success');
         }
 
         setData(processedData);
@@ -267,7 +267,7 @@ export default function Analyze2Page() {
     const handleDescriptiveStats = async () => {
         try {
             setIsAnalyzing(true);
-            showToast(locale === 'vi' ? 'Đang tính toán thống kê mô tả...' : 'Calculating descriptive statistics...', 'info');
+            showToast(t(locale, 'analyze.common.analyzing'), 'info');
 
             // Get numeric columns
             const numericCols = getNumericColumns();
@@ -295,7 +295,7 @@ export default function Analyze2Page() {
             };
 
             setDescriptiveResults(resultsWithNames);
-            showToast(locale === 'vi' ? 'Thống kê mô tả hoàn tất!' : 'Descriptive statistics completed!', 'success');
+            showToast(t(locale, 'analyze.common.analysis_complete'), 'success');
         } catch (error: any) {
             console.error('Descriptive stats error:', error);
             showToast(error.message || 'Lỗi khi tính toán thống kê', 'error');
@@ -326,9 +326,9 @@ export default function Analyze2Page() {
             <div className="min-h-screen flex items-center justify-center bg-slate-50">
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-slate-600 font-medium">{locale === 'vi' ? 'Đang xác thực...' : 'Authenticating...'}</p>
+                    <p className="text-slate-600 font-medium">{t(locale, 'analyze.common.authenticating')}</p>
                     {webRStatus.isReady && (
-                        <p className="text-green-600 text-sm">✓ {locale === 'vi' ? 'R Engine đã sẵn sàng' : 'R Engine is ready'}</p>
+                        <p className="text-green-600 text-sm">✓ {t(locale, 'analyze.common.engine_ready')}</p>
                     )}
                 </div>
             </div>
@@ -379,7 +379,7 @@ export default function Analyze2Page() {
                             setIsPrivateMode={setIsPrivateMode}
                             clearSession={() => {
                                 clearSession();
-                                showToast(locale === 'vi' ? 'Đã xóa dữ liệu phiên làm việc' : 'Session data cleared', 'info');
+                                showToast(t(locale, 'analyze.common.session_cleared'), 'info');
                             }}
                             filename={filename}
                             onSave={() => setIsSaveModalOpen(true)}
@@ -391,7 +391,7 @@ export default function Analyze2Page() {
             <div className="bg-purple-50/50 border-b border-purple-100 py-1">
                 <div className="container mx-auto px-6 flex items-center justify-center gap-2 text-[11px] text-purple-600/80">
                     <Shield className="w-3 h-3" />
-                    <span className="font-semibold">{locale === 'vi' ? 'Bảo mật:' : 'Security:'}</span>
+                    <span className="font-semibold">{t(locale, 'analyze.common.security_label')}:</span>
                     <span>{t(locale, 'pls_workflow.security')}</span>
                 </div>
             </div>
@@ -490,42 +490,42 @@ export default function Analyze2Page() {
                                         onClick={handleDescriptiveStats}
                                         disabled={isAnalyzing}
                                         className="p-6 border-2 border-purple-200 rounded-lg hover:border-purple-400 hover:shadow-lg transition-all text-left group bg-purple-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        title="Mean, SD, Min, Max, Median - Thống kê mô tả cơ bản cho dữ liệu"
+                                        title={t(locale, 'methods_guide.descriptive.purpose')}
                                     >
                                         <div className="flex items-center gap-3 mb-2">
                                             <BarChart3 className="w-6 h-6 text-purple-600" />
                                             <h3 className="font-bold text-lg group-hover:text-purple-600">Descriptive Statistics</h3>
                                             <Badge variant="success">Working</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">Mean, SD, Min, Max, Median, Skewness, Kurtosis</p>
+                                        <p className="text-sm text-gray-600">{t(locale, 'methods_guide.descriptive.purpose')}</p>
                                     </button>
 
                                     {/* McDonald's Omega */}
                                     <button
                                         onClick={() => setPhase('omega-select')}
                                         className="p-6 border-2 border-purple-200 rounded-lg hover:border-purple-400 hover:shadow-lg transition-all text-left group bg-purple-50"
-                                        title="Threshold: ω &gt; 0.70 (acceptable), ω &gt; 0.80 (good) - Độ tin cậy hiện đại, chính xác hơn Cronbach's Alpha"
+                                        title={t(locale, 'pls_workflow.methods.omega.desc')}
                                     >
                                         <div className="flex items-center gap-3 mb-2">
                                             <Sparkles className="w-6 h-6 text-purple-600" />
                                             <h3 className="font-bold text-lg group-hover:text-purple-600">McDonald's Omega (ω)</h3>
-                                            <Badge variant="success">Working</Badge>
+                                            <Badge variant="success">{t(locale, 'analyze.common.working')}</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">Modern reliability measure (ω &gt; 0.70) - More accurate than Cronbach's α</p>
+                                        <p className="text-sm text-gray-600">{t(locale, 'pls_workflow.methods.omega.desc')}</p>
                                     </button>
 
                                     {/* Cronbach's Alpha */}
                                     <button
                                         onClick={() => setPhase('cronbach-select')}
                                         className="p-6 border-2 border-purple-200 rounded-lg hover:border-purple-400 hover:shadow-lg transition-all text-left group bg-purple-50"
-                                        title="Threshold: α > 0.70 (acceptable), α > 0.80 (good) - Classic reliability measure"
+                                        title={t(locale, 'methods_guide.cronbach.purpose')}
                                     >
                                         <div className="flex items-center gap-3 mb-2">
                                             <FileText className="w-6 h-6 text-blue-600" />
                                             <h3 className="font-bold text-lg group-hover:text-purple-600">Cronbach's Alpha (α)</h3>
-                                            <Badge variant="success">Working</Badge>
+                                            <Badge variant="success">{t(locale, 'analyze.common.working')}</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">Classic reliability (α &gt; 0.70) - Internal consistency measure</p>
+                                        <p className="text-sm text-gray-600">{t(locale, 'methods_guide.cronbach.purpose')}</p>
                                     </button>
 
                                     {/* Outlier Detection */}
@@ -536,17 +536,17 @@ export default function Analyze2Page() {
                                     >
                                         <div className="flex items-center gap-3 mb-2">
                                             <XCircle className="w-6 h-6 text-red-600" />
-                                            <h3 className="font-bold text-lg group-hover:text-purple-600">Outlier Detection</h3>
-                                            <Badge variant="success">Working</Badge>
+                                            <h3 className="font-bold text-lg group-hover:text-purple-600">{locale === 'vi' ? 'Kiểm định Outlier' : 'Outlier Detection'}</h3>
+                                            <Badge variant="success">{t(locale, 'analyze.common.working')}</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">Mahalanobis Distance - Detect & remove multivariate outliers</p>
+                                        <p className="text-sm text-gray-600">Mahalanobis Distance - {locale === 'vi' ? 'Phát hiện và loại bỏ các điểm dị biệt' : 'Detect & remove multivariate outliers'}</p>
                                     </button>
                                 </div>
 
                                 {/* Descriptive Statistics Results */}
                                 {descriptiveResults && (
                                     <div className="mt-6 bg-purple-50 rounded-lg p-6 border border-purple-200">
-                                        <h3 className="text-lg font-bold text-purple-900 mb-4">{locale === 'vi' ? '📊 Kết quả Thống kê mô tả' : '📊 Descriptive Statistics Results'}</h3>
+                                        <h3 className="text-lg font-bold text-purple-900 mb-4">{t(locale, 'analyze.results.title')} - {t(locale, 'methods.descriptive')}</h3>
                                         <div className="overflow-x-auto">
                                             <table className="w-full text-sm">
                                                 <thead>
@@ -557,7 +557,7 @@ export default function Analyze2Page() {
                                                         <th className="px-4 py-2 text-right font-semibold">{t(locale, 'tables.sd')}</th>
                                                         <th className="px-4 py-2 text-right font-semibold">{t(locale, 'tables.min')}</th>
                                                         <th className="px-4 py-2 text-right font-semibold">{t(locale, 'tables.max')}</th>
-                                                        <th className="px-4 py-2 text-right font-semibold">Median</th>
+                                                        <th className="px-4 py-2 text-right font-semibold">{t(locale, 'tables.median')}</th>
                                                         <th className="px-4 py-2 text-right font-semibold">{t(locale, 'tables.skew')}</th>
                                                         <th className="px-4 py-2 text-right font-semibold">{t(locale, 'tables.kurtosis')}</th>
                                                     </tr>
@@ -619,10 +619,10 @@ export default function Analyze2Page() {
                                     >
                                         <div className="flex items-center gap-3 mb-2">
                                             <BarChart3 className="w-6 h-6 text-blue-600" />
-                                            <h3 className="font-bold text-lg group-hover:text-blue-600">EFA</h3>
-                                            <Badge variant="success">Working</Badge>
+                                            <h3 className="font-bold text-lg group-hover:text-blue-600">{t(locale, 'methods.efa')}</h3>
+                                            <Badge variant="success">{t(locale, 'analyze.common.working')}</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">Exploratory Factor Analysis - Discover factor structure</p>
+                                        <p className="text-sm text-gray-600">{t(locale, 'methods_guide.efa.purpose')}</p>
                                     </button>
 
                                     {/* CFA */}
@@ -647,10 +647,10 @@ export default function Analyze2Page() {
                                     >
                                         <div className="flex items-center gap-3 mb-2">
                                             <Sparkles className="w-6 h-6 text-blue-600" />
-                                            <h3 className="font-bold text-lg group-hover:text-blue-600">HTMT Matrix</h3>
-                                            <Badge variant="success">Working</Badge>
+                                            <h3 className="font-bold text-lg group-hover:text-blue-600">{t(locale, 'plssem.methods.htmt')}</h3>
+                                            <Badge variant="success">{t(locale, 'analyze.common.working')}</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">HTMT &lt; 0.85 - Gold standard for discriminant validity</p>
+                                        <p className="text-sm text-gray-600">HTMT &lt; 0.85 - {locale === 'vi' ? 'Tiêu chuẩn vàng cho giá trị phân biệt' : 'Gold standard for discriminant validity'}</p>
                                     </button>
 
                                     {/* VIF Check */}
@@ -711,10 +711,10 @@ export default function Analyze2Page() {
                                     >
                                         <div className="flex items-center gap-3 mb-2">
                                             <BarChart3 className="w-6 h-6 text-green-600" />
-                                            <h3 className="font-bold text-lg group-hover:text-green-600">Linear Regression</h3>
-                                            <Badge variant="success">Working</Badge>
+                                            <h3 className="font-bold text-lg group-hover:text-green-600">{t(locale, 'methods.regression')}</h3>
+                                            <Badge variant="success">{t(locale, 'analyze.common.working')}</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">Multiple regression with path coefficients (β)</p>
+                                        <p className="text-sm text-gray-600">{t(locale, 'methods_guide.regression.purpose')}</p>
                                     </button>
 
                                     {/* CB-SEM */}
@@ -739,10 +739,10 @@ export default function Analyze2Page() {
                                     >
                                         <div className="flex items-center gap-3 mb-2">
                                             <Zap className="w-6 h-6 text-green-600" />
-                                            <h3 className="font-bold text-lg group-hover:text-green-600">PLS-SEM Algorithm</h3>
-                                            <Badge variant="success">Working</Badge>
+                                            <h3 className="font-bold text-lg group-hover:text-green-600">{t(locale, 'plssem.title')} Algorithm</h3>
+                                            <Badge variant="success">{t(locale, 'analyze.common.working')}</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">Partial Least Squares - Variance-based SEM</p>
+                                        <p className="text-sm text-gray-600">{t(locale, 'plssem.description')}</p>
                                     </button>
 
                                     {/* Bootstrapping */}
@@ -753,10 +753,10 @@ export default function Analyze2Page() {
                                     >
                                         <div className="flex items-center gap-3 mb-2">
                                             <RefreshCw className="w-6 h-6 text-green-600" />
-                                            <h3 className="font-bold text-lg group-hover:text-green-600">Bootstrapping</h3>
-                                            <Badge variant="success">Working</Badge>
+                                            <h3 className="font-bold text-lg group-hover:text-green-600">{t(locale, 'plssem.methods.bootstrap')}</h3>
+                                            <Badge variant="success">{t(locale, 'analyze.common.working')}</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">Bootstrap resampling for significance testing (p-values)</p>
+                                        <p className="text-sm text-gray-600">{locale === 'vi' ? 'Kiểm định ý nghĩa các hệ số tác động (p-value)' : 'Tests significance of path coefficients (p-values)'}</p>
                                     </button>
 
                                     {/* Mediation & Moderation */}
@@ -859,10 +859,10 @@ export default function Analyze2Page() {
                                     >
                                         <div className="flex items-center gap-3 mb-2">
                                             <TrendingUp className="w-6 h-6 text-amber-600" />
-                                            <h3 className="font-bold text-lg group-hover:text-amber-600">IPMA Matrix</h3>
-                                            <Badge variant="success">Working</Badge>
+                                            <h3 className="font-bold text-lg group-hover:text-amber-600">IPMA Analysis</h3>
+                                            <Badge variant="success">{t(locale, 'analyze.common.working')}</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">Importance-Performance Map - Prioritize improvements</p>
+                                        <p className="text-sm text-gray-600">{locale === 'vi' ? 'Phân tích ma trận Tầm quan trọng - Hiệu suất' : 'Importance-Performance Map Analysis'}</p>
                                     </button>
 
                                     {/* MGA */}
@@ -873,10 +873,10 @@ export default function Analyze2Page() {
                                     >
                                         <div className="flex items-center gap-3 mb-2">
                                             <Users className="w-6 h-6 text-amber-600" />
-                                            <h3 className="font-bold text-lg group-hover:text-amber-600">MGA</h3>
-                                            <Badge variant="success">Working</Badge>
+                                            <h3 className="font-bold text-lg group-hover:text-amber-600">{locale === 'vi' ? 'Phân tích đa nhóm (MGA)' : 'Multi-Group Analysis (MGA)'}</h3>
+                                            <Badge variant="success">{t(locale, 'analyze.common.working')}</Badge>
                                         </div>
-                                        <p className="text-sm text-gray-600">Multi-Group Analysis - Compare groups (gender, age, etc.)</p>
+                                        <p className="text-sm text-gray-600">{locale === 'vi' ? 'So sánh sự khác biệt giữa các nhóm (Giới tính, Khu vực...)' : 'Compare differences between groups'}</p>
                                     </button>
 
                                     {/* Blindfolding */}
