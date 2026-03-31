@@ -119,7 +119,18 @@ export default function MethodsGuide({ initialLocale }: MethodsGuideProps) {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: idx * 0.05 }}
-                        onClick={() => setActiveId(method.id)}
+                        onClick={() => {
+                            setActiveId(method.id);
+                            // Auto-scroll on mobile
+                            if (window.innerWidth < 1024) {
+                                setTimeout(() => {
+                                    const detailView = document.getElementById('method-detail-view');
+                                    if (detailView) {
+                                        detailView.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                    }
+                                }, 100);
+                            }
+                        }}
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         className={`group relative flex items-center gap-4 p-5 rounded-2xl border-2 text-left transition-all duration-300 ${activeId === method.id
@@ -154,10 +165,24 @@ export default function MethodsGuide({ initialLocale }: MethodsGuideProps) {
                 <AnimatePresence mode="wait">
                     <motion.div
                         key={activeId || 'empty'}
+                        id="method-detail-view"
                         initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        animate={{ 
+                            opacity: 1, 
+                            scale: 1, 
+                            y: 0,
+                            boxShadow: activeId ? [
+                                "0 0 0 0px rgba(79, 70, 229, 0)",
+                                "0 0 0 10px rgba(79, 70, 229, 0.1)", 
+                                "0 0 0 0px rgba(79, 70, 229, 0)"
+                            ] : "none"
+                        }}
                         exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                        transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                        transition={{ 
+                            duration: 0.4, 
+                            ease: [0.23, 1, 0.32, 1],
+                            boxShadow: { duration: 0.8 }
+                        }}
                         className="bg-white rounded-[2.5rem] border border-slate-200 shadow-inner p-10 md:p-14 relative overflow-hidden h-full min-h-[650px] flex flex-col"
                     >
                         {/* Background Decoration */}
