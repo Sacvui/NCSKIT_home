@@ -374,39 +374,42 @@ function Analyze2Content() {
                 </div>
             )}
 
-            {/* Header - Fixed Top */}
+            {/* Main Navigation Header */}
             <Header
                 user={user}
                 profile={userProfile}
                 hideNav={false}
             />
 
-            {/* Sticky Analysis Toolbar (Sub-header) */}
-            <div className="sticky top-16 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm py-3">
-                <div className="container mx-auto px-6">
-                    <div className="flex flex-wrap items-center justify-between gap-4">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-indigo-600 rounded-lg text-white shadow-lg shadow-indigo-100">
-                                <Sparkles className="w-4 h-4" />
-                            </div>
-                            <span className="font-black text-sm text-slate-900 uppercase tracking-tight hidden sm:block">
-                                PLS-SEM Academy
+            {/* Dedicated Analysis Control Bar - Sits below Header */}
+            <div className="sticky top-16 z-30 bg-slate-900 border-b border-slate-800 py-3 shadow-2xl">
+                <div className="container mx-auto px-6 flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 pr-4 border-r border-slate-700">
+                            <Sparkles className="w-5 h-5 text-indigo-400" />
+                            <span className="font-black text-xs text-white uppercase tracking-widest">
+                                PLS-SEM Engine
                             </span>
                         </div>
-                        
-                        <div className="flex-1 flex justify-end">
-                            <AnalysisToolbar
-                                isPrivateMode={isPrivateMode}
-                                setIsPrivateMode={setIsPrivateMode}
-                                clearSession={() => {
-                                    clearSession();
-                                    showToast(isVi ? 'Đã dọn dẹp phiên làm việc' : 'Session cleared', 'info');
-                                }}
-                                filename={filename}
-                                onSave={() => setIsSaveModalOpen(true)}
-                                locale={locale}
-                            />
-                        </div>
+                        {filename && (
+                            <div className="flex items-center gap-2 px-3 py-1 bg-slate-800 rounded-lg text-slate-400 text-[10px] font-bold uppercase tracking-tighter max-w-[150px] truncate">
+                                <FileText className="w-3 h-3" /> {filename}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        <AnalysisToolbar
+                            isPrivateMode={isPrivateMode}
+                            setIsPrivateMode={setIsPrivateMode}
+                            clearSession={() => {
+                                clearSession();
+                                showToast(isVi ? 'Đã dọn dẹp phiên làm việc' : 'Session cleared', 'info');
+                            }}
+                            filename={filename}
+                            onSave={() => setIsSaveModalOpen(true)}
+                            locale={locale}
+                        />
                     </div>
                 </div>
             </div>
