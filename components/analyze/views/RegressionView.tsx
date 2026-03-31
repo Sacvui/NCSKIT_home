@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AnalysisStep } from '@/types/analysis';
+import { Locale, t } from '@/lib/i18n';
 import { getAnalysisCost, checkBalance, deductCredits } from '@/lib/ncs-credits';
 import { logAnalysisUsage } from '@/lib/activity-logger';
 import { runLinearRegression, runLogisticRegression } from '@/lib/webr-wrapper';
@@ -21,6 +22,7 @@ interface RegressionViewProps {
 
     // Optional setter to update analysis type in parent
     setAnalysisType?: (type: string) => void;
+    locale: Locale;
 }
 
 export const RegressionView: React.FC<RegressionViewProps> = ({
@@ -35,7 +37,8 @@ export const RegressionView: React.FC<RegressionViewProps> = ({
     setRequiredCredits,
     setCurrentAnalysisCost,
     setShowInsufficientCredits,
-    setAnalysisType
+    setAnalysisType,
+    locale
 }) => {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
 
@@ -143,14 +146,14 @@ export const RegressionView: React.FC<RegressionViewProps> = ({
 
                                 setResults({ type: 'regression', data: result, columns: cols });
                                 setStep('results');
-                                showToast('Phân tích Hồi quy hoàn thành!', 'success');
-                            } catch (err: any) { showToast('Lỗi: ' + err.message || err, 'error'); }
+                                showToast(locale === 'vi' ? 'Phân tích hoàn thành!' : 'Analysis completed!', 'success');
+                            } catch (err: any) { showToast(t(locale, 'common.error') + ': ' + err.message || err, 'error'); }
                             finally { setIsAnalyzing(false); }
                         }}
                         disabled={isAnalyzing}
                         className="mt-6 w-full py-3 bg-pink-600 hover:bg-pink-700 text-white font-semibold rounded-lg"
                     >
-                        {isAnalyzing ? 'Đang phân tích...' : 'Chạy Hồi quy'}
+                        {isAnalyzing ? (locale === 'vi' ? 'Đang phân tích...' : 'Analyzing...') : (locale === 'vi' ? 'Chạy Hồi quy' : 'Run Regression')}
                     </button>
                 </div>
 
@@ -158,7 +161,7 @@ export const RegressionView: React.FC<RegressionViewProps> = ({
                     onClick={() => setStep('analyze')}
                     className="w-full py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg"
                 >
-                    ← Quay lại
+                    ← {locale === 'vi' ? 'Quay lại chọn phép tính' : 'Back to method selection'}
                 </button>
             </div>
         );
@@ -169,10 +172,10 @@ export const RegressionView: React.FC<RegressionViewProps> = ({
             <div className="max-w-2xl mx-auto space-y-6">
                 <div className="text-center mb-8">
                     <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                        Hồi quy Logistic (Nhị phân)
+                        {t(locale, 'logistic.title')}
                     </h2>
                     <p className="text-gray-600">
-                        Dự đoán biến phụ thuộc nhị phân (0/1 hoặc Yes/No)
+                        {t(locale, 'logistic.description')}
                     </p>
                 </div>
 
@@ -180,23 +183,23 @@ export const RegressionView: React.FC<RegressionViewProps> = ({
                     <div className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Biến phụ thuộc (Y) - Phải là nhị phân (0/1)
+                                {t(locale, 'logistic.dependent_variable')}
                             </label>
                             <select
                                 className="w-full px-3 py-2 border rounded-lg"
                                 value={logisticVars.y}
                                 onChange={(e) => setLogisticVars({ ...logisticVars, y: e.target.value })}
                             >
-                                <option value="">Chọn biến...</option>
+                                <option value="">{t(locale, 'common.select_variable')}</option>
                                 {columns.map(col => (
                                     <option key={col} value={col} disabled={logisticVars.xs.includes(col)}>{col}</option>
                                 ))}
                             </select>
-                            <p className="text-xs text-gray-500 mt-1">Lưu ý: Biến Y chỉ nên chứa 2 giá trị (ví dụ: 0 và 1)</p>
+                            <p className="text-xs text-gray-500 mt-1">{t(locale, 'logistic.note')}</p>
                         </div>
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Các biến độc lập (X1, X2...)
+                                {t(locale, 'logistic.independent_variables')}
                             </label>
                             <div className="space-y-2 max-h-48 overflow-y-auto border rounded-lg p-2">
                                 {columns.map(col => (
@@ -226,14 +229,14 @@ export const RegressionView: React.FC<RegressionViewProps> = ({
 
                     <button
                         onClick={async () => {
-                            if (!logisticVars.y) { showToast('Vui lòng chọn biến phụ thuộc (Y)', 'error'); return; }
-                            if (logisticVars.xs.length === 0) { showToast('Vui lòng chọn ít nhất 1 biến độc lập (X)', 'error'); return; }
+                            if (!logisticVars.y) { showToast(t(locale, 'logistic.error_y'), 'error'); return; }
+                            if (logisticVars.xs.length === 0) { showToast(t(locale, 'logistic.error_x'), 'error'); return; }
 
                             setIsAnalyzing(true);
 
                             // NCS Credit Check
                             if (user) {
-                                const cost = await getAnalysisCost('regression'); // Use regression cost for logistic too
+                                const cost = await getAnalysisCost('regression');
                                 const hasEnough = await checkBalance(user.id, cost);
                                 if (!hasEnough) {
                                     setRequiredCredits(cost);
@@ -260,14 +263,14 @@ export const RegressionView: React.FC<RegressionViewProps> = ({
 
                                 setResults({ type: 'logistic', data: result, columns: cols });
                                 setStep('results');
-                                showToast('Phân tích Logistic hoàn thành!', 'success');
-                            } catch (err: any) { showToast('Lỗi: ' + err.message || err, 'error'); }
+                                showToast(locale === 'vi' ? 'Phân tích hoàn thành!' : 'Analysis completed!', 'success');
+                            } catch (err: any) { showToast(t(locale, 'common.error') + ': ' + err.message || err, 'error'); }
                             finally { setIsAnalyzing(false); }
                         }}
                         disabled={isAnalyzing}
                         className="mt-6 w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg"
                     >
-                        {isAnalyzing ? 'Đang phân tích...' : 'Chạy Logistic Regression'}
+                        {isAnalyzing ? (locale === 'vi' ? 'Đang phân tích...' : 'Analyzing...') : (locale === 'vi' ? 'Chạy Logistic Regression' : 'Run Logistic Regression')}
                     </button>
                 </div>
 
@@ -275,7 +278,7 @@ export const RegressionView: React.FC<RegressionViewProps> = ({
                     onClick={() => setStep('analyze')}
                     className="w-full py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg"
                 >
-                    ← Quay lại
+                    ← {locale === 'vi' ? 'Quay lại' : 'Back'}
                 </button>
             </div>
         );

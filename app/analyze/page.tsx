@@ -3,12 +3,12 @@
 // Prevent prerendering - this page requires client-side Supabase
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FileUpload } from '@/components/FileUpload';
 import { DataProfiler } from '@/components/DataProfiler';
 import { ResultsDisplay } from '@/components/ResultsDisplay';
-import { SmartGroupSelector, VariableSelector, AISettings } from '@/components/VariableSelector'; // Keep if used elsewhere or remove if grep confirmed unused. Grep said unused.
+import { SmartGroupSelector, VariableSelector, AISettings } from '@/components/VariableSelector';
 import { profileData, DataProfile } from '@/lib/data-profiler';
 import { runCorrelation, runDescriptiveStats, initWebR, getWebRStatus, setProgressCallback } from '@/lib/webr-wrapper';
 import { BarChart3, FileText, Shield, Trash2, Eye, EyeOff, Wifi, WifiOff, RotateCcw, XCircle } from 'lucide-react';
@@ -20,7 +20,6 @@ import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { AnalysisStep } from '@/types/analysis';
 import { StepIndicator } from '@/components/ui/StepIndicator';
 import { Badge } from '@/components/ui/Badge';
-// Removed runCFA, runSEM import line entirely
 import { RegressionView } from '@/components/analyze/views/RegressionView';
 import { MediationView } from '@/components/analyze/views/MediationView';
 import { MultivariateView } from '@/components/analyze/views/MultivariateView';
@@ -46,6 +45,16 @@ import { useAnalysisPersistence } from '@/hooks/useAnalysisPersistence';
 import { Locale, t, getStoredLocale } from '@/lib/i18n';
 
 export default function AnalyzePage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div>
+        </div>}>
+            <AnalyzeContent />
+        </Suspense>
+    );
+}
+
+function AnalyzeContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const mode = searchParams.get('mode')
@@ -822,6 +831,7 @@ export default function AnalyzePage() {
                                 onRunAnalysis={runAnalysis}
                                 isAnalyzing={isAnalyzing}
                                 mode={mode}
+                                locale={locale}
                             />
 
                             {isAnalyzing && (
@@ -850,6 +860,7 @@ export default function AnalyzePage() {
                             setRequiredCredits={setRequiredCredits}
                             setCurrentAnalysisCost={setCurrentAnalysisCost}
                             setShowInsufficientCredits={setShowInsufficientCredits}
+                            locale={locale}
                         />
                     )}
 
@@ -870,6 +881,7 @@ export default function AnalyzePage() {
                             setRequiredCredits={setRequiredCredits}
                             setCurrentAnalysisCost={setCurrentAnalysisCost}
                             setShowInsufficientCredits={setShowInsufficientCredits}
+                            locale={locale}
                         />
                     )}
 
@@ -888,6 +900,7 @@ export default function AnalyzePage() {
                             setRequiredCredits={setRequiredCredits}
                             setCurrentAnalysisCost={setCurrentAnalysisCost}
                             setShowInsufficientCredits={setShowInsufficientCredits}
+                            locale={locale}
                         />
                     )}
 
@@ -908,6 +921,7 @@ export default function AnalyzePage() {
                             setRequiredCredits={setRequiredCredits}
                             setCurrentAnalysisCost={setCurrentAnalysisCost}
                             setShowInsufficientCredits={setShowInsufficientCredits}
+                            locale={locale}
                         />
                     )}
 
@@ -926,6 +940,7 @@ export default function AnalyzePage() {
                             setRequiredCredits={setRequiredCredits}
                             setCurrentAnalysisCost={setCurrentAnalysisCost}
                             setShowInsufficientCredits={setShowInsufficientCredits}
+                            locale={locale}
                         />
                     )}
 

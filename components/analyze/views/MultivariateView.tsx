@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AnalysisStep } from '@/types/analysis';
+import { Locale, t } from '@/lib/i18n';
 import { getAnalysisCost, checkBalance, deductCredits } from '@/lib/ncs-credits';
 import { logAnalysisUsage } from '@/lib/activity-logger';
 import { runClusterAnalysis, runTwoWayANOVA } from '@/lib/webr-wrapper';
@@ -22,6 +23,7 @@ interface MultivariateViewProps {
     setShowInsufficientCredits: (show: boolean) => void;
 
     setAnalysisType?: (type: string) => void;
+    locale: Locale;
 }
 
 export const MultivariateView: React.FC<MultivariateViewProps> = ({
@@ -38,7 +40,8 @@ export const MultivariateView: React.FC<MultivariateViewProps> = ({
     setRequiredCredits,
     setCurrentAnalysisCost,
     setShowInsufficientCredits,
-    setAnalysisType
+    setAnalysisType,
+    locale
 }) => {
     const varsForFactors = allColumns.length > 0 ? allColumns : columns;
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -153,7 +156,7 @@ export const MultivariateView: React.FC<MultivariateViewProps> = ({
                         disabled={isAnalyzing}
                         className="mt-6 w-full py-3 bg-pink-600 hover:bg-pink-700 text-white font-semibold rounded-lg"
                     >
-                        {isAnalyzing ? 'Đang phân tích...' : 'Chạy Cluster Analysis'}
+                        {isAnalyzing ? (locale === 'vi' ? 'Đang phân tích...' : 'Analyzing...') : (locale === 'vi' ? 'Chạy Cluster Analysis' : 'Run Cluster Analysis')}
                     </button>
                 </div>
 
@@ -227,7 +230,7 @@ export const MultivariateView: React.FC<MultivariateViewProps> = ({
                             </div>
                         </div>
                         <p className="text-xs text-gray-500 italic">
-                            Lưu ý: Hai nhân tố nên là biến định danh (categorical) với số lượng nhóm không quá lớn (ví dụ: Giới tính, Nhóm tuổi).
+                            {locale === 'vi' ? 'Lưu ý: Hai nhân tố nên là biến định danh (categorical) với số lượng nhóm không quá lớn (ví dụ: Giới tính, Nhóm tuổi).' : 'Note: Factors should be categorical variables with a limited number of groups (e.g., Gender, Age Group).'}
                         </p>
                     </div>
 
@@ -281,7 +284,7 @@ export const MultivariateView: React.FC<MultivariateViewProps> = ({
                         disabled={isAnalyzing}
                         className="mt-6 w-full py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg"
                     >
-                        {isAnalyzing ? 'Đang phân tích...' : 'Chạy Two-Way ANOVA'}
+                        {isAnalyzing ? (locale === 'vi' ? 'Đang phân tích...' : 'Analyzing...') : (locale === 'vi' ? 'Chạy Two-Way ANOVA' : 'Run Two-Way ANOVA')}
                     </button>
                 </div>
 

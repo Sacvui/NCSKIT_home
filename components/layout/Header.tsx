@@ -1,11 +1,11 @@
 'use client'
 
+import React, { useState, useEffect, useRef, Suspense } from 'react'
 import Link from 'next/link'
 import UserMenu from '@/components/UserMenu'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
 import { NcsBalanceBadge } from '@/components/NcsBalanceBadge'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { useState, useEffect, useRef } from 'react'
 import { getStoredLocale, t, type Locale } from '@/lib/i18n'
 import { useAuth } from '@/context/AuthContext'
 import { ChevronDown, BarChart3, Layout, BookOpen, GraduationCap, Microscope, FileText, Network } from 'lucide-react'
@@ -18,7 +18,7 @@ interface HeaderProps {
     hideNav?: boolean
 }
 
-export default function Header({ centerContent, rightActions, hideNav = false, user: propUser, profile: propProfile }: HeaderProps) {
+function HeaderContent({ centerContent, rightActions, hideNav = false, user: propUser, profile: propProfile }: HeaderProps) {
     const pathname = usePathname()
     const searchParams = useSearchParams()
     const mode = searchParams.get('mode')
@@ -138,6 +138,14 @@ export default function Header({ centerContent, rightActions, hideNav = false, u
                 </div>
             </div>
         </header>
+    )
+}
+
+export default function Header(props: HeaderProps) {
+    return (
+        <Suspense fallback={<header className="bg-white/80 h-16 w-full animate-pulse border-b border-slate-100"></header>}>
+            <HeaderContent {...props} />
+        </Suspense>
     )
 }
 

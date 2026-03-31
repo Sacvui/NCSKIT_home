@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import {
     BarChart2, GitCompare, TrendingUp, Layers, 
     ChevronDown, ChevronRight, Target, HelpCircle, Code, CheckCircle2, CircleDot,
@@ -9,6 +9,16 @@ import {
 import { getStoredLocale, t, type Locale } from '@/lib/i18n';
 
 export default function UserGuidePage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div>
+        </div>}>
+            <UserGuideContent />
+        </Suspense>
+    );
+}
+
+function UserGuideContent() {
     const [locale, setLocale] = useState<Locale>('vi');
     const [mounted, setMounted] = useState(false);
     const [expandedMethod, setExpandedMethod] = useState<string | null>(null);

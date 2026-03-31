@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+export const dynamic = 'force-dynamic';
+
+import React, { useEffect, useState, Suspense } from 'react';
 import { 
     BookOpen, Lightbulb, Workflow, PlayCircle, ChevronRight, 
     ArrowRight, Shield, CheckCircle2, Layers, Network, Cpu 
@@ -8,7 +10,7 @@ import {
 import Link from 'next/link';
 import { getStoredLocale, t, type Locale } from '@/lib/i18n';
 
-export default function DocsOverviewPage() {
+function DocsOverviewContent() {
     const [locale, setLocale] = useState<Locale>('vi');
     const [mounted, setMounted] = useState(false);
 
@@ -22,8 +24,6 @@ export default function DocsOverviewPage() {
     }, []);
 
     if (!mounted) return null;
-
-
 
     const sections = [
         {
@@ -147,5 +147,15 @@ export default function DocsOverviewPage() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function DocsOverviewPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div>
+        </div>}>
+            <DocsOverviewContent />
+        </Suspense>
     );
 }

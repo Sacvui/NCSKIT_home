@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Locale, t } from '@/lib/i18n';
 import {
     runDescriptiveStats, runTTestIndependent, runTTestPaired, runOneWayANOVA,
     runChiSquare, runMannWhitneyU, runKruskalWallis, runWilcoxonSignedRank
@@ -24,6 +25,7 @@ interface BasicStatsViewProps {
     setRequiredCredits: (credits: number) => void;
     setCurrentAnalysisCost: (cost: number) => void;
     setShowInsufficientCredits: (show: boolean) => void;
+    locale: Locale;
 }
 
 export function BasicStatsView({
@@ -40,7 +42,8 @@ export function BasicStatsView({
     setAnalysisType,
     setRequiredCredits,
     setCurrentAnalysisCost,
-    setShowInsufficientCredits
+    setShowInsufficientCredits,
+    locale
 }: BasicStatsViewProps) {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
 
@@ -81,7 +84,7 @@ export function BasicStatsView({
             setStep('results');
             showToast(successMsg, 'success');
         } catch (err: any) {
-            showToast('Lỗi: ' + (err.message || err), 'error');
+            showToast(`${t(locale, 'error')}: ` + (err.message || err), 'error');
         } finally {
             setIsAnalyzing(false);
         }
@@ -91,8 +94,6 @@ export function BasicStatsView({
         return (
             <div className="max-w-2xl mx-auto space-y-6">
                 <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold text-gray-800 mb-2">Thống kê mô tả</h2>
-                    <p className="text-gray-600">Chọn các biến định lượng để tính toán Mean, SD, Min, Max...</p>
                 </div>
                 <div className="bg-white rounded-xl shadow-lg p-6 border">
                     <p className="text-sm text-gray-600 mb-4">Chọn biến (có thể chọn nhiều):</p>

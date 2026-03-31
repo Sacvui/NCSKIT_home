@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AnalysisStep } from '@/types/analysis';
+import { Locale, t } from '@/lib/i18n';
 import { getAnalysisCost, checkBalance, deductCredits } from '@/lib/ncs-credits';
 import { logAnalysisUsage } from '@/lib/activity-logger';
 import { runMediationAnalysis, runModerationAnalysis } from '@/lib/webr-wrapper';
@@ -21,6 +22,7 @@ interface MediationViewProps {
     setShowInsufficientCredits: (show: boolean) => void;
 
     setAnalysisType?: (type: string) => void;
+    locale: Locale;
 }
 
 export const MediationView: React.FC<MediationViewProps> = ({
@@ -36,7 +38,8 @@ export const MediationView: React.FC<MediationViewProps> = ({
     setRequiredCredits,
     setCurrentAnalysisCost,
     setShowInsufficientCredits,
-    setAnalysisType
+    setAnalysisType,
+    locale
 }) => {
     const varsForFactors = allColumns.length > 0 ? allColumns : columns;
     const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -151,7 +154,7 @@ export const MediationView: React.FC<MediationViewProps> = ({
                         disabled={isAnalyzing}
                         className="mt-6 w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg"
                     >
-                        {isAnalyzing ? 'Đang phân tích...' : 'Chạy Mediation Analysis'}
+                        {isAnalyzing ? (locale === 'vi' ? 'Đang phân tích...' : 'Analyzing...') : (locale === 'vi' ? 'Chạy Mediation Analysis' : 'Run Mediation Analysis')}
                     </button>
                 </div>
 
@@ -270,7 +273,7 @@ export const MediationView: React.FC<MediationViewProps> = ({
                         disabled={isAnalyzing}
                         className="mt-6 w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg"
                     >
-                        {isAnalyzing ? 'Đang phân tích...' : 'Chạy Moderation Analysis'}
+                        {isAnalyzing ? (locale === 'vi' ? 'Đang phân tích...' : 'Analyzing...') : (locale === 'vi' ? 'Chạy Moderation Analysis' : 'Run Moderation Analysis')}
                     </button>
                 </div>
 

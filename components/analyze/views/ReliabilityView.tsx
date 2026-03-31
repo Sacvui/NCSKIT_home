@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { AnalysisStep } from '@/types/analysis';
+import { Locale, t } from '@/lib/i18n';
 import { getAnalysisCost, checkBalance, deductCredits } from '@/lib/ncs-credits';
 import { logAnalysisUsage } from '@/lib/activity-logger';
 import { runCronbachAlpha, runEFA, runCFA, runSEM } from '@/lib/webr-wrapper';
@@ -26,10 +27,7 @@ interface ReliabilityViewProps {
     setRequiredCredits: (amount: number) => void;
     setCurrentAnalysisCost: (amount: number) => void;
     setShowInsufficientCredits: (show: boolean) => void;
-
-    // Helper from parent to handle common WebR errors if needed, or define locally
-    // We'll define error handler locally to be self-contained or import if it was shared.
-    // It was locally defined in page.tsx. I'll reproduce it or a simplified version.
+    locale: Locale;
 }
 
 export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
@@ -46,7 +44,8 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
     setAnalysisType,
     setRequiredCredits,
     setCurrentAnalysisCost,
-    setShowInsufficientCredits
+    setShowInsufficientCredits,
+    locale
 }) => {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
 
@@ -320,7 +319,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
                 {isAnalyzing && (
                     <div className="text-center py-8">
                         <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-                        <p className="mt-4 text-gray-600">Đang phân tích...</p>
+                        <p className="mt-4 text-gray-600">{locale === 'vi' ? 'Đang phân tích...' : 'Analyzing...'}</p>
                     </div>
                 )}
             </div>
@@ -359,7 +358,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
                 {isAnalyzing && (
                     <div className="text-center py-8">
                         <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-                        <p className="mt-4 text-gray-600">Đang phân tích Omega...</p>
+                        <p className="mt-4 text-gray-600">{locale === 'vi' ? 'Đang phân tích Omega...' : 'Analyzing Omega...'}</p>
                     </div>
                 )}
             </div>
@@ -511,7 +510,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
                         disabled={isAnalyzing}
                         className="w-full py-3 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg"
                     >
-                        {isAnalyzing ? 'Đang phân tích...' : 'Chạy EFA'}
+                        {isAnalyzing ? (locale === 'vi' ? 'Đang phân tích...' : 'Analyzing...') : (locale === 'vi' ? 'Chạy EFA' : 'Run EFA')}
                     </button>
                 </div>
 
@@ -519,7 +518,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
                     onClick={() => setStep('analyze')}
                     className="w-full py-3 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold rounded-lg transition-colors"
                 >
-                    ← Quay lại chọn phép tính
+                    ← {locale === 'vi' ? 'Quay lại chọn phép tính' : 'Back to method selection'}
                 </button>
             </div>
         );

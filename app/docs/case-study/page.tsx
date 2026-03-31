@@ -1,12 +1,24 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+export const dynamic = 'force-dynamic';
+
+import React, { useState, useEffect, Suspense } from 'react';
 import { 
     Workflow, Shield, GitCompare, Bookmark, GraduationCap, Microscope, FileText
 } from 'lucide-react';
 import { getStoredLocale, t, type Locale } from '@/lib/i18n';
 
 export default function CaseStudyPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div>
+        </div>}>
+            <CaseStudyContent />
+        </Suspense>
+    );
+}
+
+function CaseStudyContent() {
     const [locale, setLocale] = useState<Locale>('vi');
     const [mounted, setMounted] = useState(false);
 

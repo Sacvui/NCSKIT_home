@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import MethodsGuide from '@/components/landing/MethodsGuide';
@@ -14,9 +14,11 @@ export default function MethodsPage() {
 
     useEffect(() => {
         const supabase = createClient();
-        supabase.auth.getUser().then(({ data }) => {
-            setUser(data.user);
-        });
+        const fetchUser = async () => {
+            const { data } = await supabase.auth.getUser();
+            if (data.user) setUser(data.user);
+        };
+        fetchUser();
 
         setLocale(getStoredLocale());
         setMounted(true);
@@ -53,7 +55,9 @@ export default function MethodsPage() {
                     </div>
 
                     <div className="max-w-6xl mx-auto">
-                        <MethodsGuide initialLocale={locale} />
+                        <Suspense fallback={<div className="animate-pulse h-64 bg-slate-100 rounded-2xl"></div>}>
+                            <MethodsGuide initialLocale={locale} />
+                        </Suspense>
                     </div>
                 </main>
 

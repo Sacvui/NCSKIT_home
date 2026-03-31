@@ -3,7 +3,7 @@
 // Prevent prerendering - this page requires client-side Supabase
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { FileUpload } from '@/components/FileUpload';
 import { DataProfiler } from '@/components/DataProfiler';
@@ -137,6 +137,16 @@ type AnalysisPhase =
     | 'results';
 
 export default function Analyze2Page() {
+    return (
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div>
+        </div>}>
+            <Analyze2Content />
+        </Suspense>
+    );
+}
+
+function Analyze2Content() {
     const router = useRouter();
     const { user, profile: userProfile, loading: authLoading } = useAuth();
     const [loading, setLoading] = useState(true);
@@ -1006,6 +1016,7 @@ export default function Analyze2Page() {
                             setRequiredCredits={setRequiredCredits}
                             setCurrentAnalysisCost={setCurrentAnalysisCost}
                             setShowInsufficientCredits={setShowInsufficientCredits}
+                            locale={locale}
                         />
                     )}
 
@@ -1030,6 +1041,7 @@ export default function Analyze2Page() {
                             setRequiredCredits={setRequiredCredits}
                             setCurrentAnalysisCost={setCurrentAnalysisCost}
                             setShowInsufficientCredits={setShowInsufficientCredits}
+                            locale={locale}
                         />
                     )}
 
@@ -1054,6 +1066,7 @@ export default function Analyze2Page() {
                             setRequiredCredits={setRequiredCredits}
                             setCurrentAnalysisCost={setCurrentAnalysisCost}
                             setShowInsufficientCredits={setShowInsufficientCredits}
+                            locale={locale}
                         />
                     )}
 
@@ -1080,6 +1093,7 @@ export default function Analyze2Page() {
                             setRequiredCredits={setRequiredCredits}
                             setCurrentAnalysisCost={setCurrentAnalysisCost}
                             setShowInsufficientCredits={setShowInsufficientCredits}
+                            locale={locale}
                         />
                     )}
 
@@ -1104,6 +1118,7 @@ export default function Analyze2Page() {
                             setRequiredCredits={setRequiredCredits}
                             setCurrentAnalysisCost={setCurrentAnalysisCost}
                             setShowInsufficientCredits={setShowInsufficientCredits}
+                            locale={locale}
                         />
                     )}
 
@@ -1127,6 +1142,7 @@ export default function Analyze2Page() {
                             setRequiredCredits={setRequiredCredits}
                             setCurrentAnalysisCost={setCurrentAnalysisCost}
                             setShowInsufficientCredits={setShowInsufficientCredits}
+                            locale={locale}
                         />
                     )}
 
