@@ -374,27 +374,32 @@ function Analyze2Content() {
             )}
 
             {/* Header with Integrated Toolbar */}
+            {/* Professional Academy Header */}
             <Header
                 user={user}
                 profile={userProfile}
                 hideNav={false}
                 centerContent={
-                    <div className="flex flex-wrap items-center gap-3 overflow-hidden">
-                        <Sparkles className="w-5 h-5 text-purple-600 shrink-0" />
-                        <span className="font-bold text-lg bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent shrink-0">
-                            PLS-SEM Academy
-                        </span>
-                        <AnalysisToolbar
-                            isPrivateMode={isPrivateMode}
-                            setIsPrivateMode={setIsPrivateMode}
-                            clearSession={() => {
-                                clearSession();
-                                showToast(t(locale, 'analyze.common.session_cleared'), 'info');
-                            }}
-                            filename={filename}
-                            onSave={() => setIsSaveModalOpen(true)}
-                            locale={locale}
-                        />
+                    <div className="flex flex-wrap items-center gap-4 py-2 px-4 bg-white/50 backdrop-blur-md rounded-2xl border border-slate-100 shadow-sm max-w-full">
+                        <div className="flex items-center gap-2 pr-4 border-r border-slate-100 shrink-0">
+                            <Sparkles className="w-5 h-5 text-indigo-600" />
+                            <span className="font-black text-sm bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent uppercase tracking-tight">
+                                PLS-SEM Academy
+                            </span>
+                        </div>
+                        <div className="flex-1 flex flex-wrap items-center gap-3">
+                            <AnalysisToolbar
+                                isPrivateMode={isPrivateMode}
+                                setIsPrivateMode={setIsPrivateMode}
+                                clearSession={() => {
+                                    clearSession();
+                                    showToast(t(locale, 'analyze.common.session_cleared'), 'info');
+                                }}
+                                filename={filename}
+                                onSave={() => setIsSaveModalOpen(true)}
+                                locale={locale}
+                            />
+                        </div>
                     </div>
                 }
             />
