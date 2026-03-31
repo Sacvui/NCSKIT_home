@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-    ArrowLeft, Clock, Share2, Bookmark, User, 
-    ShieldCheck, CheckCircle2, TrendingUp, Edit3, Save, X, Lock, Unlock
+    ArrowLeft, Clock, User, ShieldCheck, TrendingUp, Edit3, Save, X, Lock, Unlock
 } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
@@ -13,13 +12,12 @@ import { getSupabase } from '@/utils/supabase/client';
 
 // This ensures Next.js knows these slugs exist during build for SEO & Performance
 export async function generateStaticParams() {
-    const slugs = [
-        'cronbach-alpha', 'efa-factor-analysis', 'regression-vif-multicollinearity',
-        'descriptive-statistics-interpretation', 'independent-t-test-guide', 'one-way-anova-post-hoc',
-        'pearson-correlation-analysis', 'chi-square-test-independence', 'mediation-analysis-sobel-test',
-        'data-cleaning-outliers-detection', 'sem-cfa-structural-modeling'
+    return [
+        { slug: 'cronbach-alpha' }, { slug: 'efa-factor-analysis' }, { slug: 'regression-vif-multicollinearity' },
+        { slug: 'descriptive-statistics-interpretation' }, { slug: 'independent-t-test-guide' }, { slug: 'one-way-anova-post-hoc' },
+        { slug: 'pearson-correlation-analysis' }, { slug: 'chi-square-test-independence' }, { slug: 'mediation-analysis-sobel-test' },
+        { slug: 'data-cleaning-outliers-detection' }, { slug: 'sem-cfa-structural-modeling' }
     ];
-    return slugs.map((slug) => ({ slug }));
 }
 
 export const dynamicParams = true;
@@ -46,70 +44,140 @@ interface ArticleData {
     updated_at: string;
 }
 
-// --- FULL AUTHORITY CONTENT (The 11 Master Articles) ---
+// --- MASTER REPOSITORY (FALLBACK - GUARANTEED UPTIME) ---
 const FALLBACK_ARTICLES: Record<string, ArticleData> = {
     'cronbach-alpha': {
         slug: 'cronbach-alpha',
         category: 'Preliminary Analysis',
         title_vi: 'Kiểm định Cronbach\'s Alpha: Bản giao hưởng của Tin cậy nội tại',
         title_en: 'Cronbach\'s Alpha Reliability Test: The Symphony of Internal Consistency',
-        expert_tip_vi: 'Hãy tập trung vào cột "Corrected Item-Total Correlation". Bất kỳ biến nào < 0.3 đều là "biến rác" cần loại bỏ ngay.',
-        expert_tip_en: 'Focus on "Corrected Item-Total Correlation". Any item < 0.3 is noise.',
-        author: 'ncsStat Editorial',
-        updated_at: new Date().toISOString(),
-        content_structure: [
-            {
-                h2_vi: '1. Bản chất & Triết lý nghiên cứu Chuyên sâu',
-                h2_en: '1. Deep Essence & Research Philosophy',
-                content_vi: 'Theo tiêu chuẩn Hair et al. (2010), Cronbach\'s Alpha đo lường mức độ các câu hỏi trong cùng một thang đo "hiểu ý nhau". Một thang đo tốt là nền tảng sống còn cho mọi phân tích EFA hay Hồi quy sau này.',
-                content_en: 'Based on Hair et al. (2010), Cronbach\'s Alpha measures internal consistency. A reliable scale is the vital foundation.'
-            },
-            {
-                h2_vi: '2. Ma trận Tiêu chuẩn học thuật Scopus/ISI',
-                h2_en: '2. Scopus/ISI Academic Standards',
-                content_vi: '• 0.8 - 0.9: Tuyệt vời (Standard Gold).\n• 0.7 - 0.8: Tốt (Research Standard).\n• 0.6 - 0.7: Chấp nhận được.\n• < 0.6: Loại bỏ hoàn toàn.',
-                content_en: '• 0.8 - 0.9: Excellent.\n• 0.7 - 0.8: Good.\n• 0.6 - 0.7: Acceptable.'
-            }
-        ]
+        expert_tip_vi: 'Đặc biệt tập trung vào cột Corrected Item-Total Correlation. Bất kỳ biến nào < 0.3 cần loại bỏ ngay.',
+        expert_tip_en: 'Look at Corrected Item-Total Correlation. Anything < 0.3 should be removed.',
+        author: 'ncsStat Editorial', updated_at: new Date().toISOString(),
+        content_structure: [{
+            h2_vi: '1. Bản chất & Triết lý', h2_en: '1. Essence & Philosophy',
+            content_vi: 'Đo lường mức độ các câu hỏi trong thang đo hiểu ý nhau. Alpha > 0.7 là tỉ lệ vàng.',
+            content_en: 'Measures internal consistency. Alpha > 0.7 is the gold standard.'
+        }]
     },
     'efa-factor-analysis': {
-        slug: 'efa-factor-analysis',
-        category: 'Factor Analysis',
-        title_vi: 'Phân tích nhân tố khám phá (EFA): Khám phá cấu trúc ẩn',
-        title_en: 'Exploratory Factor Analysis (EFA): Discovering Inner Structures',
-        expert_tip_vi: 'Ưu tiên phép xoay Promax thay vì Varimax để phản ánh đúng bản chất hành vi tương quan của con người.',
-        expert_tip_en: 'Prioritize Promax rotation to reflect real correlated human behavior.',
-        author: 'ncsStat Editorial',
-        updated_at: new Date().toISOString(),
-        content_structure: [
-            {
-                h2_vi: '1. Bản chất của việc gom nhóm dữ liệu',
-                h2_en: '1. The Essence of Data Grouping',
-                content_vi: 'EFA giúp chúng ta tìm thấy những "sợi dây vô hình" kết nối các biến. Nó giả định rằng đằng sau hàng chục câu hỏi khảo sát là một vài "nhân tố mẹ" đang điều khiển tất cả.',
-                content_en: 'EFA uncovers invisible strings connecting variables.'
-            }
-        ]
+        slug: 'efa-factor-analysis', category: 'Factor Analysis',
+        title_vi: 'Phân tích nhân tố khám phá (EFA): Cấu trúc ẩn',
+        title_en: 'Exploratory Factor Analysis (EFA): Invisible Structures',
+        expert_tip_vi: 'Ưu tiên phép xoay Promax thay vì Varimax.', expert_tip_en: 'Prefer Promax rotation.',
+        author: 'ncsStat Editorial', updated_at: new Date().toISOString(),
+        content_structure: [{
+            h2_vi: '1. Gom nhóm biến', h2_en: '1. Variable Grouping',
+            content_vi: 'Tìm ra các nhân tố mẹ điều khiển toàn bộ hành vi dữ liệu.',
+            content_en: 'Discover latent factors controlling the dataset.'
+        }]
     },
     'regression-vif-multicollinearity': {
-        slug: 'regression-vif-multicollinearity',
-        category: 'Impact Analysis',
-        title_vi: 'Hồi quy đa biến và Đa cộng tuyến (VIF): Dự báo Tác động',
-        title_en: 'Multiple Regression & VIF: Predicting the Future',
-        expert_tip_vi: 'Chú ý hệ số Beta chuẩn hóa để so sánh chính xác tầm quan trọng giữa các biến độc lập.',
-        expert_tip_en: 'Use Standardized Beta to compare the relative importance of variables.',
-        author: 'ncsStat Editorial',
-        updated_at: new Date().toISOString(),
-        content_structure: [
-            {
-                h2_vi: '1. La bàn điều hướng Quản trị',
-                h2_en: '1. The Management Compass',
-                content_vi: 'Hồi quy OLS trả lời: "Nếu tôi thay đổi X một đơn vị, Y sẽ thay đổi bao nhêu?". Đây là công cụ dự báo chiến lược tối thượng.',
-                content_en: 'OLS regression predicts Y based on X.'
-            }
-        ]
+        slug: 'regression-vif-multicollinearity', category: 'Impact Analysis',
+        title_vi: 'Hồi quy đa biến và Đa cộng tuyến (VIF)', title_en: 'Multiple Regression & VIF',
+        expert_tip_vi: 'Hệ số Beta chuẩn hóa giúp so sánh độ mạnh tác động.', expert_tip_en: 'Use Standardized Beta.',
+        author: 'ncsStat Editorial', updated_at: new Date().toISOString(),
+        content_structure: [{
+            h2_vi: '1. Dự báo tác động', h2_en: '1. Impact Prediction',
+            content_vi: 'Cho thấy biến X làm biến Y thay đổi bao nhiêu đơn vị.',
+            content_en: 'Shows how much Y changes when X increases.'
+        }]
+    },
+    'descriptive-statistics-interpretation': {
+        slug: 'descriptive-statistics-interpretation', category: 'Preliminary Analysis',
+        title_vi: 'Thống kê mô tả: Nghệ thuật kể chuyện qua con số',
+        title_en: 'Descriptive Statistics: The Art of Storytelling',
+        expert_tip_vi: 'Độ lệch chuẩn cao thể hiện sự phân hóa thị trường mạnh.', expert_tip_en: 'High SD means high polarization.',
+        author: 'ncsStat Editorial', updated_at: new Date().toISOString(),
+        content_structure: [{
+            h2_vi: '1. Mô tả Mean và SD', h2_en: '1. Describing Mean & SD',
+            content_vi: 'Nền tảng của mọi nghiên cứu là hiểu khách hàng trung bình là ai.',
+            content_en: 'The foundation of all research.'
+        }]
+    },
+    'independent-t-test-guide': {
+        slug: 'independent-t-test-guide', category: 'Comparison Analysis',
+        title_vi: 'Independent T-test: So sánh các nhóm đối đầu',
+        title_en: 'T-test: Comparing Opposite Groups',
+        expert_tip_vi: 'Levene Sig > 0.05 là điều kiện bắt buộc bản dòng 1.', expert_tip_en: 'Levene Sig > 0.05 for Row 1.',
+        author: 'ncsStat Editorial', updated_at: new Date().toISOString(),
+        content_structure: [{
+            h2_vi: '1. So sánh 2 nhóm', h2_en: '1. Comparing 2 Groups',
+            content_vi: 'Vd Nam và Nữ có sự khác biệt về chi tiêu hay không.',
+            content_en: 'Male vs Female spending differences.'
+        }]
+    },
+    'one-way-anova-post-hoc': {
+        slug: 'one-way-anova-post-hoc', category: 'Comparison Analysis',
+        title_vi: 'Phân tích ANOVA: So sánh Đa nhóm chuyên sâu',
+        title_en: 'One-way ANOVA: Deep Analysis',
+        expert_tip_vi: 'Post-hoc Tukey giúp chỉ ra cặp nào khác nhau.', expert_tip_en: 'Tukey Post-hoc is essential.',
+        author: 'ncsStat Editorial', updated_at: new Date().toISOString(),
+        content_structure: [{
+            h2_vi: '1. So sánh 3 nhóm trở lên', h2_en: '1. 3+ Groups Comparison',
+            content_vi: 'Phân tích theo học vấn hay thu nhập (3 mức).',
+            content_en: 'Analysis by Education or Income.'
+        }]
+    },
+    'pearson-correlation-analysis': {
+        slug: 'pearson-correlation-analysis', category: 'Relationship Analysis',
+        title_vi: 'Tương quan Pearson: Bản đồ các mối liên kết',
+        title_en: 'Pearson Correlation: Connection Map',
+        expert_tip_vi: 'Nếu r > 0.8 giữa biến độc lập, cẩn thận đa cộng tuyến.', expert_tip_en: 'Beware r > 0.8.',
+        author: 'ncsStat Editorial', updated_at: new Date().toISOString(),
+        content_structure: [{
+            h2_vi: '1. Mối quan hệ tương quan', h2_en: '1. Correlation Relationship',
+            content_vi: 'Các biến đi cùng nhau theo hướng thuận hay nghịch.',
+            content_en: 'Variable movement sync.'
+        }]
+    },
+    'chi-square-test-independence': {
+        slug: 'chi-square-test-independence', category: 'Categorical Analysis',
+        title_vi: 'Kiểm định Chi-square: Liên kết dữ liệu định danh',
+        title_en: 'Chi-square Test: Categorical Link',
+        expert_tip_vi: 'Dùng Cramer V để đo độ mạnh liên kết thực sự.', expert_tip_en: 'Cramer V measures actual link strength.',
+        author: 'ncsStat Editorial', updated_at: new Date().toISOString(),
+        content_structure: [{
+            h2_vi: '1. Crosstabs Analysis', h2_en: '1. Crosstabs Analysis',
+            content_vi: 'So sánh ý kiến theo đặc điểm nhân khẩu học.',
+            content_en: 'Survey opinion by demographics.'
+        }]
+    },
+    'mediation-analysis-sobel-test': {
+        slug: 'mediation-analysis-sobel-test', category: 'Advanced Analysis',
+        title_vi: 'Biến trung gian (Mediation): Cơ chế tác động',
+        title_en: 'Mediation Analysis: Impact Mechanism',
+        expert_tip_vi: 'Bootstrapping là tiêu chuẩn uy tín của Scopus.', expert_tip_en: 'Bootstrapping is the Gold Standard.',
+        author: 'ncsStat Editorial', updated_at: new Date().toISOString(),
+        content_structure: [{
+            h2_vi: '1. Tìm cầu nối M', h2_en: '1. Finding the M-Bridge',
+            content_vi: 'Giải thích tại sao X lại dẫn đến Y.',
+            content_en: 'Explain why X leads to Y.'
+        }]
+    },
+    'data-cleaning-outliers-detection': {
+        slug: 'data-cleaning-outliers-detection', category: 'Preliminary Analysis',
+        title_vi: 'Làm sạch dữ liệu & Outliers', title_en: 'Data Cleaning & Outliers',
+        expert_tip_vi: 'Mahalanobis giúp lọc sạch người trả lời lụi.', expert_tip_en: 'Filter junk responders.',
+        author: 'ncsStat Editorial', updated_at: new Date().toISOString(),
+        content_structure: [{
+            h2_vi: '1. Vệ sinh dữ liệu', h2_en: '1. Data Cleaning',
+            content_vi: 'Loại bỏ sai lệch trước khi vào mô hình.',
+            content_en: 'Removing bias before modeling.'
+        }]
+    },
+    'sem-cfa-structural-modeling': {
+        slug: 'sem-cfa-structural-modeling', category: 'Advanced Analysis',
+        title_vi: 'Mô hình SEM và CFA: Đỉnh cao học thuật',
+        title_en: 'SEM & CFA: The Pinnacle',
+        expert_tip_vi: 'CFI/TLI cần > 0.9 để mô hình đạt chuẩn.', expert_tip_en: 'CFI/TLI > 0.9 required.',
+        author: 'ncsStat Editorial', updated_at: new Date().toISOString(),
+        content_structure: [{
+            h2_vi: '1. Cấu trúc tuyến tính', h2_en: '1. Linear Structure',
+            content_vi: 'Kiểm định toàn bộ mô hình phức tạp cùng lúc.',
+            content_en: 'Testing all complex theories at once.'
+        }]
     }
-    // Note: I will only list the core ones here in the component for speed, 
-    // but the logic covers ALL slugs.
 };
 
 export default function ArticlePage({ params }: { params: { slug: string } }) {
@@ -137,28 +205,18 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
     const fetchArticle = async () => {
         setLoading(true);
         try {
-            // Priority 1: Supabase (for CMS edited content)
-            const { data, error } = await supabase
-                .from('knowledge_articles')
-                .select('*')
-                .eq('slug', params.slug)
-                .single();
-
+            const { data } = await supabase.from('knowledge_articles').select('*').eq('slug', params.slug).single();
             if (data) {
                 setArticle(data);
                 setEditedArticle(data);
             } else {
-                // Priority 2: Local Fallback (Safety Guarantee)
                 const localFallback = FALLBACK_ARTICLES[params.slug];
                 if (localFallback) {
                     setArticle(localFallback);
                     setEditedArticle(localFallback);
-                } else {
-                    alert('Không tìm thấy dữ liệu bài viết');
                 }
             }
         } catch (err) {
-            // Priority 2: Local Fallback on error
             const localFallback = FALLBACK_ARTICLES[params.slug];
             if (localFallback) {
                 setArticle(localFallback);
@@ -174,248 +232,124 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
         if (passcode === SECRET_CODE) {
             setIsAuthorized(true);
             setShowPasscodePrompt(false);
-            console.log('CMS Unlocked');
         } else {
-            console.error('Invalid Passcode');
+            alert('Mã số bí mật không đúng');
         }
     };
 
     const handleSave = async () => {
         if (!editedArticle) return;
-        
-        const { error } = await supabase
-            .from('knowledge_articles')
-            .update(editedArticle)
-            .eq('slug', editedArticle.slug);
-
-        if (error) {
-            console.error('Save failed');
-        } else {
+        const { error } = await supabase.from('knowledge_articles').upsert(editedArticle, { onConflict: 'slug' });
+        if (!error) {
             setArticle(editedArticle);
             setIsEditing(false);
-            console.log('Article saved!');
+            alert('Đã lưu thành công!');
         }
     };
 
-    if (loading) return (
-        <div className="min-h-screen bg-white flex items-center justify-center">
-            <div className="animate-pulse flex flex-col items-center gap-4">
-                <Clock className="w-6 h-6 text-indigo-600 animate-spin" />
-                <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Tải dữ liệu...</p>
-            </div>
-        </div>
-    );
-
-    if (!article) return <div className="p-20 text-center">Không tìm thấy bài nghiên cứu</div>;
+    if (loading) return <div className="min-h-screen bg-white flex items-center justify-center p-10"><Clock className="w-5 h-5 animate-spin mr-2" /> Tải dữ liệu...</div>;
+    if (!article) return <div className="p-20 text-center">Không tìm thấy bài viết</div>;
 
     return (
-        <div className="min-h-screen bg-white font-sans selection:bg-indigo-100 selection:text-indigo-900">
+        <div className="min-h-screen bg-white font-sans">
             <Header />
-            
             <main className="pt-32 pb-24">
-                {/* Secret Access Trigger & Passcode Prompt */}
-                {!isAuthorized && (
-                    <div className="container mx-auto px-6 max-w-4xl mb-4 flex justify-end">
-                        <button 
-                            onClick={() => setShowPasscodePrompt(true)}
-                            className="bg-transparent text-slate-100 hover:text-slate-300 p-2 transition-colors"
-                            title="Admin Access"
-                        >
-                            <Lock className="w-4 h-4" />
-                        </button>
-                    </div>
-                )}
+                {/* Secret Trigger */}
+                <div className="container mx-auto px-6 max-w-4xl flex justify-end opacity-0 hover:opacity-100 transition-opacity">
+                    <button onClick={() => setShowPasscodePrompt(true)}><Lock className="w-4 h-4 text-slate-100" /></button>
+                </div>
 
                 {showPasscodePrompt && (
-                    <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[100] flex items-center justify-center p-6">
-                        <div className="bg-white rounded-[3rem] p-12 max-w-md w-full shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-200">
-                            <div className="w-16 h-16 bg-slate-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-8 mx-auto shadow-sm">
-                                <ShieldCheck className="w-8 h-8" />
-                            </div>
-                            <h2 className="text-2xl font-black text-slate-900 mb-2 text-center tracking-tight">Khu vực Giới hạn</h2>
-                            <p className="text-slate-400 text-center font-bold text-xs uppercase tracking-widest mb-8">Nhập mã số bí mật để Edit bài viết</p>
-                            
+                    <div className="fixed inset-0 bg-slate-900/90 z-50 flex items-center justify-center p-6">
+                        <div className="bg-white rounded-[3rem] p-12 max-w-md w-full shadow-2xl">
+                            <h2 className="text-2xl font-black mb-8 text-center">Admin Access</h2>
                             <form onSubmit={handleAuthorize}>
                                 <input 
                                     type="password"
-                                    maxLength={6}
-                                    placeholder="••••••"
-                                    className="w-full text-center text-4xl font-black tracking-[1rem] py-6 bg-slate-50 border-none rounded-2xl focus:ring-4 focus:ring-indigo-100 transition-all mb-6 outline-none"
+                                    className="w-full text-center text-4xl font-black py-4 bg-slate-50 rounded-2xl mb-6 outline-none"
                                     value={passcode}
                                     onChange={(e) => setPasscode(e.target.value)}
                                     autoFocus
                                 />
                                 <div className="flex gap-4">
-                                    <button 
-                                        type="button"
-                                        onClick={() => setShowPasscodePrompt(false)}
-                                        className="flex-1 py-4 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-2xl font-black text-xs uppercase tracking-widest transition-all"
-                                    >
-                                        Hủy
-                                    </button>
-                                    <button 
-                                        type="submit"
-                                        className="flex-1 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-indigo-200"
-                                    >
-                                        Xác nhận
-                                    </button>
+                                    <button type="button" onClick={() => setShowPasscodePrompt(false)} className="flex-1 py-4 bg-slate-100 rounded-2xl">Hủy</button>
+                                    <button type="submit" className="flex-1 py-4 bg-slate-900 text-white rounded-2xl">Xác nhận</button>
                                 </div>
                             </form>
                         </div>
                     </div>
                 )}
 
-                {/* Admin Toolbar (Only after correct passcode) */}
                 {isAuthorized && (
-                    <div className="container mx-auto px-6 max-w-4xl mb-12">
-                        <div className="bg-slate-900 rounded-[2.5rem] p-6 flex flex-col md:flex-row items-center justify-between shadow-2xl border border-white/10 gap-6">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-900/50">
-                                    <Unlock className="w-6 h-6 text-white" />
-                                </div>
-                                <div>
-                                    <span className="text-white font-black text-sm uppercase tracking-[0.2em] block mb-1 font-sans">Editor Portal</span>
-                                    <span className="text-indigo-400 text-[10px] font-bold uppercase tracking-widest font-sans">Đã mở khóa - Trạng thái: Sẵn sàng</span>
-                                </div>
+                    <div className="container mx-auto px-6 max-w-4xl mb-8">
+                        <div className="bg-slate-900 rounded-3xl p-4 flex items-center justify-between text-white">
+                            <div className="flex items-center gap-3">
+                                <Unlock className="w-5 h-5 text-indigo-400" />
+                                <span className="text-sm font-bold">Admin Portal</span>
                             </div>
-                            <div className="flex gap-3">
-                                {!isEditing ? (
-                                    <button 
-                                        onClick={() => setIsEditing(true)}
-                                        className="flex items-center gap-3 px-8 py-4 bg-white/10 hover:bg-white/20 text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all border border-white/20"
-                                    >
-                                        <Edit3 className="w-5 h-5" /> Edit bài viết
-                                    </button>
-                                ) : (
-                                    <>
-                                        <button 
-                                            onClick={() => setIsEditing(false)}
-                                            className="flex items-center gap-3 px-6 py-4 bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-2xl text-xs font-black uppercase tracking-widest transition-all border border-red-500/20"
-                                        >
-                                            <X className="w-5 h-5" /> Hủy
-                                        </button>
-                                        <button 
-                                            onClick={handleSave}
-                                            className="flex items-center gap-3 px-10 py-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-xs font-black uppercase tracking-widest transition-all shadow-xl shadow-indigo-900/40"
-                                        >
-                                            <Save className="w-5 h-5" /> Lưu bài viết
-                                        </button>
-                                    </>
-                                )}
+                            <div className="flex gap-2">
+                                <button onClick={() => setIsEditing(!isEditing)} className="px-4 py-2 bg-white/20 rounded-lg text-xs font-bold uppercase">{isEditing ? 'Đang Edit' : 'Edit'}</button>
+                                {isEditing && <button onClick={handleSave} className="px-4 py-2 bg-indigo-600 rounded-lg text-xs font-bold uppercase">Lưu bài</button>}
                             </div>
                         </div>
                     </div>
                 )}
 
-                {/* Article Header */}
-                <header className="container mx-auto px-6 max-w-4xl mb-12">
-                    <Link href="/knowledge" className="inline-flex items-center gap-2 text-slate-500 hover:text-indigo-600 font-bold text-sm mb-10 transition-colors group">
-                        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                        {isVi ? 'Quay lại thư viện' : 'Back to library'}
-                    </Link>
-                    
-                    <div className="flex items-center gap-3 mb-8">
-                        <span className="px-5 py-2 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg">
-                            {article.category}
-                        </span>
-                    </div>
-
-                    {isEditing ? (
-                        <input 
-                            className="w-full text-4xl md:text-6xl font-black text-slate-900 leading-[1.1] mb-8 tracking-tighter bg-slate-50 border-none p-6 rounded-[2.5rem] focus:ring-4 focus:ring-indigo-100 outline-none"
-                            value={isVi ? editedArticle?.title_vi : editedArticle?.title_en}
-                            onChange={(e) => setEditedArticle(prev => prev ? {...prev, [isVi ? 'title_vi' : 'title_en']: e.target.value} : null)}
-                        />
-                    ) : (
-                        <h1 className="text-4xl md:text-6xl font-black text-slate-900 leading-[1.1] mb-8 tracking-tighter">
-                            {isVi ? article.title_vi : article.title_en}
-                        </h1>
-                    )}
-
-                    <div className="flex items-center justify-between py-10 border-y border-slate-100">
-                        <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-100">
-                                <User className="w-7 h-7" />
-                            </div>
-                            <div>
-                                <p className="font-black text-slate-900 text-base uppercase tracking-tight leading-none mb-1.5 font-sans">{article.author}</p>
-                                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest font-sans">{article.updated_at ? new Date(article.updated_at).toLocaleDateString() : 'N/A'}</p>
-                            </div>
+                <article className="container mx-auto px-6 max-w-4xl leading-relaxed">
+                    <header className="mb-12">
+                        <Link href="/knowledge" className="flex items-center gap-2 text-slate-400 hover:text-indigo-600 font-bold text-sm mb-8 transition-colors">
+                            <ArrowLeft className="w-4 h-4" /> Quay lại thư viện
+                        </Link>
+                        <div className="flex items-center gap-3 mb-6">
+                            <span className="px-4 py-1.5 bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-widest rounded-full">{article.category}</span>
                         </div>
-                    </div>
-                </header>
-
-                <article className="container mx-auto px-6 max-w-4xl">
-                    <div className="prose prose-lg prose-slate max-w-none">
-                        {(isEditing ? editedArticle : article)?.content_structure.map((section, idx) => (
-                            <div key={idx} className="mb-20 last:mb-0">
-                                {isEditing ? (
-                                    <div className="space-y-4">
-                                        <input 
-                                            className="w-full text-2xl font-black text-slate-900 bg-slate-50 border-none p-6 rounded-2xl focus:ring-4 focus:ring-indigo-100 outline-none"
-                                            value={isVi ? section.h2_vi : section.h2_en}
-                                            onChange={(e) => {
-                                                const newStructure = [...(editedArticle?.content_structure || [])];
-                                                newStructure[idx] = {...newStructure[idx], [isVi ? 'h2_vi' : 'h2_en']: e.target.value};
-                                                setEditedArticle(prev => prev ? {...prev, content_structure: newStructure} : null);
-                                            }}
-                                        />
-                                        <textarea 
-                                            className="w-full text-slate-800 leading-[1.8] text-lg font-normal min-h-[400px] bg-slate-50 border-none p-10 rounded-[3rem] focus:ring-4 focus:ring-indigo-100 outline-none"
-                                            value={isVi ? section.content_vi : section.content_en}
-                                            onChange={(e) => {
-                                                const newStructure = [...(editedArticle?.content_structure || [])];
-                                                newStructure[idx] = {...newStructure[idx], [isVi ? 'content_vi' : 'content_en']: e.target.value};
-                                                setEditedArticle(prev => prev ? {...prev, content_structure: newStructure} : null);
-                                            }}
-                                        />
-                                    </div>
-                                ) : (
-                                    <>
-                                        <h2 className="text-2xl md:text-3xl font-black text-slate-900 mb-10 border-l-8 border-indigo-600 pl-8 py-2">
-                                            {isVi ? section.h2_vi : section.h2_en}
-                                        </h2>
-                                        <div className="text-slate-800 leading-[1.8] text-lg lg:text-xl font-normal whitespace-pre-line bg-slate-50/50 p-12 rounded-[3.5rem] border border-slate-100 shadow-sm font-sans">
-                                            {isVi ? section.content_vi : section.content_en}
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Expert Strategy Box */}
-                    <div className="bg-slate-900 p-16 rounded-[4rem] text-white shadow-2xl shadow-indigo-100 relative overflow-hidden my-32 border border-white/10">
-                        <div className="absolute top-0 right-0 p-12 opacity-10">
-                            <ShieldCheck className="w-64 h-64 rotate-12 text-indigo-400" />
+                        {isEditing ? (
+                            <input className="w-full text-4xl md:text-6xl font-black text-slate-900 bg-slate-50 p-4 rounded-2xl outline-none" value={isVi ? editedArticle?.title_vi : editedArticle?.title_en} onChange={(e) => setEditedArticle(prev => prev ? {...prev, [isVi ? 'title_vi' : 'title_en']: e.target.value} : null)} />
+                        ) : (
+                            <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-[1.1]">{isVi ? article.title_vi : article.title_en}</h1>
+                        )}
+                        <div className="mt-8 pt-8 border-t border-slate-50 flex items-center gap-4">
+                            <User className="w-5 h-5 text-slate-300" />
+                            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{article.author} | {new Date(article.updated_at).toLocaleDateString()}</span>
                         </div>
-                        <div className="relative z-10">
-                            <h4 className="text-2xl font-black mb-10 flex items-center gap-5 text-indigo-400 uppercase tracking-[0.3em] font-sans">
-                                <ShieldCheck className="w-10 h-10" />
-                                {isVi ? 'Tư vấn Chuyên gia ncsStat' : 'ncsStat Expert Strategy'}
-                            </h4>
-                            
+                    </header>
+
+                    {(isEditing ? editedArticle : article)?.content_structure.map((section, idx) => (
+                        <div key={idx} className="mb-16">
                             {isEditing ? (
-                                <textarea 
-                                    className="w-full bg-white/10 text-white text-xl font-light leading-relaxed mb-12 p-8 rounded-3xl border-none focus:ring-4 focus:ring-indigo-500 outline-none"
-                                    value={isVi ? editedArticle?.expert_tip_vi : editedArticle?.expert_tip_en}
-                                    onChange={(e) => setEditedArticle(prev => prev ? {...prev, [isVi ? 'expert_tip_vi' : 'expert_tip_en']: e.target.value} : null)}
-                                />
+                                <div className="space-y-4">
+                                    <input className="w-full text-xl font-bold p-4 bg-slate-50 rounded-xl outline-none" value={isVi ? section.h2_vi : section.h2_en} onChange={(e) => {
+                                        const newS = [...(editedArticle?.content_structure || [])];
+                                        newS[idx] = {...newS[idx], [isVi ? 'h2_vi' : 'h2_en']: e.target.value};
+                                        setEditedArticle(p => p ? {...p, content_structure: newS} : null);
+                                    }} />
+                                    <textarea className="w-full min-h-[300px] p-6 bg-slate-50 rounded-xl outline-none text-lg" value={isVi ? section.content_vi : section.content_en} onChange={(e) => {
+                                        const newS = [...(editedArticle?.content_structure || [])];
+                                        newS[idx] = {...newS[idx], [isVi ? 'content_vi' : 'content_en']: e.target.value};
+                                        setEditedArticle(p => p ? {...p, content_structure: newS} : null);
+                                    }} />
+                                </div>
                             ) : (
-                                <p className="text-slate-300 text-xl md:text-2xl font-light leading-relaxed mb-12 italic border-l-4 border-indigo-500/30 pl-8 font-sans">
-                                    "{isVi ? article.expert_tip_vi : article.expert_tip_en}"
-                                </p>
+                                <>
+                                    <h2 className="text-2xl font-black text-slate-900 mb-6 border-l-4 border-indigo-600 pl-4">{isVi ? section.h2_vi : section.h2_en}</h2>
+                                    <p className="text-lg text-slate-700 whitespace-pre-line">{isVi ? section.content_vi : section.content_en}</p>
+                                </>
                             )}
-
-                            <Link href="/analyze" className="inline-flex items-center gap-4 px-12 py-6 bg-indigo-600 text-white rounded-[1.8rem] font-black text-sm uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-2xl shadow-indigo-900/50 group">
-                                {isVi ? 'Thực hành phân tích ngay' : 'Analyze Now'}
-                                <TrendingUp className="w-6 h-6 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                            </Link>
                         </div>
+                    ))}
+
+                    <div className="bg-slate-900 p-10 md:p-14 rounded-[3rem] text-white mt-16 relative overflow-hidden">
+                        <ShieldCheck className="absolute top-0 right-0 w-32 h-32 opacity-10 -mr-6 -mt-6" />
+                        <h4 className="text-lg font-black text-indigo-400 uppercase tracking-widest mb-6 flex items-center gap-2">Expert Tip</h4>
+                        {isEditing ? (
+                            <textarea className="w-full bg-white/10 p-4 rounded-xl outline-none text-white" value={isVi ? editedArticle?.expert_tip_vi : editedArticle?.expert_tip_en} onChange={(e) => setEditedArticle(prev => prev ? {...prev, [isVi ? 'expert_tip_vi' : 'expert_tip_en']: e.target.value} : null)} />
+                        ) : (
+                            <p className="text-xl md:text-2xl italic font-light text-slate-300">"{isVi ? article.expert_tip_vi : article.expert_tip_en}"</p>
+                        )}
+                        <Link href="/analyze" className="inline-flex items-center gap-2 mt-10 px-8 py-4 bg-indigo-600 rounded-2xl font-bold uppercase text-xs tracking-widest hover:bg-indigo-500 transition-all">Analyze Now <TrendingUp className="w-4 h-4" /></Link>
                     </div>
                 </article>
             </main>
-
             <Footer locale={locale} />
         </div>
     );
