@@ -8,7 +8,7 @@ import { NcsBalanceBadge } from '@/components/NcsBalanceBadge'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { getStoredLocale, t, type Locale } from '@/lib/i18n'
 import { useAuth } from '@/context/AuthContext'
-import { ChevronDown, BarChart3, Layout, BookOpen, GraduationCap, Microscope, FileText, Network } from 'lucide-react'
+import { ChevronDown, BarChart3, Layout, BookOpen, GraduationCap, Microscope, FileText, Network, Brain } from 'lucide-react'
 
 interface HeaderProps {
     user?: any
@@ -28,6 +28,7 @@ function HeaderContent({ centerContent, rightActions, hideNav = false, user: pro
     const user = authUser || propUser;
     const profile = authProfile || propProfile;
     const [locale, setLocale] = useState<Locale>('vi')
+    const isVi = locale === 'vi'
 
     useEffect(() => {
         setLocale(getStoredLocale())
@@ -77,10 +78,16 @@ function HeaderContent({ centerContent, rightActions, hideNav = false, user: pro
                             </NavLink>
 
                             <NavDropdown
-                                label={t(locale, 'nav.docs')}
-                                active={pathname?.startsWith('/docs')}
+                                label={isVi ? 'Kiến thức & Hướng dẫn' : 'Knowledge & Guides'}
+                                active={pathname?.startsWith('/docs') || pathname?.startsWith('/knowledge')}
                                 icon={BookOpen}
                             >
+                                <NavDropdownItem
+                                    href="/knowledge"
+                                    active={pathname?.startsWith('/knowledge')}
+                                    label={isVi ? 'Thư viện Tri thức' : 'Knowledge Hub'}
+                                    icon={Brain}
+                                />
                                 <NavDropdownItem
                                     href="/docs/theory"
                                     active={pathname === '/docs/theory'}
