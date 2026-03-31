@@ -1061,28 +1061,17 @@ function Analyze2Content() {
                         />
                     )}
 
-                    {/* CFA Select Step - Reused from /analyze */}
+                    {/* CFA Select Step */}
                     {phase === 'cfa-select' && (
-                        <MultivariateView
-                            step="cfa-select"
-                            data={data}
-                            columns={getNumericColumns()}
-                            profile={profile}
-                            user={user}
+                        <AdvancedMethodView
+                            method="cfa"
+                            data={data.map(row => getNumericColumns().map(col => row[col]))}
+                            columnNames={getNumericColumns()}
+                            onBack={() => setPhase('phase2')}
                             setResults={(results) => {
                                 setResults({ type: 'cfa', data: results });
                                 setPhase('results');
                             }}
-                            setStep={(step) => {
-                                if (step === 'analyze') setPhase('phase1');
-                                else setPhase(step as AnalysisPhase);
-                            }}
-                            setNcsBalance={setNcsBalance}
-                            showToast={showToast}
-                            setRequiredCredits={setRequiredCredits}
-                            setCurrentAnalysisCost={setCurrentAnalysisCost}
-                            setShowInsufficientCredits={setShowInsufficientCredits}
-                            locale={locale}
                         />
                     )}
 
@@ -1268,21 +1257,15 @@ function Analyze2Content() {
 
                     {/* CB-SEM Select Step */}
                     {phase === 'cbsem-select' && (
-                        <PLSSEMView
-                            method="bootstrap"
-                            data={data}
-                            columns={getNumericColumns()}
-                            user={user}
+                        <AdvancedMethodView
+                            method="cbsem"
+                            data={data.map(row => getNumericColumns().map(col => row[col]))}
+                            columnNames={getNumericColumns()}
+                            onBack={() => setPhase('phase3')}
                             setResults={(results) => {
                                 setResults({ type: 'cbsem', data: results });
                                 setPhase('results');
                             }}
-                            setNcsBalance={setNcsBalance}
-                            showToast={showToast}
-                            onBack={() => setPhase('phase3')}
-                            setRequiredCredits={setRequiredCredits}
-                            setCurrentAnalysisCost={setCurrentAnalysisCost}
-                            setShowInsufficientCredits={setShowInsufficientCredits}
                         />
                     )}
 
