@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import { Play, AlertCircle, Loader2, TrendingUp, Target, Users, Eye } from 'lucide-react';
 import { runBootstrapping, runIPMA, runMGA, runBlindfolding } from '@/lib/webr/pls-sem';
+import { runCBSEM } from '@/lib/webr/analyses/cb-sem';
 
-type AdvancedMethod = 'bootstrap' | 'ipma' | 'mga' | 'blindfolding';
+type AdvancedMethod = 'bootstrap' | 'ipma' | 'mga' | 'blindfolding' | 'cbsem' | 'cfa';
 
 interface AdvancedMethodViewProps {
     method: AdvancedMethod;
@@ -29,6 +30,8 @@ export default function AdvancedMethodView({
     const [targetIndex, setTargetIndex] = useState(0);
     const [groupVariable, setGroupVariable] = useState<number[]>([]);
     const [omissionDistance, setOmissionDistance] = useState(7);
+    const [modelSyntax, setModelSyntax] = useState('');
+    const [analysisType, setAnalysisType] = useState<'sem' | 'cfa'>('sem');
 
     const methodConfig = {
         bootstrap: {
@@ -54,6 +57,18 @@ export default function AdvancedMethodView({
             icon: Eye,
             color: 'teal',
             description: 'Kiểm tra độ liên quan dự đoán (Q²)'
+        },
+        cbsem: {
+            title: 'CB-SEM (AMOS Style)',
+            icon: TrendingUp,
+            color: 'indigo',
+            description: 'Mô hình cấu trúc hiệp phương sai (Lavaan)'
+        },
+        cfa: {
+            title: 'CFA (Lavaan)',
+            icon: Target,
+            color: 'blue',
+            description: 'Phân tích nhân tố khẳng định'
         }
     };
 
@@ -82,6 +97,10 @@ export default function AdvancedMethodView({
                     break;
                 case 'blindfolding':
                     result = await runBlindfolding(data, omissionDistance);
+                    break;
+                case 'cbsem':
+                case 'cfa':
+                    result = await runCBSEM(data, columnNames, modelSyntax, method === 'cfa' ? 'cfa' : 'sem');
                     break;
             }
 
@@ -216,6 +235,28 @@ export default function AdvancedMethodView({
                         </p>
                     </div>
                 )}
+
+                {(method === 'cbsem' || method === 'cfa') && (
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                                Model Syntax (Lavaan/AMOS Style)
+                            </label>
+                            <textarea
+                                value={modelSyntax}
+                                onChange={(e) => setModelSyntax(e.target.value)}
+                                placeholder={method === 'cfa' 
+                                    ? "# Định nghĩa nhân tố (CFA)\nF1 =~ x1 + x2 + x3\nF2 =~ x4 + x5 + x6" 
+                                    : "# Định nghĩa cấu trúc (SEM)\nF1 =~ x1 + x2 + x3\nF2 =~ x4 + x5 + x6\nF2 ~ F1 # Đường dẫn tác động"}
+                                rows={6}
+                                className="w-full px-4 py-3 font-mono text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-slate-50"
+                            />
+                            <div className="mt-2 text-xs text-slate-500 italic">
+                                Sử dụng '=~' cho nhân tố, '~' cho quan hệ nhân quả. Mỗi dòng một câu lệnh.
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Action Buttons */}
@@ -276,6 +317,13 @@ export default function AdvancedMethodView({
                             <li>• Loại bỏ một số điểm dữ liệu và dự đoán lại</li>
                             <li>• Tính Q² để đánh giá khả năng dự đoán của mô hình</li>
                             <li>• Q² {'>'} 0 cho thấy mô hình có predictive relevance</li>
+                        </>
+                    )}
+                    {(method === 'cbsem' || method === 'cfa') && (
+                        <>
+                            <li>• Phân tích dựa trên ma trận hiệp phương sai (Covariance-based)</li>
+                            <li>• Cung cấp Fit Indices: CFI, TLI {'>'} 0.90; RMSEA {'<'} 0.08</li>
+                            <li>• Xử lý dữ liệu khuyết bằng thuật toán FIML (tiêu chuẩn học thuật)</li>
                         </>
                     )}
                 </ul>
