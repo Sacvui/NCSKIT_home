@@ -1,6 +1,5 @@
 /**
- * WebR Wrapper (Legacy Entry Point)
- * This file is maintained for backward compatibility.
+ * WebR Wrapper for ncsStat Analysis Platform
  * All logic has been moved to the modular structure in `lib/webr/`.
  */
 

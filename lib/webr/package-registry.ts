@@ -10,7 +10,7 @@ export const PACKAGE_REGISTRY = {
     // Reliability Analysis
     'cronbach': ['psych'],
     'efa': ['psych', 'GPArotation'],
-    'cfa': ['lavaan'],
+    'cfa': ['lavaan', 'quadprog'],
 
     // Hypothesis Testing (most use built-in stats)
     'ttest': [], // Uses built-in stats package
@@ -29,7 +29,7 @@ export const PACKAGE_REGISTRY = {
     'logistic-regression': ['car'],
 
     // SEM
-    'sem': ['lavaan'],
+    'sem': ['lavaan', 'quadprog'],
 
     // Multivariate
     'cluster': ['cluster'],
