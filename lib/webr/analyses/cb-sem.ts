@@ -21,12 +21,12 @@ export async function runCBSEM(
   // Use core recovery executor for stability
   const rCommand = `
     library(lavaan)
-    # Convert JS array to R vector c('col1', 'col2', ...)
     colnames_r <- c(${columns.map(c => `'${c}'`).join(',')})
-    df <- as.data.frame(matrix(unlist(raw_data), ncol = length(colnames_r), byrow = TRUE))
+    # Safe data frame creation from WebR bound matrix
+    df <- as.data.frame(raw_data)
     colnames(df) <- colnames_r
     
-    # Handle multi-line model syntax safely for R
+    # Handle multi-line model syntax safely
     model_syntax <- '${modelString.replace(/\n/g, "\\n")}'
     fit <- ${analysisType}(model_syntax, data=df, std.lv=TRUE, missing="fiml")
     
