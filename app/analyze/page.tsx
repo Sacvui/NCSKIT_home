@@ -61,6 +61,7 @@ function AnalyzeContent() {
     const { user, profile: userProfile, loading: authLoading } = useAuth();
     const [loading, setLoading] = useState(true);
     const [locale, setLocale] = useState<Locale>(getStoredLocale());
+    const isVi = locale === 'vi';
 
     // Sync locale with storage
     useEffect(() => {
@@ -674,12 +675,7 @@ function AnalyzeContent() {
                 </div>
             )}
 
-            {/* Status Indicators */}
-            <div className="flex flex-wrap items-center gap-3">
-                <div className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100 text-[10px] font-black uppercase tracking-widest whitespace-nowrap">
-                        <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" /> R Engine Ready
-                </div>
-            </div>
+            <div className="flex flex-wrap items-center gap-3" />
 
             {showRestoreBanner && (
                  <div className="bg-amber-50 border-b border-amber-200 py-3 relative z-30">
@@ -709,25 +705,44 @@ function AnalyzeContent() {
             )}
 
 
-            {/* Header with Integrated Toolbar */}
             <Header
                 user={user}
                 profile={userProfile}
                 hideNav={false}
-                centerContent={
-                    <AnalysisToolbar
-                        isPrivateMode={isPrivateMode}
-                        setIsPrivateMode={setIsPrivateMode}
-                        clearSession={() => {
-                            clearSession();
-                            showToast(t(locale, 'analyze.common.session_cleared'), 'info');
-                        }}
-                        filename={filename}
-                        onSave={() => setIsSaveModalOpen(true)}
-                        locale={locale}
-                    />
-                }
             />
+
+            {/* Dedicated Analysis Control Bar - Sits below Header */}
+            <div className="sticky top-16 z-30 bg-slate-900 border-b border-slate-800 py-3 shadow-2xl">
+                <div className="container mx-auto px-6 flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 pr-4 border-r border-slate-700">
+                            <BarChart3 className="w-5 h-5 text-indigo-400" />
+                            <span className="font-black text-xs text-white uppercase tracking-widest">
+                                Standard Engine
+                            </span>
+                        </div>
+                        {filename && (
+                            <div className="flex items-center gap-2 px-3 py-1 bg-slate-800 rounded-lg text-slate-400 text-[10px] font-bold uppercase tracking-tighter max-w-[150px] truncate">
+                                <FileText className="w-3 h-3" /> {filename}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        <AnalysisToolbar
+                            isPrivateMode={isPrivateMode}
+                            setIsPrivateMode={setIsPrivateMode}
+                            clearSession={() => {
+                                clearSession();
+                                showToast(isVi ? 'Đã dọn dẹp phiên làm việc' : 'Session cleared', 'info');
+                            }}
+                            filename={filename}
+                            onSave={() => setIsSaveModalOpen(true)}
+                            locale={locale}
+                        />
+                    </div>
+                </div>
+            </div>
 
             <div className="bg-blue-50/50 border-b border-blue-100 py-1">
                 <div className="container mx-auto px-6 flex items-center justify-center gap-2 text-[11px] text-blue-600/80">
