@@ -129,7 +129,7 @@ async function seedScales() {
   ];
 
   for (const item of items) {
-    const { error } = await supabase.from('scale_items').upsert(item, { onConflict: 'scale_id,code' });
+    const { error } = await supabase.from('scale_items').upsert(item);
     if (error) console.error(`Error Upserting Item ${item.code}:`, error.message);
     else console.log(`✓ Added Item: ${item.code}`);
   }
