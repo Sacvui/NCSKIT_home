@@ -45,7 +45,7 @@ export default async function TermsPage() {
 
                         <h2 className="text-xl font-bold text-slate-800 mt-8 mb-4">2. Yêu cầu bắt buộc: Trích dẫn khi sử dụng</h2>
                         <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 my-6">
-                            <p className="text-amber-800 font-semibold mb-3">⚠️ BẮT BUỘC</p>
+                            <p className="text-amber-800 font-semibold mb-3">LƯU Ý QUAN TRỌNG</p>
                             <p className="text-amber-700">
                                 Khi sử dụng ncsStat để phân tích dữ liệu trong luận văn, luận án, bài báo khoa học hoặc bất kỳ công trình nghiên cứu nào, bạn <strong>BẮT BUỘC</strong> phải trích dẫn công cụ này trong phần Tài liệu tham khảo (References) của bạn.
                             </p>
@@ -53,14 +53,14 @@ export default async function TermsPage() {
 
                         <h2 className="text-xl font-bold text-slate-800 mt-8 mb-4">3. Mẫu trích dẫn theo chuẩn APA 7th Edition</h2>
 
-                        <h3 className="text-lg font-semibold text-slate-700 mt-6 mb-3">🇻🇳 Tiếng Việt:</h3>
+                        <h3 className="text-lg font-semibold text-slate-700 mt-6 mb-3">Tiếng Việt:</h3>
                         <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 font-mono text-sm">
                             <p className="text-slate-700">
                                 Lê, P. H. (2026). <em>ncsStat: Công cụ phân tích thống kê trực tuyến cho nghiên cứu sinh Việt Nam</em> (Phiên bản 1.2.0) [Phần mềm]. https://stat.ncskit.org
                             </p>
                         </div>
 
-                        <h3 className="text-lg font-semibold text-slate-700 mt-6 mb-3">🇬🇧 English:</h3>
+                        <h3 className="text-lg font-semibold text-slate-700 mt-6 mb-3">English:</h3>
                         <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 font-mono text-sm">
                             <p className="text-slate-700">
                                 Le, P. H. (2026). <em>ncsStat: Online statistical analysis tool for Vietnamese researchers</em> (Version 1.2.0) [Computer software]. https://stat.ncskit.org

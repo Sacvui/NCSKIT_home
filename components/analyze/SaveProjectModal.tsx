@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { X, Save, Loader2 } from 'lucide-react'
 import { getSupabase } from '@/utils/supabase/client'
+import { Locale, t } from '@/lib/i18n'
 
 interface SaveProjectModalProps {
     isOpen: boolean
@@ -11,6 +12,7 @@ interface SaveProjectModalProps {
     results: any
     analysisType: string
     step: string
+    locale: Locale
 }
 
 export default function SaveProjectModal({
@@ -19,7 +21,8 @@ export default function SaveProjectModal({
     data,
     results,
     analysisType,
-    step
+    step,
+    locale
 }: SaveProjectModalProps) {
     const [name, setName] = useState('')
     const [description, setDescription] = useState('')
@@ -42,11 +45,11 @@ export default function SaveProjectModal({
             const { data: { user } } = await supabase.auth.getUser()
 
             if (!user) {
-                throw new Error('Vui lòng đăng nhập để lưu dự án')
+                throw new Error(t(locale, 'common.login_required'))
             }
 
             const projectState = {
-                data: data.slice(0, 1000), // Limit saved rows for now to avoid huge payloads
+                data: data.slice(0, 1000),
                 results,
                 analysisType,
                 step,
@@ -60,23 +63,19 @@ export default function SaveProjectModal({
                     name,
                     description,
                     status: 'active',
-                    data: projectState, // Checking if 'data' column exists or using 'meta'
-                    // For safety, let's assume a JSONB column named 'state' or 'data'. 
-                    // Based on profile page, we just count them. Let's try 'data' as standard.
-                    // If this fails, we might need adjustments.
+                    data: projectState,
                     updated_at: new Date().toISOString()
                 })
 
             if (saveError) throw saveError
 
             onClose()
-            // Reset form
             setName('')
             setDescription('')
-            alert('Lưu dự án thành công!')
+            alert(t(locale, 'common.save_success' as any))
         } catch (err: any) {
             console.error(err)
-            setError(err.message || 'Lưu dự án thất bại')
+            setError(err.message || t(locale, 'common.save_failed' as any))
         } finally {
             setLoading(false)
         }
@@ -86,7 +85,7 @@ export default function SaveProjectModal({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
                 <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
-                    <h3 className="font-semibold text-slate-900">Lưu dự án</h3>
+                    <h3 className="font-semibold text-slate-900">{t(locale, 'common.save_project' as any)}</h3>
                     <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
                         <X className="w-5 h-5" />
                     </button>
@@ -100,12 +99,12 @@ export default function SaveProjectModal({
                     )}
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-slate-700">Tên dự án <span className="text-red-500">*</span></label>
+                        <label className="text-sm font-medium text-slate-700">{t(locale, 'common.project_name' as any)} <span className="text-red-500">*</span></label>
                         <input
                             type="text"
                             value={name}
                             onChange={e => setName(e.target.value)}
-                            placeholder="Ví dụ: Phân tích EFA Luận văn"
+                            placeholder={t(locale, 'common.project_name_placeholder' as any)}
                             className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
                             autoFocus
                         />
@@ -136,7 +135,7 @@ export default function SaveProjectModal({
                         className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-all disabled:opacity-50"
                     >
                         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                        Lưu dự án
+                        {t(locale, 'common.save_project' as any)}
                     </button>
                 </div>
             </div>

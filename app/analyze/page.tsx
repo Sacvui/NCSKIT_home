@@ -718,6 +718,7 @@ function AnalyzeContent() {
                         }}
                         filename={filename}
                         onSave={() => setIsSaveModalOpen(true)}
+                        locale={locale}
                     />
                 }
             />
@@ -1106,7 +1107,7 @@ function AnalyzeContent() {
             </div>
 
             {/* Footer */}
-            <Footer />
+            <Footer locale={locale} />
 
             {/* Feedback Part 1: Demographics Survey */}
             <DemographicSurvey
@@ -1141,6 +1142,7 @@ function AnalyzeContent() {
                 results={results}
                 analysisType={analysisType}
                 step={step}
+                locale={locale}
             />
 
             {/* Insufficient Credits Modal */}

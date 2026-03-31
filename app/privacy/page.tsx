@@ -72,7 +72,7 @@ export default async function PrivacyPage() {
                         </p>
                         <div className="grid md:grid-cols-2 gap-4">
                             <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
-                                <p className="font-semibold text-slate-700 mb-2">✅ Thu thập:</p>
+                                <p className="font-semibold text-slate-700 mb-2">Được thu thập:</p>
                                 <ul className="text-slate-600 text-sm space-y-1">
                                     <li>• Email đăng nhập (Google/LinkedIn/ORCID)</li>
                                     <li>• Tên hiển thị</li>
@@ -80,7 +80,7 @@ export default async function PrivacyPage() {
                                 </ul>
                             </div>
                             <div className="bg-red-50 rounded-xl p-4 border border-red-200">
-                                <p className="font-semibold text-red-700 mb-2">❌ KHÔNG thu thập:</p>
+                                <p className="font-semibold text-red-700 mb-2">KHÔNG thu thập:</p>
                                 <ul className="text-red-600 text-sm space-y-1">
                                     <li>• Dữ liệu nghiên cứu của bạn</li>
                                     <li>• Kết quả phân tích</li>

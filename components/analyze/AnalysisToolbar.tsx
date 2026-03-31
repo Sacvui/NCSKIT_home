@@ -3,6 +3,7 @@
 import { Eye, EyeOff, Trash2, FileText, Settings, Shield, Save, PlusCircle, FolderOpen } from 'lucide-react'
 import { Badge } from '@/components/ui/Badge'
 import { WebRStatus } from '@/components/WebRStatus'
+import { Locale, t } from '@/lib/i18n'
 
 interface ToolbarProps {
     isPrivateMode: boolean
@@ -10,6 +11,7 @@ interface ToolbarProps {
     clearSession: () => void
     filename: string | null
     onSave: () => void
+    locale: Locale
 }
 
 export default function AnalysisToolbar({
@@ -17,7 +19,8 @@ export default function AnalysisToolbar({
     setIsPrivateMode,
     clearSession,
     filename,
-    onSave
+    onSave,
+    locale
 }: ToolbarProps) {
     return (
         <div className="flex items-center gap-3 md:gap-6 overflow-x-auto no-scrollbar max-w-full">
@@ -30,7 +33,7 @@ export default function AnalysisToolbar({
             ) : (
                 <div className="text-slate-400 text-sm italic items-center gap-2 hidden lg:flex shrink-0">
                     <FileText className="w-4 h-4" />
-                    <span className="hidden xl:inline">Chưa chọn dữ liệu</span>
+                    <span className="hidden xl:inline">{t(locale, 'analyze.toolbar.no_file')}</span>
                 </div>
             )}
 
@@ -51,20 +54,20 @@ export default function AnalysisToolbar({
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-lg text-xs font-medium transition-colors"
                 >
                     <Save className="w-3.5 h-3.5" />
-                    <span className="hidden lg:inline">Lưu dự án</span>
+                    <span className="hidden lg:inline">{t(locale, 'analyze.toolbar.save_project')}</span>
                 </button>
 
                 <button
                     onClick={() => {
-                        if (confirm('Bạn có chắc chắn muốn xóa dữ liệu hiện tại để bắt đầu phân tích mới?')) {
+                        if (confirm(t(locale, 'analyze.toolbar.confirm_clear'))) {
                             clearSession();
                         }
                     }}
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-xs font-medium transition-colors"
-                    title="Bắt đầu phân tích mới"
+                    title={t(locale, 'analyze.toolbar.new_analysis')}
                 >
                     <PlusCircle className="w-3.5 h-3.5" />
-                    <span className="hidden lg:inline">Phân tích mới</span>
+                    <span className="hidden lg:inline">{t(locale, 'analyze.toolbar.new_analysis')}</span>
                 </button>
             </div>
         </div>

@@ -393,6 +393,7 @@ function Analyze2Content() {
                             }}
                             filename={filename}
                             onSave={() => setIsSaveModalOpen(true)}
+                            locale={locale}
                         />
                     </div>
                 }
@@ -1406,10 +1407,11 @@ function Analyze2Content() {
                     analysisType="pls-sem-workflow"
                     step={phase}
                     results={null}
+                    locale={locale}
                 />
             )}
 
-            <Footer />
+            <Footer locale={locale} />
         </div>
     );
 }

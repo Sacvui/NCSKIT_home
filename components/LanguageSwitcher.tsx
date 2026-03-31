@@ -47,7 +47,7 @@ export function LanguageSwitcher({ onLocaleChange, compact = false }: LanguageSw
                 className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors border border-slate-200"
             >
                 <Globe className="w-4 h-4" />
-                <span>{locale === 'vi' ? '🇻🇳 Tiếng Việt' : '🇬🇧 English'}</span>
+                <span>{locale === 'vi' ? 'Tiếng Việt' : 'English'}</span>
             </button>
 
             {isOpen && (
@@ -67,7 +67,7 @@ export function LanguageSwitcher({ onLocaleChange, compact = false }: LanguageSw
                             }}
                             className={`w-full text-left px-4 py-2 text-sm hover:bg-indigo-50 flex items-center gap-2 ${locale === 'vi' ? 'text-indigo-600 font-medium' : 'text-slate-600'}`}
                         >
-                            🇻🇳 Tiếng Việt
+                            Tiếng Việt
                         </button>
                         <button
                             onClick={() => {
@@ -79,7 +79,7 @@ export function LanguageSwitcher({ onLocaleChange, compact = false }: LanguageSw
                             }}
                             className={`w-full text-left px-4 py-2 text-sm hover:bg-indigo-50 flex items-center gap-2 ${locale === 'en' ? 'text-indigo-600 font-medium' : 'text-slate-600'}`}
                         >
-                            🇬🇧 English
+                            English
                         </button>
                     </div>
                 </>

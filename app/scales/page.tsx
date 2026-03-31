@@ -149,6 +149,20 @@ function ScaleHubContent() {
         });
     }, [scales, searchQuery, selectedCategory, advisorSelection]);
 
+    const suggestions = useMemo(() => {
+        if (!searchQuery.trim()) return [];
+        return scales
+            .filter(s => 
+                s.name_vi.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                s.name_en.toLowerCase().includes(searchQuery.toLowerCase())
+            )
+            .slice(0, 5);
+    }, [scales, searchQuery]);
+
+    const activeScale = useMemo(() => {
+        return scales.find(s => s.id === expandedScale) || null;
+    }, [scales, expandedScale]);
+
     return (
         <div className="min-h-screen bg-white font-sans selection:bg-blue-100 selection:text-blue-900">
             <Header />
@@ -249,6 +263,28 @@ function ScaleHubContent() {
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
+                            {suggestions.length > 0 && (
+                                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
+                                    {suggestions.map(s => (
+                                        <button
+                                            key={s.id}
+                                            onClick={() => {
+                                                setSearchQuery(isVi ? s.name_vi : s.name_en);
+                                                setExpandedScale(s.id);
+                                            }}
+                                            className="w-full text-left px-5 py-3 hover:bg-slate-50 flex items-center gap-3 transition-colors border-b border-slate-50 last:border-0"
+                                        >
+                                            <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
+                                                <Search className="w-4 h-4" />
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-slate-800 text-sm">{isVi ? s.name_vi : s.name_en}</p>
+                                                <p className="text-xs text-slate-400">{s.author} ({s.year})</p>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                         <div className="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide">
                             {categories.map(cat => (
@@ -274,156 +310,125 @@ function ScaleHubContent() {
                             ))}
                         </div>
                     ) : (
-                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {filteredScales.map(scale => (
-                                <div 
-                                    key={scale.id} 
-                                    className={`bg-white rounded-3xl border transition-all duration-500 overflow-hidden flex flex-col group ${
-                                        expandedScale === scale.id 
-                                        ? 'ring-4 ring-indigo-500/20 shadow-2xl md:col-span-2 lg:col-span-3 border-indigo-200' 
-                                        : 'border-slate-200 shadow-sm hover:shadow-xl hover:border-indigo-300'
-                                    }`}
-                                >
-                                    <div className="p-8 flex-1 flex flex-col">
-                                        <div className="flex items-start justify-between mb-6">
-                                            <div className="flex flex-wrap gap-2 max-w-[70%]">
-                                                {scale.category.map(cat => (
-                                                    <div 
-                                                        key={cat}
-                                                        className="px-2 py-1 bg-indigo-50 rounded-lg text-[9px] font-black text-indigo-600 uppercase tracking-widest border border-indigo-100 whitespace-nowrap"
-                                                    >
-                                                        {t(locale, `scales.${cat.toLowerCase()}`)}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                            <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-bold bg-slate-50 px-2.5 py-1.5 rounded-full border border-slate-100">
-                                                <Layers className="w-3.5 h-3.5" />
-                                                {scale.items?.length || 0}
-                                            </div>
-                                        </div>
-                                        
-                                        <h3 className="text-xl font-black text-slate-900 mb-3 leading-tight group-hover:text-indigo-600 transition-colors">
-                                            {isVi ? scale.name_vi : scale.name_en}
-                                        </h3>
-                                        <p className="text-slate-500 text-sm leading-relaxed mb-6 line-clamp-3">
-                                            {isVi ? scale.description_vi : scale.description_en}
-                                        </p>
-                                        
-                                        <div className="mt-auto space-y-4">
-                                            {scale.tags && scale.tags.length > 0 && (
+                        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+                            {/* Scales List */}
+                            <div className={`${expandedScale ? 'md:col-span-4 lg:col-span-5' : 'md:col-span-12'} grid grid-cols-1 ${expandedScale ? 'lg:grid-cols-1' : 'md:grid-cols-2 lg:grid-cols-3'} gap-6 transition-all duration-500`}>
+                                {filteredScales.map(scale => (
+                                    <div 
+                                        key={scale.id} 
+                                        onClick={() => setExpandedScale(scale.id)}
+                                        className={`bg-white rounded-3xl border transition-all duration-300 overflow-hidden flex flex-col cursor-pointer ${
+                                            expandedScale === scale.id 
+                                            ? 'ring-2 ring-indigo-500 border-indigo-200 shadow-xl' 
+                                            : 'border-slate-200 shadow-sm hover:shadow-xl hover:border-indigo-300'
+                                        }`}
+                                    >
+                                        <div className="p-6">
+                                            <div className="flex items-start justify-between mb-4">
                                                 <div className="flex flex-wrap gap-2">
-                                                    {scale.tags.slice(0, 3).map(tag => (
-                                                        <span key={tag} className="text-[10px] px-2 py-0.5 bg-slate-50 border border-slate-100 rounded text-slate-400 font-medium">#{tag}</span>
+                                                    {scale.category.slice(0, 1).map(cat => (
+                                                        <div 
+                                                            key={cat}
+                                                            className="px-2 py-0.5 bg-indigo-50 rounded-lg text-[8px] font-black text-indigo-600 uppercase tracking-widest border border-indigo-100"
+                                                        >
+                                                            {t(locale, `scales.${cat.toLowerCase()}`)}
+                                                        </div>
                                                     ))}
                                                 </div>
-                                            )}
-                                            
-                                            <div className="flex items-center gap-4 pt-4 border-t border-slate-50">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
-                                                        <UserCheck className="w-4 h-4" />
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-[10px] text-slate-400 font-bold uppercase">{t(locale, 'scales.author')}</p>
-                                                        <p className="text-xs text-slate-700 font-bold truncate max-w-[150px]">{scale.author} ({scale.year})</p>
-                                                    </div>
+                                                <div className="text-[10px] text-slate-400 font-bold">
+                                                    {scale.items?.length || 0} items
                                                 </div>
                                             </div>
+                                            
+                                            <h3 className="text-lg font-black text-slate-900 mb-2 leading-tight group-hover:text-indigo-600 transition-colors line-clamp-2">
+                                                {isVi ? scale.name_vi : scale.name_en}
+                                            </h3>
+                                            <p className="text-slate-500 text-xs leading-relaxed line-clamp-2">
+                                                {scale.author} ({scale.year})
+                                            </p>
                                         </div>
                                     </div>
-                                    
-                                    <div className="px-8 py-5 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
-                                        <button 
-                                            onClick={() => handleExpandScale(scale.id)}
-                                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-                                                expandedScale === scale.id 
-                                                ? 'bg-slate-900 text-white shadow-lg' 
-                                                : 'text-indigo-600 hover:bg-indigo-50'
-                                            }`}
-                                        >
-                                            {expandedScale === scale.id ? (isVi ? 'Đóng chi tiết' : 'Close details') : (isVi ? 'Xem câu hỏi' : 'View Scale')}
-                                        </button>
-                                        <div className="flex items-center gap-4">
-                                            <button className="p-2.5 text-slate-400 hover:text-indigo-600 bg-white border border-slate-200 rounded-xl shadow-sm transition-all hover:shadow-md">
-                                                <FileSpreadsheet className="w-5 h-5" />
+                                ))}
+                            </div>
+
+                            {/* Scale Details Panel (Right Side) */}
+                            {expandedScale && activeScale && (
+                                <div className="md:col-span-8 lg:col-span-7 sticky top-24 animate-in slide-in-from-right-4 duration-500">
+                                    <div className="bg-white rounded-[2rem] border border-indigo-100 shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+                                        {/* Panel Header */}
+                                        <div className="p-8 bg-slate-900 text-white flex justify-between items-start">
+                                            <div className="flex-1">
+                                                <div className="flex flex-wrap gap-2 mb-4">
+                                                    {activeScale.category.map(cat => (
+                                                        <span key={cat} className="px-2 py-1 bg-white/10 rounded-lg text-[9px] font-black tracking-widest uppercase text-indigo-300 border border-white/10">
+                                                            {t(locale, `scales.${cat.toLowerCase()}`)}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                                <h3 className="text-2xl md:text-3xl font-black tracking-tight leading-tight mb-2">
+                                                    {isVi ? activeScale.name_vi : activeScale.name_en}
+                                                </h3>
+                                                <p className="text-slate-400 font-medium">By {activeScale.author} ({activeScale.year})</p>
+                                            </div>
+                                            <button 
+                                                onClick={() => setExpandedScale(null)}
+                                                className="p-2 hover:bg-white/10 rounded-full transition-colors text-white/50 hover:text-white"
+                                            >
+                                                <X className="w-6 h-6" />
                                             </button>
                                         </div>
-                                    </div>
 
-                                    {expandedScale === scale.id && (
-                                        <div className="p-10 bg-white border-t border-slate-100 animate-in slide-in-from-bottom-2 duration-500">
-                                            <div className="grid lg:grid-cols-3 gap-16">
-                                                <div className="lg:col-span-2">
-                                                    <div className="flex items-center gap-3 mb-8">
-                                                        <div className="p-3 bg-indigo-600 rounded-2xl text-white shadow-lg shadow-indigo-200">
-                                                            <Layers className="w-6 h-6" />
-                                                        </div>
-                                                        <div>
-                                                            <h4 className="text-2xl font-black text-slate-900 uppercase tracking-tight">
-                                                                {isVi ? 'Hệ thống câu hỏi' : 'Validated Items'}
-                                                            </h4>
-                                                            <p className="text-slate-400 text-sm">{isVi ? 'Toàn bộ câu hỏi đã qua kiểm định' : 'Scientifically validated survey items'}</p>
-                                                        </div>
+                                        {/* Panel Content (Scrollable) */}
+                                        <div className="p-8 overflow-y-auto no-scrollbar flex-1 space-y-10">
+                                            {/* Description */}
+                                            <div className="bg-indigo-50/50 p-6 rounded-3xl border border-indigo-100">
+                                                <p className="text-slate-700 leading-relaxed italic">
+                                                    {isVi ? activeScale.description_vi : activeScale.description_en}
+                                                </p>
+                                            </div>
+
+                                            {/* Scale Items */}
+                                            <div>
+                                                <div className="flex items-center gap-3 mb-6">
+                                                    <div className="p-2.5 bg-indigo-600 rounded-xl text-white shadow-lg">
+                                                        <Layers className="w-5 h-5" />
                                                     </div>
-                                                    <div className="grid gap-4">
-                                                        {scale.items?.map((item) => (
-                                                            <div key={item.id} className="p-6 bg-slate-50 rounded-2xl border border-slate-100 hover:border-indigo-200 transition-colors group/item">
-                                                                <div className="flex items-start gap-6">
-                                                                    <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center font-black text-indigo-600 text-sm shadow-sm group-hover/item:bg-indigo-600 group-hover/item:text-white transition-all">
-                                                                        {item.code}
-                                                                    </div>
-                                                                    <div className="flex-1 pt-1">
-                                                                        <p className="text-slate-800 font-bold text-lg mb-2">{isVi ? item.text_vi : item.text_en}</p>
-                                                                        <p className="text-xs text-slate-400 italic font-medium">
-                                                                            {isVi ? item.text_en : item.text_vi}
-                                                                        </p>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        ))}
-                                                    </div>
+                                                    <h4 className="text-xl font-black text-slate-800 uppercase tracking-tight">
+                                                        {isVi ? 'Hệ thống câu hỏi' : 'Scale Items'}
+                                                    </h4>
                                                 </div>
-                                                <div className="space-y-12">
-                                                    <div>
-                                                        <div className="flex items-center gap-2 mb-4">
-                                                            <Quote className="w-5 h-5 text-indigo-600" />
-                                                            <h4 className="font-black text-xs uppercase tracking-widest text-slate-400">
-                                                                {isVi ? 'Trích dẫn APA' : 'APA Citation'}
-                                                            </h4>
-                                                        </div>
-                                                        <div className="p-6 bg-indigo-50/50 rounded-3xl text-sm text-slate-700 italic border border-indigo-100 relative pt-10">
-                                                            <Quote className="absolute top-4 left-6 w-8 h-8 text-indigo-200/50" />
-                                                            {scale.citation}
-                                                        </div>
-                                                    </div>
-
-                                                    {scale.research_model && (
-                                                        <div>
-                                                            <div className="flex items-center gap-2 mb-4">
-                                                                <HelpCircle className="w-5 h-5 text-indigo-600" />
-                                                                <h4 className="font-black text-xs uppercase tracking-widest text-slate-400">
-                                                                    {isVi ? 'Ứng dụng trong Mô hình' : 'Model Application'}
-                                                                </h4>
+                                                <div className="space-y-3">
+                                                    {activeScale.items?.map((item) => (
+                                                        <div key={item.id} className="p-5 bg-white rounded-2xl border border-slate-100 hover:border-indigo-200 transition-all group shadow-sm flex items-start gap-4">
+                                                            <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-100 flex items-center justify-center font-black text-indigo-600 text-[10px] group-hover:bg-indigo-600 group-hover:border-indigo-600 group-hover:text-white transition-all shrink-0">
+                                                                {item.code}
                                                             </div>
-                                                            <div className="px-4 py-3 bg-slate-900 text-indigo-300 rounded-xl text-xs font-bold inline-flex items-center gap-2 border border-slate-800">
-                                                                <Target className="w-4 h-4" />
-                                                                {scale.research_model}
+                                                            <div className="pt-0.5">
+                                                                <p className="text-slate-800 font-bold mb-1 leading-snug">{isVi ? item.text_vi : item.text_en}</p>
+                                                                <p className="text-[10px] text-slate-400 italic">
+                                                                    {isVi ? item.text_en : item.text_vi}
+                                                                </p>
                                                             </div>
                                                         </div>
-                                                    )}
-
-                                                    <div className="pt-8 border-t border-slate-100">
-                                                        <button className="w-full py-5 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-3 shadow-xl shadow-indigo-200 group">
-                                                            <FileSpreadsheet className="w-6 h-6 group-hover:scale-110 transition-transform" />
-                                                            {isVi ? 'TẢI FILE MẪU EXCEL' : 'DOWNLOAD EXCEL'}
-                                                        </button>
-                                                    </div>
+                                                    ))}
                                                 </div>
                                             </div>
+
+                                            {/* Action Bar */}
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 border-t border-slate-100">
+                                                <button className="flex items-center justify-center gap-2 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs hover:bg-slate-800 transition-all shadow-xl shadow-slate-200">
+                                                    <FileSpreadsheet className="w-5 h-5 text-indigo-400" />
+                                                    {isVi ? 'XUẤT FILE MẪU' : 'EXPORT EXCEL'}
+                                                </button>
+                                                <button className="flex items-center justify-center gap-2 py-4 bg-white border-2 border-indigo-600 text-indigo-600 rounded-2xl font-black text-xs hover:bg-indigo-50 transition-all">
+                                                    <Quote className="w-5 h-5" />
+                                                    {isVi ? 'CHÉP TRÍCH DẪN' : 'COPY CITATION'}
+                                                </button>
+                                            </div>
                                         </div>
-                                    )}
+                                    </div>
                                 </div>
-                            ))}
+                            )}
                         </div>
                     )}
                 </div>
