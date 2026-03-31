@@ -9,8 +9,10 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { getStoredLocale, type Locale } from '@/lib/i18n';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { getSupabase } from '@/utils/supabase/client';
 import { toast } from 'react-hot-toast';
+
+const supabase = getSupabase();
 
 interface ArticleSection {
     h2_vi: string;
@@ -241,7 +243,9 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
                             </div>
                             <div>
                                 <p className="font-black text-slate-900 text-base uppercase tracking-tight leading-none mb-1.5 font-sans">{article.author}</p>
-                                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{new Date(article.updated_at).toLocaleDateString()}</p>
+                                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">
+                                    {article.updated_at ? new Date(article.updated_at).toLocaleDateString() : 'N/A'}
+                                </p>
                             </div>
                         </div>
                     </div>

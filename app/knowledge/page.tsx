@@ -9,7 +9,9 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { getStoredLocale, type Locale } from '@/lib/i18n';
 import Link from 'next/link';
-import { supabase } from '@/lib/supabase';
+import { getSupabase } from '@/utils/supabase/client';
+
+const supabase = getSupabase();
 
 // Map icon name from DB to Lucide components
 const iconMap: Record<string, any> = {
