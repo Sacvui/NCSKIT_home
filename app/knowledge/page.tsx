@@ -13,7 +13,88 @@ import { getSupabase } from '@/utils/supabase/client';
 
 const supabase = getSupabase();
 
-// Map icon name from DB to Lucide components
+// --- FALLBACK DATA (To ensure Hub is NEVER empty) ---
+const STATIC_ARTICLES = [
+    {
+        slug: 'cronbach-alpha',
+        category: 'Preliminary Analysis',
+        icon_name: 'Brain',
+        title_vi: 'Kiểm định Cronbach\'s Alpha: Bản giao hưởng của Tin cậy nội tại',
+        title_en: 'Cronbach\'s Alpha Reliability Test: The Symphony of Internal Consistency'
+    },
+    {
+        slug: 'efa-factor-analysis',
+        category: 'Factor Analysis',
+        icon_name: 'Layers',
+        title_vi: 'Phân tích nhân tố khám phá (EFA): Khám phá cấu trúc ẩn',
+        title_en: 'Exploratory Factor Analysis (EFA): Discovering Inner Structures'
+    },
+    {
+        slug: 'regression-vif-multicollinearity',
+        category: 'Impact Analysis',
+        icon_name: 'LineChart',
+        title_vi: 'Hồi quy đa biến và Đa cộng tuyến (VIF): Dự báo Tác động',
+        title_en: 'Multiple Regression & VIF: Predicting the Future'
+    },
+    {
+        slug: 'descriptive-statistics-interpretation',
+        category: 'Preliminary Analysis',
+        icon_name: 'Activity',
+        title_vi: 'Thống kê mô tả: Nghệ thuật kể chuyện qua con số',
+        title_en: 'Descriptive Statistics: The Art of Storytelling'
+    },
+    {
+        slug: 'independent-t-test-guide',
+        category: 'Comparison Analysis',
+        icon_name: 'Activity',
+        title_vi: 'Independent T-test: So sánh các nhóm đối đầu',
+        title_en: 'Independent T-test: Comparing Opposite Groups'
+    },
+    {
+        slug: 'one-way-anova-post-hoc',
+        category: 'Comparison Analysis',
+        icon_name: 'Layers',
+        title_vi: 'Phân tích ANOVA: So sánh Đa nhóm chuyên sâu',
+        title_en: 'One-way ANOVA: Deep Multi-group Analysis'
+    },
+    {
+        slug: 'pearson-correlation-analysis',
+        category: 'Relationship Analysis',
+        icon_name: 'Hash',
+        title_vi: 'Tương quan Pearson: Bản đồ các mối liên kết',
+        title_en: 'Pearson Correlation: The Connection Map'
+    },
+    {
+        slug: 'chi-square-test-independence',
+        category: 'Categorical Analysis',
+        icon_name: 'Zap',
+        title_vi: 'Kiểm định Chi-square: Liên kết dữ liệu định danh',
+        title_en: 'Chi-square Test: Linking Categorical Data'
+    },
+    {
+        slug: 'mediation-analysis-sobel-test',
+        category: 'Advanced Analysis',
+        icon_name: 'Brain',
+        title_vi: 'Biến trung gian (Mediation): Giải mã cơ chế tác động',
+        title_en: 'Mediation Analysis: Decoding Core Mechanisms'
+    },
+    {
+        slug: 'data-cleaning-outliers-detection',
+        category: 'Preliminary Analysis',
+        icon_name: 'FileSearch',
+        title_vi: 'Làm sạch dữ liệu & Outliers: Vệ sinh Khoa học',
+        title_en: 'Data Cleaning & Outliers: Scientific Scrubbing'
+    },
+    {
+        slug: 'sem-cfa-structural-modeling',
+        category: 'Advanced Analysis',
+        icon_name: 'TrendingUp',
+        title_vi: 'Mô hình SEM và CFA: Đỉnh cao học thuật toàn cầu',
+        title_en: 'SEM & CFA: The Academic Pinnacle'
+    }
+];
+
+// Map icon name to Lucide components
 const iconMap: Record<string, any> = {
   Brain: Brain,
   FileSearch: FileSearch,
@@ -23,13 +104,14 @@ const iconMap: Record<string, any> = {
   HelpCircle: HelpCircle,
   Layers: Layers,
   Activity: Activity,
-  BookOpen: BookOpen
+  BookOpen: BookOpen,
+  TrendingUp: TrendingUp
 };
 
 export default function KnowledgeBase() {
   const [locale, setLocale] = useState<Locale>('vi');
   const [searchQuery, setSearchQuery] = useState('');
-  const [articles, setArticles] = useState<any[]>([]);
+  const [articles, setArticles] = useState<any[]>(STATIC_ARTICLES); // Init with fallback
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -43,19 +125,31 @@ export default function KnowledgeBase() {
 
   const fetchArticles = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('knowledge_articles')
-      .select('*')
-      .order('updated_at', { ascending: false });
-    
-    if (data) setArticles(data);
-    setLoading(false);
+    try {
+        const { data, error } = await supabase
+          .from('knowledge_articles')
+          .select('*')
+          .order('updated_at', { ascending: false });
+        
+        if (data && data.length > 0) {
+            setArticles(data);
+        } else {
+            console.warn('Supabase Knowledge Hub empty - Using Fallback Data');
+            setArticles(STATIC_ARTICLES);
+        }
+    } catch (err) {
+        console.error('Supabase fetch failed - Using Fallback Data');
+        setArticles(STATIC_ARTICLES);
+    } finally {
+        setLoading(false);
+    }
   };
 
   const filteredArticles = articles.filter(article => {
-    const title = locale === 'vi' ? article.title_vi : article.title_en;
+    const title = locale === 'vi' ? (article.title_vi || '') : (article.title_en || '');
+    const category = article.category || '';
     return title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-           article.category.toLowerCase().includes(searchQuery.toLowerCase());
+           category.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
   const isVi = locale === 'vi';
@@ -98,51 +192,43 @@ export default function KnowledgeBase() {
           </div>
         </div>
 
-        {/* Categories / Grid */}
+        {/* Grid Display */}
         <div className="container mx-auto px-6 max-w-7xl">
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[1, 2, 3, 4, 5, 6].map(i => (
-                <div key={i} className="h-64 bg-slate-100 animate-pulse rounded-[2.5rem]"></div>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredArticles.map((article) => {
-                const Icon = iconMap[article.icon_name || 'Brain'] || Brain;
-                return (
-                  <Link 
-                    key={article.id} 
-                    href={`/knowledge/${article.slug}`}
-                    className="group bg-white p-10 rounded-[2.5rem] border border-slate-100 hover:border-indigo-200 hover:shadow-2xl hover:shadow-indigo-100 transition-all duration-500 flex flex-col justify-between"
-                  >
-                    <div>
-                      <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center mb-8 group-hover:bg-indigo-600 group-hover:rotate-6 transition-all duration-500 shadow-sm border border-slate-100 group-hover:border-indigo-500">
-                        <Icon className="w-7 h-7 text-indigo-600 group-hover:text-white transition-colors" />
-                      </div>
-                      <h3 className="text-2xl font-black text-slate-900 mb-4 tracking-tight leading-tight group-hover:text-indigo-600 transition-colors">
-                        {isVi ? article.title_vi : article.title_en}
-                      </h3>
-                      <div className="flex items-center gap-2 mb-6">
-                        <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{article.category}</span>
-                      </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredArticles.map((article) => {
+              const Icon = iconMap[article.icon_name || 'Brain'] || Brain;
+              return (
+                <Link 
+                  key={article.slug} 
+                  href={`/knowledge/${article.slug}`}
+                  className="group bg-white p-10 rounded-[2.5rem] border border-slate-100 hover:border-indigo-200 hover:shadow-2xl hover:shadow-indigo-100 transition-all duration-500 flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center mb-8 group-hover:bg-indigo-600 group-hover:rotate-6 transition-all duration-500 shadow-sm border border-slate-100 group-hover:border-indigo-500">
+                      <Icon className="w-7 h-7 text-indigo-600 group-hover:text-white transition-colors" />
                     </div>
-                    <div className="flex items-center justify-between mt-4">
-                      <div className="flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-widest">
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>15 min read</span>
-                      </div>
-                      <div className="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center group-hover:bg-indigo-50 transition-colors">
-                        <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all" />
-                      </div>
+                    <h3 className="text-2xl font-black text-slate-900 mb-4 tracking-tight leading-tight group-hover:text-indigo-600 transition-colors">
+                      {isVi ? article.title_vi : article.title_en}
+                    </h3>
+                    <div className="flex items-center gap-2 mb-6">
+                      <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{article.category}</span>
                     </div>
-                  </Link>
-                );
-              })}
-            </div>
-          )}
+                  </div>
+                  <div className="flex items-center justify-between mt-4">
+                    <div className="flex items-center gap-2 text-slate-400 font-bold text-[10px] uppercase tracking-widest">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>15 min read</span>
+                    </div>
+                    <div className="w-10 h-10 bg-slate-50 rounded-full flex items-center justify-center group-hover:bg-indigo-50 transition-colors">
+                      <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all" />
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
           
-          {articles.length === 0 && !loading && (
+          {filteredArticles.length === 0 && (
             <div className="text-center py-24 bg-white rounded-[3rem] border-2 border-dashed border-slate-100">
               <HelpCircle className="w-16 h-16 text-slate-200 mx-auto mb-6" />
               <p className="text-slate-400 font-bold text-lg">
