@@ -6,7 +6,7 @@ import UserMenu from '@/components/UserMenu'
 import LanguageSwitcher from '@/components/LanguageSwitcher'
 import { NcsBalanceBadge } from '@/components/NcsBalanceBadge'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { getStoredLocale, t, type Locale } from '@/lib/i18n'
+import { getStoredLocale, setStoredLocale, t, type Locale } from '@/lib/i18n'
 import { useAuth } from '@/context/AuthContext'
 import { ChevronDown, BarChart3, Layout, BookOpen, GraduationCap, Microscope, FileText, Network, Brain, Menu, X } from 'lucide-react'
 
@@ -128,10 +128,31 @@ function HeaderContent({ centerContent, rightActions, hideNav = false, user: pro
                         {rightActions && <div className="h-6 w-px bg-slate-200 mx-1" />}
                     </div>
 
-                    {/* Language Switcher - Hide on ultra small */}
-                    <div className="hidden xs:block">
-                        <LanguageSwitcher compact />
+                    {/* Global Language Switcher */}
+                    <div className="flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200">
+                        <button
+                            onClick={() => {
+                                setLocale('vi');
+                                setStoredLocale('vi');
+                                window.location.reload();
+                            }}
+                            className={`px-3 py-1 text-[10px] font-black rounded-md transition-all ${locale === 'vi' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
+                        >
+                            VI
+                        </button>
+                        <button
+                            onClick={() => {
+                                setLocale('en');
+                                setStoredLocale('en');
+                                window.location.reload();
+                            }}
+                            className={`px-3 py-1 text-[10px] font-black rounded-md transition-all ${locale === 'en' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
+                        >
+                            EN
+                        </button>
                     </div>
+
+                    <div className="h-6 w-px bg-slate-200 mx-1 hidden sm:block" />
 
                     {user ? (
                         <UserMenu user={user} profile={propProfile || authProfile} />
