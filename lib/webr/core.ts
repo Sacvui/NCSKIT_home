@@ -1,6 +1,6 @@
 import { WebR } from 'webr';
 import { translateRError } from './utils';
-import { getCachedWebRState, setCachedWebRState, hasValidWebRCache } from './cache';
+import { getCachedWebRState, setCachedWebRState } from './cache';
 import { getRequiredPackages, isPackageLoaded, markPackageLoaded } from './package-registry';
 
 let webRInstance: WebR | null = null;
@@ -13,7 +13,6 @@ const MAX_INIT_ATTEMPTS = 3;
 
 // Error recovery state
 let lastError: Error | null = null;
-let errorRecoveryInProgress = false;
 
 // Get current WebR loading status
 export function getWebRStatus(): {
@@ -56,288 +55,99 @@ export function resetWebR(): void {
     initPromise = null;
     initProgress = '';
     lastError = null;
-    errorRecoveryInProgress = false;
     initAttempts = 0;
     updateProgress('WebR reset - ready for reinitialization');
-}
-
-/**
- * Recover from WebR errors with exponential backoff
- */
-async function recoverFromError(error: Error, attempt: number): Promise<void> {
-    lastError = error;
-    errorRecoveryInProgress = true;
-
-    // Exponential backoff: 1s, 2s, 4s
-    const delay = Math.pow(2, attempt) * 1000;
-    updateProgress(`WebR error recovery... waiting ${delay / 1000}s`);
-
-    await new Promise(resolve => setTimeout(resolve, delay));
-
-    // Clear corrupted state
-    webRInstance = null;
-    initPromise = null;
-
-    errorRecoveryInProgress = false;
 }
 
 /**
  * Initialize WebR instance (singleton with promise caching and retry logic)
  */
 export async function initWebR(maxRetries: number = 3): Promise<WebR> {
-    // Return existing instance
-    if (webRInstance) {
-        try {
-            if (typeof webRInstance.evalR === 'function') {
-                return webRInstance;
-            }
-        } catch (e) {
-            console.warn('WebR instance exists but is not usable, reinitializing...');
-            webRInstance = null;
-        }
-    }
-
-    // Return existing promise if init in progress
-    if (initPromise) {
-        return initPromise;
-    }
-
-    if (isInitializing) {
-        // Wait for initialization to complete
-        let attempts = 0;
-        while (isInitializing && attempts < 100) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-            attempts++;
-        }
-        if (webRInstance) {
-            return webRInstance;
-        }
-        throw new Error('WebR initialization timeout');
-    }
+    if (webRInstance) return webRInstance;
+    if (initPromise) return initPromise;
 
     isInitializing = true;
     updateProgress('R-Engine Loading...');
 
-    // Retry logic wrapper
-    for (let attempt = 0; attempt < maxRetries; attempt++) {
-        initAttempts = attempt + 1;
-
-        initPromise = (async () => {
-            try {
-                // Mobile-friendly config: Ensure PostMessage channel and service worker
-                const webR = new WebR({
-                    channelType: 1, // PostMessage channel (safest for cross-origin)
-                    serviceWorkerUrl: '/webr-serviceworker.js'
-                });
-
-                updateProgress('R-Engine Loading...');
-
-                // Ensure ServiceWorker is registered (critical for mobile/COOP)
-                if ('serviceWorker' in navigator) {
-                    try {
-                        const registration = await navigator.serviceWorker.register('/webr-serviceworker.js');
-                        await navigator.serviceWorker.ready;
-                        console.log('WebR ServiceWorker ready:', registration.scope);
-                    } catch (swError) {
-                        console.warn('ServiceWorker registration failed:', swError);
-                        // Don't crash, WebR might still work in some modes, but likely will fail later
-                    }
-                }
-
-                await webR.init();
-
-                // Step 1: Set correct WASM Repo (Priority: 1. Core WASM, 2. R-Universe for missing binaries like quadprog)
-                await webR.evalR('options(repos = c(R_WASM = "https://repo.r-wasm.org/", CRAN = "https://cran.r-universe.dev/"))');
-
-                // Verify initialization
-                if (!webR.evalR) {
-                    throw new Error('WebR initialized but evalR is not available');
-                }
-
-                // Step 2: Check cache and verify packages exist
-                const cachedState = await getCachedWebRState();
-
-                // CRITICAL FIX: Verify packages actually exist, not just cache flag
-                let skipInstall = false;
-                if (cachedState?.initialized) {
-                    try {
-                        // Verify core packages are actually installed
-                        const checkResult = await webR.evalR(`
-                            required_pkgs <- c('psych', 'corrplot', 'GPArotation', 'car', 'cluster')
-                            installed_pkgs <- rownames(installed.packages())
-                            all(required_pkgs %in% installed_pkgs)
-                        `);
-                        const allInstalled = await checkResult.toJs();
-                        skipInstall = (allInstalled as any)?.[0] === true || (allInstalled as any)?.values?.[0] === true;
-
-                        if (skipInstall) {
-                            console.log('[WebR] Cache valid: All packages verified');
-                        } else {
-                            console.warn('[WebR] Cache invalid: Packages missing, reinstalling...');
-                        }
-                    } catch (error) {
-                        console.warn('[WebR] Cache verification failed, reinstalling...', error);
-                        skipInstall = false;
-                    }
-                }
-
-                if (skipInstall) {
-                    console.log('[WebR] Using cached packages, skipping installation');
-                    updateProgress('R-Engine Loading (cached)...');
-                } else {
-                    console.log('[WebR] No cache found, installing packages...');
-                    updateProgress('R-Engine Loading...');
-                }
-
-                try {
-                    // LAZY LOADING OPTIMIZATION: Only load psych initially (most common package)
-                    // Other packages will be loaded on-demand via loadPackagesForMethod()
-                    if (!skipInstall) {
-                        console.log('[WebR] Installing core package: psych');
-                        await webR.installPackages(['psych'], {
-                            repos: 'https://repo.r-wasm.org/'
-                        });
-                        console.log('✅ Core package (psych) installed successfully');
-                    }
-                } catch (pkgError) {
-                    console.warn('Core Package install warning:', pkgError);
-                }
-
-                // Step 3 & 4: Load core package only
-                updateProgress('R-Engine Loading...');
-
-                await webR.evalR('library(psych)');
-                markPackageLoaded('psych');
-                console.log('[WebR] Core package (psych) loaded');
-
-                updateProgress('R-Engine Ready');
-                webRInstance = webR;
-                isInitializing = false;
-                initPromise = null;
-                lastError = null; // Clear any previous errors
-
-                // Cache successful initialization (only psych for now)
-                if (!skipInstall) {
-                    await setCachedWebRState(['psych']);
-                    console.log('[WebR] Minimal initialization cached (psych only)');
-                }
-
-                return webR;
-            } catch (error) {
-                console.error(`WebR init attempt ${attempt + 1} failed:`, error);
-
-                // If not last attempt, try error recovery
-                if (attempt < maxRetries - 1) {
-                    await recoverFromError(error as Error, attempt);
-                    updateProgress(`R-Engine Loading... (Retry ${attempt + 2})`);
-                    throw error; // Throw to trigger retry
-                }
-
-                // Last attempt failed
-                isInitializing = false;
-                webRInstance = null;
-                initPromise = null;
-                lastError = error as Error;
-                updateProgress('R-Engine Error!');
-                console.error('WebR initialization error:', error);
-                throw new Error(`Failed to initialize WebR after ${maxRetries} attempts: ${error}`);
-            }
-        })();
-
+    initPromise = (async () => {
         try {
-            return await initPromise;
-        } catch (error) {
-            if (attempt === maxRetries - 1) {
-                throw error;
-            }
-            // Continue to next retry
-        }
-    }
+            const webR = new WebR({
+                channelType: 1, 
+                serviceWorkerUrl: '/webr-serviceworker.js'
+            });
 
-    throw new Error('WebR initialization failed');
+            if ('serviceWorker' in navigator) {
+                try {
+                    await navigator.serviceWorker.register('/webr-serviceworker.js');
+                    await navigator.serviceWorker.ready;
+                } catch (swError) {
+                    console.warn('SW registration skipped:', swError);
+                }
+            }
+
+            await webR.init();
+            
+            // Set repos for binaries
+            await webR.evalR('options(repos = c(R_WASM = "https://repo.r-wasm.org/", CRAN = "https://cran.r-universe.dev/"))');
+            
+            // Core package loading
+            updateProgress('Loading psych...');
+            await webR.installPackages(['psych']);
+            await webR.evalR('library(psych)');
+            markPackageLoaded('psych');
+
+            updateProgress('R-Engine Ready');
+            webRInstance = webR;
+            isInitializing = false;
+            return webRInstance;
+        } catch (error: any) {
+            isInitializing = false;
+            initPromise = null;
+            lastError = error;
+            updateProgress('R-Engine Error');
+            throw error;
+        }
+    })();
+
+    return initPromise;
 }
 
 /**
  * Load packages on-demand for specific analysis method
- * This enables lazy loading - only install/load packages when needed
  */
 export async function loadPackagesForMethod(method: string): Promise<void> {
     const webR = await initWebR();
     const required = getRequiredPackages(method);
 
-    if (required.length === 0) {
-        console.log(`[WebR] Method '${method}' uses built-in packages only`);
-        return;
-    }
-
     for (const pkg of required) {
-        if (isPackageLoaded(pkg)) {
-            console.log(`[WebR] Package '${pkg}' already loaded, skipping`);
-            continue;
-        }
+        if (isPackageLoaded(pkg)) continue;
 
         try {
-            // Check if installed
-            const checkResult = await webR.evalR(`'${pkg}' %in% rownames(installed.packages())`);
-            const checkJs = await checkResult.toJs() as any;
-            const isInstalled = checkJs?.[0] === true || checkJs?.values?.[0] === true;
-
-            if (!isInstalled) {
-                console.log(`[WebR] Installing package '${pkg}' for method '${method}'...`);
-                updateProgress(`Installing ${pkg}...`);
-                await webR.installPackages([pkg], { repos: 'https://repo.r-wasm.org/' });
-            }
-
-            // Load library
-            console.log(`[WebR] Loading library '${pkg}'...`);
+            updateProgress(`Installing ${pkg}...`);
+            await webR.installPackages([pkg]);
             await webR.evalR(`library(${pkg})`);
             markPackageLoaded(pkg);
-            console.log(`[WebR] Package '${pkg}' loaded successfully`);
-
         } catch (error) {
-            console.error(`[WebR] Failed to load package '${pkg}':`, error);
-            throw new Error(`Required package '${pkg}' failed to load for method '${method}'`);
+            console.error(`Failed to load ${pkg}:`, error);
         }
     }
-
-    updateProgress('R-Engine Ready');
 }
 
 /**
- * Recursively unpacks WebR objects to extract primitive values
- * WebR returns nested structures like: {omega: {type: "double", values: [0.85]}}
- * This function converts them to: {omega: 0.85}
+ * Recursively unpacks WebR objects
  */
 function unpackWebRObject(obj: any): any {
-    // Handle null/undefined
-    if (obj === null || obj === undefined) {
-        return obj;
-    }
+    if (obj === null || obj === undefined || typeof obj !== 'object') return obj;
+    if (Array.isArray(obj)) return obj.map(unpackWebRObject);
 
-    // Handle primitive types
-    if (typeof obj !== 'object') {
-        return obj;
-    }
-
-    // Handle arrays
-    if (Array.isArray(obj)) {
-        return obj.map(item => unpackWebRObject(item));
-    }
-
-    // Handle WebR typed objects (e.g., {type: "double", values: [0.85]})
     if (obj.type && obj.values !== undefined) {
-        // Extract the first value if it's an array with one element
         if (Array.isArray(obj.values)) {
-            if (obj.values.length === 1) {
-                return unpackWebRObject(obj.values[0]);
-            }
-            // Return the array if multiple values
-            return obj.values.map((v: any) => unpackWebRObject(v));
+            if (obj.values.length === 1) return unpackWebRObject(obj.values[0]);
+            return obj.values.map(unpackWebRObject);
         }
         return unpackWebRObject(obj.values);
     }
 
-    // Handle WebR list objects (e.g., {type: "list", names: [...], values: [...]})
     if (obj.type === 'list' && obj.names && obj.values) {
         const result: any = {};
         for (let i = 0; i < obj.names.length; i++) {
@@ -346,59 +156,63 @@ function unpackWebRObject(obj: any): any {
         return result;
     }
 
-    // Handle regular objects - recursively unpack all properties
     const result: any = {};
     for (const key in obj) {
-        if (obj.hasOwnProperty(key)) {
-            result[key] = unpackWebRObject(obj[key]);
-        }
+        if (obj.hasOwnProperty(key)) result[key] = unpackWebRObject(obj[key]);
     }
     return result;
 }
 
 /**
- * Execute R code with error recovery and timeout protection
+ * High-reliability R executor for production with Self-Healing packages
  */
-export async function executeRWithRecovery(rCode: string, maxRetries: number = 2, timeoutMs: number = 60000): Promise<any> {
+export async function executeRWithRecovery(
+    rCode: string,
+    method?: string,
+    retryCount: number = 0,
+    maxRetries: number = 2,
+    timeoutMs: number = 120000 
+): Promise<any> {
     const webR = await initWebR();
 
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-        try {
-            // Wrap evalR in a timeout to prevent infinite hangs
-            const rResult: any = await Promise.race([
-                webR.evalR(rCode),
-                new Promise((_, reject) =>
-                    setTimeout(() => reject(new Error(`R execution timeout after ${timeoutMs / 1000}s`)), timeoutMs)
-                )
-            ]);
+    try {
+        if (method) await loadPackagesForMethod(method);
 
-            // CRITICAL FIX: Convert R object to JavaScript
-            // toJs() returns structure like: {names: ['mean', 'sd'], values: [[1,2,3], [0.5,0.6]]}
-            // This is the format that parseWebRResult expects!
-            const jsResult = await rResult.toJs();
+        const rResultPromise = webR.evalR(rCode);
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error(`Timeout after ${timeoutMs / 1000}s`)), timeoutMs)
+        );
 
-            console.log('[DEBUG] R execution successful, toJs result:', jsResult);
-            return jsResult;
-        } catch (error: any) {
-            console.error(`R execution attempt ${attempt + 1} failed:`, error);
+        const rResult: any = await Promise.race([rResultPromise, timeoutPromise]);
+        const output = await rResult.toJs();
 
-            if (attempt === maxRetries) {
-                throw new Error(translateRError(error.message || String(error)));
-            }
-
-            // Check if WebR instance is corrupted or timed out
-            if (error.message?.includes('WebR instance') ||
-                error.message?.includes('not initialized') ||
-                error.message?.includes('timeout') ||
-                !webRInstance?.evalR) {
-
-                console.warn('WebR instance corrupted or timed out, reinitializing...');
-                webRInstance = null;
-                await initWebR();
-            }
-
-            // Wait before retry
-            await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+        if (rResult && typeof (rResult as any).destroy === 'function') {
+            (rResult as any).destroy();
         }
+
+        return output;
+    } catch (error: any) {
+        const errorMsg = error?.message || String(error);
+
+        // SELF-HEALING for missing packages
+        if (errorMsg.includes('there is no package called') && retryCount < maxRetries) {
+            const match = errorMsg.match(/no package called .(.*)./);
+            const missingPkg = match ? match[1] : null;
+
+            if (missingPkg) {
+                console.warn(`Auto-installing missing package: ${missingPkg}`);
+                updateProgress(`Setting up ${missingPkg}...`);
+                await webR.installPackages([missingPkg]);
+                markPackageLoaded(missingPkg);
+                return executeRWithRecovery(rCode, method, retryCount + 1, maxRetries, timeoutMs);
+            }
+        }
+
+        if (retryCount < maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
+            return executeRWithRecovery(rCode, method, retryCount + 1, maxRetries, timeoutMs);
+        }
+
+        throw error;
     }
 }
