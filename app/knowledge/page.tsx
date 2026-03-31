@@ -10,6 +10,7 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { getStoredLocale, t, type Locale } from '@/lib/i18n';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 
 const articles = [
     {
@@ -206,44 +207,45 @@ export default function KnowledgeBasePage() {
             <main className="container mx-auto px-6 max-w-6xl -mt-10 relative z-20 pb-24">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {filteredArticles.map((art, idx) => (
-                        <motion.div 
-                            key={art.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: idx * 0.1 }}
-                            className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm hover:shadow-2xl hover:border-indigo-200 transition-all group cursor-pointer flex flex-col h-full"
-                        >
-                            <div className="p-8 flex flex-col h-full">
-                                <div className="flex justify-between items-start mb-6">
-                                    <div className={`w-14 h-14 ${art.bg} rounded-2xl flex items-center justify-center shadow-sm`}>
-                                        <art.icon className={`w-7 h-7 ${art.color}`} />
+                        <Link key={art.id} href={`/knowledge/${art.id}`} className="block">
+                            <motion.div 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: idx * 0.1 }}
+                                className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm hover:shadow-2xl hover:border-indigo-200 transition-all group cursor-pointer flex flex-col h-full"
+                            >
+                                <div className="p-8 flex flex-col h-full">
+                                    <div className="flex justify-between items-start mb-6">
+                                        <div className={`w-14 h-14 ${art.bg} rounded-2xl flex items-center justify-center shadow-sm`}>
+                                            <art.icon className={`w-7 h-7 ${art.color}`} />
+                                        </div>
+                                        <div className="flex items-center gap-1.5 text-slate-400 font-bold text-[10px] uppercase tracking-wider">
+                                            <Clock className="w-3.5 h-3.5" />
+                                            <span>{art.readTime} read</span>
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-1.5 text-slate-400 font-bold text-[10px] uppercase tracking-wider">
-                                        <Clock className="w-3.5 h-3.5" />
-                                        <span>{art.readTime} read</span>
-                                    </div>
-                                </div>
-                                
-                                <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-3 px-2 py-0.5 bg-indigo-50 rounded-md w-fit">
-                                    {art.category}
-                                </span>
-                                
-                                <h3 className="text-xl font-black text-slate-900 mb-4 leading-tight group-hover:text-indigo-600 transition-colors">
-                                    {isVi ? art.title_vi : art.title_en}
-                                </h3>
-                                
-                                <p className="text-slate-500 text-sm leading-relaxed mb-8 font-light line-clamp-3">
-                                    {isVi ? art.excerpt_vi : art.excerpt_en}
-                                </p>
-                                
-                                <div className="mt-auto pt-6 border-t border-slate-50 flex items-center justify-between">
-                                    <span className="text-xs font-bold text-slate-900 flex items-center gap-2">
-                                        {isVi ? 'Đọc chi tiết' : 'Read more'}
-                                        <ArrowUpRight className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                                    
+                                    <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-3 px-2 py-0.5 bg-indigo-50 rounded-md w-fit">
+                                        {art.category}
                                     </span>
+                                    
+                                    <h3 className="text-xl font-black text-slate-900 mb-4 leading-tight group-hover:text-indigo-600 transition-colors">
+                                        {isVi ? art.title_vi : art.title_en}
+                                    </h3>
+                                    
+                                    <p className="text-slate-500 text-sm leading-relaxed mb-8 font-light line-clamp-3">
+                                        {isVi ? art.excerpt_vi : art.excerpt_en}
+                                    </p>
+                                    
+                                    <div className="mt-auto pt-6 border-t border-slate-50 flex items-center justify-between">
+                                        <span className="text-xs font-bold text-slate-900 flex items-center gap-2">
+                                            {isVi ? 'Đọc chi tiết' : 'Read more'}
+                                            <ArrowUpRight className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                        </motion.div>
+                            </motion.div>
+                        </Link>
                     ))}
                 </div>
 
