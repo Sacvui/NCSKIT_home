@@ -87,7 +87,7 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
 
             await webR.init();
             
-            // Set repos for binaries
+            // Set dual repos: Official WASM + R-Universe Mirror (for missing binaries like quadprog)
             await webR.evalR('options(repos = c(R_WASM = "https://repo.r-wasm.org/", CRAN = "https://cran.r-universe.dev/"))');
             
             // Core package loading
