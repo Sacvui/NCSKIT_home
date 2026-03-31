@@ -21,178 +21,28 @@ const articleData = {
         date: '31 March 2026',
         items: [
             {
-                h2_vi: '1. Cronbach\'s Alpha là gì?',
-                h2_en: '1. What is Cronbach\'s Alpha?',
-                content_vi: 'Cronbach\'s Alpha là một phép kiểm định thống kê dùng để đo lường tính nhất quán nội tại (internal consistency) của một thang đo. Nó cho biết các câu hỏi trong cùng một nhóm có đo lường cùng một khái niệm hay không.',
-                content_en: 'Cronbach\'s Alpha is a statistical test used to measure the internal consistency of a scale. It indicates whether questions in the same group measure the same concept.'
+                h2_vi: '1. Bản chất của Cronbach\'s Alpha trong nghiên cứu',
+                h2_en: '1. The Essence of Cronbach\'s Alpha',
+                content_vi: 'Cronbach\'s Alpha là một phép kiểm định thống kê dùng để đo lường tính nhất quán nội tại (internal consistency). Trong các bài nghiên cứu (Thesis/Paper), đây là bước "lọc" đầu tiên để đảm bảo các biến quan sát (items) trong cùng một thang đo thực sự đang đo lường cùng một khái niệm trừu tượng. \n\nNếu Alpha thấp, có nghĩa là các câu hỏi của bạn đang "đá nhau", dẫn đến kết quả phân tích EFA hay Hồi quy sau đó sẽ hoàn toàn vô nghĩa.',
+                content_en: 'Cronbach\'s Alpha is a statistical test used to measure internal consistency. In research papers, this is the first "filtering" step to ensure that the observed variables in a scale are truly measuring the same abstract concept.'
             },
             {
-                h2_vi: '2. Các ngưỡng giá trị cần lưu ý',
-                h2_en: '2. Key Threshold Values',
-                content_vi: 'Trong nghiên cứu học thuật, các ngưỡng sau thường được chấp nhận: \n- Alpha > 0.8: Rất tốt\n- 0.7 < Alpha < 0.8: Sử dụng được\n- 0.6 < Alpha < 0.7: Chấp nhận được (với các nghiên cứu mới)\n- Alpha < 0.6: Thang đo không đáng tin cậy.',
-                content_en: 'In academic research, the following thresholds are commonly accepted: \n- Alpha > 0.8: Excellent\n- 0.7 < Alpha < 0.8: Good\n- 0.6 < Alpha < 0.7: Acceptable (for new research)\n- Alpha < 0.6: Internal consistency is low/unreliable.'
-            }
-        ]
-    },
-    'efa-factor-analysis': {
-        title_vi: 'Phân tích nhân tố khám phá (EFA): Khi nào cần xoay nhân tố?',
-        title_en: 'Exploratory Factor Analysis (EFA): When to Rotate Factors?',
-        category: 'Factor Analysis',
-        author: 'ncsStat Editorial',
-        date: '31 March 2026',
-        items: [
-            {
-                h2_vi: '1. Mục tiêu của EFA',
-                h2_en: '1. Objectives of EFA',
-                content_vi: 'EFA giúp rút gọn một tập hợp nhiều biến quan sát thành một số ít các nhân tố có ý nghĩa hơn. Điều này giúp mô hình nghiên cứu gọn nhẹ và tập trung vào các khái niệm chính.',
-                content_en: 'EFA helps simplify a large set of observed variables into a fewer number of meaningful factors, making the research model concise and focused on core concepts.'
+                h2_vi: '2. Các ngưỡng giá trị vàng (Academic Standards)',
+                h2_en: '2. Standard Gold Thresholds',
+                content_vi: 'Dựa trên tiêu chuẩn của Hair et al. (2010) và Nunnally & Bernstein (1994), chúng ta có các mốc quan trọng sau: \n\n• Alpha ≥ 0.8: Thang đo đạt độ tin cậy rất tốt, lý tưởng cho mọi bài công bố quốc tế.\n• 0.7 ≤ Alpha < 0.8: Độ tin cậy tốt, có thể sử dụng bình thường.\n• 0.6 ≤ Alpha < 0.7: Chấp nhận được đối với các nghiên cứu mới hoặc thang đo mới phát triển.\n• Alpha < 0.6: Loại bỏ thang đo vì không đạt tính nhất quán.',
+                content_en: 'Based on Hair et al. (2010) and Nunnally & Bernstein (1994), we have these key milestones: \n\n• Alpha ≥ 0.8: Excellent reliability, ideal for international publication.\n• 0.7 ≤ Alpha < 0.8: Good reliability.\n• 0.6 ≤ Alpha < 0.7: Acceptable for exploratory research.\n• Alpha < 0.6: Reject the scale due to poor consistency.'
             },
             {
-                h2_vi: '2. Các chỉ số quan trọng (KMO & Bartlett)',
-                h2_en: '2. Key Metrics (KMO & Bartlett)',
-                content_vi: 'KMO phải đạt >= 0.5 và kiểm định Bartlett phải có ý nghĩa thống kê (Sig < 0.05). Ngoài ra, hệ số tải nhân tố (Factor Loading) nên >= 0.5 để đảm bảo ý nghĩa thiết thực.',
-                content_en: 'KMO must be >= 0.5 and Bartlett\'s test must be statistically significant (Sig < 0.05). Additionally, factor loadings should be >= 0.5 for practical significance.'
-            }
-        ]
-    },
-    'regression-vif-multicollinearity': {
-        title_vi: 'Hồi quy đa biến và kiểm tra Đa cộng tuyến (VIF)',
-        title_en: 'Multiple Regression and Multicollinearity (VIF) Check',
-        category: 'Impact Analysis',
-        author: 'ncsStat Editorial',
-        date: '31 March 2026',
-        items: [
-            {
-                h2_vi: '1. Kiểm tra Đa cộng tuyến',
-                h2_en: '1. Checking Multicollinearity',
-                content_vi: 'Đa cộng tuyến xảy ra khi các biến độc lập có tương quan quá mạnh với nhau. Điều này được đo qua hệ số VIF. Thông thường VIF < 10 là chấp nhận được, nhưng trong nghiên cứu khắt khe, VIF < 2 hoặc 5 là lý tưởng.',
-                content_en: 'Multicollinearity occurs when independent variables are too strongly correlated. This is measured via VIF. Generally, VIF < 10 is acceptable, but VIF < 2 or 5 is ideal for rigorous studies.'
-            }
-        ]
-    },
-    'descriptive-statistics-interpretation': {
-        title_vi: 'Thống kê mô tả: Cách trình bày Mean, Std. Deviation chuẩn APA',
-        title_en: 'Descriptive Statistics: Presenting Mean & Std. Deviation in APA',
-        category: 'Preliminary Analysis',
-        author: 'ncsStat Editorial',
-        date: '31 March 2026',
-        items: [
-            {
-                h2_vi: '1. Tại sao cần Thống kê mô tả?',
-                h2_en: '1. Why Use Descriptive Statistics?',
-                content_vi: 'Nó cung cấp cái nhìn tổng quan về mẫu nghiên cứu, đặc điểm nhân khẩu học và mức độ đánh giá trung bình của đáp viên đối với các thang đo.',
-                content_en: 'It provides an overview of the research sample, demographics, and respondents\' average ratings for the scales.'
-            }
-        ]
-    },
-    'independent-t-test-guide': {
-        title_vi: 'Kiểm định Independent T-test: So sánh trung bình hai nhóm',
-        title_en: 'Independent T-test: Comparing Means Between Two Groups',
-        category: 'Comparison Analysis',
-        author: 'ncsStat Editorial',
-        date: '31 March 2026',
-        items: [
-            {
-                h2_vi: '1. Điều kiện sử dụng',
-                h2_en: '1. Usage Conditions',
-                content_vi: 'Dùng để so sánh giá trị trung bình giữa hai nhóm độc lập (ví dụ Nam vs Nữ) về một biến định lượng nào đó.',
-                content_en: 'Used to compare the average values between two independent groups (e.g., Male vs Female) on a quantitative variable.'
-            }
-        ]
-    },
-    'one-way-anova-post-hoc': {
-        title_vi: 'Phân tích ANOVA và kiểm định Post-hoc (Bonferroni, Tukey)',
-        title_en: 'One-way ANOVA and Post-hoc Tests (Bonferroni, Tukey)',
-        category: 'Comparison Analysis',
-        author: 'ncsStat Editorial',
-        date: '31 March 2026',
-        items: [
-            {
-                h2_vi: '1. Phép thử ANOVA',
-                h2_en: '1. ANOVA Analysis',
-                content_vi: 'Dùng khi bạn muốn so sánh từ 3 nhóm trở lên (ví dụ: trình độ học vấn Đại học, Thạc sĩ, Tiến sĩ).',
-                content_en: 'Use ANOVA when comparing 3 or more groups (e.g., Education: Bachelor, Master, PhD).'
-            }
-        ]
-    },
-    'pearson-correlation-analysis': {
-        title_vi: 'Tương quan Pearson: Đo lường sức mạnh mối liên hệ',
-        title_en: 'Pearson Correlation: Measuring Relationship Strength',
-        category: 'Relationship Analysis',
-        author: 'ncsStat Editorial',
-        date: '31 March 2026',
-        items: [
-            {
-                h2_vi: '1. Hệ số tương quan r',
-                h2_en: '1. Correlation Coefficient r',
-                content_vi: 'Giá trị r nằm từ -1 đến 1. Dấu (+) là tương quan thuận, dấu (-) là tương quan nghịch.',
-                content_en: 'r values range from -1 to 1. Positive (+) indicates a direct correlation, and negative (-) indicates an inverse correlation.'
-            }
-        ]
-    },
-    'chi-square-test-independence': {
-        title_vi: 'Kiểm định Chi-square: Phân tích mối liên hệ biến định danh',
-        title_en: 'Chi-square Test: Analyzing Categorical Relationships',
-        category: 'Categorical Analysis',
-        author: 'ncsStat Editorial',
-        date: '31 March 2026',
-        items: [
-            {
-                h2_vi: '1. Ứng dụng',
-                h2_en: '1. Applications',
-                content_vi: 'Dùng để kiểm tra mối quan hệ giữa hai biến định tính (ví dụ: Nghề nghiệp có liên quan đến việc chọn loại sản phẩm hay không).',
-                content_en: 'Used to test the relationship between two qualitative variables (e.g., Is occupation related to product choice?).'
-            }
-        ]
-    },
-    'mediation-analysis-sobel-test': {
-        title_vi: 'Phân tích biến trung gian (Mediation): Mô hình Baron & Kenny',
-        title_en: 'Mediation Analysis: Baron & Kenny Model',
-        category: 'Advanced Analysis',
-        author: 'ncsStat Editorial',
-        date: '31 March 2026',
-        items: [
-            {
-                h2_vi: '1. Định nghĩa Biến trung gian',
-                h2_en: '1. Defining Mediator Variables',
-                content_vi: 'Biến trung gian giải thích tại sao một biến độc lập ảnh hưởng đến biến phụ thuộc.',
-                content_en: 'A mediator explains the mechanism through which an independent variable affects a dependent variable.'
-            }
-        ]
-    },
-    'data-cleaning-outliers-detection': {
-        title_vi: 'Làm sạch dữ liệu và xử lý giá trị ngoại lai (Outliers)',
-        title_en: 'Data Cleaning and Outliers Detection (Z-Score & Boxplot)',
-        category: 'Preliminary Analysis',
-        author: 'ncsStat Editorial',
-        date: '31 March 2026',
-        items: [
-            {
-                h2_vi: '1. Tại sao cần xử lý Outliers?',
-                h2_en: '1. Why Handle Outliers?',
-                content_vi: 'Giá trị ngoại lai có thể làm sai lệch kết quả hồi quy và các phép kiểm định tham số nếu không được xử lý.',
-                content_en: 'Outliers can skew regression results and parametric tests if left unhandled.'
-            }
-        ]
-    },
-    'sem-cfa-structural-modeling': {
-        title_vi: 'Mô hình cấu trúc tuyến tính (SEM) và CFA: Đỉnh cao nghiên cứu',
-        title_en: 'Structural Equation Modeling (SEM) & CFA: Expert Guide',
-        category: 'Advanced Analysis',
-        author: 'ncsStat Editorial',
-        date: '31 March 2026',
-        items: [
-            {
-                h2_vi: '1. CFA và SEM là gì?',
-                h2_en: '1. What are CFA & SEM?',
-                content_vi: 'CFA (Phân tích nhân tố khẳng định) dùng để kiểm định mức độ phù hợp của thang đo với dữ liệu thực tế. SEM là sự kết hợp giữa EFA và Hồi quy đa biến, cho phép kiểm định toàn bộ mô hình lý thuyết cùng lúc.',
-                content_en: 'CFA (Confirmatory Factor Analysis) tests how well your scale fits the actual data. SEM combines EFA and Multiple Regression, allowing for simultaneous testing of the entire theoretical model.'
+                h2_vi: '3. Phân tích "Hệ số tương quan biến - tổng" (Item-Total Correlation)',
+                h2_en: '3. Item-Total Correlation Analysis',
+                content_vi: 'Đây là insight quan trọng nhất mà nhiều người thường bỏ qua. Khi chạy ncsStat, bạn cần nhìn vào cột "Corrected Item-Total Correlation". \n\n• Quy tắc: Bất kỳ biến nào có hệ số này < 0.3 thì phải loại bỏ ngay lập tức, dù Alpha tổng có cao đến đâu. \n• Lý do: Biến đó đang lạc lõng và không đóng góp giá trị vào khái niệm chung.',
+                content_en: 'This is the most critical insight. When running ncsStat, look at the "Corrected Item-Total Correlation" column. \n\n• Rule: Any variable with a coefficient < 0.3 must be removed immediately, regardless of the total Alpha value.'
             },
             {
-                h2_vi: '2. Các chỉ số độ phù hợp (Model Fit)',
-                h2_en: '2. Model Fit Indices',
-                content_vi: 'Các chỉ số phổ biến bao gồm:\n- Chi-square/df < 3 (hoặc 5)\n- GFI, CFI, TLI > 0.9\n- RMSEA < 0.08\nP-value của kiểm định Chi-square nên > 0.05, tuy nhiên với mẫu lớn ngưỡng này thường bị bỏ qua.',
-                content_en: 'Common indices include:\n- Chi-square/df < 3 (or 5)\n- GFI, CFI, TLI > 0.9\n- RMSEA < 0.08\nChi-square p-value should ideally be > 0.05, though this is often relaxed for large samples.'
+                h2_vi: '4. Case Study: Khi nào xóa biến làm tăng Alpha?',
+                h2_en: '4. Case Study: Deleting Items to Increase Alpha',
+                content_vi: 'Hãy chú ý đến cột "Cronbach\'s Alpha if Item Deleted". Nếu bạn thấy một biến mà khi xóa nó đi, Alpha tổng tăng vọt lên (ví dụ từ 0.65 lên 0.78), thì đó là "biến gây nhiễu". Hãy xóa nó để làm sạch thang đo trước khi tiến hành phân tích EFA.',
+                content_en: 'Pay attention to the "Cronbach\'s Alpha if Item Deleted" column. If deleting a variable causes a sharp increase in total Alpha, it is a "noise variable". Remove it to clean your scale before EFA.'
             }
         ]
     }
@@ -218,40 +68,40 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
             <main className="pt-32 pb-24">
                 {/* Article Header */}
                 <header className="container mx-auto px-6 max-w-4xl mb-12">
-                    <Link href="/knowledge" className="inline-flex items-center gap-2 text-slate-400 hover:text-indigo-600 font-bold text-sm mb-10 transition-colors group">
+                    <Link href="/knowledge" className="inline-flex items-center gap-2 text-slate-500 hover:text-indigo-600 font-bold text-sm mb-10 transition-colors group">
                         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                         {isVi ? 'Quay lại thư viện' : 'Back to library'}
                     </Link>
                     
                     <div className="flex items-center gap-3 mb-6">
-                        <span className="px-3 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest rounded-lg border border-indigo-100">
+                        <span className="px-3 py-1 bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest rounded-lg border border-indigo-100 shadow-sm">
                             {article.category}
                         </span>
-                        <div className="flex items-center gap-1.5 text-slate-400 font-bold text-[10px] uppercase tracking-wider">
-                            <Clock className="w-3.5 h-3.5" />
-                            <span>10 min read</span>
+                        <div className="flex items-center gap-1.5 text-slate-500 font-bold text-[10px] uppercase tracking-wider">
+                            <Clock className="w-3.5 h-3.5 text-indigo-500" />
+                            <span>15 min read</span>
                         </div>
                     </div>
                     
-                    <h1 className="text-4xl md:text-6xl font-black text-slate-900 leading-tight mb-8 tracking-tight">
+                    <h1 className="text-4xl md:text-6xl font-black text-slate-900 leading-[1.1] mb-8 tracking-tighter">
                         {isVi ? article.title_vi : article.title_en}
                     </h1>
                     
-                    <div className="flex items-center justify-between py-8 border-y border-slate-100">
+                    <div className="flex items-center justify-between py-10 border-y border-slate-100">
                         <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-white">
-                                <User className="w-6 h-6" />
+                            <div className="w-14 h-14 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-100">
+                                <User className="w-7 h-7" />
                             </div>
                             <div>
-                                <p className="font-black text-slate-900 text-sm uppercase tracking-tight">{article.author}</p>
-                                <p className="text-xs text-slate-400 font-medium">{article.date}</p>
+                                <p className="font-black text-slate-900 text-base uppercase tracking-tight leading-none mb-1.5">{article.author}</p>
+                                <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">{article.date}</p>
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
-                            <button className="p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors text-slate-400 hover:text-indigo-600">
+                            <button className="p-3.5 bg-slate-50 rounded-2xl hover:bg-slate-100 transition-colors text-slate-600 hover:text-indigo-600 border border-slate-100">
                                 <Share2 className="w-5 h-5" />
                             </button>
-                            <button className="p-3 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors text-slate-400 hover:text-indigo-600">
+                            <button className="p-3.5 bg-slate-50 rounded-2xl hover:bg-slate-100 transition-colors text-slate-600 hover:text-indigo-600 border border-slate-100">
                                 <Bookmark className="w-5 h-5" />
                             </button>
                         </div>
@@ -260,37 +110,43 @@ export default function ArticlePage({ params }: { params: { slug: string } }) {
 
                 {/* Article Content */}
                 <article className="container mx-auto px-6 max-w-4xl">
-                    <div className="prose prose-slate max-w-none prose-headings:font-black prose-p:text-slate-600 prose-p:leading-relaxed prose-p:text-lg prose-p:font-light">
+                    <div className="prose prose-lg prose-slate max-w-none 
+                        prose-headings:font-black prose-headings:text-slate-900 prose-headings:tracking-tight 
+                        prose-p:text-slate-800 prose-p:leading-[1.8] prose-p:text-lg prose-p:font-normal
+                        prose-strong:text-indigo-600 prose-strong:font-black">
+                        
                         {article.items.map((section, idx) => (
-                            <div key={idx} className="mb-14">
-                                <h2 className="text-2xl md:text-3xl font-black text-slate-900 mb-6 tracking-tight">
+                            <div key={idx} className="mb-16 last:mb-0">
+                                <h2 className="text-2xl md:text-3xl font-black text-slate-900 mb-8 border-l-4 border-indigo-600 pl-6 py-1">
                                     {isVi ? section.h2_vi : section.h2_en}
                                 </h2>
-                                <p className="whitespace-pre-line">
+                                <div className="text-slate-800 leading-[1.8] text-lg lg:text-xl font-normal whitespace-pre-line bg-slate-50/50 p-8 rounded-[2rem] border border-slate-100">
                                     {isVi ? section.content_vi : section.content_en}
-                                </p>
+                                </div>
                             </div>
                         ))}
                     </div>
                     
                     {/* Professional Tip Box */}
-                    <div className="bg-indigo-900 p-10 rounded-[3rem] text-white shadow-2xl shadow-indigo-100 relative overflow-hidden my-16">
-                        <div className="absolute top-0 right-0 p-8 opacity-10">
-                            <CheckCircle2 className="w-32 h-32 rotate-12" />
+                    <div className="bg-slate-900 p-12 rounded-[3.5rem] text-white shadow-2xl shadow-indigo-100 relative overflow-hidden my-24 border border-white/10">
+                        <div className="absolute top-0 right-0 p-10 opacity-10">
+                            <CheckCircle2 className="w-48 h-48 rotate-12 text-indigo-400" />
                         </div>
-                        <h4 className="text-xl font-bold mb-4 flex items-center gap-3">
-                            <ShieldCheck className="w-6 h-6 text-indigo-400" />
-                            {isVi ? 'Lời khuyên từ chuyên gia' : 'Expert Insights'}
-                        </h4>
-                        <p className="text-indigo-100 text-lg font-light leading-relaxed mb-8">
-                            {isVi 
-                                ? 'Khi chạy Cronbach\'s Alpha trên ncsStat, hãy luôn chú ý đến mục "Alpha if Item Deleted". Nếu việc xóa một biến làm tăng đáng kể hệ số Alpha tổng, đó là tín hiệu cho thấy biến đó không thực sự nhất quán với nhóm.' 
-                                : 'When running Cronbach\'s Alpha on ncsStat, always pay attention to the "Alpha if Item Deleted" section. If deleting a variable significantly increases the overall Alpha, it is a sign that the variable is not consistent with the group.'}
-                        </p>
-                        <Link href="/analyze" className="inline-flex items-center gap-2 px-8 py-4 bg-white text-indigo-900 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-100 transition-all shadow-xl">
-                            {isVi ? 'Thực hành phân tích ngay' : 'Analyze Now'}
-                            <TrendingUp className="w-4 h-4 ml-2" />
-                        </Link>
+                        <div className="relative z-10">
+                            <h4 className="text-2xl font-black mb-6 flex items-center gap-4 text-indigo-400 uppercase tracking-widest">
+                                <ShieldCheck className="w-8 h-8" />
+                                {isVi ? 'Tư vấn Chuyên gia ncsStat' : 'ncsStat Expert Strategy'}
+                            </h4>
+                            <p className="text-slate-300 text-xl font-light leading-relaxed mb-10">
+                                {isVi 
+                                    ? 'Đừng quá ám ảnh việc đạt Alpha > 0.9. Trong nhiều trường hợp, Alpha quá cao (> 0.95) có thể là dấu hiệu của việc các câu hỏi quá giống nhau (trùng lặp ý), gây lãng phí dữ liệu. Hãy hướng tới ngưỡng 0.7 - 0.9 để thang đo vừa tin cậy vừa có tính phân biệt tốt.' 
+                                    : 'Don\'t be obsessed with Alpha > 0.9. In many cases, an extremely high Alpha (> 0.95) might indicate redundant questions. Aim for 0.7 - 0.9 for a reliable yet non-redundant scale.'}
+                            </p>
+                            <Link href="/analyze" className="inline-flex items-center gap-3 px-10 py-5 bg-indigo-600 text-white rounded-[1.5rem] font-black text-sm uppercase tracking-widest hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-900/50">
+                                {isVi ? 'Bắt đầu kiểm định ngay' : 'Start Analyzing Now'}
+                                <TrendingUp className="w-5 h-5 ml-1" />
+                            </Link>
+                        </div>
                     </div>
                 </article>
             </main>
