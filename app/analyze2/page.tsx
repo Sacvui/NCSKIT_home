@@ -161,6 +161,7 @@ function Analyze2Content() {
     } = useAnalysisSession();
 
     const [locale, setLocale] = useState<Locale>(getStoredLocale());
+    const isVi = locale === 'vi';
 
     useEffect(() => {
         setLocale(getStoredLocale());
@@ -373,27 +374,33 @@ function Analyze2Content() {
                 </div>
             )}
 
-            {/* Header with Integrated Toolbar */}
-            {/* Professional Academy Header */}
+            {/* Header - Fixed Top */}
             <Header
                 user={user}
                 profile={userProfile}
                 hideNav={false}
-                centerContent={
-                    <div className="flex flex-wrap items-center gap-4 py-2 px-4 bg-white/50 backdrop-blur-md rounded-2xl border border-slate-100 shadow-sm max-w-full">
-                        <div className="flex items-center gap-2 pr-4 border-r border-slate-100 shrink-0">
-                            <Sparkles className="w-5 h-5 text-indigo-600" />
-                            <span className="font-black text-sm bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent uppercase tracking-tight">
+            />
+
+            {/* Sticky Analysis Toolbar (Sub-header) */}
+            <div className="sticky top-16 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm py-3">
+                <div className="container mx-auto px-6">
+                    <div className="flex flex-wrap items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-indigo-600 rounded-lg text-white shadow-lg shadow-indigo-100">
+                                <Sparkles className="w-4 h-4" />
+                            </div>
+                            <span className="font-black text-sm text-slate-900 uppercase tracking-tight hidden sm:block">
                                 PLS-SEM Academy
                             </span>
                         </div>
-                        <div className="flex-1 flex flex-wrap items-center gap-3">
+                        
+                        <div className="flex-1 flex justify-end">
                             <AnalysisToolbar
                                 isPrivateMode={isPrivateMode}
                                 setIsPrivateMode={setIsPrivateMode}
                                 clearSession={() => {
                                     clearSession();
-                                    showToast(t(locale, 'analyze.common.session_cleared'), 'info');
+                                    showToast(isVi ? 'Đã dọn dẹp phiên làm việc' : 'Session cleared', 'info');
                                 }}
                                 filename={filename}
                                 onSave={() => setIsSaveModalOpen(true)}
@@ -401,8 +408,8 @@ function Analyze2Content() {
                             />
                         </div>
                     </div>
-                }
-            />
+                </div>
+            </div>
 
             <div className="bg-purple-50/50 border-b border-purple-100 py-1">
                 <div className="container mx-auto px-6 flex items-center justify-center gap-2 text-[11px] text-purple-600/80">

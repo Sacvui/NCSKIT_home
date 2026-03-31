@@ -44,30 +44,25 @@ export default function AnalysisToolbar({
             <div className="flex items-center gap-2 shrink-0">
                 <div className="h-6 w-px bg-slate-200 mx-2 hidden md:block" />
 
-
-
-
-                <div className="h-6 w-px bg-slate-200 mx-2 hidden md:block" />
-
                 <button
                     onClick={onSave}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 rounded-lg text-xs font-medium transition-colors"
+                    className="flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white hover:bg-slate-900 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-100"
                 >
                     <Save className="w-3.5 h-3.5" />
-                    <span className="hidden lg:inline">{t(locale, 'analyze.toolbar.save_project')}</span>
+                    <span>{locale === 'vi' ? 'Lưu dự án' : 'Save Academy'}</span>
                 </button>
 
                 <button
                     onClick={() => {
-                        if (confirm(t(locale, 'analyze.toolbar.confirm_clear'))) {
+                        const msg = locale === 'vi' ? 'Bạn có chắc muốn xóa phiên làm việc hiện tại và bắt đầu khảo sát mới?' : 'Clear session and start new analysis?';
+                        if (confirm(msg)) {
                             clearSession();
                         }
                     }}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 rounded-lg text-xs font-medium transition-colors"
-                    title={t(locale, 'analyze.toolbar.new_analysis')}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-white border border-slate-200 text-slate-900 hover:bg-slate-50 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-sm"
                 >
                     <PlusCircle className="w-3.5 h-3.5" />
-                    <span className="hidden lg:inline">{t(locale, 'analyze.toolbar.new_analysis')}</span>
+                    <span>{locale === 'vi' ? 'Phân tích mới' : 'New Research'}</span>
                 </button>
             </div>
         </div>
