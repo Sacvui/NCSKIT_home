@@ -18,7 +18,8 @@ interface ArticleSection {
 
 interface ArticleData {
     id?: string; slug: string; category: string; title_vi: string; title_en: string;
-    expert_tip_vi: string; expert_tip_en: string; content_structure: ArticleSection[];
+    expert_tip_vi: string; expert_tip_en: string; thresholds?: string; 
+    content_structure: ArticleSection[];
     author: string; updated_at: string;
 }
 
@@ -184,15 +185,39 @@ export default function ArticleClient({ initialArticle, fallbackArticles, slug }
                         </div>
 
                         {isEditing ? (
-                            <input 
-                                className="w-full text-4xl md:text-5xl font-black text-slate-900 bg-slate-50 border-2 border-indigo-50 p-6 rounded-[2rem] outline-none" 
-                                value={isVi ? editedArticle.title_vi : editedArticle.title_en} 
-                                onChange={(e) => setEditedArticle({...editedArticle, [isVi ? 'title_vi' : 'title_en']: e.target.value})} 
-                            />
+                            <div className="space-y-4">
+                                <input 
+                                    className="w-full text-4xl md:text-5xl font-black text-slate-900 bg-slate-50 border-2 border-indigo-50 p-6 rounded-[2rem] outline-none" 
+                                    value={isVi ? editedArticle.title_vi : editedArticle.title_en} 
+                                    onChange={(e) => setEditedArticle({...editedArticle, [isVi ? 'title_vi' : 'title_en']: e.target.value})} 
+                                />
+                                <div className="flex gap-4">
+                                    <input 
+                                        placeholder="Ngưỡng học thuật..."
+                                        className="flex-1 bg-slate-900 text-indigo-400 p-4 rounded-xl font-mono text-sm"
+                                        value={editedArticle.thresholds || ''}
+                                        onChange={(e) => setEditedArticle({...editedArticle, thresholds: e.target.value})}
+                                    />
+                                    <input 
+                                        placeholder="Tác giả..."
+                                        className="w-48 bg-slate-50 border border-slate-200 p-4 rounded-xl text-sm font-bold"
+                                        value={editedArticle.author}
+                                        onChange={(e) => setEditedArticle({...editedArticle, author: e.target.value})}
+                                    />
+                                </div>
+                            </div>
                         ) : (
-                            <h1 className="text-4xl md:text-7xl font-black text-slate-900 tracking-tighter leading-[0.95] mb-10">
-                                {isVi ? displayArticle.title_vi : displayArticle.title_en}
-                            </h1>
+                            <div className="space-y-6">
+                                <h1 className="text-4xl md:text-7xl font-black text-slate-900 tracking-tighter leading-[0.95]">
+                                    {isVi ? displayArticle.title_vi : displayArticle.title_en}
+                                </h1>
+                                {displayArticle.thresholds && (
+                                    <div className="inline-flex items-center gap-4 px-6 py-3 bg-slate-900 text-white rounded-2xl shadow-xl shadow-slate-100">
+                                        <div className="p-1 px-2.5 bg-indigo-500 rounded-md text-[10px] font-black uppercase tracking-widest text-white">Accepted Thresholds</div>
+                                        <div className="font-mono text-sm text-indigo-300 font-bold tracking-tight">{displayArticle.thresholds}</div>
+                                    </div>
+                                )}
+                            </div>
                         )}
 
                         <div className="flex items-center gap-5 py-10 border-t border-slate-100">

@@ -140,15 +140,34 @@ export default function EditorialWorkplace({ params: paramsPromise }: { params: 
                             </h3>
                             <div className="space-y-6">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Tiêu đề bài viết (VI)</label>
+                                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Tiêu đề nghiên cứu (Academy Level)</label>
                                     <input 
                                         className="w-full text-2xl font-black bg-white border border-slate-100 p-6 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-100 transition-all font-sans"
                                         value={article.title_vi}
                                         onChange={(e) => setArticle({...article, title_vi: e.target.value})}
                                     />
                                 </div>
+                                <div className="grid md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Ngưỡng Chấp nhận (Thresholds)</label>
+                                        <input 
+                                            placeholder="Ví dụ: P-value < 0.05, Alpha > 0.7"
+                                            className="w-full bg-white border border-slate-100 p-6 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-100 transition-all font-mono text-sm"
+                                            value={article.thresholds || ''}
+                                            onChange={(e) => setArticle({...article, thresholds: e.target.value})}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Tác giả biên soạn</label>
+                                        <input 
+                                            className="w-full bg-white border border-slate-100 p-6 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-100 transition-all font-sans"
+                                            value={article.author}
+                                            onChange={(e) => setArticle({...article, author: e.target.value})}
+                                        />
+                                    </div>
+                                </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Expert Strategy Tip</label>
+                                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Chiến lược học thuật (Expert Strategy Tip)</label>
                                     <textarea 
                                         className="w-full min-h-[120px] bg-white border border-slate-100 p-6 rounded-2xl outline-none focus:ring-4 focus:ring-indigo-100 transition-all font-sans italic"
                                         value={article.expert_tip_vi}
