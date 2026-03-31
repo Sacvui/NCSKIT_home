@@ -59,6 +59,7 @@ function ScaleHubContent() {
     // Advisor State
     const [showAdvisor, setShowAdvisor] = useState(false);
     const [advisorSelection, setAdvisorSelection] = useState<string | null>(null);
+    const [suggestionsOpen, setSuggestionsOpen] = useState(false);
 
     const isVi = locale === 'vi';
     const supabase = getSupabase();
@@ -79,8 +80,16 @@ function ScaleHubContent() {
 
         fetchScales();
         
+        const handleClickOutside = (e: MouseEvent) => {
+            if (!(e.target as HTMLElement).closest('.search-container')) {
+                setSuggestionsOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        
         return () => {
             window.removeEventListener('localeChange', handleLocaleChange);
+            document.removeEventListener('mousedown', handleClickOutside);
             subscription.unsubscribe();
         };
     }, []);
@@ -254,35 +263,46 @@ function ScaleHubContent() {
                     {/* {t(locale, 'scales.advisor.loginRequired')} - Temporarily disabled */}
 
                     <div className="bg-white p-6 rounded-2xl shadow-xl border border-slate-200 mb-12 flex flex-col lg:flex-row gap-6">
-                        <div className="relative flex-1">
+                        <div className="relative flex-1 search-container">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                             <input 
                                 type="text" 
                                 placeholder={t(locale, 'scales.searchPlaceholder')}
                                 className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 font-medium"
                                 value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onFocus={() => setSuggestionsOpen(true)}
+                                onChange={(e) => {
+                                    setSearchQuery(e.target.value);
+                                    setSuggestionsOpen(true);
+                                }}
                             />
-                            {suggestions.length > 0 && (
+                            {suggestionsOpen && searchQuery.trim() && (
                                 <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 overflow-hidden animate-in fade-in slide-in-from-top-2">
-                                    {suggestions.map(s => (
-                                        <button
-                                            key={s.id}
-                                            onClick={() => {
-                                                setSearchQuery(isVi ? s.name_vi : s.name_en);
-                                                setExpandedScale(s.id);
-                                            }}
-                                            className="w-full text-left px-5 py-3 hover:bg-slate-50 flex items-center gap-3 transition-colors border-b border-slate-50 last:border-0"
-                                        >
-                                            <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
-                                                <Search className="w-4 h-4" />
-                                            </div>
-                                            <div>
-                                                <p className="font-bold text-slate-800 text-sm">{isVi ? s.name_vi : s.name_en}</p>
-                                                <p className="text-xs text-slate-400">{s.author} ({s.year})</p>
-                                            </div>
-                                        </button>
-                                    ))}
+                                    {suggestions.length > 0 ? (
+                                        suggestions.map(s => (
+                                            <button
+                                                key={s.id}
+                                                onClick={() => {
+                                                    setSearchQuery(isVi ? s.name_vi : s.name_en);
+                                                    setExpandedScale(s.id);
+                                                    setSuggestionsOpen(false);
+                                                }}
+                                                className="w-full text-left px-5 py-3 hover:bg-slate-50 flex items-center gap-3 transition-colors border-b border-slate-50 last:border-0"
+                                            >
+                                                <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
+                                                    <Search className="w-4 h-4" />
+                                                </div>
+                                                <div className="flex-1 overflow-hidden">
+                                                    <p className="font-bold text-slate-800 text-sm truncate">{isVi ? s.name_vi : s.name_en}</p>
+                                                    <p className="text-xs text-slate-400 truncate">{s.author} ({s.year})</p>
+                                                </div>
+                                            </button>
+                                        ))
+                                    ) : (
+                                        <div className="px-5 py-4 text-slate-400 text-sm italic">
+                                            {isVi ? 'Không tìm thấy kết quả phù hợp' : 'No matching scales found'}
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
