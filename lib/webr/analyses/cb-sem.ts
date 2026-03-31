@@ -21,17 +21,17 @@ export async function runCBSEM(
   // Use core recovery executor for stability
   const rCommand = `
     library(lavaan)
-    df <- as.data.frame(matrix(unlist(raw_data), ncol = ${columns.length}, byrow = TRUE))
-    colnames(df) <- ${JSON.stringify(columns)}
+    # Using R vector syntax c(...) instead of JS array [...]
+    colnames_r <- c(${columns.map(c => `'${c}'`).join(',')})
+    df <- as.data.frame(matrix(unlist(raw_data), ncol = length(colnames_r), byrow = TRUE))
+    colnames(df) <- colnames_r
     
-    # Run model with FIML for academic excellence
-    model_syntax <- "${modelString}"
+    # Use raw string or paste to handle multi-line lavaan syntax accurately
+    model_syntax <- '${modelString.replace(/\n/g, "\\n")}'
     fit <- ${analysisType}(model_syntax, data=df, std.lv=TRUE, missing="fiml")
     
     # Extract Standard Academic Fit Indices
     fit_measures <- fitMeasures(fit, c("chisq", "df", "pvalue", "gfi", "cfi", "tli", "rmsea", "srmr", "aic", "bic"))
-    
-    # Extract Estimates
     estimates <- parameterEstimates(fit, standardized=TRUE)
     
     list(
