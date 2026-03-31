@@ -100,9 +100,7 @@ export default function AdvancedMethodView({
                     break;
                 case 'cbsem':
                 case 'cfa':
-                    // Fix: R expects c("col1", "col2") not ["col1", "col2"]
-                    const rColumnNames = `c(${columnNames.map(name => `'${name}'`).join(',')})`;
-                    result = await runCBSEM(data, rColumnNames, modelSyntax, method === 'cfa' ? 'cfa' : 'sem');
+                    result = await runCBSEM(data, columnNames, modelSyntax, method === 'cfa' ? 'cfa' : 'sem');
                     break;
             }
 

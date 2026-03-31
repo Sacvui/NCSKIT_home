@@ -21,12 +21,12 @@ export async function runCBSEM(
   // Use core recovery executor for stability
   const rCommand = `
     library(lavaan)
-    # Using R vector syntax c(...) instead of JS array [...]
+    # Convert JS array to R vector c('col1', 'col2', ...)
     colnames_r <- c(${columns.map(c => `'${c}'`).join(',')})
     df <- as.data.frame(matrix(unlist(raw_data), ncol = length(colnames_r), byrow = TRUE))
     colnames(df) <- colnames_r
     
-    # Use raw string or paste to handle multi-line lavaan syntax accurately
+    # Handle multi-line model syntax safely for R
     model_syntax <- '${modelString.replace(/\n/g, "\\n")}'
     fit <- ${analysisType}(model_syntax, data=df, std.lv=TRUE, missing="fiml")
     
