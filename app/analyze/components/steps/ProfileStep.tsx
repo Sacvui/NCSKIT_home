@@ -38,7 +38,7 @@ export function ProfileStep() {
                 </button>
             </div>
 
-            <DataProfiler profile={state.profile} />
+            <DataProfiler profile={state.profile} locale={state.locale} />
 
             <div className="flex justify-end">
                 <button

@@ -23,11 +23,17 @@ import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import { useAuth } from '@/context/AuthContext';
 import { initWebR } from '@/lib/webr-wrapper';
+import { getStoredLocale, t } from '@/lib/i18n';
 
 function AnalyzeContent() {
     const state = useAnalyzeState();
     const actions = useAnalyzeActions();
     const { profile: userProfile } = useAuth();
+
+    // Sync locale with context
+    useEffect(() => {
+        actions.setLocale(getStoredLocale());
+    }, []);
 
     // Initialize WebR on mount
     useEffect(() => {
@@ -46,10 +52,10 @@ function AnalyzeContent() {
     };
 
     const steps = [
-        { id: 'upload', label: 'Dữ liệu' },
-        { id: 'profile', label: 'Kiểm tra' },
-        { id: 'analyze', label: 'Phân tích' },
-        { id: 'results', label: 'Kết quả' },
+        { id: 'upload', label: t(state.locale, 'analyze.steps.upload') },
+        { id: 'profile', label: t(state.locale, 'analyze.steps.profile') },
+        { id: 'analyze', label: t(state.locale, 'analyze.steps.analyze') },
+        { id: 'results', label: t(state.locale, 'analyze.steps.results') },
     ];
 
     // Render current step

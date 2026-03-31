@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { DataProfile } from '@/lib/data-profiler';
 import { AnalysisStep } from '@/types/analysis';
+import { Locale, getStoredLocale } from '@/lib/i18n';
 
 const STORAGE_KEY = 'statviet_session';
 
@@ -25,6 +26,7 @@ export function useAnalysisSession() {
     const [clusterVars, setClusterVars] = useState<{ variables: string[]; k: number }>({ variables: [], k: 3 });
     const [mediationVars, setMediationVars] = useState<{ x: string; m: string; y: string }>({ x: '', m: '', y: '' });
     const [logisticVars, setLogisticVars] = useState<{ y: string; xs: string[] }>({ y: '', xs: [] });
+    const [locale, setLocale] = useState<Locale>(getStoredLocale());
 
     // Load session on mount
     useEffect(() => {
@@ -42,6 +44,7 @@ export function useAnalysisSession() {
                 if (session.multipleResults) setMultipleResults(session.multipleResults);
                 if (session.scaleName) setScaleName(session.scaleName);
                 if (session.regressionVars) setRegressionVars(session.regressionVars);
+                if (session.locale) setLocale(session.locale);
             }
         } catch (e) {
             console.error('Failed to load session:', e);
@@ -73,7 +76,8 @@ export function useAnalysisSession() {
             twoWayAnovaVars,
             clusterVars,
             mediationVars,
-            logisticVars
+            logisticVars,
+            locale
         };
 
         try {
@@ -101,6 +105,7 @@ export function useAnalysisSession() {
         setClusterVars({ variables: [], k: 3 });
         setMediationVars({ x: '', m: '', y: '' });
         setLogisticVars({ y: '', xs: [] });
+        setLocale(getStoredLocale());
     }, []);
 
     return {
@@ -122,6 +127,7 @@ export function useAnalysisSession() {
         twoWayAnovaVars, setTwoWayAnovaVars,
         clusterVars, setClusterVars,
         mediationVars, setMediationVars,
-        logisticVars, setLogisticVars
+        logisticVars, setLogisticVars,
+        locale, setLocale
     };
 }

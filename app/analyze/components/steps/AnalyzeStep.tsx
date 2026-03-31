@@ -5,6 +5,7 @@ import { AnalysisSelector } from '@/components/AnalysisSelector';
 import { useAnalyzeState, useAnalyzeActions } from '../../context/AnalyzeContext';
 import { useAnalyzeHandlers } from '../../hooks/useAnalyzeHandlers';
 import { WebRStatus } from '@/components/WebRStatus';
+import { t } from '@/lib/i18n';
 import type { AnalysisStep } from '@/types/analysis';
 
 export function AnalyzeStep() {
@@ -30,10 +31,10 @@ export function AnalyzeStep() {
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-2xl font-bold text-gray-800">
-                        Chọn phương pháp phân tích
+                        {t(state.locale, 'analyze.selector.title')}
                     </h2>
                     <p className="text-gray-600">
-                        {state.data.length} dòng dữ liệu • {allColumns.length} biến
+                        {state.data.length} {state.locale === 'vi' ? 'dòng dữ liệu' : 'data rows'} • {allColumns.length} {state.locale === 'vi' ? 'biến' : 'variables'}
                     </p>
                 </div>
                 <WebRStatus />
@@ -45,10 +46,10 @@ export function AnalyzeStep() {
                         <div className="text-center">
                             <div className="animate-spin rounded-full h-16 w-16 border-4 border-violet-200 border-t-violet-600 mx-auto mb-4" />
                             <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                                Đang xử lý...
+                                {t(state.locale, 'analyze.common.analyzing')}
                             </h3>
                             <p className="text-gray-600 mb-4">
-                                {state.analysisType}
+                                {t(state.locale, `analyze.methods.${state.analysisType.replace('-select', '').replace('-', '_')}`) || state.analysisType}
                             </p>
                             <div className="w-full bg-gray-200 rounded-full h-2">
                                 <div
@@ -68,6 +69,7 @@ export function AnalyzeStep() {
                 onSelect={handleSelect}
                 onRunAnalysis={handleRunAnalysis}
                 isAnalyzing={state.isAnalyzing}
+                locale={state.locale}
             />
         </div>
     );

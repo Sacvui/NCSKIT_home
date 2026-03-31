@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useCallback, ReactNode } fr
 import { AnalysisStep } from '@/types/analysis';
 import { DataProfile } from '@/lib/data-profiler';
 import type { PreviousAnalysisData } from '@/types/analysis';
+import { Locale } from '@/lib/i18n';
 
 export interface AnalyzeState {
     // Core Data
@@ -37,6 +38,7 @@ export interface AnalyzeState {
     isSaveModalOpen: boolean;
     showDemographics: boolean;
     showApplicability: boolean;
+    locale: Locale;
 }
 
 export interface AnalyzeActions {
@@ -72,6 +74,7 @@ export interface AnalyzeActions {
     setIsSaveModalOpen: (open: boolean) => void;
     setShowDemographics: (show: boolean) => void;
     setShowApplicability: (show: boolean) => void;
+    setLocale: (locale: any) => void;
 
     // Reset
     resetSession: () => void;
@@ -101,6 +104,7 @@ const initialState: AnalyzeState = {
     isSaveModalOpen: false,
     showDemographics: false,
     showApplicability: false,
+    locale: 'vi',
 };
 
 const AnalyzeContext = createContext<AnalyzeContextType | undefined>(undefined);
@@ -187,6 +191,9 @@ export function AnalyzeProvider({ children }: { children: ReactNode }) {
 
         setShowApplicability: useCallback((showApplicability: boolean) => {
             setState(prev => ({ ...prev, showApplicability }));
+        }, []),
+        setLocale: useCallback((locale: any) => {
+            setState(prev => ({ ...prev, locale }));
         }, []),
 
         resetSession: useCallback(() => {

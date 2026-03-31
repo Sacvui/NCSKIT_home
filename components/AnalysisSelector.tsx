@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { BarChart2, Shield, Network, Users, GitCompare, Layers, TrendingUp, Grid3x3, Activity, ChevronDown, ChevronRight, Star, Binary, FlaskConical, ArrowRightLeft, Target, CircleDot, Shuffle } from 'lucide-react';
 import { PointBadge } from '@/components/ui/PointBadge';
+import { Locale, t } from '@/lib/i18n';
 
 interface AnalysisSelectorProps {
     onSelect: (step: string) => void;
     onRunAnalysis: (type: string) => void;
     isAnalyzing: boolean;
     mode?: string | null;
+    locale: Locale;
 }
 
 interface AnalysisOption {
@@ -30,7 +32,7 @@ interface AnalysisCategory {
     options: AnalysisOption[];
 }
 
-export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing, mode }: AnalysisSelectorProps) {
+export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing, mode, locale }: AnalysisSelectorProps) {
     const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
 
     // Auto-expand categories based on mode
@@ -56,93 +58,93 @@ export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing, mode }:
         {
             id: 'reliability',
             category: {
-                name: 'Reliability & Descriptive',
-                description: 'Basic statistics and scale reliability',
+                name: locale === 'vi' ? 'Độ tin cậy & Mô tả' : 'Reliability & Descriptive',
+                description: locale === 'vi' ? 'Thống kê cơ bản và độ tin cậy thang đo' : 'Basic statistics and scale reliability',
                 color: 'text-blue-700',
                 bgColor: 'bg-blue-50',
                 borderColor: 'border-blue-200',
                 options: [
-                    { id: 'descriptive-select', title: 'Descriptive Statistics', desc: 'Mean, SD, Min, Max, Median, Skewness, Kurtosis', icon: BarChart2, action: 'select', costType: 'descriptive' },
-                    { id: 'cronbach-select', title: "Cronbach's Alpha", desc: 'Classic scale reliability (α)', icon: Shield, action: 'select', recommended: true, costType: 'cronbach' },
-                    { id: 'omega-select', title: "McDonald's Omega", desc: 'Modern reliability (ω) for better precision', icon: Shield, action: 'select', costType: 'cronbach' },
+                    { id: 'descriptive-select', title: t(locale, 'analyze.methods.descriptive'), desc: locale === 'vi' ? 'Mean, SD, Min, Max, Median, Độ lệch, Độ nhọn' : 'Mean, SD, Min, Max, Median, Skewness, Kurtosis', icon: BarChart2, action: 'select', costType: 'descriptive' },
+                    { id: 'cronbach-select', title: t(locale, 'analyze.methods.cronbach'), desc: locale === 'vi' ? 'Độ tin cậy thang đo truyền thống (α)' : 'Classic scale reliability (α)', icon: Shield, action: 'select', recommended: true, costType: 'cronbach' },
+                    { id: 'omega-select', title: t(locale, 'analyze.methods.omega'), desc: locale === 'vi' ? 'Độ tin cậy hiện đại (ω) cho độ chính xác cao hơn' : 'Modern reliability (ω) for better precision', icon: Shield, action: 'select', costType: 'cronbach' },
                 ]
             }
         },
         {
             id: 'comparison',
             category: {
-                name: 'Group Comparison',
-                description: 'Compare means between groups',
+                name: locale === 'vi' ? 'So sánh nhóm' : 'Group Comparison',
+                description: locale === 'vi' ? 'So sánh giá trị trung bình giữa các nhóm' : 'Compare means between groups',
                 color: 'text-green-700',
                 bgColor: 'bg-green-50',
                 borderColor: 'border-green-200',
                 options: [
-                    { id: 'ttest-select', title: 'Independent T-test', desc: 'Compare 2 independent groups', icon: GitCompare, action: 'select', costType: 'ttest-indep' },
-                    { id: 'ttest-paired-select', title: 'Paired T-test', desc: 'Compare before-after (paired)', icon: Users, action: 'select', costType: 'ttest-paired' },
-                    { id: 'anova-select', title: 'One-Way ANOVA / Welch', desc: 'Compare multiple groups', icon: Layers, action: 'select', costType: 'anova' },
-                    { id: 'twoway-anova-select', title: 'Two-Way ANOVA', desc: 'Factorial ANOVA with interaction', icon: Grid3x3, action: 'select', costType: 'anova' },
-                    { id: 'mannwhitney-select', title: 'Mann-Whitney U', desc: 'Non-parametric 2 groups', icon: Activity, action: 'select', costType: 'mann-whitney' },
-                    { id: 'kruskalwallis-select', title: 'Kruskal-Wallis H', desc: 'Non-parametric multiple groups', icon: Layers, action: 'select', costType: 'anova' },
-                    { id: 'wilcoxon-select', title: 'Wilcoxon Signed-Rank', desc: 'Non-parametric paired comparison', icon: ArrowRightLeft, action: 'select', costType: 'ttest-paired' },
+                    { id: 'ttest-select', title: t(locale, 'analyze.methods.ttest'), desc: locale === 'vi' ? 'So sánh 2 nhóm độc lập' : 'Compare 2 independent groups', icon: GitCompare, action: 'select', costType: 'ttest-indep' },
+                    { id: 'ttest-paired-select', title: t(locale, 'analyze.methods.ttest_paired'), desc: locale === 'vi' ? 'So sánh trước-sau (theo cặp)' : 'Compare before-after (paired)', icon: Users, action: 'select', costType: 'ttest-paired' },
+                    { id: 'anova-select', title: t(locale, 'analyze.methods.anova'), desc: locale === 'vi' ? 'So sánh nhiều nhóm' : 'Compare multiple groups', icon: Layers, action: 'select', costType: 'anova' },
+                    { id: 'twoway-anova-select', title: 'Two-Way ANOVA', desc: locale === 'vi' ? 'ANOVA 2 nhân tố có tương tác' : 'Factorial ANOVA with interaction', icon: Grid3x3, action: 'select', costType: 'anova' },
+                    { id: 'mannwhitney-select', title: 'Mann-Whitney U', desc: locale === 'vi' ? 'Kiểm định phi tham số cho 2 nhóm' : 'Non-parametric 2 groups', icon: Activity, action: 'select', costType: 'mann-whitney' },
+                    { id: 'kruskalwallis-select', title: 'Kruskal-Wallis H', desc: locale === 'vi' ? 'Kiểm định phi tham số cho nhiều nhóm' : 'Non-parametric multiple groups', icon: Layers, action: 'select', costType: 'anova' },
+                    { id: 'wilcoxon-select', title: 'Wilcoxon Signed-Rank', desc: locale === 'vi' ? 'So sánh cặp phi tham số' : 'Non-parametric paired comparison', icon: ArrowRightLeft, action: 'select', costType: 'ttest-paired' },
                 ]
             }
         },
         {
             id: 'relationship',
             category: {
-                name: 'Correlation & Regression',
-                description: 'Analyze relationships between variables',
+                name: locale === 'vi' ? 'Tương quan & Hồi quy' : 'Correlation & Regression',
+                description: locale === 'vi' ? 'Phân tích mối quan hệ giữa các biến' : 'Analyze relationships between variables',
                 color: 'text-purple-700',
                 bgColor: 'bg-purple-50',
                 borderColor: 'border-purple-200',
                 options: [
-                    { id: 'correlation', title: 'Correlation Matrix', desc: 'Pearson/Spearman correlation', icon: Network, action: 'run', costType: 'correlation' },
-                    { id: 'regression-select', title: 'Linear Regression', desc: 'Multiple linear regression with β', icon: TrendingUp, action: 'select', costType: 'regression' },
-                    { id: 'logistic-select', title: 'Logistic Regression', desc: 'Binary outcome prediction', icon: Binary, action: 'select', costType: 'regression' },
-                    { id: 'mediation-select', title: 'Mediation Analysis', desc: 'Baron & Kenny + Sobel test', icon: Target, action: 'select', costType: 'regression' },
-                    { id: 'moderation-select', title: 'Moderation Analysis', desc: 'Interaction effect with simple slopes', icon: Shuffle, action: 'select', costType: 'regression' },
+                    { id: 'correlation', title: t(locale, 'analyze.methods.correlation'), desc: locale === 'vi' ? 'Tương quan Pearson/Spearman' : 'Pearson/Spearman correlation', icon: Network, action: 'run', costType: 'correlation' },
+                    { id: 'regression-select', title: t(locale, 'analyze.methods.regression'), desc: locale === 'vi' ? 'Hồi quy tuyến tính đa biến với hệ số β' : 'Multiple linear regression with β', icon: TrendingUp, action: 'select', costType: 'regression' },
+                    { id: 'logistic-select', title: 'Logistic Regression', desc: locale === 'vi' ? 'Dự báo kết quả nhị phân' : 'Binary outcome prediction', icon: Binary, action: 'select', costType: 'regression' },
+                    { id: 'mediation-select', title: t(locale, 'analyze.methods.mediation'), desc: locale === 'vi' ? 'Phân tích trung gian (Baron & Kenny + Sobel)' : 'Baron & Kenny + Sobel test', icon: Target, action: 'select', costType: 'regression' },
+                    { id: 'moderation-select', title: t(locale, 'analyze.methods.moderation'), desc: locale === 'vi' ? 'Phân tích hiệu ứng điều tiết' : 'Interaction effect with simple slopes', icon: Shuffle, action: 'select', costType: 'regression' },
                 ]
             }
         },
         {
             id: 'factor',
             category: {
-                name: 'Factor Analysis & SEM',
-                description: 'EFA, CFA, SEM for measurement models',
+                name: locale === 'vi' ? 'Phân tích nhân tố & SEM' : 'Factor Analysis & SEM',
+                description: locale === 'vi' ? 'EFA, CFA, SEM cho mô hình đo lường' : 'EFA, CFA, SEM for measurement models',
                 color: 'text-orange-700',
                 bgColor: 'bg-orange-50',
                 borderColor: 'border-orange-200',
                 options: [
-                    { id: 'efa-select', title: 'EFA', desc: 'Exploratory Factor Analysis + Parallel Analysis', icon: Grid3x3, action: 'select', recommended: true, costType: 'efa' },
-                    { id: 'cfa-select', title: 'CFA', desc: 'Confirmatory Factor Analysis (Lavaan)', icon: Network, disabled: true, badge: 'Soon', action: 'select', costType: 'cfa' },
-                    { id: 'sem-select', title: 'SEM', desc: 'Structural Equation Modeling (Lavaan)', icon: Layers, disabled: true, badge: 'Soon', action: 'select', costType: 'sem' },
+                    { id: 'efa-select', title: t(locale, 'analyze.methods.efa'), desc: locale === 'vi' ? 'Phân tích nhân tố khám phá + Parallel Analysis' : 'Exploratory Factor Analysis + Parallel Analysis', icon: Grid3x3, action: 'select', recommended: true, costType: 'efa' },
+                    { id: 'cfa-select', title: t(locale, 'analyze.methods.cfa'), desc: locale === 'vi' ? 'Phân tích nhân tố khẳng định (Lavaan)' : 'Confirmatory Factor Analysis (Lavaan)', icon: Network, disabled: true, badge: locale === 'vi' ? 'Sớm ra mắt' : 'Soon', action: 'select', costType: 'cfa' },
+                    { id: 'sem-select', title: t(locale, 'analyze.methods.sem'), desc: locale === 'vi' ? 'Mô hình cấu trúc tuyến tính (Lavaan)' : 'Structural Equation Modeling (Lavaan)', icon: Layers, disabled: true, badge: locale === 'vi' ? 'Sớm ra mắt' : 'Soon', action: 'select', costType: 'sem' },
                 ]
             }
         },
         {
             id: 'categorical',
             category: {
-                name: 'Categorical Variables',
-                description: 'Tests for categorical data',
+                name: locale === 'vi' ? 'Biến định danh' : 'Categorical Variables',
+                description: locale === 'vi' ? 'Các kiểm định cho dữ liệu định danh' : 'Tests for categorical data',
                 color: 'text-teal-700',
                 bgColor: 'bg-teal-50',
                 borderColor: 'border-teal-200',
                 options: [
-                    { id: 'chisq-select', title: 'Chi-Square Test', desc: 'Test of independence (Large sample)', icon: Grid3x3, action: 'select', costType: 'chisquare' },
-                    { id: 'fisher-select', title: "Fisher's Exact Test", desc: 'Test of independence (Small sample)', icon: Grid3x3, action: 'select', costType: 'chisquare' },
+                    { id: 'chisq-select', title: t(locale, 'analyze.methods.chisq'), desc: locale === 'vi' ? 'Kiểm định tính độc lập (Mẫu lớn)' : 'Test of independence (Large sample)', icon: Grid3x3, action: 'select', costType: 'chisquare' },
+                    { id: 'fisher-select', title: locale === 'vi' ? 'Kiểm định chính xác Fisher' : "Fisher's Exact Test", desc: locale === 'vi' ? 'Kiểm định tính độc lập (Mẫu nhỏ)' : 'Test of independence (Small sample)', icon: Grid3x3, action: 'select', costType: 'chisquare' },
                 ]
             }
         },
         {
             id: 'clustering',
             category: {
-                name: 'Clustering & Segmentation',
-                description: 'Segment data into groups',
+                name: locale === 'vi' ? 'Phân cụm & Phân đoạn' : 'Clustering & Segmentation',
+                description: locale === 'vi' ? 'Phân đoạn dữ liệu thành các nhóm' : 'Segment data into groups',
                 color: 'text-pink-700',
                 bgColor: 'bg-pink-50',
                 borderColor: 'border-pink-200',
                 options: [
-                    { id: 'cluster-select', title: 'Cluster Analysis', desc: 'K-Means clustering with profiles', icon: CircleDot, action: 'select', costType: 'efa' },
+                    { id: 'cluster-select', title: t(locale, 'analyze.methods.cluster'), desc: locale === 'vi' ? 'Phân cụm K-Means với hồ sơ đặc trưng' : 'K-Means clustering with profiles', icon: CircleDot, action: 'select', costType: 'efa' },
                 ]
             }
         }
@@ -155,11 +157,11 @@ export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing, mode }:
         <div className="space-y-4">
             {/* Quick Stats */}
             <div className="flex items-center gap-2 text-sm text-slate-500 mb-6">
-                <span className="px-2 py-1 bg-slate-100 rounded font-medium">{totalMethods} methods</span>
+                <span className="px-2 py-1 bg-slate-100 rounded font-medium">{totalMethods} {locale === 'vi' ? 'phương pháp' : 'methods'}</span>
                 <span>•</span>
                 <span className="flex items-center gap-1">
                     <Star className="w-4 h-4 text-amber-500 fill-current" />
-                    Recommended
+                    {locale === 'vi' ? 'Đề xuất' : 'Recommended'}
                 </span>
             </div>
 
@@ -188,7 +190,7 @@ export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing, mode }:
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
-                                <span className="text-xs text-slate-400">{category.options.length} methods</span>
+                                <span className="text-xs text-slate-400">{category.options.length} {t(locale, 'analyze.methods_count')}</span>
                                 {isExpanded ? (
                                     <ChevronDown className="w-5 h-5 text-slate-400" />
                                 ) : (

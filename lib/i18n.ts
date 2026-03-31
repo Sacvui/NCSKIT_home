@@ -209,6 +209,24 @@ export const translations = {
                     max: 'Max'
                 }
             },
+            methods: {
+                descriptive: 'Thống kê mô tả',
+                cronbach: "Độ tin cậy Cronbach's Alpha",
+                omega: "Độ tin cậy McDonald's Omega",
+                ttest: 'Kiểm định T-test độc lập',
+                ttest_paired: 'Kiểm định T-test cặp',
+                anova: 'Phân tích phương sai ANOVA',
+                correlation: 'Ma trận tương quan',
+                regression: 'Hồi quy tuyến tính',
+                mediation: 'Phân tích trung gian',
+                moderation: 'Phân tích điều tiết',
+                efa: 'Phân tích nhân tố khám phá (EFA)',
+                cfa: 'Phân tích nhân tố khẳng định (CFA)',
+                sem: 'Mô hình cấu trúc (SEM)',
+                chisq: 'Kiểm định Chi-bình phương',
+                cluster: 'Phân tích cụm (Cluster)',
+                methods_count: 'phương pháp'
+            },
             selector: {
                 title: 'Chọn phương pháp phân tích',
                 desc: 'Chọn phương pháp phù hợp với mục tiêu nghiên cứu'
@@ -652,6 +670,24 @@ export const translations = {
                     min: 'Min',
                     max: 'Max'
                 }
+            },
+            methods: {
+                descriptive: 'Descriptive Statistics',
+                cronbach: "Cronbach's Alpha Reliability",
+                omega: "McDonald's Omega Reliability",
+                ttest: 'Independent T-test',
+                ttest_paired: 'Paired T-test',
+                anova: 'ANOVA / Welch Analysis',
+                correlation: 'Correlation Matrix',
+                regression: 'Linear Regression',
+                mediation: 'Mediation Analysis',
+                moderation: 'Moderation Analysis',
+                efa: 'Exploratory Factor Analysis (EFA)',
+                cfa: 'Confirmatory Factor Analysis (CFA)',
+                sem: 'Structural Equation Modeling (SEM)',
+                chisq: 'Chi-Square Test',
+                cluster: 'Cluster Analysis',
+                methods_count: 'methods'
             },
             selector: {
                 title: 'Select Analysis Method',
