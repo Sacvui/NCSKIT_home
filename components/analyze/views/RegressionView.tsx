@@ -58,19 +58,19 @@ export const RegressionView: React.FC<RegressionViewProps> = ({
                     </p>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-lg p-6 border">
-                    <div className="space-y-6">
+                <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg p-6 border border-pink-100 dark:border-pink-900/30">
+                    <div className="space-y-8">
                         {/* Dependent Variable (Y) */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <div className="space-y-1.5">
+                            <label className="block text-xs font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
                                 Biến phụ thuộc (Y) - Chọn 1
                             </label>
                             <select
-                                className="w-full px-3 py-2 border rounded-lg"
+                                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-bold outline-none focus:ring-2 focus:ring-pink-500 transition-all cursor-pointer"
                                 value={regressionVars.y}
                                 onChange={(e) => setRegressionVars({ ...regressionVars, y: e.target.value })}
                             >
-                                <option value="">Chọn biến...</option>
+                                <option value="" className="text-slate-400">Chọn biến...</option>
                                 {columns.map(col => (
                                     <option key={col} value={col} disabled={regressionVars.xs.includes(col)}>
                                         {col}
@@ -80,13 +80,13 @@ export const RegressionView: React.FC<RegressionViewProps> = ({
                         </div>
 
                         {/* Independent Variables (Xs) */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <div className="space-y-1.5">
+                            <label className="block text-xs font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
                                 Biến độc lập (X) - Chọn nhiều
                             </label>
-                            <div className="space-y-2 mb-4 max-h-48 overflow-y-auto border rounded-lg p-2">
+                            <div className="space-y-1.5 mb-2 max-h-56 overflow-y-auto border border-slate-200 dark:border-slate-800 rounded-xl p-3 bg-slate-50 dark:bg-slate-950/30 shadow-inner">
                                 {columns.map(col => (
-                                    <label key={col} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
+                                    <label key={col} className={`flex items-center gap-3 p-2 hover:bg-white dark:hover:bg-slate-800 rounded-lg transition-colors group cursor-pointer ${regressionVars.y === col ? 'opacity-40 grayscale cursor-not-allowed' : ''}`}>
                                         <input
                                             type="checkbox"
                                             value={col}
@@ -101,9 +101,9 @@ export const RegressionView: React.FC<RegressionViewProps> = ({
                                                         : prev.xs.filter(x => x !== col)
                                                 }));
                                             }}
-                                            className="w-4 h-4 text-pink-600"
+                                            className="w-4 h-4 text-pink-600 rounded border-slate-300 dark:border-slate-700 focus:ring-pink-500"
                                         />
-                                        <span className={regressionVars.y === col ? 'text-gray-400' : ''}>{col}</span>
+                                        <span className={`text-sm font-bold ${regressionVars.y === col ? 'text-slate-400 line-through' : 'text-slate-700 dark:text-slate-200 group-hover:text-pink-600 dark:group-hover:text-pink-400'}`}>{col}</span>
                                     </label>
                                 ))}
                             </div>
@@ -179,31 +179,31 @@ export const RegressionView: React.FC<RegressionViewProps> = ({
                     </p>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-lg p-6 border">
-                    <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg p-6 border border-blue-100 dark:border-blue-900/30">
+                    <div className="space-y-8">
+                        <div className="space-y-1.5">
+                            <label className="block text-xs font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
                                 {t(locale, 'logistic.dependent_variable')}
                             </label>
                             <select
-                                className="w-full px-3 py-2 border rounded-lg"
+                                className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-bold outline-none focus:ring-2 focus:ring-blue-500 transition-all cursor-pointer"
                                 value={logisticVars.y}
                                 onChange={(e) => setLogisticVars({ ...logisticVars, y: e.target.value })}
                             >
-                                <option value="">{t(locale, 'common.select_variable')}</option>
+                                <option value="" className="text-slate-400">{t(locale, 'common.select_variable')}</option>
                                 {columns.map(col => (
                                     <option key={col} value={col} disabled={logisticVars.xs.includes(col)}>{col}</option>
                                 ))}
                             </select>
-                            <p className="text-xs text-gray-500 mt-1">{t(locale, 'logistic.note')}</p>
+                            <p className="text-[10px] uppercase font-black text-blue-500/80 tracking-widest mt-2">{t(locale, 'logistic.note')}</p>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <div className="space-y-1.5">
+                            <label className="block text-xs font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
                                 {t(locale, 'logistic.independent_variables')}
                             </label>
-                            <div className="space-y-2 max-h-48 overflow-y-auto border rounded-lg p-2">
+                            <div className="space-y-1.5 mb-2 max-h-56 overflow-y-auto border border-slate-200 dark:border-slate-800 rounded-xl p-3 bg-slate-50 dark:bg-slate-950/30 shadow-inner">
                                 {columns.map(col => (
-                                    <label key={col} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
+                                    <label key={col} className={`flex items-center gap-3 p-2 hover:bg-white dark:hover:bg-slate-800 rounded-lg transition-colors group cursor-pointer ${logisticVars.y === col ? 'opacity-40 grayscale cursor-not-allowed' : ''}`}>
                                         <input
                                             type="checkbox"
                                             value={col}
@@ -218,9 +218,9 @@ export const RegressionView: React.FC<RegressionViewProps> = ({
                                                 }));
                                             }}
                                             disabled={logisticVars.y === col}
-                                            className="w-4 h-4 text-blue-600"
+                                            className="w-4 h-4 text-blue-600 rounded border-slate-300 dark:border-slate-700 focus:ring-blue-500"
                                         />
-                                        <span>{col}</span>
+                                        <span className={`text-sm font-bold ${logisticVars.y === col ? 'text-slate-400 line-through' : 'text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400'}`}>{col}</span>
                                     </label>
                                 ))}
                             </div>

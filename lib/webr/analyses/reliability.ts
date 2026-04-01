@@ -33,6 +33,7 @@ export async function runCronbachAlpha(
     await loadPackagesForMethod('cronbach');
 
     const rCode = `
+    options(mc.cores = 1)
     library(psych)
     raw_data <- ${arrayToRMatrix(data)}
     

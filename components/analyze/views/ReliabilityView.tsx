@@ -378,9 +378,10 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
                     </p>
                 </div>
 
-                <div className="bg-white rounded-xl shadow-lg p-6 border">
-                    <div className="flex justify-between items-center mb-2">
-                        <p className="text-sm text-gray-600">
+                <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg p-6 border border-orange-100 dark:border-orange-900/30">
+                    <div className="flex justify-between items-center mb-6">
+                        <p className="text-sm text-slate-700 dark:text-slate-300 font-bold flex items-center gap-2">
+                            <span className="w-1.5 h-1.5 bg-orange-500 rounded-full"></span>
                             Chọn các biến để phân tích nhân tố:
                         </p>
                         <div className="space-x-2">
@@ -404,51 +405,51 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
                             </button>
                         </div>
                     </div>
-                    <div className="space-y-2 mb-4 max-h-48 overflow-y-auto">
+                    <div className="space-y-1.5 mb-6 max-h-56 overflow-y-auto p-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50 dark:bg-slate-950/30 shadow-inner">
                         {columns.map(col => (
-                            <label key={col} className="flex items-center gap-2 p-2 hover:bg-gray-50 rounded">
+                            <label key={col} className="flex items-center gap-3 p-2.5 hover:bg-white dark:hover:bg-slate-800 rounded-xl transition-all group cursor-pointer border border-transparent hover:border-orange-200 dark:hover:border-orange-900/40">
                                 <input
                                     type="checkbox"
                                     value={col}
                                     defaultChecked={true}
-                                    className="efa-checkbox w-4 h-4 text-orange-600"
+                                    className="efa-checkbox w-5 h-5 text-orange-600 rounded-lg border-slate-300 dark:border-slate-700 focus:ring-orange-500 cursor-pointer"
                                 />
-                                <span>{col}</span>
+                                <span className="text-sm text-slate-900 dark:text-slate-100 font-black uppercase tracking-tight group-hover:text-orange-600 dark:group-hover:text-orange-400">{col}</span>
                             </label>
                         ))}
                     </div>
 
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <div className="mb-6 space-y-1.5">
+                        <label className="block text-xs font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
                             Số nhân tố dự kiến (Tùy chọn)
                         </label>
                         <input
                             type="number"
                             id="efa-nfactors"
-                            className="w-full px-3 py-2 border rounded-lg"
-                            placeholder="Để trống = Tự động (Eigenvalues > 1)"
+                            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-bold outline-none focus:ring-2 focus:ring-orange-500 transition-all"
+                            placeholder="Để trống = Tự động"
                             min={1}
                             max={10}
                         />
-                        <p className="text-xs text-slate-500 mt-1 italic">
+                        <p className="text-[10px] text-slate-500 mt-2 italic font-medium leading-relaxed">
                             Nếu bỏ trống, hệ thống sẽ tự đề xuất số lượng nhân tố dựa trên hệ số Eigenvalue {'>'} 1 (Kaiser Criterion).
                         </p>
                     </div>
 
-                    <div className="mb-4">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                    <div className="mb-8 space-y-1.5">
+                        <label className="block text-xs font-black uppercase text-slate-500 dark:text-slate-400 tracking-wider">
                             Phép quay (Rotation)
                         </label>
                         <select
                             id="efa-rotation"
-                            className="w-full px-3 py-2 border rounded-lg bg-white"
+                            className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white font-bold outline-none focus:ring-2 focus:ring-orange-500 transition-all cursor-pointer"
                             defaultValue="varimax"
                         >
                             <option value="none">Không quay (None)</option>
                             <option value="varimax">Vuông góc (Varimax) - Đề xuất</option>
                             <option value="promax">Xiên (Promax)</option>
                         </select>
-                        <p className="text-xs text-slate-500 mt-1 italic">
+                        <p className="text-[10px] text-slate-500 mt-2 italic font-medium leading-relaxed">
                             Varimax giúp phân định rõ nhân tố. Promax phù hợp nếu các nhân tố có tương quan.
                         </p>
                     </div>

@@ -55,12 +55,13 @@ export async function runDescriptiveStats(data: number[][]): Promise<{
     await loadPackagesForMethod('descriptive');
 
     const rCode = `
+    options(mc.cores = 1)
     library(psych)
     data_mat <- ${arrayToRMatrix(data)}
     df <- as.data.frame(data_mat)
     colnames(df) <- paste0("V", 1:ncol(df))
     
-    desc <- describe(df)
+    desc <- describe(df, fast=FALSE)
     
     list(
         mean = as.numeric(desc$mean),

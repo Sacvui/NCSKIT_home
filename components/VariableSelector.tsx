@@ -114,27 +114,30 @@ export function SmartGroupSelector({ columns, onAnalyzeGroup, onAnalyzeAllGroups
     );
 
     return (
-        <div className="bg-white rounded-xl shadow-lg p-6 border">
-            <div className="flex items-center justify-between mb-4">
+        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg p-6 border border-slate-200 dark:border-slate-800">
+            <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                        <Layers className="w-5 h-5 text-blue-600" />
+                    <h3 className="text-xl font-black text-slate-900 dark:text-slate-100 flex items-center gap-3 tracking-tight uppercase">
+                        <div className="p-2 bg-indigo-600 rounded-lg shadow-lg shadow-indigo-100">
+                            <Layers className="w-5 h-5 text-white" />
+                        </div>
                         Gom nhóm biến thông minh
                     </h3>
-                    <p className="text-sm text-gray-500 mt-1">
-                        Tự động phát hiện {groups.length} nhóm dựa trên tên biến
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-2 font-black uppercase tracking-[0.2em] flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse"></span>
+                        Tự động phát hiện {groups.length} thang đo dựa trên tiền tố
                     </p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-1 bg-slate-100 dark:bg-slate-950 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-inner">
                     <button
                         onClick={() => setSingleMode(false)}
-                        className={`px-3 py-1.5 text-sm rounded-lg ${!singleMode ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+                        className={`px-5 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${!singleMode ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-md transform scale-105' : 'text-slate-500 dark:text-slate-500 hover:text-slate-700'}`}
                     >
                         Tất cả nhóm
                     </button>
                     <button
                         onClick={() => setSingleMode(true)}
-                        className={`px-3 py-1.5 text-sm rounded-lg ${singleMode ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+                        className={`px-5 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${singleMode ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-md transform scale-105' : 'text-slate-500 dark:text-slate-500 hover:text-slate-700'}`}
                     >
                         Từng nhóm
                     </button>
@@ -146,20 +149,20 @@ export function SmartGroupSelector({ columns, onAnalyzeGroup, onAnalyzeAllGroups
                 {groups.map(group => (
                     <div
                         key={group.name}
-                        className={`border rounded-lg p-3 transition-colors ${singleMode
-                            ? selectedSingleGroup === group.name ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
-                            : group.selected ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                        className={`border-2 rounded-2xl p-5 transition-all ${singleMode
+                            ? selectedSingleGroup === group.name ? 'border-indigo-600 bg-indigo-50/30 dark:bg-indigo-950/40 shadow-xl ring-1 ring-indigo-600 transform scale-[1.01]' : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/50'
+                            : group.selected ? 'border-indigo-600 bg-indigo-50/30 dark:bg-indigo-950/40 shadow-xl ring-1 ring-indigo-600 transform scale-[1.01]' : 'border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/50'
                             }`}
                     >
-                        <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
                                 {!singleMode && (
                                     <button
                                         onClick={() => toggleGroupSelection(group.name)}
-                                        className={`w-5 h-5 rounded border flex items-center justify-center ${group.selected ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-300'
+                                        className={`w-7 h-7 rounded-xl border-2 flex items-center justify-center transition-all ${group.selected ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg shadow-indigo-200' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'
                                             }`}
                                     >
-                                        {group.selected && <Check className="w-4 h-4" />}
+                                        {group.selected && <Check className="w-4 h-4 stroke-[4]" />}
                                     </button>
                                 )}
                                 {singleMode && (
@@ -168,7 +171,7 @@ export function SmartGroupSelector({ columns, onAnalyzeGroup, onAnalyzeAllGroups
                                         name="singleGroup"
                                         checked={selectedSingleGroup === group.name}
                                         onChange={() => setSelectedSingleGroup(group.name)}
-                                        className="w-4 h-4 text-blue-600"
+                                        className="w-5 h-5 text-indigo-600 dark:text-indigo-500 border-slate-300 focus:ring-indigo-500 cursor-pointer"
                                     />
                                 )}
 
@@ -179,33 +182,35 @@ export function SmartGroupSelector({ columns, onAnalyzeGroup, onAnalyzeAllGroups
                                         onChange={(e) => setEditName(e.target.value)}
                                         onBlur={() => saveGroupName(group.name)}
                                         onKeyDown={(e) => e.key === 'Enter' && saveGroupName(group.name)}
-                                        className="px-2 py-1 border rounded text-sm font-bold"
+                                        className="px-3 py-1 border-2 border-indigo-500 rounded-xl text-base font-black outline-none shadow-inner"
                                         autoFocus
                                     />
                                 ) : (
-                                    <span className="font-bold text-gray-800">{group.name}</span>
-                                )}
-                                <span className="text-xs text-gray-500">({group.columns.length} biến)</span>
+                                        <span className="font-black text-slate-900 dark:text-slate-100 text-lg tracking-tight">{group.name}</span>
+                                    )}
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/40 px-3 py-1 rounded-full border border-indigo-100 dark:border-indigo-800 shadow-sm ml-2">
+                                        {group.columns.length} items
+                                    </span>
                             </div>
 
                             <button
                                 onClick={() => startEditingGroup(group)}
-                                className="text-gray-400 hover:text-blue-600"
+                                className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 transition-all"
                                 title="Đổi tên nhóm"
                             >
-                                <Edit2 className="w-4 h-4" />
+                                <Edit2 className="w-3.5 h-3.5" />
                             </button>
                         </div>
 
-                        <div className="flex flex-wrap gap-1">
+                        <div className="flex flex-wrap gap-2 mt-3">
                             {group.columns.map(col => (
                                 <span
                                     key={col}
-                                    className="inline-flex items-center gap-1 px-2 py-0.5 bg-white border border-gray-200 rounded text-xs"
+                                    className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-slate-900 dark:bg-slate-100 border border-slate-950 dark:border-white rounded-xl text-[11px] font-black text-white dark:text-slate-900 shadow-md transition-all hover:scale-105 hover:bg-slate-800 dark:hover:bg-white group/tag"
                                 >
-                                    {col}
+                                    <span className="uppercase tracking-tighter">{col}</span>
                                     <X
-                                        className="w-3 h-3 cursor-pointer hover:text-red-600"
+                                        className="w-3.5 h-3.5 cursor-pointer text-slate-400 hover:text-red-400 transition-colors"
                                         onClick={() => removeColumnFromGroup(group.name, col)}
                                     />
                                 </span>
@@ -217,12 +222,16 @@ export function SmartGroupSelector({ columns, onAnalyzeGroup, onAnalyzeAllGroups
 
             {/* Ungrouped columns warning */}
             {ungroupedColumns.length > 0 && (
-                <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <p className="text-sm text-yellow-800">
-                        <strong>Biến chưa được gom nhóm:</strong> {ungroupedColumns.join(', ')}
+                <div className="mb-8 p-5 bg-amber-50 dark:bg-amber-950/20 border-2 border-amber-200 dark:border-amber-900/30 rounded-2xl shadow-sm">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-amber-800 dark:text-amber-400 flex items-center gap-2 mb-2">
+                        <Sparkles className="w-4 h-4" />
+                        Biến chưa được gom nhóm
                     </p>
-                    <p className="text-xs text-yellow-600 mt-1">
-                        (Các biến này không đủ 2 item cùng tiền tố hoặc có tên khác biệt)
+                    <p className="text-sm text-slate-900 dark:text-slate-200 font-black uppercase tracking-tight leading-relaxed">
+                        {ungroupedColumns.join(', ')}
+                    </p>
+                    <p className="text-[10px] text-amber-700 dark:text-amber-500 mt-3 font-bold italic opacity-80">
+                        (Các biến này không đủ 2 item cùng tiền tố hoặc có tên khác biệt để tự động gom nhóm)
                     </p>
                 </div>
             )}
@@ -298,22 +307,29 @@ export function VariableSelector({ columns, onAnalyze, isAnalyzing }: { columns:
                     <button
                         type="button"
                         onClick={() => setIsOpen(!isOpen)}
-                        className="w-full px-3 py-2 border rounded-lg text-left flex items-center justify-between"
+                        className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-950 border-2 border-slate-200 dark:border-slate-800 rounded-2xl text-left flex items-center justify-between font-black text-slate-900 dark:text-slate-100 hover:border-indigo-400 transition-all shadow-inner group"
                     >
-                        <span>{selectedColumns.length === 0 ? 'Click để chọn...' : selectedColumns.join(', ')}</span>
-                        <ChevronDown className={`w-5 h-5 ${isOpen ? 'rotate-180' : ''}`} />
+                        <span className="truncate max-w-[90%]">
+                            {selectedColumns.length === 0 ? 'Click để chọn biến...' : selectedColumns.join(', ')}
+                        </span>
+                        <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform group-hover:text-indigo-600 ${isOpen ? 'rotate-180' : ''}`} />
                     </button>
                     {isOpen && (
-                        <div className="absolute z-10 mt-1 w-full bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                            {columns.map(col => (
-                                <div key={col} onClick={() => toggleColumn(col)}
-                                    className={`flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-blue-50 ${selectedColumns.includes(col) ? 'bg-blue-100' : ''}`}>
-                                    <div className={`w-4 h-4 rounded border ${selectedColumns.includes(col) ? 'bg-blue-600 border-blue-600' : 'border-gray-300'}`}>
-                                        {selectedColumns.includes(col) && <Check className="w-3 h-3 text-white" />}
+                        <div className="absolute z-50 mt-3 w-full bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden max-h-72 flex flex-col">
+                            <div className="flex-1 overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-slate-200">
+                                {columns.map(col => (
+                                    <div 
+                                        key={col} 
+                                        onClick={() => toggleColumn(col)}
+                                        className={`flex items-center gap-3 px-4 py-3 cursor-pointer rounded-xl transition-all mb-1 ${selectedColumns.includes(col) ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
+                                    >
+                                        <div className={`w-5 h-5 rounded-lg border-2 flex items-center justify-center transition-all ${selectedColumns.includes(col) ? 'bg-white border-white text-indigo-600' : 'border-slate-300 dark:border-slate-700'}`}>
+                                            {selectedColumns.includes(col) && <Check className="w-3.5 h-3.5 stroke-[4]" />}
+                                        </div>
+                                        <span className="font-black text-sm uppercase tracking-tight">{col}</span>
                                     </div>
-                                    {col}
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
                     )}
                 </div>

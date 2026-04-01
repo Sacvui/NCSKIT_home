@@ -149,6 +149,7 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         .libPaths(c('${persistentLib}', .libPaths()))
                     }
                     options(repos = c(WASM = "https://repo.r-wasm.org/", CRAN = "https://cran.r-universe.dev/"))
+                    options(mc.cores = 1)
                     psych_exists <- dir.exists("${persistentLib}/psych")
                 `);
 

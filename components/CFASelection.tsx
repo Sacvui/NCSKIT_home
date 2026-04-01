@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
-import { Plus, Trash2, ArrowRight } from 'lucide-react';
+import { Plus, Trash2, ArrowRight, Info } from 'lucide-react';
 
 interface CFASelectionProps {
     columns: string[]; // Available numeric columns
@@ -31,6 +31,7 @@ export default function CFASelection({ columns, onRunCFA, isAnalyzing, onBack }:
     };
 
     const removeFactor = (index: number) => {
+        if (factors.length <= 1) return;
         const newFactors = [...factors];
         newFactors.splice(index, 1);
         setFactors(newFactors);
@@ -44,17 +45,12 @@ export default function CFASelection({ columns, onRunCFA, isAnalyzing, onBack }:
         if (factor.indicators.includes(col)) {
             factor.indicators = factor.indicators.filter(i => i !== col);
         } else {
-            // Ensure indicator is not used in other factors (Standard CFA constraint usually)
-            // But strictly speaking, cross-loadings are allowed in SEM/CFA but rare for simple models.
-            // Let's allow reuse but maybe warn? For now, allow it.
             factor.indicators.push(col);
         }
         setFactors(newFactors);
     };
 
     const generateSyntax = () => {
-        // Generate lavaan syntax
-        // F1 =~ x1 + x2 + x3
         return factors
             .filter(f => f.indicators.length > 0)
             .map(f => `${f.name} =~ ${f.indicators.join(' + ')}`)
@@ -70,12 +66,11 @@ export default function CFASelection({ columns, onRunCFA, isAnalyzing, onBack }:
             return;
         }
 
-        // Require at least 4 indicators total for proper model fit calculation
         if (totalIndicators < 4) {
             alert("CFA cần ít nhất 4 biến quan sát để tính toán chỉ số phù hợp mô hình (RMSEA, CFI, TLI).");
             return;
         }
-        // Check for empty names
+
         if (factors.some(f => !f.name.trim())) {
             alert("Tên nhân tố không được để trống.");
             return;
@@ -85,40 +80,38 @@ export default function CFASelection({ columns, onRunCFA, isAnalyzing, onBack }:
         onRunCFA(syntax, factors);
     };
 
-    // Calculate unused columns to help user
-    const usedColumns = new Set(factors.flatMap(f => f.indicators));
-    const unusedColumns = columns.filter(c => !usedColumns.has(c));
-
     return (
-        <div className="max-w-4xl mx-auto space-y-6">
-            <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                    Xây dựng mô hình CFA
+        <div className="max-w-4xl mx-auto space-y-6 font-sans">
+            <div className="text-center mb-10">
+                <h2 className="text-4xl font-black text-slate-900 dark:text-slate-100 mb-3 tracking-tight uppercase">
+                    CFA Model Builder
                 </h2>
-                <p className="text-gray-600">
-                    Định nghĩa các nhân tố và biến quan sát tương ứng
-                </p>
+                <div className="inline-block px-4 py-1.5 bg-indigo-100 dark:bg-indigo-900/40 rounded-full border border-indigo-200 dark:border-indigo-800">
+                    <p className="text-indigo-700 dark:text-indigo-300 font-black uppercase text-[10px] tracking-[0.2em]">
+                        Confirmatory Factor Analysis (Xác thực nhân tố)
+                    </p>
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {/* Left Column: Factor List */}
                 <div className="md:col-span-1 space-y-4">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Danh sách Nhân tố</CardTitle>
+                    <Card className="border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden bg-white dark:bg-slate-900">
+                        <CardHeader className="pb-4 border-b border-slate-50 dark:border-slate-800">
+                            <CardTitle className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Mô hình nhân tố</CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="pt-5">
                             <div className="space-y-3">
                                 {factors.map((factor, idx) => (
                                     <div
                                         key={factor.id}
-                                        className={`p-3 rounded-lg border cursor-pointer transition-all ${editingFactorIndex === idx
-                                            ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
-                                            : 'border-gray-200 hover:border-blue-300'
+                                        className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${editingFactorIndex === idx
+                                            ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/40 ring-1 ring-indigo-500 shadow-xl transform scale-[1.02]'
+                                            : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 hover:border-indigo-300 dark:hover:border-indigo-700 shadow-sm'
                                             }`}
                                         onClick={() => setEditingFactorIndex(idx)}
                                     >
-                                        <div className="flex justify-between items-center mb-2">
+                                        <div className="flex justify-between items-center mb-3">
                                             <input
                                                 type="text"
                                                 value={factor.name}
@@ -127,9 +120,9 @@ export default function CFASelection({ columns, onRunCFA, isAnalyzing, onBack }:
                                                     newFactors[idx].name = e.target.value;
                                                     setFactors(newFactors);
                                                 }}
-                                                className="font-bold bg-transparent border-b border-dashed border-gray-400 focus:border-blue-600 outline-none w-full text-sm"
+                                                className="font-black text-slate-900 dark:text-slate-100 bg-transparent border-b-2 border-dashed border-slate-300 dark:border-slate-700 focus:border-indigo-500 dark:focus:border-indigo-400 outline-none w-full text-sm py-1 transition-colors"
                                                 placeholder="Tên nhân tố"
-                                                onClick={(e) => e.stopPropagation()} // Prevent card click
+                                                onClick={(e) => e.stopPropagation()}
                                             />
                                             {factors.length > 1 && (
                                                 <button
@@ -137,13 +130,14 @@ export default function CFASelection({ columns, onRunCFA, isAnalyzing, onBack }:
                                                         e.stopPropagation();
                                                         removeFactor(idx);
                                                     }}
-                                                    className="text-gray-400 hover:text-red-500"
+                                                    className="text-slate-400 hover:text-red-500 transition-colors ml-2"
                                                 >
                                                     <Trash2 className="w-4 h-4" />
                                                 </button>
                                             )}
                                         </div>
-                                        <div className="text-xs text-gray-500">
+                                        <div className="text-[10px] uppercase font-black tracking-widest text-slate-600 dark:text-slate-300 flex items-center gap-2">
+                                            <span className={`w-1.5 h-1.5 rounded-full ${factor.indicators.length >= 3 ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
                                             {factor.indicators.length} biến quan sát
                                         </div>
                                     </div>
@@ -151,9 +145,9 @@ export default function CFASelection({ columns, onRunCFA, isAnalyzing, onBack }:
 
                                 <button
                                     onClick={addFactor}
-                                    className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-500 hover:border-blue-500 hover:text-blue-500 flex items-center justify-center gap-2 transition-colors font-medium text-sm"
+                                    className="w-full py-4 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl text-slate-500 dark:text-slate-400 hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 flex items-center justify-center gap-3 transition-all font-black text-[10px] uppercase tracking-widest"
                                 >
-                                    <Plus className="w-4 h-4" /> Thêm nhân tố
+                                    <Plus className="w-4 h-4" /> Thêm nhân tố mới
                                 </button>
                             </div>
                         </CardContent>
@@ -162,34 +156,33 @@ export default function CFASelection({ columns, onRunCFA, isAnalyzing, onBack }:
 
                 {/* Right Column: Indicator Selection */}
                 <div className="md:col-span-2">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>
+                    <Card className="border-slate-200 dark:border-slate-800 shadow-xl bg-white dark:bg-slate-900 overflow-hidden">
+                        <CardHeader className="pb-4 border-b border-slate-50 dark:border-slate-800">
+                            <CardTitle className="text-slate-900 dark:text-slate-100 font-black text-lg">
                                 {editingFactorIndex !== null
-                                    ? `Chọn biến cho nhân tố: ${factors[editingFactorIndex].name}`
-                                    : 'Chọn một nhân tố để chỉnh sửa'}
+                                    ? `Biến cho ${factors[editingFactorIndex].name}`
+                                    : 'Chọn nhân tố'}
                             </CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="pt-6">
                             {editingFactorIndex !== null ? (
-                                <div className="space-y-4">
-                                    <div className="h-96 overflow-y-auto pr-2 border rounded-lg p-3 bg-gray-50">
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                <div className="space-y-6">
+                                    <div className="h-[450px] overflow-y-auto pr-2 border-2 border-slate-100 dark:border-slate-800 rounded-2xl p-5 bg-slate-50 dark:bg-slate-950/30 shadow-inner">
+                                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
                                             {columns.map(col => {
                                                 const isSelected = factors[editingFactorIndex].indicators.includes(col);
-                                                // Check if used in other factors
                                                 const isUsedElsewhere = factors.some((f, i) => i !== editingFactorIndex && f.indicators.includes(col));
 
                                                 return (
                                                     <label
                                                         key={col}
                                                         className={`
-                                                            flex items-center gap-2 p-2 rounded border cursor-pointer select-none transition-all
+                                                            flex items-center gap-3 p-3.5 rounded-xl border-2 cursor-pointer select-none transition-all
                                                             ${isSelected
-                                                                ? 'bg-blue-100 border-blue-500 text-blue-800'
+                                                                ? 'bg-indigo-600 border-indigo-600 text-white shadow-xl shadow-indigo-100 dark:shadow-none transform scale-[1.02]'
                                                                 : isUsedElsewhere
-                                                                    ? 'bg-gray-100 border-gray-200 text-gray-400 opacity-75'
-                                                                    : 'bg-white border-gray-200 hover:border-blue-300'
+                                                                    ? 'bg-slate-200/50 dark:bg-slate-800/30 border-slate-200 dark:border-slate-800 text-slate-400 dark:text-slate-600 grayscale opacity-60'
+                                                                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-indigo-400 dark:hover:border-indigo-600 hover:bg-slate-50 dark:hover:bg-slate-800'
                                                             }
                                                         `}
                                                     >
@@ -197,23 +190,26 @@ export default function CFASelection({ columns, onRunCFA, isAnalyzing, onBack }:
                                                             type="checkbox"
                                                             checked={isSelected}
                                                             onChange={() => toggleIndicator(editingFactorIndex, col)}
-                                                            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 hidden"
+                                                            className="hidden"
                                                         />
-                                                        {isSelected && <div className="w-2 h-2 rounded-full bg-blue-600 mr-1" />}
-                                                        <span className="text-sm font-medium truncate" title={col}>{col}</span>
+                                                        <div className={`w-3 h-3 rounded-full shrink-0 ${isSelected ? 'bg-white animate-pulse' : 'bg-slate-200 dark:bg-slate-700'}`} />
+                                                        <span className={`text-[11px] font-black truncate uppercase tracking-tighter ${isSelected ? 'text-white' : 'text-slate-900 dark:text-slate-100'}`} title={col}>{col}</span>
                                                     </label>
                                                 );
                                             })}
                                         </div>
                                     </div>
-                                    <p className="text-xs text-gray-500">
-                                        * Các biến đã được chọn ở nhân tố khác sẽ bị làm mờ (nhưng vẫn có thể chọn lại nếu muốn cross-loading).
-                                    </p>
+                                    <div className="flex items-center gap-3 px-4 py-3 bg-slate-100 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-700">
+                                        <div className="w-1.5 h-1.5 bg-indigo-500 rounded-full"></div>
+                                        <p className="text-[10px] text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest leading-relaxed">
+                                            Các biến bị làm mờ đã được gán cho nhân tố khác.
+                                        </p>
+                                    </div>
                                 </div>
                             ) : (
-                                <div className="flex flex-col items-center justify-center h-64 text-gray-400">
-                                    <ArrowRight className="w-12 h-12 mb-4 opacity-20" />
-                                    <p>Vui lòng chọn nhân tố bên trái để thêm biến</p>
+                                <div className="flex flex-col items-center justify-center h-80 text-slate-300 dark:text-slate-700 border-2 border-dashed border-slate-100 dark:border-slate-800 rounded-2xl">
+                                    <ArrowRight className="w-16 h-16 mb-4 opacity-30" />
+                                    <p className="font-black uppercase tracking-widest text-xs">Vui lòng chọn nhân tố bên trái</p>
                                 </div>
                             )}
                         </CardContent>
@@ -222,42 +218,61 @@ export default function CFASelection({ columns, onRunCFA, isAnalyzing, onBack }:
             </div>
 
             {/* Actions */}
-            <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-lg border mt-6">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-6 bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 mt-12 mb-10">
                 <button
                     onClick={onBack}
-                    className="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg transition-colors"
+                    className="w-full sm:w-auto px-8 py-3.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-black uppercase text-[10px] tracking-widest rounded-xl transition-all"
                     disabled={isAnalyzing}
                 >
                     Quay lại
                 </button>
 
-                <div className="text-sm text-gray-500">
-                    {generateSyntax() ? (
-                        <span className="flex items-center gap-2">
-                            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                            Mô hình hợp lệ
-                        </span>
-                    ) : (
-                        <span className="text-orange-500">Chưa có mô hình</span>
-                    )}
+                <div className="hidden lg:flex items-center gap-4">
+                     <div className="flex -space-x-2">
+                        {factors.map((_, i) => (
+                            <div key={i} className={`w-3 h-3 rounded-full border-2 border-white dark:border-slate-900 ${factors[i].indicators.length >= 3 ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}></div>
+                        ))}
+                     </div>
+                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                        {factors.filter(f => f.indicators.length >= 3).length} / {factors.length} Đủ điều kiện
+                     </span>
                 </div>
 
                 <button
                     onClick={handleRun}
                     disabled={isAnalyzing}
-                    className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-md transition-all hover:scale-105 disabled:opacity-70 disabled:hover:scale-100"
+                    className={`w-full sm:w-auto px-16 py-4 font-black rounded-xl shadow-2xl transition-all transform active:scale-95 flex items-center justify-center gap-3 ${
+                        isAnalyzing ? 'bg-slate-400 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-700 text-white hover:-translate-y-1'
+                    }`}
                 >
-                    {isAnalyzing ? 'Đang phân tích...' : 'Chạy CFA'}
+                    {isAnalyzing ? (
+                        <>
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                            <span className="uppercase text-xs tracking-widest">ĐANG CHẠY CFA...</span>
+                        </>
+                    ) : (
+                        <>
+                            <span className="uppercase text-xs tracking-[0.2em]">CHẠY PHÂN TÍCH CFA</span>
+                            <ArrowRight className="w-4 h-4 ml-2" />
+                        </>
+                    )}
                 </button>
             </div>
-
-            {/* Syntax Preview (Advanced) */}
-            <div className="mt-8">
-                <details className="text-xs text-gray-500 cursor-pointer">
-                    <summary className="mb-2 font-medium hover:text-indigo-600">Xem cú pháp lavaan (Advanced)</summary>
-                    <pre className="bg-gray-800 text-green-400 p-4 rounded-lg overflow-x-auto font-mono">
-                        {generateSyntax() || "# Chưa có syntax"}
-                    </pre>
+            
+             {/* Syntax Preview */}
+             <div className="mt-4 pb-20">
+                <details className="text-[10px] text-slate-500 dark:text-slate-400 cursor-pointer group">
+                    <summary className="font-black uppercase tracking-widest hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors list-none flex items-center gap-2">
+                        <div className="w-5 h-5 bg-slate-100 dark:bg-slate-800 rounded flex items-center justify-center">
+                            <Plus className="w-3 h-3 group-open:rotate-45 transition-transform" />
+                        </div>
+                        LAVAAN SYNTAX PREVIEW (NÂNG CAO)
+                    </summary>
+                    <div className="mt-4 p-6 bg-slate-900 dark:bg-black rounded-2xl border border-slate-800 shadow-2xl">
+                        <pre className="text-emerald-400 font-mono text-[11px] leading-relaxed">
+                            {generateSyntax() || "# Định nghĩa mô hình để xem syntax"}
+                        </pre>
+                    </div>
                 </details>
             </div>
         </div>

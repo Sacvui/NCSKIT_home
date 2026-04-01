@@ -42,83 +42,89 @@ export const CFAResults = React.memo(function CFAResults({ results, onProceedToS
 
     // Helper to color fit indices
     const getFitColor = (val: number, type: 'high' | 'low') => {
-        if (type === 'high') return val > 0.9 ? 'text-green-600' : val > 0.8 ? 'text-orange-500' : 'text-red-500';
-        return val < 0.08 ? 'text-green-600' : val < 0.1 ? 'text-orange-500' : 'text-red-500';
+        const isGood = type === 'high' ? val >= 0.9 : val <= 0.08;
+        const isAcceptable = type === 'high' ? val >= 0.8 : val <= 0.10;
+        
+        if (isGood) return 'text-emerald-600 dark:text-emerald-400';
+        if (isAcceptable) return 'text-amber-600 dark:text-amber-400';
+        return 'text-rose-600 dark:text-rose-400';
     };
 
     return (
         <div className="space-y-8 font-sans">
             {/* 1. Model Fit Summary */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-rose-700">Model Fit Indices (Độ phù hợp mô hình)</CardTitle>
+            <Card className="border-slate-200 dark:border-slate-800 shadow-md overflow-hidden">
+                <CardHeader className="border-b bg-slate-50/50 dark:bg-slate-900/50 pb-4">
+                    <CardTitle className="text-slate-900 dark:text-slate-100 flex items-center gap-2 font-black">
+                        Mô hình đo lường (Fit Indices)
+                    </CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                        <div className="p-4 bg-gray-50 rounded border">
-                            <div className="text-xs uppercase text-gray-500 font-bold">Chi-square / df</div>
-                            <div className="text-xl font-bold text-gray-800">
+                <CardContent className="p-6">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                        <div className="p-5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border-2 border-slate-100 dark:border-slate-800 shadow-sm transition-all hover:border-indigo-200">
+                            <div className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400 mb-2 tracking-widest">Chi-square / df</div>
+                            <div className="text-2xl font-black text-slate-900 dark:text-slate-100">
                                 {(fitMeasures.chisq / fitMeasures.df).toFixed(3)}
-                            </div>
-                            <div className="text-xs text-gray-400">p = {fitMeasures.pvalue.toFixed(3)}</div>
+                             </div>
+                            <div className="text-[10px] font-black text-slate-500 mt-1 uppercase tracking-tighter">p = {fitMeasures.pvalue.toFixed(3)}</div>
                         </div>
-                        <div className="p-4 bg-gray-50 rounded border">
-                            <div className="text-xs uppercase text-gray-500 font-bold">CFI</div>
-                            <div className={`text-xl font-bold ${getFitColor(fitMeasures.cfi, 'high')}`}>
+                        <div className="p-5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border-2 border-slate-100 dark:border-slate-800 shadow-sm transition-all hover:border-indigo-200">
+                            <div className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400 mb-2 tracking-widest">CFI</div>
+                            <div className={`text-2xl font-black ${getFitColor(fitMeasures.cfi, 'high')}`}>
                                 {fitMeasures.cfi.toFixed(3)}
                             </div>
-                            <div className="text-xs text-gray-400">&gt; 0.9 is good</div>
+                            <div className="text-[10px] font-black text-slate-500 mt-1 uppercase tracking-tighter">CFI &gt; 0.9 (Good)</div>
                         </div>
-                        <div className="p-4 bg-gray-50 rounded border">
-                            <div className="text-xs uppercase text-gray-500 font-bold">TLI</div>
-                            <div className={`text-xl font-bold ${getFitColor(fitMeasures.tli, 'high')}`}>
+                        <div className="p-5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border-2 border-slate-100 dark:border-slate-800 shadow-sm transition-all hover:border-indigo-200">
+                            <div className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400 mb-2 tracking-widest">TLI</div>
+                            <div className={`text-2xl font-black ${getFitColor(fitMeasures.tli, 'high')}`}>
                                 {fitMeasures.tli.toFixed(3)}
                             </div>
-                            <div className="text-xs text-gray-400">&gt; 0.9 is good</div>
+                            <div className="text-[10px] font-black text-slate-500 mt-1 uppercase tracking-tighter">TLI &gt; 0.9 (Good)</div>
                         </div>
-                        <div className="p-4 bg-gray-50 rounded border">
-                            <div className="text-xs uppercase text-gray-500 font-bold">RMSEA</div>
-                            <div className={`text-xl font-bold ${getFitColor(fitMeasures.rmsea, 'low')}`}>
+                        <div className="p-5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border-2 border-slate-100 dark:border-slate-800 shadow-sm transition-all hover:border-indigo-200">
+                            <div className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400 mb-2 tracking-widest">RMSEA</div>
+                            <div className={`text-2xl font-black ${getFitColor(fitMeasures.rmsea, 'low')}`}>
                                 {fitMeasures.rmsea.toFixed(3)}
                             </div>
-                            <div className="text-xs text-gray-400">&lt; 0.08 is good</div>
+                            <div className="text-[10px] font-black text-slate-500 mt-1 uppercase tracking-tighter">RMSEA &lt; 0.08 (Good)</div>
                         </div>
                     </div>
                 </CardContent>
             </Card>
 
             {/* 2. Factor Loadings Table */}
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-rose-700">Factor Loadings (Hệ số tải nhân tố)</CardTitle>
+            <Card className="border-slate-200 dark:border-slate-800 shadow-md overflow-hidden">
+                <CardHeader className="border-b bg-slate-50/50 dark:bg-slate-900/50 pb-4">
+                    <CardTitle className="text-slate-900 dark:text-slate-100 font-black">Factor Loadings (Hệ số tải)</CardTitle>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="px-0 pt-0">
                     <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
+                        <table className="w-full text-sm border-collapse">
                             <thead>
-                                <tr className="bg-rose-50 border-b-2 border-rose-200 text-rose-800">
-                                    <th className="py-3 px-4 text-left">Nhân tố (Latent)</th>
-                                    <th className="py-3 px-4 text-center"></th>
-                                    <th className="py-3 px-4 text-left">Biến quan sát (Indicator)</th>
-                                    <th className="py-3 px-4 text-right">Estimate</th>
-                                    <th className="py-3 px-4 text-right">Std. Estimate</th>
-                                    <th className="py-3 px-4 text-right">S.E.</th>
-                                    <th className="py-3 px-4 text-right">P-value</th>
+                                <tr className="bg-slate-100 dark:bg-slate-800 text-slate-950 dark:text-slate-100">
+                                    <th className="py-4 px-6 text-left font-black uppercase tracking-widest text-[10px] border-b-2 border-slate-300 dark:border-slate-700">Nhân tố (Latent)</th>
+                                    <th className="py-4 px-6 text-center border-b-2 border-slate-300 dark:border-slate-700"></th>
+                                    <th className="py-4 px-6 text-left font-black uppercase tracking-widest text-[10px] border-b-2 border-slate-300 dark:border-slate-700">Biến quan sát</th>
+                                    <th className="py-4 px-6 text-right font-black uppercase tracking-widest text-[10px] border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700 whitespace-normal w-24">Est.</th>
+                                    <th className="py-4 px-6 text-right font-black uppercase tracking-widest text-[10px] border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700 whitespace-normal w-24">Std. Est</th>
+                                    <th className="py-4 px-6 text-right font-black uppercase tracking-widest text-[10px] border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700 whitespace-normal w-24">P-value</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {loadings.map((est: any, idx: number) => (
-                                    <tr key={idx} className="border-b border-gray-100 hover:bg-rose-50/30 transition-colors">
-                                        <td className="py-2 px-4 font-medium text-gray-800">{est.lhs}</td>
-                                        <td className="py-2 px-4 text-center text-gray-400">⟶</td>
-                                        <td className="py-2 px-4 text-gray-700">{est.rhs}</td>
-                                        <td className="py-2 px-4 text-right">{est.est.toFixed(3)}</td>
-                                        <td className={`py-2 px-4 text-right font-bold ${est.std > 0.5 ? 'text-green-600' : 'text-orange-500'}`}>
+                                    <tr key={idx} className="border-b border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/10 transition-colors">
+                                        <td className="py-4 px-6 font-black text-slate-900 dark:text-slate-100">{est.lhs}</td>
+                                        <td className="py-4 px-6 text-center text-slate-300 dark:text-slate-700">
+                                            <span className="text-xl">→</span>
+                                        </td>
+                                        <td className="py-4 px-6 font-bold text-slate-700 dark:text-slate-300">{est.rhs}</td>
+                                        <td className="py-4 px-6 text-right border-l border-slate-200 dark:border-slate-700 font-medium">{est.est.toFixed(3)}</td>
+                                        <td className={`py-4 px-6 text-right border-l border-slate-200 dark:border-slate-700 font-black ${est.std > 0.5 ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/10 dark:bg-indigo-950/20' : 'text-slate-800 dark:text-slate-200'}`}>
                                             {est.std.toFixed(3)}
                                         </td>
-                                        <td className="py-2 px-4 text-right text-gray-500">{est.se.toFixed(3)}</td>
-                                        <td className="py-2 px-4 text-right">
-                                            {est.pvalue < 0.001 ? <span className="text-green-600 font-bold">{'< .001 ***'}</span> : est.pvalue.toFixed(3)}
+                                        <td className="py-4 px-6 text-right border-l border-slate-200 dark:border-slate-700">
+                                            {est.pvalue < 0.001 ? <span className="text-emerald-600 dark:text-emerald-400 font-black uppercase text-[10px] tracking-tighter">{'< .001 ***'}</span> : <span className="font-bold">{est.pvalue.toFixed(3)}</span>}
                                         </td>
                                     </tr>
                                 ))}
@@ -130,31 +136,33 @@ export const CFAResults = React.memo(function CFAResults({ results, onProceedToS
 
             {/* 3. Covariances (Optional) */}
             {covariances.length > 0 && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="text-rose-700">Covariances (Hiệp phương sai)</CardTitle>
+                <Card className="border-slate-200 dark:border-slate-800 shadow-md overflow-hidden">
+                    <CardHeader className="border-b bg-slate-50/50 dark:bg-slate-900/50 pb-4">
+                        <CardTitle className="text-slate-900 dark:text-slate-100 font-black">Covariances (Hiệp phương sai)</CardTitle>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="px-0 pt-0">
                         <div className="overflow-x-auto">
-                            <table className="w-full text-sm">
+                            <table className="w-full text-sm border-collapse">
                                 <thead>
-                                    <tr className="bg-gray-50 border-b border-gray-200">
-                                        <th className="py-2 px-4 text-left">Quan hệ</th>
-                                        <th className="py-2 px-4 text-right">Estimate</th>
-                                        <th className="py-2 px-4 text-right">Std. Estimate (Correlation)</th>
-                                        <th className="py-2 px-4 text-right">P-value</th>
+                                    <tr className="bg-slate-100 dark:bg-slate-800 text-slate-950 dark:text-slate-100">
+                                        <th className="py-4 px-6 text-left font-black uppercase tracking-widest text-[10px] border-b-2 border-slate-300 dark:border-slate-700">Mối quan hệ</th>
+                                        <th className="py-4 px-6 text-right font-black uppercase tracking-widest text-[10px] border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700 whitespace-normal w-24">Est.</th>
+                                        <th className="py-4 px-6 text-right font-black uppercase tracking-widest text-[10px] border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700 whitespace-normal w-32">Std. Est (Corr.)</th>
+                                        <th className="py-4 px-6 text-right font-black uppercase tracking-widest text-[10px] border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700 whitespace-normal w-24">P-value</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {covariances.map((est: any, idx: number) => (
-                                        <tr key={idx} className="border-b border-gray-100">
-                                            <td className="py-2 px-4 font-medium">
-                                                {est.lhs} <span className="mx-2 text-gray-400">⟷</span> {est.rhs}
+                                        <tr key={idx} className="border-b border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                            <td className="py-4 px-6 font-black text-slate-900 dark:text-slate-100 bg-slate-50/30 dark:bg-slate-950/20">
+                                                {est.lhs} <span className="mx-3 text-slate-300 dark:text-slate-700">⟷</span> {est.rhs}
                                             </td>
-                                            <td className="py-2 px-4 text-right">{est.est.toFixed(3)}</td>
-                                            <td className="py-2 px-4 text-right font-bold">{est.std.toFixed(3)}</td>
-                                            <td className="py-2 px-4 text-right">
-                                                {est.pvalue < 0.001 ? '< .001' : est.pvalue.toFixed(3)}
+                                            <td className="py-4 px-6 text-right border-l border-slate-200 dark:border-slate-700 font-medium text-slate-900 dark:text-slate-100">{est.est.toFixed(3)}</td>
+                                            <td className="py-4 px-6 text-right border-l border-slate-200 dark:border-slate-700 font-black text-indigo-600 dark:text-indigo-400">
+                                                {est.std.toFixed(3)}
+                                            </td>
+                                            <td className="py-4 px-6 text-right border-l border-slate-200 dark:border-slate-700">
+                                                {est.pvalue < 0.001 ? <span className="text-emerald-600 dark:text-emerald-400 font-black uppercase text-[10px] tracking-tighter">{'< .001 ***'}</span> : <span className="font-bold text-slate-900 dark:text-slate-100">{est.pvalue.toFixed(3)}</span>}
                                             </td>
                                         </tr>
                                     ))}
@@ -167,23 +175,28 @@ export const CFAResults = React.memo(function CFAResults({ results, onProceedToS
 
             {/* Workflow: Next Step Button */}
             {factors.length > 0 && onProceedToSEM && fitGood && (
-                <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300 p-6 rounded-xl shadow-sm">
-                    <div className="flex items-start gap-4">
-                        <div className="flex-shrink-0 w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center text-white text-2xl">
+                <div className="bg-gradient-to-tr from-indigo-600 to-violet-700 p-8 rounded-2xl shadow-xl shadow-indigo-200 dark:shadow-none text-white relative overflow-hidden group">
+                    <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-700"></div>
+                    
+                    <div className="flex items-center gap-8 relative z-10">
+                        <div className="flex-shrink-0 w-20 h-20 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-white text-4xl shadow-2xl border border-white/30 rotate-3 group-hover:rotate-0 transition-transform">
                             🎯
                         </div>
                         <div className="flex-1">
-                            <h4 className="font-bold text-purple-900 mb-2 text-lg">Bước tiếp theo được đề xuất</h4>
-                            <p className="text-sm text-purple-700 mb-4">
-                                Mô hình CFA đã được xác nhận với <strong>fit tốt</strong> (CFI ≥ 0.9, RMSEA ≤ 0.08).
-                                Tiếp tục với <strong>SEM (Structural Equation Modeling)</strong> để kiểm định mối quan hệ nhân quả giữa các nhân tố?
+                            <div className="inline-block px-3 py-1 bg-indigo-500/50 backdrop-blur-sm rounded-full text-[10px] font-black uppercase tracking-widest mb-3 border border-white/20">
+                                Model Quality Confirmed (Xác thực)
+                            </div>
+                            <h4 className="font-black mb-2 text-2xl tracking-tighter">CFA ĐẠT CHUẨN - TIẾN TỚI SEM</h4>
+                            <p className="text-white/80 text-sm mb-6 leading-relaxed max-w-2xl font-medium">
+                                Mô hình CFA ổn định (CFI ≥ 0.9, RMSEA ≤ 0.08). 
+                                Bạn có thể tiến hành xây dựng <strong>SEM (Structural Equation Modeling)</strong> để kiểm định giả thuyết nghiên cứu.
                             </p>
                             <button
                                 onClick={handleProceedToSEM}
-                                className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2"
+                                className="px-8 py-4 bg-white text-indigo-700 hover:bg-slate-50 font-black rounded-xl shadow-xl hover:shadow-2xl transition-all flex items-center gap-3 transform hover:-translate-y-1 active:scale-95"
                             >
-                                <span>Xây dựng SEM với {factors.length} factors</span>
-                                <span className="text-xl">→</span>
+                                <span>XÂY DỰNG SEM ({factors.length} NHÂN TỐ)</span>
+                                <span className="text-2xl">→</span>
                             </button>
                         </div>
                     </div>

@@ -61,27 +61,33 @@ export const CronbachResults = React.memo(function CronbachResults({
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6">
-                    <table className="w-full text-left text-sm text-slate-700 dark:text-slate-300 border-collapse">
-                        <thead className="bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100">
+                    <table className="w-full text-left text-sm text-slate-900 dark:text-slate-100 border-collapse">
+                        <thead className="bg-slate-50 dark:bg-slate-800 text-slate-950 dark:text-slate-100">
                             <tr className="border-y-2 border-slate-300 dark:border-slate-700">
-                                <th className="py-3 px-4 font-bold uppercase tracking-wider text-xs">Measure</th>
-                                <th className="py-3 px-4 font-bold uppercase tracking-wider text-xs text-center border-l border-slate-200 dark:border-slate-700">Value (Giá trị)</th>
-                                <th className="py-3 px-4 font-bold uppercase tracking-wider text-xs text-center border-l-2 border-slate-300 dark:border-slate-700">{t(locale, 'tables.n')}</th>
+                                <th className="py-4 px-6 font-black uppercase tracking-widest text-[10px]">Measure (Chỉ số)</th>
+                                <th className="py-4 px-6 font-black uppercase tracking-widest text-[10px] text-right border-l border-slate-200 dark:border-slate-700">Value (Giá trị)</th>
+                                <th className="py-4 px-6 font-black uppercase tracking-widest text-[10px] text-center border-l-2 border-slate-300 dark:border-slate-700">{t(locale, 'tables.n')}</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr className="border-b border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                <td className={`py-4 px-4 font-bold ${analysisType !== 'omega' ? 'text-slate-900 dark:text-white text-lg' : 'text-slate-500 dark:text-slate-400'}`}>Cronbach&apos;s Alpha</td>
-                                <td className={`py-4 px-4 text-center border-l border-slate-200 dark:border-slate-700 ${analysisType !== 'omega' ? 'font-black text-indigo-600 dark:text-indigo-400 text-2xl' : 'text-slate-600 dark:text-slate-400'}`}>{alpha.toFixed(3)}</td>
-                                <td className="py-4 px-4 text-center row-span-3 align-middle border-l-2 border-slate-300 dark:border-slate-700 font-black text-slate-900 dark:text-white text-2xl bg-slate-50/30 dark:bg-slate-900/30">{nItems}</td>
+                            <tr className="border-b border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/10 transition-colors">
+                                <td className={`py-4 px-6 font-black ${analysisType !== 'omega' ? 'text-indigo-900 dark:text-white text-base bg-indigo-50/10 dark:bg-indigo-950/20' : 'text-slate-500 dark:text-slate-500'}`}>
+                                    Cronbach&apos;s Alpha
+                                    {analysisType !== 'omega' && <span className="block text-[10px] uppercase tracking-tighter opacity-70">Primary reliability measure</span>}
+                                </td>
+                                <td className={`py-4 px-6 text-right border-l border-slate-200 dark:border-slate-700 ${analysisType !== 'omega' ? 'font-black text-indigo-700 dark:text-indigo-400 text-3xl' : 'text-slate-400 dark:text-slate-600'}`}>{alpha.toFixed(3)}</td>
+                                <td className="py-4 px-6 text-center align-middle border-l-2 border-slate-300 dark:border-slate-700 font-black text-slate-900 dark:text-white text-3xl bg-slate-50/50 dark:bg-slate-900/50" rowSpan={3}>{nItems}</td>
                             </tr>
-                            <tr className="border-b border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                <td className={`py-4 px-4 font-bold ${analysisType === 'omega' ? 'text-slate-900 dark:text-white text-lg' : 'text-slate-500 dark:text-slate-400'}`}>McDonald&apos;s Omega (Total)</td>
-                                <td className={`py-4 px-4 text-center border-l border-slate-200 dark:border-slate-700 ${analysisType === 'omega' ? 'font-black text-indigo-600 dark:text-indigo-400 text-2xl' : 'text-slate-600 dark:text-slate-400'}`}>{results.omega ? results.omega.toFixed(3) : '-'}</td>
+                            <tr className="border-b border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/10 transition-colors">
+                                <td className={`py-4 px-6 font-black ${analysisType === 'omega' ? 'text-indigo-900 dark:text-white text-base bg-indigo-50/10 dark:bg-indigo-950/20' : 'text-slate-500 dark:text-slate-500'}`}>
+                                    McDonald&apos;s Omega (Total)
+                                    {analysisType === 'omega' && <span className="block text-[10px] uppercase tracking-tighter opacity-70">Robust reliability measure</span>}
+                                </td>
+                                <td className={`py-4 px-6 text-right border-l border-slate-200 dark:border-slate-700 ${analysisType === 'omega' ? 'font-black text-indigo-700 dark:text-indigo-400 text-3xl' : 'text-slate-400 dark:text-slate-600'}`}>{results.omega ? results.omega.toFixed(3) : '-'}</td>
                             </tr>
-                            <tr className="border-b border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                <td className="py-3 px-4 font-semibold text-slate-500 dark:text-slate-400">Omega Hierarchical</td>
-                                <td className="py-3 px-4 text-center border-l border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400">{results.omegaHierarchical ? results.omegaHierarchical.toFixed(3) : '-'}</td>
+                            <tr className="border-b border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/10 transition-colors">
+                                <td className="py-4 px-6 font-bold text-slate-500 dark:text-slate-600 text-[11px] uppercase tracking-wider">Omega Hierarchical</td>
+                                <td className="py-4 px-6 text-right border-l border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-600 font-medium">{results.omegaHierarchical ? results.omegaHierarchical.toFixed(3) : '-'}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -94,15 +100,15 @@ export const CronbachResults = React.memo(function CronbachResults({
                     <CardHeader className="border-b bg-slate-50/50 dark:bg-slate-800/50 pb-4">
                         <CardTitle className="text-slate-900 dark:text-slate-100">{t(locale, 'tables.itemTotal')}</CardTitle>
                     </CardHeader>
-                    <CardContent className="overflow-x-auto pt-6">
-                        <table className="w-full text-left text-sm whitespace-nowrap text-slate-700 dark:text-slate-300 border-collapse">
-                            <thead className="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100">
+                    <CardContent className="overflow-x-auto pt-6 px-0">
+                        <table className="w-full text-left text-sm whitespace-nowrap text-slate-900 dark:text-slate-100 border-collapse">
+                            <thead className="bg-slate-100 dark:bg-slate-800 text-slate-950 dark:text-slate-100">
                                 <tr className="border-y-2 border-slate-300 dark:border-slate-700">
-                                    <th className="py-3 px-4 font-bold uppercase tracking-wider text-xs">{t(locale, 'tables.variable')}</th>
-                                    <th className="py-3 px-4 font-bold uppercase tracking-wider text-xs text-right">Scale Mean if Item Deleted <br/><span className="text-[10px] lowercase italic opacity-70">(Trung bình l.b)</span></th>
-                                    <th className="py-3 px-4 font-bold uppercase tracking-wider text-xs text-right">Scale Var if Item Deleted <br/><span className="text-[10px] lowercase italic opacity-70">(Phương sai l.b)</span></th>
-                                    <th className="py-3 px-4 font-bold uppercase tracking-wider text-xs text-right">Item-Total Correlation <br/><span className="text-[10px] lowercase italic opacity-70">(Tương quan biến tổng)</span></th>
-                                    <th className="py-3 px-4 font-bold uppercase tracking-wider text-xs text-right">Alpha if Item Deleted <br/><span className="text-[10px] lowercase italic opacity-70">(Alpha nếu loại biến)</span></th>
+                                    <th className="py-4 px-6 font-black uppercase tracking-widest text-[10px]">{t(locale, 'tables.variable')}</th>
+                                    <th className="py-4 px-6 font-black uppercase tracking-widest text-[10px] text-right border-l border-slate-200 dark:border-slate-700 whitespace-normal">Scale Mean<br/><span className="text-[9px] lowercase italic opacity-60">if Item Deleted</span></th>
+                                    <th className="py-4 px-6 font-black uppercase tracking-widest text-[10px] text-right border-l border-slate-200 dark:border-slate-700 whitespace-normal">Scale Variance<br/><span className="text-[9px] lowercase italic opacity-60">if Item Deleted</span></th>
+                                    <th className="py-4 px-6 font-black uppercase tracking-widest text-[10px] text-right border-l border-slate-200 dark:border-slate-700 whitespace-normal">Item-Total<br/><span className="text-[9px] lowercase opacity-60 font-black italic">Correlation</span></th>
+                                    <th className="py-4 px-6 font-black uppercase tracking-widest text-[10px] text-right border-l border-slate-200 dark:border-slate-700 whitespace-normal">Cronbach&apos;s Alpha<br/><span className="text-[9px] lowercase italic opacity-60">if Item Deleted</span></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -123,14 +129,18 @@ export const CronbachResults = React.memo(function CronbachResults({
                                 ))}
                             </tbody>
                         </table>
-                        <div className="text-xs text-slate-600 dark:text-slate-400 italic p-4 bg-slate-50 dark:bg-slate-800/50 mt-6 rounded-lg border border-slate-200 dark:border-slate-700 shadow-inner">
-                            <p className="mb-2 flex items-center gap-2">
-                                <span className="inline-block w-4 h-4 bg-red-100 dark:bg-red-900/40 border border-red-300 dark:border-red-800 rounded shadow-sm"></span>
-                                <span><strong>Corrected Item-Total Correlation &lt; 0.3</strong> (Nền đỏ/hồng) biểu thị tương quan biến-tổng yếu, cần xem xét loại bỏ biến này.</span>
+                        <div className="mx-6 flex flex-col gap-3 bg-slate-50 dark:bg-slate-900/50 p-5 rounded-2xl mt-8 border-2 border-dashed border-slate-200 dark:border-slate-800">
+                            <p className="flex items-center gap-3">
+                                <span className="inline-block w-4 h-4 bg-red-100 dark:bg-rose-950/40 border border-red-300 dark:border-rose-800 rounded shadow-sm shrink-0"></span>
+                                <span className="text-[10px] uppercase tracking-widest font-black text-slate-600 dark:text-slate-400 leading-relaxed">
+                                    <strong>Item-Total Correlation &lt; 0.3</strong> (Nền hồng): Tương quan yếu, cần xem xét loại bỏ biến.
+                                </span>
                             </p>
-                            <p className="flex items-center gap-2">
-                                <span className="inline-block w-4 h-4 bg-orange-100 dark:bg-orange-900/40 border border-orange-300 dark:border-orange-800 rounded shadow-sm"></span>
-                                <span><strong>Alpha if Item Deleted &gt; Alpha hiện tại</strong> (Nền cam) báo hiệu độ tin cậy của thang đo sẽ tăng lên nếu loại bỏ biến này.</span>
+                            <p className="flex items-center gap-3">
+                                <span className="inline-block w-4 h-4 bg-orange-100 dark:bg-amber-950/40 border border-orange-300 dark:border-amber-800 rounded shadow-sm shrink-0"></span>
+                                <span className="text-[10px] uppercase tracking-widest font-black text-slate-600 dark:text-slate-400 leading-relaxed">
+                                    <strong>Alpha if Item Deleted &gt; Alpha hiện tại</strong> (Nền cam): Loại bỏ biến này sẽ tăng độ tin cậy.
+                                </span>
                             </p>
                         </div>
                     </CardContent>
@@ -139,23 +149,29 @@ export const CronbachResults = React.memo(function CronbachResults({
 
             {/* Workflow: Next Step Button */}
             {goodItems.length >= 4 && onProceedToEFA && (
-                <div className="bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-slate-900 dark:to-indigo-950/40 border-2 border-indigo-200 dark:border-indigo-800/50 p-8 rounded-2xl shadow-lg">
-                    <div className="flex items-center gap-6">
-                        <div className="flex-shrink-0 w-16 h-16 bg-indigo-600 dark:bg-indigo-500 rounded-2xl flex items-center justify-center text-white text-3xl shadow-xl shadow-indigo-200 dark:shadow-none rotate-3">
-                            📊
+                <div className="bg-gradient-to-tr from-indigo-700 to-indigo-900 p-10 rounded-3xl shadow-2xl shadow-indigo-200 dark:shadow-none text-white relative overflow-hidden group">
+                    <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-white/10 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-1000"></div>
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 blur-2xl"></div>
+                    
+                    <div className="flex flex-col md:flex-row items-center gap-10 relative z-10">
+                        <div className="flex-shrink-0 w-24 h-24 bg-white/20 backdrop-blur-xl rounded-3xl flex items-center justify-center text-white text-5xl shadow-2xl border border-white/30 rotate-3 group-hover:rotate-0 transition-transform duration-500">
+                             🚀
                         </div>
-                        <div className="flex-1">
-                            <h4 className="font-black text-indigo-900 dark:text-indigo-100 mb-2 text-xl tracking-tight">Bước tiếp theo được đề xuất</h4>
-                            <p className="text-base text-indigo-700 dark:text-indigo-300 mb-5 leading-relaxed">
-                                Bạn có <span className="font-black underline underline-offset-4 decoration-indigo-400">{goodItems.length} items đạt chuẩn</span>. 
-                                Tiếp tục với <strong>EFA (Exploratory Factor Analysis)</strong> để khám phá cấu trúc nhân tố?
+                        <div className="flex-1 text-center md:text-left">
+                            <div className="inline-block px-4 py-1 bg-white/20 backdrop-blur-md rounded-full text-[10px] font-black uppercase tracking-[0.2em] mb-4 border border-white/20">
+                                Reliability Confirmed (Đã xác thực)
+                            </div>
+                            <h4 className="font-black mb-3 text-3xl tracking-tighter">THANG ĐO TIN CẬY - TIẾN TỚI EFA</h4>
+                            <p className="text-white/80 text-base mb-8 leading-relaxed max-w-2xl font-medium">
+                                Bạn có <strong className="text-white text-lg px-1 underline underline-offset-4 decoration-indigo-400">{goodItems.length} biến quan sát</strong> đạt chuẩn tương quan biến-tổng. 
+                                Chúng ta đã sẵn sàng thực hiện <strong>EFA (Exploratory Factor Analysis)</strong> để khám phá cấu trúc nhân tố thực tế.
                             </p>
                             <button
                                 onClick={handleProceedToEFA}
-                                className="px-8 py-4 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white font-black rounded-xl shadow-lg hover:shadow-indigo-300 dark:hover:shadow-none transition-all flex items-center gap-3 transform hover:-translate-y-1 active:scale-95"
+                                className="px-12 py-5 bg-white text-indigo-900 hover:bg-slate-50 font-black rounded-2xl shadow-2xl hover:shadow-white/20 transition-all flex items-center gap-4 transform hover:-translate-y-1 active:scale-95 group/btn"
                             >
-                                <span>CHẠY EFA VỚI {goodItems.length} ITEMS TỐT</span>
-                                <span className="text-2xl">→</span>
+                                <span className="uppercase tracking-widest text-sm">CHẠY PHÂN TÍCH EFA ({goodItems.length} ITEMS)</span>
+                                <span className="text-2xl group-hover/btn:translate-x-2 transition-transform">→</span>
                             </button>
                         </div>
                     </div>

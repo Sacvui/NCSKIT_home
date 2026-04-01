@@ -126,8 +126,11 @@ export function WorkflowPanel({
                     <TrendingUp className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                    <h3 className="text-xl font-black text-indigo-950 dark:text-indigo-50 tracking-tight">Quy trình phân tích (Workflow)</h3>
-                    <p className="text-sm text-indigo-700 dark:text-indigo-400 font-medium">Lộ trình chuẩn cho nghiên cứu định lượng</p>
+                    <h3 className="text-xl font-black text-indigo-950 dark:text-slate-100 tracking-tight flex items-center gap-2">
+                        Quy trình phân tích (Workflow)
+                        <span className="text-[10px] bg-indigo-200 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 px-2 py-0.5 rounded-full font-black uppercase tracking-widest">v2.0</span>
+                    </h3>
+                    <p className="text-sm text-indigo-800 dark:text-indigo-300 font-medium opacity-80 uppercase tracking-widest text-[9px]">Lộ trình chuẩn cho nghiên cứu định lượng</p>
                 </div>
             </div>
 
@@ -167,13 +170,13 @@ export function WorkflowPanel({
 
                             {/* Step Metadata */}
                             <div className="mt-5 text-center px-1">
-                                <div className={`text-xs font-black uppercase tracking-tighter transition-colors ${step.status === 'current' ? 'text-indigo-900 dark:text-indigo-100' :
-                                        step.status === 'completed' ? 'text-green-700 dark:text-green-400' : 'text-slate-400 dark:text-slate-600'
+                                <div className={`text-xs font-black uppercase tracking-[0.1em] transition-colors ${step.status === 'current' ? 'text-indigo-900 dark:text-indigo-400 underline underline-offset-4 decoration-indigo-400 shadow-indigo-100' :
+                                        step.status === 'completed' ? 'text-green-700 dark:text-green-500' : 'text-slate-500 dark:text-slate-500'
                                     }`}>
                                     {step.nameEn}
                                 </div>
-                                <div className={`text-[10px] font-bold mt-1 max-w-[80px] leading-tight ${
-                                    step.status === 'current' ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-500 dark:text-slate-500'
+                                <div className={`text-[10px] font-black mt-1.5 max-w-[90px] leading-tight uppercase tracking-tighter ${
+                                    step.status === 'current' ? 'text-indigo-700 dark:text-slate-100 opacity-100' : 'text-slate-600 dark:text-slate-400 opacity-60'
                                 }`}>
                                     {step.name}
                                 </div>
@@ -208,10 +211,11 @@ export function WorkflowPanel({
                             <ArrowRight className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <div className="font-black text-indigo-950 dark:text-indigo-100 text-lg uppercase tracking-tight">
-                                Bước {steps.findIndex(s => s.status === 'current') + 1}: {steps.find(s => s.status === 'current')?.name}
+                            <div className="font-black text-indigo-950 dark:text-slate-100 text-lg uppercase tracking-tight flex items-center gap-2">
+                                <span className="opacity-30">STEP {steps.findIndex(s => s.status === 'current') + 1}:</span>
+                                {steps.find(s => s.status === 'current')?.name}
                             </div>
-                            <p className="text-sm text-slate-700 dark:text-slate-300 mt-2 leading-relaxed font-medium">
+                            <p className="text-sm text-slate-800 dark:text-slate-300 mt-2 leading-relaxed font-black uppercase tracking-widest text-[10px] opacity-70">
                                 {steps.find(s => s.status === 'current')?.description}
                             </p>
                         </div>
