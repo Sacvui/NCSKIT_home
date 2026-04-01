@@ -372,42 +372,44 @@ export function TemplateInterpretation({
     if (!interpretation) return null;
 
     return (
-        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-6 mt-6 shadow-sm">
+        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-slate-900/40 dark:to-emerald-950/20 border border-emerald-200 dark:border-emerald-900/50 rounded-xl p-6 mt-6 shadow-sm">
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-emerald-600 rounded-lg shadow-md shadow-emerald-200">
+                    <div className="p-2 bg-emerald-600 dark:bg-emerald-700 rounded-lg shadow-md shadow-emerald-200 dark:shadow-none">
                         <BookOpen className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold text-emerald-900">Nhận định Học thuật</h3>
-                        <p className="text-xs text-emerald-600">Tự động • Chuẩn APA • Dành cho Researcher</p>
+                        <h3 className="text-lg font-bold text-emerald-900 dark:text-emerald-100">Nhận định Học thuật</h3>
+                        <p className="text-xs text-emerald-700 dark:text-emerald-400 font-medium">Tự động • Chuẩn APA • Dành cho Researcher</p>
                     </div>
                 </div>
                 <button
                     onClick={handleCopy}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-emerald-200 text-emerald-700 rounded-lg text-sm hover:bg-emerald-50 transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-slate-800 border border-emerald-200 dark:border-slate-700 text-emerald-700 dark:text-emerald-300 rounded-lg text-sm hover:bg-emerald-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
                 >
                     {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                    {copied ? 'Đã sao chép' : 'Sao chép'}
+                    <span className="font-semibold">{copied ? 'Đã sao chép' : 'Sao chép'}</span>
                 </button>
             </div>
 
             {/* Summary */}
-            <div className="bg-white/70 rounded-lg p-4 mb-4 border border-emerald-100">
-                <p className="text-gray-800 leading-relaxed">{interpretation.summary}</p>
+            <div className="bg-white/90 dark:bg-slate-800/80 rounded-lg p-5 mb-4 border border-emerald-100 dark:border-emerald-900/30 shadow-inner">
+                <p className="text-slate-900 dark:text-slate-100 leading-relaxed font-medium">
+                    {interpretation.summary}
+                </p>
             </div>
 
             {/* Details */}
             {interpretation.details.length > 0 && (
                 <div className="mb-4">
-                    <h4 className="text-sm font-semibold text-emerald-800 mb-2 flex items-center gap-2">
+                    <h4 className="text-sm font-bold text-emerald-800 dark:text-emerald-300 mb-2 flex items-center gap-2">
                         <CheckCircle className="w-4 h-4" />
-                        Chi tiết
+                        Chi tiết phân tích
                     </h4>
                     <ul className="space-y-2">
                         {interpretation.details.map((detail, idx) => (
-                            <li key={idx} className="text-sm text-gray-700 bg-white/50 p-2 rounded border-l-2 border-emerald-400">
+                            <li key={idx} className="text-sm text-slate-800 dark:text-slate-200 bg-white/60 dark:bg-slate-800/40 p-3 rounded-lg border-l-4 border-emerald-500 shadow-sm">
                                 {detail}
                             </li>
                         ))}
@@ -417,14 +419,14 @@ export function TemplateInterpretation({
 
             {/* Warnings */}
             {interpretation.warnings.length > 0 && (
-                <div className="mb-4 bg-amber-50 border border-amber-200 rounded-lg p-3">
-                    <h4 className="text-sm font-semibold text-amber-800 mb-2 flex items-center gap-2">
+                <div className="mb-4 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/30 rounded-lg p-4">
+                    <h4 className="text-sm font-bold text-amber-900 dark:text-amber-300 mb-2 flex items-center gap-2">
                         <AlertTriangle className="w-4 h-4" />
-                        Lưu ý
+                        Lưu ý quan trọng
                     </h4>
                     <ul className="space-y-1">
                         {interpretation.warnings.map((warning, idx) => (
-                            <li key={idx} className="text-sm text-amber-700">
+                            <li key={idx} className="text-sm text-amber-800 dark:text-amber-400 font-medium">
                                 • {warning}
                             </li>
                         ))}
@@ -434,14 +436,14 @@ export function TemplateInterpretation({
 
             {/* Citations */}
             {interpretation.citations.length > 0 && (
-                <div className="border-t border-emerald-200 pt-3 mt-3">
-                    <h4 className="text-xs font-semibold text-emerald-700 mb-2 flex items-center gap-2">
+                <div className="border-t border-emerald-200 dark:border-emerald-900/50 pt-4 mt-4">
+                    <h4 className="text-xs font-bold text-emerald-700 dark:text-emerald-500 uppercase tracking-wider mb-2 flex items-center gap-2">
                         <BookMarked className="w-3 h-3" />
                         Tài liệu tham khảo
                     </h4>
-                    <ul className="text-xs text-gray-600 space-y-1">
+                    <ul className="text-xs text-slate-600 dark:text-slate-400 space-y-1.5 font-sans">
                         {interpretation.citations.map((citation, idx) => (
-                            <li key={idx} className="italic">{citation}</li>
+                            <li key={idx} className="italic opacity-90 hover:opacity-100 transition-opacity leading-relaxed">{citation}</li>
                         ))}
                     </ul>
                 </div>

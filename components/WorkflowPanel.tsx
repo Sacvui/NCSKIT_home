@@ -8,7 +8,7 @@
 'use client';
 
 import React from 'react';
-import { CheckCircle, Circle, ArrowRight, AlertTriangle, TrendingUp } from 'lucide-react';
+import { CheckCircle, ArrowRight, AlertTriangle, TrendingUp } from 'lucide-react';
 
 interface WorkflowStep {
     id: string;
@@ -119,24 +119,24 @@ export function WorkflowPanel({
     }));
 
     return (
-        <div className="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 border border-indigo-200 rounded-xl p-6 shadow-sm">
+        <div className="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-900/60 dark:via-purple-950/20 dark:to-slate-900/60 border border-indigo-200 dark:border-indigo-900/50 rounded-2xl p-8 shadow-md">
             {/* Header */}
-            <div className="flex items-center gap-3 mb-6">
-                <div className="p-2 bg-indigo-600 rounded-lg shadow-md">
-                    <TrendingUp className="w-5 h-5 text-white" />
+            <div className="flex items-center gap-4 mb-8">
+                <div className="p-3 bg-indigo-600 dark:bg-indigo-500 rounded-xl shadow-lg shadow-indigo-100 dark:shadow-none">
+                    <TrendingUp className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                    <h3 className="text-lg font-bold text-indigo-900">Workflow Mode</h3>
-                    <p className="text-xs text-indigo-600">Quy trình phân tích chuẩn cho luận văn định lượng</p>
+                    <h3 className="text-xl font-black text-indigo-950 dark:text-indigo-50 tracking-tight">Quy trình phân tích (Workflow)</h3>
+                    <p className="text-sm text-indigo-700 dark:text-indigo-400 font-medium">Lộ trình chuẩn cho nghiên cứu định lượng</p>
                 </div>
             </div>
 
-            {/* Steps */}
-            <div className="relative">
+            {/* Steps Container */}
+            <div className="relative pt-2 pb-6 px-2">
                 {/* Progress Line */}
-                <div className="absolute top-6 left-6 right-6 h-0.5 bg-gray-200 z-0">
+                <div className="absolute top-8 left-10 right-10 h-1 bg-slate-200 dark:bg-slate-800 z-0 rounded-full">
                     <div
-                        className="h-full bg-indigo-500 transition-all duration-500"
+                        className="h-full bg-indigo-500 dark:bg-indigo-400 transition-all duration-700 ease-in-out rounded-full shadow-[0_0_8px_rgba(99,102,241,0.5)]"
                         style={{
                             width: `${(completedSteps.length / (WORKFLOW_STEPS.length - 1)) * 100}%`
                         }}
@@ -147,50 +147,52 @@ export function WorkflowPanel({
                     {steps.map((step, idx) => (
                         <div
                             key={step.id}
-                            className={`flex flex-col items-center text-center ${step.status === 'current' ? 'scale-105' : ''
-                                } transition-transform cursor-pointer`}
+                            className={`flex flex-col items-center group cursor-pointer ${step.status === 'current' ? 'scale-110' : 'hover:scale-105'
+                                } transition-all duration-300`}
                             onClick={() => onStepClick?.(step.id)}
                         >
                             {/* Step Circle */}
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all ${step.status === 'completed'
-                                    ? 'bg-green-500 text-white shadow-lg shadow-green-200'
-                                    : step.status === 'current'
-                                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 ring-4 ring-indigo-100'
-                                        : 'bg-white text-gray-400 border-2 border-gray-200'
+                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 transform ${step.status === 'completed'
+                                ? 'bg-green-500 text-white shadow-xl shadow-green-100 dark:shadow-none'
+                                : step.status === 'current'
+                                    ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-200 dark:shadow-none ring-8 ring-indigo-50 dark:ring-indigo-900/30'
+                                    : 'bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-600 border-2 border-slate-100 dark:border-slate-700'
                                 }`}>
                                 {step.status === 'completed' ? (
-                                    <CheckCircle className="w-6 h-6" />
+                                    <CheckCircle className="w-8 h-8 animate-in zoom-in duration-300" />
                                 ) : (
-                                    <span className="font-bold text-lg">{idx + 1}</span>
+                                    <span className="font-black text-xl">{idx + 1}</span>
                                 )}
                             </div>
 
-                            {/* Step Name */}
-                            <div className="mt-3 w-24">
-                                <div className={`text-sm font-semibold ${step.status === 'current' ? 'text-indigo-900' :
-                                        step.status === 'completed' ? 'text-green-700' : 'text-gray-500'
+                            {/* Step Metadata */}
+                            <div className="mt-5 text-center px-1">
+                                <div className={`text-xs font-black uppercase tracking-tighter transition-colors ${step.status === 'current' ? 'text-indigo-900 dark:text-indigo-100' :
+                                        step.status === 'completed' ? 'text-green-700 dark:text-green-400' : 'text-slate-400 dark:text-slate-600'
                                     }`}>
                                     {step.nameEn}
                                 </div>
-                                <div className="text-xs text-gray-500 mt-0.5">
+                                <div className={`text-[10px] font-bold mt-1 max-w-[80px] leading-tight ${
+                                    step.status === 'current' ? 'text-indigo-700 dark:text-indigo-300' : 'text-slate-500 dark:text-slate-500'
+                                }`}>
                                     {step.name}
                                 </div>
                             </div>
 
-                            {/* Result Badge */}
+                            {/* Result Token */}
                             {step.result && (
-                                <div className={`mt-2 px-2 py-0.5 rounded-full text-xs font-medium ${step.result.passed
-                                        ? 'bg-green-100 text-green-700 border border-green-200'
-                                        : 'bg-orange-100 text-orange-700 border border-orange-200'
+                                <div className={`mt-3 px-3 py-1 rounded-lg text-[10px] font-black shadow-sm transform -rotate-2 ${step.result.passed
+                                        ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800/50'
+                                        : 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 border border-orange-200 dark:border-orange-800/50'
                                     }`}>
-                                    {step.result.label} = {step.result.value}
+                                    {step.result.label}={step.result.value}
                                 </div>
                             )}
 
-                            {/* Criteria */}
+                            {/* Threshold Marker */}
                             {step.status === 'current' && (
-                                <div className="mt-2 text-[10px] text-indigo-600 bg-indigo-50 px-2 py-1 rounded border border-indigo-100">
-                                    {step.criteria}
+                                <div className="mt-2 text-[9px] font-bold text-indigo-500 dark:text-indigo-400 animate-pulse uppercase">
+                                    Target: {step.criteria}
                                 </div>
                             )}
                         </div>
@@ -198,45 +200,24 @@ export function WorkflowPanel({
                 </div>
             </div>
 
-            {/* Current Step Guidance */}
+            {/* Step Detail Guidance */}
             {steps.find(s => s.status === 'current') && (
-                <div className="mt-6 bg-white/70 rounded-lg p-4 border border-indigo-100">
-                    <div className="flex items-start gap-3">
-                        <div className="p-1.5 bg-indigo-100 rounded">
-                            <ArrowRight className="w-4 h-4 text-indigo-600" />
+                <div className="mt-8 bg-white/90 dark:bg-slate-800/60 rounded-2xl p-6 border border-indigo-100 dark:border-indigo-900/30 shadow-inner">
+                    <div className="flex items-start gap-4">
+                        <div className="p-2 bg-indigo-600 dark:bg-indigo-500 rounded-lg shadow-md">
+                            <ArrowRight className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <div className="font-medium text-indigo-900">
-                                Bước hiện tại: {steps.find(s => s.status === 'current')?.name}
+                            <div className="font-black text-indigo-950 dark:text-indigo-100 text-lg uppercase tracking-tight">
+                                Bước {steps.findIndex(s => s.status === 'current') + 1}: {steps.find(s => s.status === 'current')?.name}
                             </div>
-                            <p className="text-sm text-gray-600 mt-1">
+                            <p className="text-sm text-slate-700 dark:text-slate-300 mt-2 leading-relaxed font-medium">
                                 {steps.find(s => s.status === 'current')?.description}
                             </p>
                         </div>
                     </div>
                 </div>
             )}
-
-            {/* Workflow Status Summary */}
-            <div className="mt-4 flex items-center justify-between text-xs">
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1.5">
-                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                        <span className="text-gray-600">Hoàn thành ({completedSteps.length})</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
-                        <span className="text-gray-600">Đang thực hiện</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                        <div className="w-3 h-3 rounded-full bg-gray-300"></div>
-                        <span className="text-gray-600">Chờ xử lý</span>
-                    </div>
-                </div>
-                <div className="text-gray-500">
-                    Tiến độ: {completedSteps.length}/{WORKFLOW_STEPS.length}
-                </div>
-            </div>
         </div>
     );
 }
@@ -264,14 +245,14 @@ export function WorkflowNextStep({
 }: WorkflowNextStepProps) {
     if (!canProceed) {
         return (
-            <div className="bg-orange-50 border border-orange-200 rounded-xl p-5 mt-6">
-                <div className="flex items-start gap-3">
-                    <div className="p-2 bg-orange-100 rounded-lg">
-                        <AlertTriangle className="w-5 h-5 text-orange-600" />
+            <div className="bg-orange-50 dark:bg-orange-950/20 border-2 border-orange-200 dark:border-orange-900/30 rounded-2xl p-6 mt-8 shadow-sm">
+                <div className="flex items-start gap-4">
+                    <div className="p-3 bg-orange-100 dark:bg-orange-900/40 rounded-xl">
+                        <AlertTriangle className="w-6 h-6 text-orange-600 dark:text-orange-400" />
                     </div>
                     <div>
-                        <h4 className="font-semibold text-orange-900">Chưa đủ điều kiện tiến hành bước tiếp theo</h4>
-                        <p className="text-sm text-orange-700 mt-1">{reason}</p>
+                        <h4 className="font-black text-orange-950 dark:text-orange-100 text-lg">Chưa đủ điều kiện tiến hành</h4>
+                        <p className="text-sm text-orange-800 dark:text-orange-300 mt-2 font-medium leading-relaxed">{reason}</p>
                     </div>
                 </div>
             </div>
@@ -279,22 +260,26 @@ export function WorkflowNextStep({
     }
 
     return (
-        <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border-2 border-emerald-300 rounded-xl p-6 mt-6 shadow-sm">
-            <div className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-14 h-14 bg-emerald-600 rounded-full flex items-center justify-center text-white shadow-lg shadow-emerald-200">
-                    <CheckCircle className="w-7 h-7" />
+        <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-8 mt-8 shadow-xl shadow-emerald-200 dark:shadow-none text-white overflow-hidden relative group">
+            <div className="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
+            <div className="relative z-10 flex items-center gap-8">
+                <div className="flex-shrink-0 w-20 h-20 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/30 shadow-lg rotate-6 group-hover:rotate-0 transition-transform duration-500">
+                    <CheckCircle className="w-10 h-10 text-white" />
                 </div>
                 <div className="flex-1">
-                    <h4 className="font-bold text-emerald-900 mb-2 text-lg">
-                        ✅ Đủ điều kiện tiến hành {nextStepName}
+                    <div className="inline-block px-3 py-1 bg-emerald-500/50 backdrop-blur-sm rounded-full text-[10px] font-black uppercase tracking-widest mb-3 border border-white/20">
+                        Recommendation (Khuyến nghị)
+                    </div>
+                    <h4 className="font-black mb-2 text-2xl tracking-tighter">
+                        ĐỦ ĐIỀU KIỆN TIẾN HÀNH {nextStepName.toUpperCase()}
                     </h4>
-                    <p className="text-sm text-emerald-700 mb-4">{reason}</p>
+                    <p className="text-emerald-50 text-sm mb-6 font-medium leading-relaxed max-w-2xl">{reason}</p>
                     <button
                         onClick={onProceed}
-                        className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2"
+                        className="px-8 py-4 bg-white text-emerald-700 hover:bg-emerald-50 font-black rounded-xl shadow-xl hover:shadow-2xl transition-all flex items-center gap-3 transform hover:-translate-y-1 active:scale-95 group/btn"
                     >
-                        <span>Tiếp tục {nextStepName}</span>
-                        <ArrowRight className="w-5 h-5" />
+                        <span>TIẾP TỤC {nextStepName.toUpperCase()}</span>
+                        <ArrowRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
                     </button>
                 </div>
             </div>
