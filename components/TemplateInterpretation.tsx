@@ -30,6 +30,9 @@ import {
     interpretModeration,
     interpretClusterAnalysis,
     interpretDescriptive,
+    interpretVIF,
+    interpretOutlier,
+    interpretHTMT,
     InterpretationResult
 } from '@/lib/interpretation-templates';
 
@@ -304,6 +307,29 @@ export function TemplateInterpretation({
                         skews: results.skew || [],
                         kurtoses: results.kurtosis || [],
                         N: results.N || []
+                    });
+                    break;
+                
+                case 'vif':
+                    result = interpretVIF({
+                        vifValues: results.vif_values || [],
+                        variableNames: results.variable_names || []
+                    });
+                    break;
+                
+                case 'outlier':
+                    result = interpretOutlier({
+                        nOutliers: results.n_outliers || 0,
+                        totalN: results.mahalanobis_distances?.length || 0,
+                        cutoffValue: results.cutoff_value || 0
+                    });
+                    break;
+                
+                case 'htmt':
+                    result = interpretHTMT({
+                        htmtMatrix: results.htmt_matrix || [],
+                        factorNames: results.factor_names || [],
+                        threshold: results.threshold || 0.85
                     });
                     break;
 
