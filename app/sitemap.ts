@@ -1,15 +1,11 @@
 import { MetadataRoute } from 'next'
-import { getSupabase } from '@/utils/supabase/client'
-
-// Since we are in a static context or standard App Router, 
-// we will fetch the slugs to build the XML dynamically.
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://ncsstat.ncskit.org'
   
   // Static Routes
   const staticRoutes = [
-    '',
+    '/',
     '/analyze',
     '/analyze2',
     '/scales',
@@ -19,10 +15,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     '/docs/user-guide',
     '/terms',
   ].map((route) => ({
-    url: `${baseUrl}${route}`,
+    url: route === '/' ? `${baseUrl}/` : `${baseUrl}${route}`,
     lastModified: new Date(),
     changeFrequency: 'weekly' as const,
-    priority: route === '' ? 1 : 0.8,
+    priority: route === '/' ? 1 : 0.8,
   }))
 
   // Dynamic Routes for Knowledge Articles
