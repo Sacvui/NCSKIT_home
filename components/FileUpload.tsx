@@ -135,7 +135,7 @@ export function FileUpload({ onDataLoaded, locale }: FileUploadProps) {
                 </label>
             </div>
 
-            <div className="mt-6 text-center space-y-2">
+            <div className="mt-8 flex items-center justify-center gap-2">
                 <button
                     onClick={async (e) => {
                         e.preventDefault();
@@ -151,7 +151,7 @@ export function FileUpload({ onDataLoaded, locale }: FileUploadProps) {
                                 skipEmptyLines: true,
                                 complete: (results) => {
                                     if (results.data && results.data.length > 0) {
-                                        onDataLoaded(results.data, 'ncsstat_sample_300 (N=300).csv');
+                                        onDataLoaded(results.data, 'sample_basic_n300.csv');
                                     } else {
                                         setError(t(locale, 'analyze.upload.errorEmpty'));
                                     }
@@ -168,12 +168,12 @@ export function FileUpload({ onDataLoaded, locale }: FileUploadProps) {
                         }
                     }}
                     disabled={isProcessing}
-                    className="text-sm text-blue-600 hover:text-blue-800 hover:underline font-medium"
+                    className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-xl font-black uppercase tracking-tighter transition-all whitespace-nowrap"
                 >
-                    {locale === 'vi' ? 'Dùng thử dữ liệu ncsStat (N=300)' : 'Try ncsStat Sample (N=300)'}
+                    {locale === 'vi' ? 'Dữ liệu Test (N=300)' : 'Test Data (N=300)'}
                 </button>
 
-                <span className="text-gray-300 mx-2">|</span>
+                <div className="h-4 w-[1px] bg-slate-300 mx-1"></div>
 
                 <button
                     onClick={async (e) => {
@@ -190,7 +190,7 @@ export function FileUpload({ onDataLoaded, locale }: FileUploadProps) {
                                 skipEmptyLines: true,
                                 complete: (results) => {
                                     if (results.data && results.data.length > 0) {
-                                        onDataLoaded(results.data, 'ncsstat_sample_500 (N=500).csv');
+                                        onDataLoaded(results.data, 'sample_q1_sem_n500.csv');
                                     } else {
                                         setError(t(locale, 'analyze.upload.errorEmpty'));
                                     }
@@ -207,9 +207,9 @@ export function FileUpload({ onDataLoaded, locale }: FileUploadProps) {
                         }
                     }}
                     disabled={isProcessing}
-                    className="text-sm text-purple-600 hover:text-purple-800 hover:underline font-medium"
+                    className="text-[11px] bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-500/20 whitespace-nowrap"
                 >
-                    {locale === 'vi' ? 'Dùng thử dữ liệu ncsStat (N=500)' : 'Try ncsStat Sample (N=500)'}
+                    {locale === 'vi' ? 'Chuẩn SEM Q1 (N=500)' : 'Q1 SEM Standard (N=500)'}
                 </button>
             </div>
 

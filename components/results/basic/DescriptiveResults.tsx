@@ -41,29 +41,29 @@ export const DescriptiveResults = React.memo(function DescriptiveResults({ resul
                 </CardHeader>
                 <CardContent className="overflow-x-auto pt-6 px-0">
                     <table className="w-full text-left text-sm whitespace-nowrap text-slate-700 dark:text-slate-300 border-collapse">
-                        <thead className="bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-100">
-                            <tr className="border-y-2 border-slate-300 dark:border-slate-700">
-                                <th className="py-3 px-6 font-black uppercase tracking-tight text-xs">{t(locale, 'tables.variable')}</th>
-                                <th className="py-3 px-4 font-black uppercase tracking-tight text-xs text-center border-l dark:border-slate-700">{t(locale, 'tables.n')}</th>
-                                <th className="py-3 px-4 font-black uppercase tracking-tight text-xs text-right border-l dark:border-slate-700">{t(locale, 'tables.min')}</th>
-                                <th className="py-3 px-4 font-black uppercase tracking-tight text-xs text-right border-l dark:border-slate-700">{t(locale, 'tables.max')}</th>
-                                <th className="py-3 px-4 font-black uppercase tracking-tight text-xs text-right border-l-2 border-indigo-200 dark:border-indigo-900/50 bg-indigo-50/20 dark:bg-indigo-900/10 text-indigo-900 dark:text-indigo-300">{t(locale, 'tables.mean')}</th>
-                                <th className="py-3 px-4 font-black uppercase tracking-tight text-xs text-right border-l dark:border-slate-700">{t(locale, 'tables.sd')}</th>
-                                <th className="py-3 px-4 font-black uppercase tracking-tight text-xs text-right border-l dark:border-slate-700">{t(locale, 'tables.skew')}</th>
-                                <th className="py-3 px-4 font-black uppercase tracking-tight text-xs text-right border-l dark:border-slate-700">{t(locale, 'tables.kurtosis')}</th>
+                        <thead className="bg-slate-950 border-b-2 border-slate-700 text-slate-100">
+                            <tr>
+                                <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-slate-400">{t(locale, 'tables.variable')}</th>
+                                <th className="py-4 px-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center border-l border-slate-800">{t(locale, 'tables.n')}</th>
+                                <th className="py-4 px-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right border-l border-slate-800">{t(locale, 'tables.min')}</th>
+                                <th className="py-4 px-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right border-l border-slate-800">{t(locale, 'tables.max')}</th>
+                                <th className="py-4 px-4 text-[10px] font-black uppercase tracking-widest text-indigo-400 text-right border-l-2 border-indigo-500/50 bg-indigo-950/20">{t(locale, 'tables.mean')}</th>
+                                <th className="py-4 px-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right border-l border-slate-800">{t(locale, 'tables.sd')}</th>
+                                <th className="py-4 px-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right border-l border-slate-800">{t(locale, 'tables.skew')}</th>
+                                <th className="py-4 px-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right border-l border-slate-800">{t(locale, 'tables.kurtosis')}</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="divide-y divide-slate-800/50">
                             {columns.map((col, idx) => (
-                                <tr key={idx} className="border-b border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all group">
-                                    <td className="py-4 px-6 font-black text-slate-950 dark:text-slate-50 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{col}</td>
-                                    <td className="py-4 px-4 text-center text-slate-600 dark:text-slate-400 border-l dark:border-slate-800">{(results.N && results.N[idx] !== undefined) ? results.N[idx] : 'N/A'}</td>
-                                    <td className="py-4 px-4 text-right text-slate-600 dark:text-slate-400 border-l dark:border-slate-800 font-mono text-xs">{safeToFixed(results.min?.[idx])}</td>
-                                    <td className="py-4 px-4 text-right text-slate-600 dark:text-slate-400 border-l dark:border-slate-800 font-mono text-xs">{safeToFixed(results.max?.[idx])}</td>
-                                    <td className="py-4 px-4 text-right border-l-2 border-indigo-200 dark:border-indigo-900/50 bg-indigo-50/10 dark:bg-indigo-900/10 text-indigo-700 dark:text-indigo-400 font-black text-base">{safeToFixed(results.mean?.[idx])}</td>
-                                    <td className="py-4 px-4 text-right text-slate-600 dark:text-slate-400 border-l dark:border-slate-800 font-mono text-xs">{safeToFixed(results.sd?.[idx])}</td>
-                                    <td className="py-4 px-4 text-right text-slate-600 dark:text-slate-400 border-l dark:border-slate-800 font-mono text-xs italic">{safeToFixed(results.skew?.[idx])}</td>
-                                    <td className="py-4 px-4 text-right text-slate-600 dark:text-slate-400 border-l dark:border-slate-800 font-mono text-xs italic">{safeToFixed(results.kurtosis?.[idx])}</td>
+                                <tr key={idx} className="hover:bg-slate-900/40 transition-all group border-b border-slate-800/50">
+                                    <td className="py-5 px-6 font-black text-slate-900 dark:text-white uppercase tracking-tighter group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{col}</td>
+                                    <td className="py-5 px-4 text-center text-slate-500 font-bold border-l border-slate-800/50">{(results.N && results.N[idx] !== undefined) ? results.N[idx] : 'N/A'}</td>
+                                    <td className="py-5 px-4 text-right text-slate-600 dark:text-slate-400 border-l border-slate-800/50 font-mono text-xs">{safeToFixed(results.min?.[idx])}</td>
+                                    <td className="py-5 px-4 text-right text-slate-600 dark:text-slate-400 border-l border-slate-800/50 font-mono text-xs">{safeToFixed(results.max?.[idx])}</td>
+                                    <td className="py-5 px-4 text-right border-l-2 border-indigo-500/50 bg-indigo-500/5 text-indigo-700 dark:text-indigo-400 font-black text-lg tracking-tighter">{safeToFixed(results.mean?.[idx])}</td>
+                                    <td className="py-5 px-4 text-right text-slate-600 dark:text-slate-400 border-l border-slate-800/50 font-mono text-xs">{safeToFixed(results.sd?.[idx])}</td>
+                                    <td className="py-5 px-4 text-right text-slate-600 dark:text-slate-400 border-l border-slate-800/50 font-mono text-xs italic">{safeToFixed(results.skew?.[idx])}</td>
+                                    <td className="py-5 px-4 text-right text-slate-600 dark:text-slate-400 border-l border-slate-800/50 font-mono text-xs italic">{safeToFixed(results.kurtosis?.[idx])}</td>
                                 </tr>
                             ))}
                         </tbody>

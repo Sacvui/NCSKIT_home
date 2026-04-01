@@ -76,22 +76,22 @@ export const RegressionResults = React.memo(function RegressionResults({ results
                 </CardHeader>
                 <CardContent className="overflow-x-auto pt-6">
                     <table className="w-full text-sm text-slate-700">
-                        <thead className="bg-slate-50 text-slate-700">
-                            <tr className="border-y-2 border-slate-300">
-                                <th className="py-3 px-4 font-semibold text-center">{t(locale, 'tables.model')}</th>
-                                <th className="py-3 px-4 font-semibold text-center">R</th>
-                                <th className="py-3 px-4 font-semibold text-center">R Square<br/><span className="text-[10px] lowercase italic">(Hệ số xác định)</span></th>
-                                <th className="py-3 px-4 font-semibold text-center">Adjusted R Square<br/><span className="text-[10px] lowercase italic">(R2 hiệu chỉnh)</span></th>
-                                <th className="py-3 px-4 font-semibold text-center">Std. Error <br/><span className="text-[10px] lowercase italic">(Sai số tiêu chuẩn)</span></th>
+                        <thead className="bg-slate-950 border-b-2 border-slate-700 text-slate-100">
+                            <tr>
+                                <th className="py-4 px-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-center">{t(locale, 'tables.model')}</th>
+                                <th className="py-4 px-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-center">R</th>
+                                <th className="py-4 px-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-center">R Square<br/><span className="text-[10px] lowercase italic">(Hệ số xác định)</span></th>
+                                <th className="py-4 px-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-center">Adjusted R Square<br/><span className="text-[10px] lowercase italic">(R2 hiệu chỉnh)</span></th>
+                                <th className="py-4 px-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-center">Std. Error <br/><span className="text-[10px] lowercase italic">(Sai số tiêu chuẩn)</span></th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
-                                <td className="py-3 px-4 text-center font-bold text-slate-800">1</td>
-                                <td className="py-3 px-4 text-center font-bold text-slate-900">{fmt(Math.sqrt(modelFit.rSquared))}</td>
-                                <td className="py-3 px-4 text-center font-bold text-slate-900">{fmt(modelFit.rSquared)}</td>
-                                <td className="py-3 px-4 text-center font-bold text-slate-900">{fmt(modelFit.adjRSquared)}</td>
-                                <td className="py-3 px-4 text-center text-slate-600">{fmt(modelFit.residualStdError)}</td>
+                        <tbody className="divide-y divide-slate-800/50">
+                            <tr className="hover:bg-slate-900/30 transition-colors">
+                                <td className="py-4 px-4 text-center font-black text-slate-800 dark:text-slate-200">1</td>
+                                <td className="py-4 px-4 text-center font-black text-slate-950 dark:text-white text-lg tracking-tighter">{fmt(Math.sqrt(modelFit.rSquared))}</td>
+                                <td className="py-4 px-4 text-center font-black text-slate-950 dark:text-white text-lg tracking-tighter decoration-indigo-500/30 underline underline-offset-4">{fmt(modelFit.rSquared)}</td>
+                                <td className="py-4 px-4 text-center font-black text-indigo-600 dark:text-indigo-400 text-lg tracking-tighter">{fmt(modelFit.adjRSquared)}</td>
+                                <td className="py-4 px-4 text-center text-slate-500 font-mono text-xs">{fmt(modelFit.residualStdError)}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -108,44 +108,44 @@ export const RegressionResults = React.memo(function RegressionResults({ results
                 </CardHeader>
                 <CardContent className="overflow-x-auto pt-6">
                     <table className="w-full text-sm text-slate-700">
-                        <thead className="bg-slate-50 text-slate-700">
-                            <tr className="border-y-2 border-slate-300">
-                                <th className="py-3 px-4 font-semibold text-center">{t(locale, 'tables.model')}</th>
-                                <th className="py-3 px-4 font-semibold text-left">{t(locale, 'tables.source')}</th>
-                                <th className="py-3 px-4 font-semibold text-right">Sum of Squares<br/><span className="text-[10px] lowercase italic">(Tổng bình phương)</span></th>
-                                <th className="py-3 px-4 font-semibold text-right">df<br/><span className="text-[10px] lowercase italic">(Bậc tự do)</span></th>
-                                <th className="py-3 px-4 font-semibold text-right">Mean Square<br/><span className="text-[10px] lowercase italic">(Bình phương TB)</span></th>
-                                <th className="py-3 px-4 font-semibold text-right">F</th>
-                                <th className="py-3 px-4 font-semibold text-right">Sig.</th>
+                        <thead className="bg-slate-950 border-b-2 border-slate-700 text-slate-100">
+                            <tr>
+                                <th className="py-4 px-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-center">{t(locale, 'tables.model')}</th>
+                                <th className="py-4 px-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-left">{t(locale, 'tables.source')}</th>
+                                <th className="py-4 px-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-right">Sum of Squares<br/><span className="text-[10px] lowercase italic">(Tổng bình phương)</span></th>
+                                <th className="py-4 px-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-right">df<br/><span className="text-[10px] lowercase italic">(Bậc tự do)</span></th>
+                                <th className="py-4 px-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-right">Mean Square<br/><span className="text-[10px] lowercase italic">(Bình phương TB)</span></th>
+                                <th className="py-4 px-4 text-[11px] font-black uppercase tracking-widest text-indigo-400 text-right">F</th>
+                                <th className="py-4 px-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-right">Sig.</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
-                                <td rowSpan={3} className="py-3 px-4 text-center font-bold text-slate-800 align-top border-r border-slate-200">1</td>
-                                <td className="py-3 px-4 font-medium text-slate-700">Regression</td>
-                                <td className="py-3 px-4 text-right text-slate-600">{fmt(ssRegression)}</td>
-                                <td className="py-3 px-4 text-right text-slate-600">{dfRegression}</td>
-                                <td className="py-3 px-4 text-right text-slate-600">{fmt(msRegression)}</td>
-                                <td className="py-3 px-4 text-right font-bold text-slate-900">{fmt(modelFit.fStatistic, 2)}</td>
-                                <td className={`py-3 px-4 text-right font-bold ${modelFit.pValue < 0.05 ? 'text-green-700' : 'text-red-600'}`}>
+                        <tbody className="divide-y divide-slate-800/50">
+                            <tr className="hover:bg-slate-900/30 transition-colors">
+                                <td rowSpan={3} className="py-5 px-4 text-center font-black text-slate-950 dark:text-white align-top border-r border-slate-800/50">1</td>
+                                <td className="py-4 px-4 font-black text-slate-500 uppercase tracking-tighter">Regression</td>
+                                <td className="py-4 px-4 text-right text-slate-500 font-mono text-xs">{fmt(ssRegression)}</td>
+                                <td className="py-4 px-4 text-right text-slate-500 font-bold">{dfRegression}</td>
+                                <td className="py-4 px-4 text-right text-slate-500 font-mono text-xs">{fmt(msRegression)}</td>
+                                <td className="py-4 px-4 text-right font-black text-indigo-600 dark:text-indigo-400 text-lg">{fmt(modelFit.fStatistic, 2)}</td>
+                                <td className={`py-4 px-4 text-right font-black text-lg ${modelFit.pValue < 0.05 ? 'text-emerald-500 group-hover:scale-110 origin-right transition-transform' : 'text-slate-400'}`}>
                                     {fmtP(modelFit.pValue)}
                                 </td>
                             </tr>
-                            <tr className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
-                                <td className="py-3 px-4 font-medium text-slate-700">Residual</td>
-                                <td className="py-3 px-4 text-right text-slate-600">{fmt(ssResidual)}</td>
-                                <td className="py-3 px-4 text-right text-slate-600">{dfResidual}</td>
-                                <td className="py-3 px-4 text-right text-slate-600">{fmt(msResidual)}</td>
-                                <td className="py-3 px-4"></td>
-                                <td className="py-3 px-4"></td>
+                            <tr className="hover:bg-slate-900/30 transition-colors">
+                                <td className="py-4 px-4 font-black text-slate-500 uppercase tracking-tighter italic">Residual</td>
+                                <td className="py-4 px-4 text-right text-slate-500 font-mono text-xs">{fmt(ssResidual)}</td>
+                                <td className="py-4 px-4 text-right text-slate-500 font-bold">{dfResidual}</td>
+                                <td className="py-4 px-4 text-right text-slate-500 font-mono text-xs">{fmt(msResidual)}</td>
+                                <td className="py-4 px-4"></td>
+                                <td className="py-4 px-4"></td>
                             </tr>
-                            <tr className="border-b-2 border-slate-300 hover:bg-slate-50 transition-colors">
-                                <td className="py-3 px-4 font-medium text-slate-700">Total</td>
-                                <td className="py-3 px-4 text-right font-medium text-slate-800">{fmt(ssTotal)}</td>
-                                <td className="py-3 px-4 text-right font-medium text-slate-800">{dfTotal}</td>
-                                <td className="py-3 px-4"></td>
-                                <td className="py-3 px-4"></td>
-                                <td className="py-3 px-4"></td>
+                            <tr className="bg-slate-900/10 hover:bg-slate-900/30 transition-colors font-black">
+                                <td className="py-4 px-4 font-black text-slate-950 dark:text-white uppercase tracking-tighter">Total</td>
+                                <td className="py-4 px-4 text-right text-slate-950 dark:text-white font-mono text-xs">{fmt(ssTotal)}</td>
+                                <td className="py-4 px-4 text-right text-slate-950 dark:text-white font-black">{dfTotal}</td>
+                                <td className="py-4 px-4"></td>
+                                <td className="py-4 px-4"></td>
+                                <td className="py-4 px-4"></td>
                             </tr>
                         </tbody>
                     </table>
@@ -163,20 +163,20 @@ export const RegressionResults = React.memo(function RegressionResults({ results
                 </CardHeader>
                 <CardContent className="overflow-x-auto pt-6">
                     <table className="w-full text-sm whitespace-nowrap text-slate-700">
-                        <thead className="bg-slate-50 text-slate-700">
-                            <tr className="border-y-2 border-slate-300">
-                                <th rowSpan={2} className="py-3 px-4 font-semibold text-left border-r border-slate-200">{t(locale, 'tables.model')}</th>
-                                <th colSpan={2} className="py-2 px-4 font-semibold text-center border-b border-slate-200">{isVi ? 'Hệ số chưa chuẩn hóa' : 'Unstandardized Coefficients'}</th>
-                                <th rowSpan={2} className="py-3 px-4 font-semibold text-center border-l border-r border-slate-200">{isVi ? 'Hệ số chuẩn hóa Beta' : 'Standardized Coefficients Beta'}</th>
-                                <th rowSpan={2} className="py-3 px-4 font-semibold text-center">t</th>
-                                <th rowSpan={2} className="py-3 px-4 font-semibold text-center">Sig.</th>
-                                <th colSpan={2} className="py-2 px-4 font-semibold text-center border-l border-slate-200 border-b border-slate-200">Collinearity Statistics</th>
+                        <thead className="bg-slate-950 border-b-2 border-slate-700 text-slate-100">
+                            <tr>
+                                <th rowSpan={2} className="py-4 px-6 text-left text-[11px] font-black uppercase tracking-widest text-slate-400 border-r border-slate-800">{t(locale, 'tables.model')}</th>
+                                <th colSpan={2} className="py-3 px-4 text-[10px] font-black uppercase tracking-[0.2em] text-center border-b border-slate-800 bg-slate-900/40">{isVi ? 'Hệ số chưa chuẩn hóa' : 'Unstandardized Coefficients'}</th>
+                                <th rowSpan={2} className="py-4 px-4 text-[10px] font-black uppercase tracking-[0.2em] text-center border-l border-r border-slate-800 text-indigo-400">{isVi ? 'Hệ số chuẩn Beta' : 'Std. Beta'}</th>
+                                <th rowSpan={2} className="py-4 px-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-center">t</th>
+                                <th rowSpan={2} className="py-4 px-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-center">Sig.</th>
+                                <th colSpan={2} className="py-3 px-4 text-[10px] font-black uppercase tracking-[0.2em] text-center border-l border-slate-800 border-b border-slate-800 bg-slate-900/40">Collinearity Stat.</th>
                             </tr>
-                            <tr className="border-b-2 border-slate-300">
-                                <th className="py-2 px-4 font-semibold text-center">B</th>
-                                <th className="py-2 px-4 font-semibold text-center border-r border-slate-200">Std. Error</th>
-                                <th className="py-2 px-4 font-semibold text-center border-l border-slate-200">Tolerance</th>
-                                <th className="py-2 px-4 font-semibold text-center">VIF</th>
+                            <tr className="border-b-2 border-slate-800">
+                                <th className="py-3 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 text-center">B</th>
+                                <th className="py-3 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 text-center border-r border-slate-800">Std. Error</th>
+                                <th className="py-3 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 text-center border-l border-slate-800">Tolerance</th>
+                                <th className="py-3 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 text-center">VIF</th>
                             </tr>
                         </thead>
                         <tbody>
