@@ -29,6 +29,7 @@ import {
     interpretMediation,
     interpretModeration,
     interpretClusterAnalysis,
+    interpretDescriptive,
     InterpretationResult
 } from '@/lib/interpretation-templates';
 
@@ -291,6 +292,18 @@ export function TemplateInterpretation({
                         withinSS: results.totWithinSS || 0,
                         betweenSS: results.betweensSS || 0,
                         silhouetteScore: results.silhouetteScore
+                    });
+                    break;
+                
+                case 'descriptive':
+                case 'descriptive_stats':
+                    result = interpretDescriptive({
+                        columnNames: results.columnNames || [],
+                        means: results.mean || [],
+                        sds: results.sd || [],
+                        skews: results.skew || [],
+                        kurtoses: results.kurtosis || [],
+                        N: results.N || []
                     });
                     break;
 

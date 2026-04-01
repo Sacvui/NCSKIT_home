@@ -58,7 +58,8 @@ export type AnalysisType =
     | 'chi_square'
     | 'mediation'
     | 'moderation'
-    | 'cluster';
+    | 'cluster'
+    | 'descriptive';
 
 export interface InterpretationResult {
     summary: string;        // Main interpretation
@@ -780,6 +781,59 @@ export function interpretChiSquare(params: {
     // Warning
     if (warning) {
         warnings.push(warning);
+    }
+
+    return { summary, details, warnings, citations };
+}
+
+export function interpretDescriptive(params: {
+    columnNames: string[];
+    means: number[];
+    sds: number[];
+    skews: number[];
+    kurtoses: number[];
+    N: number[];
+}): InterpretationResult {
+    const { columnNames, means, sds, skews, kurtoses, N } = params;
+
+    const details: string[] = [];
+    const warnings: string[] = [];
+    const citations = [
+        'Hair, J. F., et al. (2010). Multivariate data analysis (7th ed.). Pearson.',
+        'Kim, H. Y. (2013). Statistical notes for clinical researchers: assessing normal distribution.'
+    ];
+
+    let summary = `Kết quả phân tích thống kê mô tả cho ${columnNames.length} biến quan sát với cỡ mẫu N = ${N[0] || 'N/A'}. `;
+
+    if (columnNames.length > 0) {
+        const avgMean = means.reduce((a, b) => a + b, 0) / means.length;
+        let level = '';
+        if (avgMean >= 4.2) level = 'rất cao';
+        else if (avgMean >= 3.4) level = 'cao';
+        else if (avgMean >= 2.6) level = 'trung bình';
+        else if (avgMean >= 1.8) level = 'thấp';
+        else level = 'rất thấp';
+        
+        summary += `Giá trị trung bình của các biến dao động từ ${formatNum(Math.min(...means))} đến ${formatNum(Math.max(...means))}. Nhìn chung, mức độ đánh giá của đối tượng khảo sát nằm ở mức "${level}" (M_avg = ${formatNum(avgMean)}).`;
+    }
+
+    columnNames.forEach((name, i) => {
+        const skew = skews[i];
+        const kurt = kurtoses[i];
+        
+        // Normality rule of thumb: Skewness < |2|, Kurtosis < |7|
+        const isSkewNormal = Math.abs(skew) <= 2;
+        const isKurtNormal = Math.abs(kurt) <= 7;
+
+        if (!isSkewNormal || !isKurtNormal) {
+            warnings.push(`Biến "${name}" có dấu hiệu vi phạm phân phối chuẩn (Skewness = ${formatNum(skew)}, Kurtosis = ${formatNum(kurt)}).`);
+        } else {
+            details.push(`Biến "${name}": M = ${formatNum(means[i])}, SD = ${formatNum(sds[i])}. Chỉ số Skewness (${formatNum(skew)}) và Kurtosis (${formatNum(kurt)}) nằm trong ngưỡng cho phép cho phân phối chuẩn.`);
+        }
+    });
+
+    if (warnings.length === 0) {
+        details.push('Tất cả các biến đều có phân phối chuẩn hoặc tiệm cận chuẩn, phù hợp cho các kiểm định tham số (Parametric tests) như T-test, ANOVA, Regression.');
     }
 
     return { summary, details, warnings, citations };

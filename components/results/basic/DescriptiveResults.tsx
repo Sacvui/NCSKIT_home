@@ -3,6 +3,7 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { ChartWrapper } from '../shared/ChartWrapper';
+import { TemplateInterpretation } from '@/components/TemplateInterpretation';
 
 import { getStoredLocale, t, type Locale } from '@/lib/i18n';
 
@@ -95,6 +96,11 @@ export const DescriptiveResults = React.memo(function DescriptiveResults({ resul
                     </div>
                 </CardContent>
             </Card>
+
+            <TemplateInterpretation
+                analysisType="descriptive"
+                results={{ ...results, columnNames: columns }}
+            />
         </div>
     );
 });
