@@ -298,6 +298,7 @@ export async function runCFA(data: number[][], columns: string[], modelSyntax: s
 
     const rCode = `
     library(psych)
+    library(GPArotation)
     df <- data.frame(matrix(c(${flatData.join(',')}), ncol=${columns.length}, byrow=TRUE))
     colnames(df) <- c(${columns.map(c => `"${c}"`).join(', ')})
     
@@ -339,13 +340,13 @@ export async function runCFA(data: number[][], columns: string[], modelSyntax: s
     
     # Calculate SRMR from residual correlation matrix (more accurate than fa$rms)
     srmr_val <- tryCatch({
-        resid_cor <- efa_result$residual
+        resid_cor <- fa_result$residual
         if(!is.null(resid_cor)) {
             # SRMR = sqrt(mean of squared lower-triangle residual correlations)
             lt <- resid_cor[lower.tri(resid_cor)]
             sqrt(mean(lt^2, na.rm = TRUE))
-        } else if(!is.null(efa_result$rms)) {
-            as.numeric(efa_result$rms)  # Fallback to RMS if residual matrix unavailable
+        } else if(!is.null(fa_result$rms)) {
+            as.numeric(fa_result$rms)  # Fallback to RMS if residual matrix unavailable
         } else { 0 }
     }, error = function(e) 0)
     

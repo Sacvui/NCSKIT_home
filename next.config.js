@@ -37,7 +37,7 @@ const nextConfig = {
                 ],
             },
             {
-                source: '/webr/:path*',
+                source: '/webr_core/:path*',
                 headers: [
                     {
                         key: 'Cross-Origin-Embedder-Policy',
