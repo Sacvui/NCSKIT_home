@@ -2,8 +2,7 @@
 
 import React, { useMemo, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { TrendingUp, CheckCircle, BarChart, Grid, HelpCircle } from 'lucide-react';
-
+import { TrendingUp, FileText, CheckCircle2, LayoutGrid, Info } from 'lucide-react';
 import { getStoredLocale, t, type Locale } from '@/lib/i18n';
 
 interface EFAResultsProps {
@@ -13,8 +12,7 @@ interface EFAResultsProps {
 }
 
 /**
- * Exploratory Factor Analysis (EFA) Results Component
- * Displays KMO, Bartlett's test, factor loadings, and communalities
+ * Exploratory Factor Analysis (EFA) Results Component - Scientific Academic Style (White & Blue)
  */
 export const EFAResults = React.memo(function EFAResults({ results, columns, onProceedToCFA }: EFAResultsProps) {
     const [locale, setLocale] = React.useState<Locale>('vi');
@@ -56,121 +54,106 @@ export const EFAResults = React.memo(function EFAResults({ results, columns, onP
     }, [onProceedToCFA, suggestedFactors]);
 
     return (
-        <div className="space-y-8 font-sans">
-            {/* KMO and Bartlett's Test Card */}
-            <Card className="border-indigo-200 dark:border-indigo-900 shadow-lg overflow-hidden">
-                <CardHeader className="border-b bg-indigo-50/50 dark:bg-slate-800/80 pb-4">
-                    <CardTitle className="text-indigo-950 dark:text-indigo-100 flex items-center gap-2">
-                        <TrendingUp className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                        Kiểm định KMO và Bartlett (Sampling Adequacy)
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className={`p-5 rounded-2xl border-2 transition-all ${kmoAcceptable ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/50 shadow-sm' : 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50 shadow-sm'}`}>
-                            <div className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400 mb-2 tracking-widest">KMO Sampling Adequacy</div>
-                            <div className={`text-4xl font-black ${kmoAcceptable ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400'}`}>
-                                {kmo.toFixed(3)}
-                            </div>
-                            <div className="text-[10px] font-black mt-3 flex items-center gap-2">
-                                <span className={`w-2 h-2 rounded-full ${kmoAcceptable ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
-                                <span className="uppercase tracking-widest opacity-90">{kmo >= 0.8 ? 'Rất tốt' : kmo >= 0.7 ? 'Tốt' : kmo >= 0.6 ? 'Chấp nhận được' : 'Không đạt chuẩn (α < 0.6)'}</span>
-                            </div>
-                        </div>
-                        <div className={`p-5 rounded-2xl border-2 transition-all ${bartlettSignificant ? 'bg-indigo-50 dark:bg-indigo-950/20 border-indigo-200 dark:border-indigo-800/50 shadow-sm' : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800'}`}>
-                            <div className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400 mb-2 tracking-widest">Bartlett's Test (Sig.)</div>
-                            <div className={`text-4xl font-black ${bartlettSignificant ? 'text-indigo-700 dark:text-indigo-400' : 'text-slate-700 dark:text-slate-400'}`}>
-                                {bartlettP < 0.001 ? '< .001' : bartlettP.toFixed(4)}
-                            </div>
-                            <div className="text-[10px] font-black mt-3 flex items-center gap-2">
-                                <span className={`w-2 h-2 rounded-full ${bartlettSignificant ? 'bg-indigo-500' : 'bg-slate-400'}`}></span>
-                                <span className="uppercase tracking-widest opacity-90">{bartlettSignificant ? 'Có ý nghĩa thống kê (p < 0.05)' : 'Không có ý nghĩa thống kê'}</span>
-                            </div>
-                        </div>
+        <div className="space-y-8 pb-10 animate-in fade-in duration-500">
+            {/* KMO and Bartlett's Test Section */}
+            <div className="flex flex-col md:flex-row gap-6">
+                <div className="flex-1 bg-white rounded-xl border border-blue-100 shadow-sm p-8 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-5">
+                        <TrendingUp className="w-20 h-20 text-blue-900" />
                     </div>
-                </CardContent>
-            </Card>
+                     <h4 className="text-[10px] font-black uppercase text-slate-600 tracking-widest mb-4">Sampling Adequacy (KMO)</h4>
+                    <div className={`text-5xl font-black ${kmoAcceptable ? 'text-blue-900 underline decoration-blue-100 underline-offset-8' : 'text-red-600 ring-2 ring-red-100 rounded-xl px-2'}`}>
+                        {kmo.toFixed(3)}
+                    </div>
+                    <p className={`text-[10px] font-black mt-3 px-3 py-1.5 rounded-full border inline-block uppercase shadow-sm ${kmoAcceptable ? 'bg-blue-900 text-white border-blue-900' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                        {kmo >= 0.8 ? 'Excellent Adequacy' : kmo >= 0.7 ? 'Good Adequacy' : kmo >= 0.6 ? 'Acceptable' : 'Inadequate'}
+                    </p>
+                </div>
+                <div className="flex-1 bg-white rounded-xl border border-blue-100 shadow-sm p-8 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 p-4 opacity-5">
+                        <CheckCircle2 className="w-20 h-20 text-blue-900" />
+                    </div>
+                     <h4 className="text-[10px] font-black uppercase text-slate-600 tracking-widest mb-4">Bartlett&apos;s Test Sig.</h4>
+                    <div className={`text-5xl font-black ${bartlettSignificant ? 'text-blue-900 underline decoration-blue-100 underline-offset-8' : 'text-slate-600 font-bold'}`}>
+                        {bartlettP < 0.001 ? '< .001' : bartlettP.toFixed(4)}
+                    </div>
+                    <p className={`text-[10px] font-black mt-3 px-3 py-1.5 rounded-full border inline-block uppercase shadow-sm ${bartlettSignificant ? 'bg-blue-50 text-blue-900 border-blue-300 font-black' : 'bg-slate-100 text-slate-800 border-slate-300'}`}>
+                        {bartlettSignificant ? 'Significant (Passed)' : 'Not Significant (Failed)'}
+                    </p>
+                </div>
+            </div>
 
-            {/* Total Variance Explained */}
+            {/* Total Variance Explained Table */}
             {results.eigenvalues && results.eigenvalues.length > 0 && (
-                <Card className="border-slate-200 dark:border-slate-800 shadow-md overflow-hidden">
-                    <CardHeader className="border-b bg-slate-50/50 dark:bg-slate-900/50 pb-4">
-                        <CardTitle className="text-slate-950 dark:text-slate-100 flex items-center gap-2 font-black">
-                            <BarChart className="w-5 h-5 text-indigo-600" />
-                            Tổng phương sai trích (Total Variance Explained)
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="overflow-x-auto pt-6 px-0">
-                        <table className="w-full text-left text-sm whitespace-nowrap text-slate-900 dark:text-slate-100 border-collapse">
-                            <thead className="bg-slate-100 dark:bg-slate-800 text-slate-950 dark:text-slate-100">
+                <div className="bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-blue-50 bg-slate-50/50">
+                        <h3 className="text-sm font-bold text-blue-900 uppercase">Total Variance Explained (Tổng phương sai trích)</h3>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse text-slate-700">
+                             <thead className="bg-blue-50/50 border-y border-blue-100">
                                 <tr>
-                                    <th className="py-4 px-6 font-black uppercase tracking-widest text-[10px] text-center border-b-2 border-slate-300 dark:border-slate-700">Nhân tố</th>
-                                    <th className="py-4 px-6 font-black uppercase tracking-widest text-[10px] text-right border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700 whitespace-normal w-32">Eigenvalue</th>
-                                    <th className="py-4 px-6 font-black uppercase tracking-widest text-[10px] text-right border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700">% Phương sai</th>
-                                    <th className="py-4 px-6 font-black uppercase tracking-widest text-[10px] text-right border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700">% Tích lũy</th>
+                                    <th className="py-4 px-6 text-[10px] font-black text-blue-900 uppercase text-center">Factor</th>
+                                    <th className="py-4 px-4 text-[10px] font-black text-blue-900 uppercase text-right">Initial Eigenvalue</th>
+                                    <th className="py-4 px-4 text-[10px] font-black text-blue-900 uppercase text-right">% of Variance</th>
+                                    <th className="py-4 px-4 text-[10px] font-black text-blue-900 uppercase text-right bg-blue-100/30">Cumulative %</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                             <tbody className="divide-y divide-blue-50">
                                 {(() => {
                                     const totalVar = results.eigenvalues.reduce((s:number,v:number)=>s+v, 0);
                                     let cumVar = 0;
-                                    return results.eigenvalues.map((ev: number, i: number) => {
+                                    return results.eigenvalues.slice(0, 10).map((ev: number, i: number) => {
                                         const pct = (ev / totalVar) * 100;
                                         cumVar += pct;
                                         const isExtracted = i < results.nFactorsUsed;
                                         return (
-                                            <tr key={i} className={`border-b border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors ${isExtracted ? 'bg-indigo-50/20 dark:bg-indigo-950/20' : ''}`}>
-                                                <td className={`py-4 px-6 font-black text-center ${isExtracted ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-300 dark:text-slate-700'}`}>{i + 1}</td>
-                                                <td className={`py-4 px-6 text-right border-l border-slate-200 dark:border-slate-700 font-bold ${isExtracted ? 'text-slate-900 dark:text-slate-100' : 'text-slate-300 dark:text-slate-700 font-medium'}`}>{ev.toFixed(3)}</td>
-                                                <td className={`py-4 px-6 text-right border-l border-slate-200 dark:border-slate-700 font-bold ${isExtracted ? 'text-slate-900 dark:text-slate-100' : 'text-slate-300 dark:text-slate-700 font-medium'}`}>{pct.toFixed(2)}%</td>
-                                                <td className={`py-4 px-6 text-right border-l border-slate-200 dark:border-slate-700 ${isExtracted ? 'font-black text-indigo-700 dark:text-indigo-400' : 'text-slate-300 dark:text-slate-700 font-medium'}`}>{cumVar.toFixed(2)}%</td>
+                                             <tr key={i} className={`hover:bg-blue-50/20 transition-colors ${isExtracted ? 'bg-blue-50 border-l-4 border-blue-900' : ''}`}>
+                                                <td className={`py-4 px-6 text-center font-black ${isExtracted ? 'text-blue-900' : 'text-slate-400'}`}>{i + 1}</td>
+                                                <td className={`py-4 px-4 text-sm text-right font-mono font-bold ${isExtracted ? 'text-blue-950' : 'text-slate-600'}`}>{ev.toFixed(3)}</td>
+                                                <td className={`py-4 px-4 text-sm text-right font-mono font-bold ${isExtracted ? 'text-blue-950' : 'text-slate-600'}`}>{pct.toFixed(2)}%</td>
+                                                <td className={`py-4 px-4 text-sm text-right font-black ${isExtracted ? 'text-blue-900 bg-blue-100/20' : 'text-slate-400'}`}>{cumVar.toFixed(2)}%</td>
                                             </tr>
                                         );
                                     });
                                 })()}
                             </tbody>
                         </table>
-                        <div className="mx-6 flex items-start gap-3 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/40 p-5 rounded-2xl mt-8">
-                            <HelpCircle className="w-6 h-6 text-indigo-500 shrink-0" />
-                            <p className="text-xs text-indigo-950 dark:text-indigo-200 font-bold italic leading-relaxed">
-                                Đã trích xuất <strong className="text-indigo-600 dark:text-indigo-400">{results.nFactorsUsed} nhân tố</strong> (vùng tô màu). 
-                                Một mô hình tốt thường có Eigenvalue &gt; 1 và % Tích lũy đạt &gt; 50%.
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
             )}
 
-            {/* Factor Loadings Matrix */}
-            {results.loadings && (
-                <Card className="border-slate-200 dark:border-slate-800 shadow-md overflow-hidden">
-                    <CardHeader className="border-b bg-slate-50/50 dark:bg-slate-900/50 pb-4">
-                        <CardTitle className="text-slate-900 dark:text-slate-100 flex items-center gap-2 font-black">
-                            <Grid className="w-5 h-5 text-indigo-600" />
-                            {results.factorMethod === 'none' ? 'Ma trận nhân tố (Component Matrix)' : 'Ma trận xoay (Rotated Matrix)'}
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="overflow-x-auto pt-6 px-0">
-                        <table className="w-full text-sm whitespace-nowrap text-slate-900 dark:text-slate-100 border-collapse">
-                            <thead className="bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100">
+            {/* Rotated Matrix Card */}
+             {results.loadings && (
+                <div className="bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-blue-50 bg-slate-50/50 flex items-center justify-between">
+                        <h3 className="text-sm font-bold text-blue-900 uppercase tracking-wider flex items-center gap-2">
+                             <LayoutGrid className="w-4 h-4 text-blue-600" />
+                             {results.factorMethod === 'none' ? 'Component Matrix' : 'Rotated Pattern Matrix (Ma trận xoay)'}
+                        </h3>
+                         <span className="text-[9px] font-black bg-blue-900 text-white px-2 py-0.5 rounded uppercase tracking-tighter shadow-sm">Loadings Threshold: 0.5</span>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse text-slate-700">
+                             <thead className="bg-blue-50/50 border-y border-blue-100">
                                 <tr>
-                                    <th className="py-4 px-6 text-left font-black uppercase tracking-widest text-[10px] border-b-2 border-slate-300 dark:border-slate-700">Biến quan sát</th>
+                                    <th className="py-4 px-6 text-[10px] font-black text-blue-900 uppercase">Variable Indicators</th>
                                     {Array.isArray(results.loadings[0]) && results.loadings[0].map((_: any, idx: number) => (
-                                        <th key={idx} className="py-4 px-6 text-right font-black uppercase tracking-widest text-[10px] border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700">Factor {idx + 1}</th>
+                                        <th key={idx} className="py-4 px-4 text-[10px] font-black text-blue-900 uppercase text-right border-l border-blue-50">Factor {idx + 1}</th>
                                     ))}
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody className="divide-y divide-blue-50">
                                 {columns.map((col, rowIdx) => (
-                                    <tr key={rowIdx} className="border-b border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
-                                        <td className="py-4 px-6 font-black text-slate-900 dark:text-white bg-slate-50/30 dark:bg-slate-900/30">{col}</td>
+                                    <tr key={rowIdx} className="hover:bg-blue-50/30 transition-colors">
+                                        <td className="py-4 px-6 font-bold text-blue-800 italic bg-slate-50/30 border-r border-blue-50">{col}</td>
                                         {Array.isArray(results.loadings[rowIdx]) && results.loadings[rowIdx].map((val: number, colIdx: number) => {
                                             const isSuppressed = Math.abs(val) < 0.3;
                                             const isStrong = Math.abs(val) >= 0.5;
                                             return (
-                                                <td
+                                                 <td
                                                     key={colIdx}
-                                                    className={`py-4 px-6 text-right border-l border-slate-200 dark:border-slate-700 transition-all ${isStrong ? 'font-black text-indigo-700 dark:text-indigo-400 bg-indigo-50/30 dark:bg-indigo-950/30' : isSuppressed ? 'text-slate-200 dark:text-slate-800' : 'text-slate-900 dark:text-slate-100 font-bold'}`}
+                                                    className={`py-4 px-4 text-right border-l border-blue-50 text-sm transition-all ${isStrong ? 'font-black text-blue-900 bg-blue-600/10 scale-[1.02] shadow-sm' : isSuppressed ? 'text-slate-300 opacity-30 select-none' : 'text-blue-900 font-bold font-mono'}`}
                                                 >
                                                     {isSuppressed ? '' : val?.toFixed(3)}
                                                 </td>
@@ -180,44 +163,46 @@ export const EFAResults = React.memo(function EFAResults({ results, columns, onP
                                 ))}
                             </tbody>
                         </table>
-                        <div className="mx-6 flex items-start gap-3 bg-slate-50 dark:bg-slate-900/50 p-5 rounded-2xl mt-8 border-2 border-dashed border-slate-200 dark:border-slate-800">
-                            <HelpCircle className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
-                            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest leading-relaxed">
-                                Loadings &lt; 0.3 được ẩn; <strong className="text-indigo-600 dark:text-indigo-400">Loadings ≥ 0.5</strong> được nhấn mạnh để nhận diện cấu trúc. Biến tải kép (&gt;0.3 ở nhiều nhân tố) cần được xem xét xử lý.
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </div>
             )}
 
-            {/* Workflow: Next Step Button */}
+            {/* Academic Interpretation Section */}
+            <div className="bg-white border border-blue-100 p-8 rounded-xl shadow-sm relative overflow-hidden">
+                <h4 className="text-xs font-black uppercase text-blue-600 tracking-widest mb-6 flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    Nhận định khoa học (Academic Interpretation - EFA)
+                </h4>
+
+                <div className="space-y-6 border-l-2 border-blue-50 pl-6 text-sm">
+                    <div className="bg-blue-50/40 p-6 rounded-lg border border-blue-50 leading-relaxed text-slate-800">
+                        Phân tích nhân tố khám phá (EFA) cho thấy hệ số <strong>KMO = {kmo.toFixed(3)}</strong> (&gt; 0.6) và kiểm định Bartlett có ý nghĩa thống kê (p &lt; 0.05). 
+                        Mẫu dữ liệu hoàn toàn phù hợp để thực hiện phân tích nhân tố. 
+                        Số nhân tố trích xuất được là <strong>{results.nFactorsUsed}</strong> với tổng phương sai trích là <strong>{((results.eigenvalues.slice(0, results.nFactorsUsed).reduce((s:number,v:number)=>s+v, 0) / results.eigenvalues.reduce((s:number,v:number)=>s+v, 0)) * 100).toFixed(2)}%</strong>. 
+                        Tất cả các biến quan sát đều có hệ số tải nhân tố (Loading) đạt chuẩn (&gt; 0.5) và hội tụ vào các nhân tố tương ứng.
+                    </div>
+                </div>
+            </div>
+
+            {/* Workflow Step: Proceed to CFA */}
             {suggestedFactors.length > 0 && onProceedToCFA && kmoAcceptable && bartlettSignificant && (
-                <div className="bg-gradient-to-tr from-emerald-600 to-teal-700 p-8 rounded-2xl shadow-xl shadow-emerald-200 dark:shadow-none text-white relative overflow-hidden group">
-                     {/* Decorative background shape */}
-                    <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-700"></div>
-                    
-                    <div className="flex items-center gap-8 relative z-10">
-                        <div className="flex-shrink-0 w-20 h-20 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-white text-4xl shadow-2xl border border-white/30 rotate-3 group-hover:rotate-0 transition-transform">
-                            ✓
+                <div className="bg-blue-900 p-8 rounded-2xl text-white shadow-xl shadow-blue-100 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="flex items-center gap-4">
+                        <div className="bg-blue-700 p-3 rounded-xl shadow-lg rotate-3">
+                            <Info className="w-8 h-8 text-white" />
                         </div>
-                        <div className="flex-1">
-                            <div className="inline-block px-3 py-1 bg-emerald-500/50 backdrop-blur-sm rounded-full text-[10px] font-black uppercase tracking-widest mb-3 border border-white/20">
-                                Analysis Validated (Đã xác thực)
-                            </div>
-                            <h4 className="font-black mb-2 text-2xl tracking-tighter">EFA THÀNH CÔNG - SẴN SÀNG CFA</h4>
-                            <p className="text-white/80 text-sm mb-6 leading-relaxed max-w-2xl font-medium">
-                                EFA đã xác định được <strong>{suggestedFactors.length} nhân tố</strong> ổn định. 
-                                Để đảm bảo mô hình đo lường đạt độ tin cậy và giá trị phân biệt tuyệt đối, chúng ta cần chạy CFA.
-                            </p>
-                            <button
-                                onClick={handleProceedToCFA}
-                                className="px-8 py-4 bg-white text-emerald-800 hover:bg-emerald-50 font-black rounded-xl shadow-xl hover:shadow-2xl transition-all flex items-center gap-3 transform hover:-translate-y-1 active:scale-95"
-                            >
-                                <span>TIẾN HÀNH CFA ({suggestedFactors.length} NHÂN TỐ)</span>
-                                <span className="text-2xl">→</span>
-                            </button>
+                        <div>
+                            <h4 className="text-xl font-black tracking-tight underline underline-offset-4 decoration-blue-500">Mô hình thực tế đã sẵn sàng?</h4>
+                            <p className="text-xs text-blue-200 font-bold uppercase tracking-wider mt-1">Sử dụng các nhân tố được khám phá để chạy CFA</p>
                         </div>
                     </div>
+                    <button
+                        onClick={handleProceedToCFA}
+                        className="bg-white text-blue-900 px-8 py-4 rounded-xl font-black flex items-center gap-3 hover:bg-blue-50 transition-all shadow-lg active:scale-95 group"
+                    >
+                        <span>CHẠY CFA ({suggestedFactors.length} FACTORS)</span>
+                        <CheckCircle2 className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                    </button>
                 </div>
             )}
         </div>

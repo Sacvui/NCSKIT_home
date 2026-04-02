@@ -52,16 +52,16 @@ export const ANOVAResults = React.memo(function ANOVAResults({ results }: ANOVAR
                                 <td className="py-5 px-4 text-sm text-right font-mono">{results.ssBetween?.toFixed(3)}</td>
                                 <td className="py-5 px-4 text-sm text-center font-bold">{results.dfBetween}</td>
                                 <td className="py-5 px-4 text-sm text-right font-mono">{results.msBetween?.toFixed(3)}</td>
-                                <td className="py-5 px-4 text-sm text-right font-black text-blue-950">{results.fStatistic?.toFixed(3)}</td>
-                                <td className={`py-5 px-4 text-sm text-right font-black ${significant ? 'text-blue-600 underline underline-offset-4' : 'text-slate-400'}`}>
+                                 <td className="py-5 px-4 text-sm text-right font-black text-blue-900">{results.fStatistic?.toFixed(3)}</td>
+                                <td className={`py-5 px-4 text-sm text-right font-black ${significant ? 'text-blue-950 underline underline-offset-4 ring-1 ring-blue-100 rounded-lg px-2' : 'text-slate-700'}`}>
                                     {pValue?.toFixed(4)} {significant ? ' (Sig.)' : ''}
                                 </td>
                             </tr>
-                            <tr className="hover:bg-blue-50/30 transition-colors">
-                                <td className="py-5 px-6 text-sm italic text-slate-500">Within Groups (Trong nội bộ nhóm)</td>
-                                <td className="py-5 px-4 text-sm text-right font-mono text-slate-500">{results.ssWithin?.toFixed(3)}</td>
-                                <td className="py-5 px-4 text-sm text-center font-bold text-slate-500">{results.dfWithin}</td>
-                                <td className="py-5 px-4 text-sm text-right font-mono text-slate-500">{results.msWithin?.toFixed(3)}</td>
+                             <tr className="hover:bg-blue-50/30 transition-colors">
+                                <td className="py-5 px-6 text-sm italic text-slate-800">Within Groups (Trong nội bộ nhóm)</td>
+                                <td className="py-5 px-4 text-sm text-right font-mono text-slate-900">{results.ssWithin?.toFixed(3)}</td>
+                                <td className="py-5 px-4 text-sm text-center font-bold text-slate-900">{results.dfWithin}</td>
+                                <td className="py-5 px-4 text-sm text-right font-mono text-slate-900">{results.msWithin?.toFixed(3)}</td>
                                 <td className="py-5 px-4" colSpan={2}></td>
                             </tr>
                             <tr className="bg-slate-50/80 font-bold border-t border-blue-100">

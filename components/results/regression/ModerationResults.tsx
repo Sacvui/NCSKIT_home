@@ -2,6 +2,8 @@
 
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { FileText, Database, Activity, Target, Share2 } from 'lucide-react';
+import { getStoredLocale, t, type Locale } from '@/lib/i18n';
 
 interface ModerationResultsProps {
     results: any;
@@ -9,88 +11,116 @@ interface ModerationResultsProps {
 }
 
 /**
- * Moderation Analysis Results Component
- * Displays moderation analysis with interaction effects
+ * Moderation Analysis Results Component - Scientific Academic Style (White & Blue)
  */
 export const ModerationResults = React.memo(function ModerationResults({ results, columns }: ModerationResultsProps) {
+    const [locale, setLocale] = React.useState<Locale>('vi');
+
+    React.useEffect(() => {
+        setLocale(getStoredLocale());
+    }, []);
+
+    if (!results) return null;
+
     const interactionP = results.interactionP;
     const significant = interactionP < 0.05;
 
     return (
-        <div className="space-y-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Moderation Analysis Results</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="mb-4 p-4 bg-blue-50 rounded-lg">
-                        <p className="text-sm text-blue-800">
-                            <strong>Mô hình:</strong> {columns[0]} = b0 + b1*{columns[1]} + b2*{columns[2]} + b3*({columns[1]}×{columns[2]})
-                        </p>
-                    </div>
+        <div className="space-y-8 pb-10 animate-in fade-in duration-500">
+             {/* Model Equation Card */}
+            <div className="bg-white rounded-xl border border-blue-100 shadow-sm p-8 relative overflow-hidden bg-gradient-to-r from-blue-50/20 to-white">
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                    <Share2 className="w-20 h-20 text-blue-900" />
+                </div>
+                <h4 className="text-[10px] font-black uppercase text-blue-600 tracking-widest mb-4">Regression Moderation Model (Mô hình điều tiết)</h4>
+                <div className="text-lg md:text-xl font-mono font-black text-blue-900 break-all leading-relaxed bg-white/50 p-4 rounded-lg border border-blue-50 border-dashed">
+                    {columns[0]} = b₀ + b₁({columns[1]}) + b₂({columns[2]}) + b₃({columns[1]} × {columns[2]})
+                </div>
+            </div>
 
-                    <table className="w-full text-sm">
-                        <thead>
-                            <tr className="border-b border-gray-200 bg-gray-50">
-                                <th className="py-2 text-left font-semibold">Term</th>
-                                <th className="py-2 text-right font-semibold">Estimate</th>
-                                <th className="py-2 text-right font-semibold">Std. Error</th>
-                                <th className="py-2 text-right font-semibold">t</th>
-                                <th className="py-2 text-right font-semibold">p-value</th>
+            {/* Coefficients Table */}
+            <div className="bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-blue-50 bg-slate-50/50 flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-blue-900 uppercase tracking-wider flex items-center gap-2">
+                        <Activity className="w-4 h-4 text-blue-600" />
+                        Moderation Effects (Tác động điều tiết)
+                    </h3>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse text-slate-700 font-sans">
+                        <thead className="bg-blue-50/50 border-y border-blue-100">
+                            <tr>
+                                <th className="py-4 px-6 text-xs font-black text-blue-900 uppercase">Predictor Name (Biến)</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-right">Estimate (b)</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-right">Std. Error</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-right">t-statistic</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-right bg-blue-100/30">Sig. (p)</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr className="border-b border-gray-100">
-                                <td className="py-2 font-medium">(Intercept)</td>
-                                <td className="py-2 text-right">{results.interceptEst?.toFixed(4)}</td>
-                                <td className="py-2 text-right">{results.interceptSE?.toFixed(4)}</td>
-                                <td className="py-2 text-right">{results.interceptT?.toFixed(3)}</td>
-                                <td className="py-2 text-right">{results.interceptP?.toFixed(4)}</td>
+                        <tbody className="divide-y divide-blue-50">
+                            <tr className="hover:bg-blue-50/10 transition-colors">
+                                <td className="py-5 px-6 italic text-slate-400 font-bold">(Intercept)</td>
+                                <td className="py-5 px-4 text-sm text-right font-mono">{results.interceptEst?.toFixed(4)}</td>
+                                <td className="py-5 px-4 text-sm text-right font-mono">{results.interceptSE?.toFixed(4)}</td>
+                                <td className="py-5 px-4 text-sm text-right font-mono">{results.interceptT?.toFixed(3)}</td>
+                                <td className="py-5 px-4 text-sm text-right font-mono">{results.interceptP?.toFixed(4)}</td>
                             </tr>
-                            <tr className="border-b border-gray-100">
-                                <td className="py-2 font-medium">{columns[1]} (X)</td>
-                                <td className="py-2 text-right">{results.xEst?.toFixed(4)}</td>
-                                <td className="py-2 text-right">{results.xSE?.toFixed(4)}</td>
-                                <td className="py-2 text-right">{results.xT?.toFixed(3)}</td>
-                                <td className="py-2 text-right">{results.xP?.toFixed(4)}</td>
+                            <tr className="hover:bg-blue-50/10 transition-colors">
+                                <td className="py-5 px-6 font-bold text-blue-800">{columns[1]} (X)</td>
+                                <td className="py-5 px-4 text-sm text-right font-bold text-blue-600">{results.xEst?.toFixed(4)}</td>
+                                <td className="py-5 px-4 text-sm text-right font-mono text-slate-400">{results.xSE?.toFixed(4)}</td>
+                                <td className="py-5 px-4 text-sm text-right font-mono text-slate-400">{results.xT?.toFixed(3)}</td>
+                                <td className="py-5 px-4 text-sm text-right font-black text-blue-900">{results.xP?.toFixed(4)}</td>
                             </tr>
-                            <tr className="border-b border-gray-100">
-                                <td className="py-2 font-medium">{columns[2]} (W)</td>
-                                <td className="py-2 text-right">{results.wEst?.toFixed(4)}</td>
-                                <td className="py-2 text-right">{results.wSE?.toFixed(4)}</td>
-                                <td className="py-2 text-right">{results.wT?.toFixed(3)}</td>
-                                <td className="py-2 text-right">{results.wP?.toFixed(4)}</td>
+                            <tr className="hover:bg-blue-50/10 transition-colors">
+                                <td className="py-5 px-6 font-bold text-blue-800">{columns[2]} (W)</td>
+                                <td className="py-5 px-4 text-sm text-right font-bold text-blue-600">{results.wEst?.toFixed(4)}</td>
+                                <td className="py-5 px-4 text-sm text-right font-mono text-slate-400">{results.wSE?.toFixed(4)}</td>
+                                <td className="py-5 px-4 text-sm text-right font-mono text-slate-400">{results.wT?.toFixed(3)}</td>
+                                <td className="py-5 px-4 text-sm text-right font-black text-blue-900">{results.wP?.toFixed(4)}</td>
                             </tr>
-                            <tr className={`border-b border-gray-200 ${significant ? 'bg-green-50' : ''}`}>
-                                <td className="py-2 font-bold">X × W (Interaction)</td>
-                                <td className="py-2 text-right font-bold">{results.interactionEst?.toFixed(4)}</td>
-                                <td className="py-2 text-right">{results.interactionSE?.toFixed(4)}</td>
-                                <td className="py-2 text-right">{results.interactionT?.toFixed(3)}</td>
-                                <td className={`py-2 text-right font-bold ${significant ? 'text-green-600' : 'text-gray-600'}`}>
-                                    {interactionP?.toFixed(4)} {significant && '***'}
+                            <tr className={`hover:bg-blue-50/10 transition-colors ${significant ? 'bg-blue-50/50' : 'opacity-80'}`}>
+                                <td className="py-5 px-6 font-black text-blue-900 uppercase">Interaction ({columns[1]} × {columns[2]})</td>
+                                <td className="py-5 px-4 text-sm text-right font-black text-blue-900">{results.interactionEst?.toFixed(4)}</td>
+                                <td className="py-5 px-4 text-sm text-right font-mono text-slate-400">{results.interactionSE?.toFixed(4)}</td>
+                                <td className="py-5 px-4 text-sm text-right font-mono text-slate-400">{results.interactionT?.toFixed(3)}</td>
+                                <td className={`py-5 px-4 text-sm text-right font-black ${significant ? 'text-blue-600 underline underline-offset-8' : 'text-slate-400'}`}>
+                                    {interactionP?.toFixed(4)} {significant ? ' (Sig.)' : ''}
                                 </td>
                             </tr>
                         </tbody>
                     </table>
+                </div>
+            </div>
 
-                    <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
-                        <div className="p-3 bg-gray-50 rounded">
-                            <span className="font-medium">R²:</span> {results.rSquared?.toFixed(4)}
-                        </div>
-                        <div className="p-3 bg-gray-50 rounded">
-                            <span className="font-medium">Adjusted R²:</span> {results.rSquaredAdj?.toFixed(4)}
-                        </div>
+            {/* Model Fit Summary */}
+            <div className="bg-slate-50/50 border border-blue-50 p-8 rounded-xl flex items-center justify-around">
+                <div className="text-center">
+                    <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">R-Squared</span>
+                    <span className="font-black text-3xl text-blue-900">{results.rSquared?.toFixed(4)}</span>
+                </div>
+                <div className="h-10 w-px bg-blue-100"></div>
+                <div className="text-center">
+                    <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Adjusted R²</span>
+                    <span className="font-black text-3xl text-blue-900">{results.rSquaredAdj?.toFixed(4)}</span>
+                </div>
+            </div>
+
+            {/* Academic Interpretation Section */}
+            <div className="bg-white border border-blue-100 p-8 rounded-xl shadow-sm relative overflow-hidden">
+                <h4 className="text-xs font-black uppercase text-blue-600 tracking-widest mb-6 flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    Nhận định khoa học (Academic Interpretation - Moderation)
+                </h4>
+
+                <div className="space-y-6 border-l-2 border-blue-50 pl-6 text-sm">
+                    <div className="bg-slate-50 border border-blue-50 p-6 rounded-lg leading-relaxed text-slate-800">
+                        {significant 
+                            ? `Kết quả chứng minh có hiệu ứng điều tiết có ý nghĩa thống kê (p = ${interactionP?.toFixed(4)} < 0.05). Biến **${columns[2]}** đóng vai trò là biến điều tiết, làm thay đổi cường độ tác động của **${columns[1]}** lên **${columns[0]}**.` 
+                            : `Kết quả chưa đủ bằng chứng thống kê để kết luận có hiệu ứng điều tiết (p = ${interactionP?.toFixed(4)} >= 0.05). Biến **${columns[2]}** không làm thay đổi có ý nghĩa mối quan hệ giữa **${columns[1]}** và **${columns[0]}**.`
+                        }
                     </div>
-                </CardContent>
-            </Card>
-
-            <div className="bg-gray-50 border border-gray-200 p-6 rounded-lg">
-                <h4 className="font-bold mb-4 text-gray-800 uppercase text-xs tracking-wider">Kết luận</h4>
-                <p className="text-sm text-gray-800">
-                    {significant
-                        ? `Có hiệu ứng điều tiết có ý nghĩa thống kê (p = ${interactionP?.toFixed(4)} < 0.05). Biến ${columns[2]} điều tiết mối quan hệ giữa ${columns[1]} và ${columns[0]}.`
-                        : `Không có hiệu ứng điều tiết có ý nghĩa thống kê (p = ${interactionP?.toFixed(4)} >= 0.05). Biến ${columns[2]} không điều tiết mối quan hệ giữa ${columns[1]} và ${columns[0]}.`}
-                </p>
+                </div>
             </div>
         </div>
     );

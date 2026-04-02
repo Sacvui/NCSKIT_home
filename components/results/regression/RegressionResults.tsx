@@ -147,16 +147,16 @@ export const RegressionResults = React.memo(function RegressionResults({ results
                                         <td className="py-5 px-6 font-bold text-blue-800 border-r border-blue-50 italic">
                                             {isIntercept ? '(Constant)' : coef.term.replace(/`/g, '')}
                                         </td>
-                                        <td className="py-5 px-4 text-sm text-center font-mono text-slate-600">{fmt(coef.estimate)}</td>
-                                        <td className="py-5 px-4 text-sm text-center font-mono text-slate-400 border-r border-blue-50">{fmt(coef.stdError)}</td>
+                                         <td className="py-5 px-4 text-sm text-center font-mono text-slate-800">{fmt(coef.estimate)}</td>
+                                        <td className="py-5 px-4 text-sm text-center font-mono text-slate-700 border-r border-blue-50">{fmt(coef.stdError)}</td>
                                         <td className="py-5 px-4 text-sm text-center font-black text-blue-900 bg-blue-50/10 border-r border-blue-50">
                                             {isIntercept ? '' : fmt(coef.stdBeta)}
                                         </td>
-                                        <td className="py-5 px-4 text-sm text-center font-mono text-slate-500">{fmt(coef.tValue)}</td>
-                                        <td className={`py-5 px-4 text-sm text-center font-black ${isSig ? 'text-blue-600 underline underline-offset-4' : 'text-slate-300'}`}>
+                                        <td className="py-5 px-4 text-sm text-center font-mono text-slate-900">{fmt(coef.tValue)}</td>
+                                        <td className={`py-5 px-4 text-sm text-center font-black ${isSig ? 'text-blue-900 underline underline-offset-4' : 'text-slate-400'}`}>
                                             {fmtP(coef.pValue)}
                                         </td>
-                                        <td className={`py-5 px-4 text-sm text-center font-mono border-l border-blue-50 ${coef.vif >= 10 ? 'text-red-600 bg-red-50' : 'text-slate-400'}`}>
+                                        <td className={`py-5 px-4 text-sm text-center font-mono border-l border-blue-50 ${coef.vif >= 10 ? 'text-red-600 bg-red-50' : 'text-blue-900 font-extrabold'}`}>
                                             {isIntercept ? '' : (coef.vif ? fmt(coef.vif) : '-')}
                                         </td>
                                     </tr>

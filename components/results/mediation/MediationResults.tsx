@@ -2,6 +2,8 @@
 
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { FileText, Database, Activity, Target, Share2, ArrowRight } from 'lucide-react';
+import { getStoredLocale, t, type Locale } from '@/lib/i18n';
 
 interface MediationResultsProps {
     results: any;
@@ -9,82 +11,117 @@ interface MediationResultsProps {
 }
 
 /**
- * Mediation Analysis Results Component
- * Displays Baron & Kenny mediation analysis with path coefficients
+ * Mediation Analysis Results Component - Scientific Academic Style (White & Blue)
  */
 export const MediationResults = React.memo(function MediationResults({ results, columns }: MediationResultsProps) {
-    // columns: [X, M, Y]
+    const [locale, setLocale] = React.useState<Locale>('vi');
+
+    React.useEffect(() => {
+        setLocale(getStoredLocale());
+    }, []);
+
+    if (!results) return null;
+
     const sobelP = results.sobelP;
     const significant = sobelP < 0.05;
 
     return (
-        <div className="space-y-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Mediation Analysis Results (Baron & Kenny)</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="mb-4 p-4 bg-blue-50 rounded-lg">
-                        <p className="text-sm text-blue-800">
-                            <strong>Mô hình:</strong> {columns[0]} (X) → {columns[1]} (M) → {columns[2]} (Y)
-                        </p>
+        <div className="space-y-8 pb-10 animate-in fade-in duration-500">
+             {/* Model Visual Header */}
+            <div className="bg-white rounded-xl border border-blue-100 shadow-sm p-8 relative overflow-hidden bg-gradient-to-r from-blue-50/20 to-white">
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                    <Share2 className="w-20 h-20 text-blue-900" />
+                </div>
+                <h4 className="text-[10px] font-black uppercase text-blue-600 tracking-widest mb-4">Mediation Model (Mô hình trung gian)</h4>
+                <div className="flex items-center gap-6 md:gap-12 flex-wrap">
+                    <div className="text-xl md:text-2xl font-black text-blue-900 flex items-center gap-3">
+                        <span className="bg-white px-4 py-2 rounded-lg border border-blue-100 shadow-sm">{columns[0]}</span>
+                        <ArrowRight className="w-6 h-6 text-blue-300" />
+                        <span className="bg-white px-4 py-2 rounded-lg border border-blue-500 shadow-md text-blue-600">{columns[1]}</span>
+                        <ArrowRight className="w-6 h-6 text-blue-300" />
+                        <span className="bg-white px-4 py-2 rounded-lg border border-blue-100 shadow-sm">{columns[2]}</span>
                     </div>
+                </div>
+            </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        <div className="space-y-4">
-                            <h4 className="font-semibold text-gray-700 border-b pb-2">Path Coefficients</h4>
-                            <div className="bg-gray-50 p-4 rounded-lg space-y-3">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm font-medium">Path a (X → M):</span>
-                                    <span className="text-sm">{results.paths?.a?.est?.toFixed(4)} (p={results.paths?.a?.p?.toFixed(4)})</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm font-medium">Path b (M → Y):</span>
-                                    <span className="text-sm">{results.paths?.b?.est?.toFixed(4)} (p={results.paths?.b?.p?.toFixed(4)})</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm font-medium">Path c (Total Effect):</span>
-                                    <span className="text-sm">{results.paths?.c_prime?.est?.toFixed(4)} (p={results.paths?.c_prime?.p?.toFixed(4)})</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm font-medium">Path c&apos; (Direct Effect):</span>
-                                    <span className="text-sm">{results.paths?.c?.est?.toFixed(4)} (p={results.paths?.c?.p?.toFixed(4)})</span>
+            {/* Coefficients & Indirect Effect Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Path Coefficients */}
+                <div className="bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
+                    <div className="px-6 py-4 border-b border-blue-50 bg-slate-50/50">
+                        <h3 className="text-xs font-black text-blue-900 uppercase tracking-widest flex items-center gap-2">
+                             <Activity className="w-4 h-4 text-blue-600" />
+                             Path Coefficients (Hệ số đường dẫn)
+                        </h3>
+                    </div>
+                    <div className="p-6 space-y-4">
+                        <div className="flex justify-between items-center p-3 border-b border-blue-50">
+                            <span className="text-sm font-bold text-slate-500">Path a (X → M):</span>
+                            <span className="text-sm font-black text-blue-900 bg-blue-50/50 px-2 py-1 rounded">{results.paths?.a?.est?.toFixed(4)} <span className="text-[10px] text-slate-400 font-mono">(p={results.paths?.a?.p?.toFixed(4)})</span></span>
+                        </div>
+                        <div className="flex justify-between items-center p-3 border-b border-blue-50">
+                            <span className="text-sm font-bold text-slate-500">Path b (M → Y):</span>
+                            <span className="text-sm font-black text-blue-900 bg-blue-50/50 px-2 py-1 rounded">{results.paths?.b?.est?.toFixed(4)} <span className="text-[10px] text-slate-400 font-mono">(p={results.paths?.b?.p?.toFixed(4)})</span></span>
+                        </div>
+                        <div className="flex justify-between items-center p-3 border-b border-blue-50">
+                            <span className="text-sm font-bold text-slate-500">Total Effect (Path c):</span>
+                            <span className="text-sm font-black text-blue-900 bg-blue-50/50 px-2 py-1 rounded">{results.paths?.c_prime?.est?.toFixed(4)} <span className="text-[10px] text-slate-400 font-mono">(p={results.paths?.c_prime?.p?.toFixed(4)})</span></span>
+                        </div>
+                        <div className="flex justify-between items-center p-3">
+                            <span className="text-sm font-bold text-slate-500">Direct Effect (Path c&apos;):</span>
+                            <span className="text-sm font-black text-blue-900 bg-blue-50/50 px-2 py-1 rounded">{results.paths?.c?.est?.toFixed(4)} <span className="text-[10px] text-slate-400 font-mono">(p={results.paths?.c?.p?.toFixed(4)})</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                 {/* Indirect Effect & Sobel Test */}
+                 <div className="bg-slate-50/50 border border-blue-50 rounded-xl overflow-hidden shadow-sm">
+                    <div className="px-6 py-4 border-b border-blue-50 bg-white/50">
+                        <h3 className="text-xs font-black text-blue-900 uppercase tracking-widest flex items-center gap-2">
+                             <Target className="w-4 h-4 text-blue-600" />
+                             Indirect Effect Summary
+                        </h3>
+                    </div>
+                    <div className="p-8 flex flex-col justify-center items-center h-full space-y-6">
+                        <div className="text-center">
+                            <span className="text-[10px] font-black uppercase text-slate-400 block mb-1">Indirect Estimate</span>
+                            <div className="text-4xl font-black text-blue-900">{results.indirectEffect?.est?.toFixed(4)}</div>
+                        </div>
+                        <div className="w-full h-px bg-blue-100"></div>
+                        <div className="grid grid-cols-2 gap-8 w-full">
+                            <div className="text-center">
+                                <span className="text-[9px] font-black uppercase text-slate-400 block mb-1">Sobel Test Z</span>
+                                <div className="text-xl font-bold text-blue-800">{results.sobelZ?.toFixed(3)}</div>
+                            </div>
+                            <div className="text-center">
+                                <span className="text-[9px] font-black uppercase text-slate-400 block mb-1">Sobel Sig. (p)</span>
+                                <div className={`text-xl font-bold ${significant ? 'text-blue-600' : 'text-slate-400'}`}>
+                                    {sobelP?.toFixed(4)}
                                 </div>
                             </div>
                         </div>
-
-                        <div className="space-y-4">
-                            <h4 className="font-semibold text-gray-700 border-b pb-2">Indirect Effect</h4>
-                            <div className="bg-gray-50 p-4 rounded-lg space-y-3">
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm font-medium">Estimate (a × b):</span>
-                                    <span className="text-sm font-bold">{results.indirectEffect?.est?.toFixed(4)}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm font-medium">Sobel Test Z:</span>
-                                    <span className="text-sm">{results.sobelZ?.toFixed(3)}</span>
-                                </div>
-                                <div className={`flex justify-between items-center p-2 rounded ${significant ? 'bg-green-100 text-green-800' : 'bg-gray-100'}`}>
-                                    <span className="text-sm font-bold">Sobel p-value:</span>
-                                    <span className="text-sm font-bold">{sobelP?.toFixed(4)}</span>
-                                </div>
-                                <div className="flex justify-between items-center">
-                                    <span className="text-sm font-medium">Mediation Type:</span>
-                                    <span className="text-sm uppercase font-bold text-blue-600">{results.mediationType}</span>
-                                </div>
-                            </div>
+                        <div className={`mt-4 px-4 py-2 rounded-full border text-[10px] uppercase font-black tracking-widest ${significant ? 'bg-blue-900 text-white border-blue-900' : 'bg-slate-200 text-slate-400 border-slate-300'}`}>
+                             {results.mediationType || 'No'} Mediation
                         </div>
                     </div>
-                </CardContent>
-            </Card>
+                 </div>
+            </div>
 
-            <div className="bg-gray-50 border border-gray-200 p-6 rounded-lg">
-                <h4 className="font-bold mb-4 text-gray-800 uppercase text-xs tracking-wider">Kết luận</h4>
-                <p className="text-sm text-gray-800">
-                    {significant
-                        ? `Có hiệu ứng trung gian có ý nghĩa thống kê (Sobel p = ${sobelP?.toFixed(4)} < 0.05). Biến ${columns[1]} là trung gian ${results.mediationType === 'full' ? 'toàn phần' : 'một phần'} trong mối quan hệ giữa ${columns[0]} và ${columns[2]}.`
-                        : `Không có hiệu ứng trung gian có ý nghĩa thống kê (Sobel p = ${sobelP?.toFixed(4)} >= 0.05).`}
-                </p>
+            {/* Academic Interpretation Section */}
+            <div className="bg-white border border-blue-100 p-8 rounded-xl shadow-sm relative overflow-hidden">
+                <h4 className="text-xs font-black uppercase text-blue-600 tracking-widest mb-6 flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    Nhận định khoa học (Academic Interpretation - Mediation)
+                </h4>
+
+                <div className="space-y-6 border-l-2 border-blue-50 pl-6 text-sm">
+                    <div className="bg-slate-50 border border-blue-50 p-6 rounded-lg leading-relaxed text-slate-800">
+                        {significant 
+                            ? `Kết quả kiểm định Sobel (Z = ${results.sobelZ?.toFixed(3)}, p = ${sobelP?.toFixed(4)} < 0.05) chứng minh có hiệu ứng trung gian có ý nghĩa thống kê. Biến **${columns[1]}** đóng vai trò là biến trung gian **${results.mediationType === 'full' ? 'toàn phần' : 'một phần'}** trong mối quan hệ giữa **${columns[0]}** và **${columns[2]}**.` 
+                            : `Kết quả kiểm định Sobel (p = ${sobelP?.toFixed(4)} >= 0.05) không tìm thấy bằng chứng về hiệu ứng trung gian của **${columns[1]}** trong mối quan hệ đang xét.`
+                        }
+                    </div>
+                </div>
             </div>
         </div>
     );

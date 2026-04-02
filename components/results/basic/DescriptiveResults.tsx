@@ -56,12 +56,12 @@ export const DescriptiveResults = React.memo(function DescriptiveResults({ resul
                                 <tr key={idx} className="hover:bg-blue-50/30 transition-colors">
                                     <td className="py-5 px-6 text-sm font-bold text-blue-800">{col}</td>
                                     <td className="py-5 px-4 text-sm text-center font-mono">{(results.N && results.N[idx] !== undefined) ? results.N[idx] : '-'}</td>
-                                    <td className="py-5 px-4 text-sm text-right font-mono text-slate-500">{safeToFixed(results.min?.[idx])}</td>
-                                    <td className="py-5 px-4 text-sm text-right font-mono text-slate-500">{safeToFixed(results.max?.[idx])}</td>
+                                     <td className="py-5 px-4 text-sm text-right font-mono text-slate-800">{safeToFixed(results.min?.[idx])}</td>
+                                    <td className="py-5 px-4 text-sm text-right font-mono text-slate-800">{safeToFixed(results.max?.[idx])}</td>
                                     <td className="py-5 px-4 text-sm text-right font-black text-blue-900 bg-blue-50/20">{safeToFixed(results.mean?.[idx])}</td>
-                                    <td className="py-5 px-4 text-sm text-right font-mono text-slate-500">{safeToFixed(results.sd?.[idx])}</td>
-                                    <td className="py-5 px-4 text-sm text-right font-mono italic text-slate-400">{safeToFixed(results.skew?.[idx])}</td>
-                                    <td className="py-5 px-4 text-sm text-right font-mono italic text-slate-400">{safeToFixed(results.kurtosis?.[idx])}</td>
+                                    <td className="py-5 px-4 text-sm text-right font-mono text-slate-800">{safeToFixed(results.sd?.[idx])}</td>
+                                    <td className="py-5 px-4 text-sm text-right font-mono italic text-blue-900/60 font-black">{safeToFixed(results.skew?.[idx])}</td>
+                                    <td className="py-5 px-4 text-sm text-right font-mono italic text-blue-900/60 font-black">{safeToFixed(results.kurtosis?.[idx])}</td>
                                 </tr>
                             ))}
                         </tbody>

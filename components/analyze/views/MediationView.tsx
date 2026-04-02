@@ -1,9 +1,12 @@
+'use client';
+
 import React, { useState } from 'react';
 import { AnalysisStep } from '@/types/analysis';
 import { Locale, t } from '@/lib/i18n';
 import { getAnalysisCost, checkBalance, deductCredits } from '@/lib/ncs-credits';
 import { logAnalysisUsage } from '@/lib/activity-logger';
 import { runMediationAnalysis, runModerationAnalysis } from '@/lib/webr-wrapper';
+import { ChevronLeft, Play, Target, Shuffle, ArrowRight } from 'lucide-react';
 
 interface MediationViewProps {
     step: AnalysisStep;
@@ -15,12 +18,9 @@ interface MediationViewProps {
     setStep: (step: AnalysisStep) => void;
     setNcsBalance: React.Dispatch<React.SetStateAction<number>>;
     showToast: (message: string, type: 'success' | 'error' | 'info') => void;
-
-    // Credit UI setters
     setRequiredCredits: (amount: number) => void;
     setCurrentAnalysisCost: (amount: number) => void;
     setShowInsufficientCredits: (show: boolean) => void;
-
     setAnalysisType?: (type: string) => void;
     locale: Locale;
 }
@@ -43,245 +43,215 @@ export const MediationView: React.FC<MediationViewProps> = ({
 }) => {
     const varsForFactors = allColumns.length > 0 ? allColumns : columns;
     const [isAnalyzing, setIsAnalyzing] = useState(false);
-
-    // Internal State
     const [mediationVars, setMediationVars] = useState<{ x: string; m: string; y: string }>({ x: '', m: '', y: '' });
     const [moderationVars, setModerationVars] = useState<{ x: string; w: string; y: string }>({ x: '', w: '', y: '' });
 
-    // Mediation Selection
-    if (step === 'mediation-select') {
-        return (
-            <div className="max-w-2xl mx-auto space-y-6">
-                <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                        Phân tích Trung gian (Mediation)
-                    </h2>
-                    <p className="text-gray-600">
-                        Kiểm tra biến M có đóng vai trò trung gian giữa X và Y không (Baron & Kenny)
-                    </p>
-                </div>
+    const handleAnalysisWrapper = async (
+        analysisKey: string,
+        costKey: string,
+        action: () => Promise<any>,
+        colsToSave: string[],
+        successMsg: string,
+        logDesc: string
+    ) => {
+        setIsAnalyzing(true);
+        if (setAnalysisType) setAnalysisType(analysisKey);
 
-                <div className="bg-white rounded-xl shadow-lg p-6 border">
-                    <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Biến độc lập (X - Predictor)
-                            </label>
-                            <select
-                                className="w-full px-3 py-2 border rounded-lg"
-                                value={mediationVars.x}
-                                onChange={(e) => setMediationVars({ ...mediationVars, x: e.target.value })}
-                            >
-                                <option value="">Chọn biến...</option>
-                                {varsForFactors.map(col => (
-                                    <option key={col} value={col} disabled={mediationVars.m === col || mediationVars.y === col}>{col}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Biến trung gian (M - Mediator)
-                            </label>
-                            <select
-                                className="w-full px-3 py-2 border rounded-lg"
-                                value={mediationVars.m}
-                                onChange={(e) => setMediationVars({ ...mediationVars, m: e.target.value })}
-                            >
-                                <option value="">Chọn biến...</option>
-                                {varsForFactors.map(col => (
-                                    <option key={col} value={col} disabled={mediationVars.x === col || mediationVars.y === col}>{col}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Biến phụ thuộc (Y - Outcome)
-                            </label>
-                            <select
-                                className="w-full px-3 py-2 border rounded-lg"
-                                value={mediationVars.y}
-                                onChange={(e) => setMediationVars({ ...mediationVars, y: e.target.value })}
-                            >
-                                <option value="">Chọn biến...</option>
-                                {varsForFactors.map(col => (
-                                    <option key={col} value={col} disabled={mediationVars.x === col || mediationVars.m === col}>{col}</option>
-                                ))}
-                            </select>
-                        </div>
+        if (user) {
+            const cost = await getAnalysisCost(costKey);
+            const { hasEnough } = await checkBalance(user.id, cost);
+            if (!hasEnough) {
+                setRequiredCredits(cost);
+                setCurrentAnalysisCost(cost);
+                setShowInsufficientCredits(true);
+                setIsAnalyzing(false);
+                return;
+            }
+        }
+
+        try {
+            const result = await action();
+            if (user) {
+                const cost = await getAnalysisCost(costKey);
+                await deductCredits(user.id, cost, logDesc);
+                await logAnalysisUsage(user.id, analysisKey, cost);
+                setNcsBalance(prev => Math.max(0, prev - cost));
+            }
+            setResults({ type: analysisKey, data: result, columns: colsToSave });
+            setStep('results');
+            showToast(successMsg, 'success');
+        } catch (err: any) {
+            showToast(`${t(locale, 'error')}: ` + (err.message || err), 'error');
+        } finally {
+            setIsAnalyzing(false);
+        }
+    };
+
+    const ViewHeader = ({ title, subtitle, icon: Icon }: any) => (
+        <div className="flex flex-col items-center text-center mb-8">
+            <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-4 border border-blue-100 shadow-sm">
+                <Icon className="w-8 h-8 text-blue-600" />
+            </div>
+            <h2 className="text-2xl font-black text-blue-900 tracking-tight uppercase">{title}</h2>
+            <p className="text-sm text-slate-500 mt-2 font-medium max-w-md">{subtitle}</p>
+        </div>
+    );
+
+    const SelectField = ({ id, label, value, onChange, options, disabledVars }: any) => (
+        <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block ml-1">{label}</label>
+            <select
+                className="w-full px-4 py-3 bg-white border border-blue-100 rounded-xl text-blue-900 font-bold text-sm focus:ring-2 focus:ring-blue-900 outline-none transition-all shadow-sm"
+                value={value}
+                onChange={onChange}
+            >
+                <option value="">-- Chọn biến --</option>
+                {options.map((col: string) => (
+                    <option key={col} value={col} disabled={disabledVars.includes(col)}>{col}</option>
+                ))}
+            </select>
+        </div>
+    );
+
+    const ActionButton = ({ onClick, disabled, children }: any) => (
+        <button
+            onClick={onClick}
+            disabled={disabled}
+            className="w-full py-4 bg-blue-900 hover:bg-blue-950 text-white font-black uppercase tracking-widest text-sm flex items-center justify-center gap-3 rounded-xl transition-all shadow-lg shadow-blue-100 disabled:opacity-50"
+        >
+            {isAnalyzing ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Play className="w-5 h-5" />}
+            {children}
+        </button>
+    );
+
+    if (step === 'mediation-select') {
+        const title = "Phân tích Trung gian (Mediation)";
+        const subtitle = "Kiểm tra vai trò trung gian của M trong mối quan hệ giữa X và Y theo mô hình Baron & Kenny.";
+
+        return (
+            <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <ViewHeader title={title} subtitle={subtitle} icon={Target} />
+                
+                <div className="bg-white rounded-2xl border border-blue-100 shadow-xl p-8 space-y-8">
+                    {/* Visual Model Preview */}
+                    <div className="bg-blue-50/50 rounded-xl p-6 border border-blue-100 border-dashed flex items-center justify-center gap-4 text-blue-900 font-bold">
+                         <div className={`px-4 py-2 bg-white rounded shadow-sm border ${mediationVars.x ? 'border-blue-500' : 'border-slate-200 text-slate-300'}`}>{mediationVars.x || 'X'}</div>
+                         <ArrowRight className="w-4 h-4 text-blue-300" />
+                         <div className={`px-4 py-2 bg-blue-900 text-white rounded shadow shadow-blue-200 border-none ${mediationVars.m ? '' : 'bg-slate-200 text-slate-400'}`}>{mediationVars.m || 'M'}</div>
+                         <ArrowRight className="w-4 h-4 text-blue-300" />
+                         <div className={`px-4 py-2 bg-white rounded shadow-sm border ${mediationVars.y ? 'border-blue-500' : 'border-slate-200 text-slate-300'}`}>{mediationVars.y || 'Y'}</div>
                     </div>
 
-                    <button
-                        onClick={async () => {
-                            if (!mediationVars.x || !mediationVars.m || !mediationVars.y) {
-                                showToast('Vui lòng chọn đủ 3 biến (X, M, Y)', 'error');
-                                return;
-                            }
-                            setIsAnalyzing(true);
+                    <div className="grid grid-cols-1 gap-6">
+                        <SelectField 
+                            label="Biến độc lập (Independent Variable X)" 
+                            value={mediationVars.x} 
+                            onChange={(e: any) => setMediationVars({ ...mediationVars, x: e.target.value })}
+                            options={varsForFactors}
+                            disabledVars={[mediationVars.m, mediationVars.y]}
+                        />
+                        <SelectField 
+                            label="Biến trung gian (Mediator Variable M)" 
+                            value={mediationVars.m} 
+                            onChange={(e: any) => setMediationVars({ ...mediationVars, m: e.target.value })}
+                            options={varsForFactors}
+                            disabledVars={[mediationVars.x, mediationVars.y]}
+                        />
+                        <SelectField 
+                            label="Biến phụ thuộc (Outcome Variable Y)" 
+                            value={mediationVars.y} 
+                            onChange={(e: any) => setMediationVars({ ...mediationVars, y: e.target.value })}
+                            options={varsForFactors}
+                            disabledVars={[mediationVars.x, mediationVars.m]}
+                        />
+                    </div>
 
-                            // NCS Credit Check
-                            if (user) {
-                                const cost = await getAnalysisCost('regression'); // Normally higher cost, but using regression for now
-                                const hasEnough = await checkBalance(user.id, cost);
-                                if (!hasEnough) {
-                                    setRequiredCredits(cost);
-                                    setCurrentAnalysisCost(cost);
-                                    setShowInsufficientCredits(true);
-                                    setIsAnalyzing(false);
-                                    return;
-                                }
-                            }
-
-                            try {
-                                const cols = [mediationVars.x, mediationVars.m, mediationVars.y];
-                                const mediationData = data.map(row => cols.map(c => Number(row[c]) || 0));
-
-                                const result = await runMediationAnalysis(mediationData, cols, mediationVars.x, mediationVars.m, mediationVars.y);
-
-                                // Deduct credits on success
-                                if (user) {
-                                    const cost = await getAnalysisCost('regression');
-                                    await deductCredits(user.id, cost, `Mediation Analysis: ${mediationVars.x}->${mediationVars.m}->${mediationVars.y}`);
-                                    await logAnalysisUsage(user.id, 'mediation', cost);
-                                    setNcsBalance(prev => Math.max(0, prev - cost));
-                                }
-
-                                setResults({ type: 'mediation', data: result, columns: cols });
-                                setStep('results');
-                                showToast('Phân tích Mediation hoàn thành!', 'success');
-                            } catch (err: any) { showToast('Lỗi: ' + err.message || err, 'error'); }
-                            finally { setIsAnalyzing(false); }
-                        }}
+                    <ActionButton 
                         disabled={isAnalyzing}
-                        className="mt-6 w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg"
+                        onClick={() => {
+                            if (!mediationVars.x || !mediationVars.m || !mediationVars.y) return showToast('Vui lòng chọn đủ 3 biến X, M, Y', 'error');
+                            const cols = [mediationVars.x, mediationVars.m, mediationVars.y];
+                            handleAnalysisWrapper(
+                                'mediation', 'regression',
+                                () => runMediationAnalysis(data.map(row => cols.map(c => Number(row[c]) || 0)), cols, mediationVars.x, mediationVars.m, mediationVars.y),
+                                cols, 'Phân tích Mediation hoàn tất!', `Mediation: ${mediationVars.x}->${mediationVars.m}->${mediationVars.y}`
+                            );
+                        }}
                     >
-                        {isAnalyzing ? (locale === 'vi' ? 'Đang phân tích...' : 'Analyzing...') : (locale === 'vi' ? 'Chạy Mediation Analysis' : 'Run Mediation Analysis')}
-                    </button>
+                        Chạy Mediation Analysis
+                    </ActionButton>
                 </div>
 
-                <button
-                    onClick={() => setStep('analyze')}
-                    className="w-full py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg"
-                >
-                    ← Quay lại
+                <button onClick={() => setStep('analyze')} className="w-full py-4 text-slate-400 font-black uppercase text-[10px] tracking-widest hover:text-blue-600 transition-colors flex items-center justify-center gap-2">
+                    <ChevronLeft className="w-3 h-3" /> Quay lại
                 </button>
             </div>
         );
     }
 
-    // Moderation Selection
     if (step === 'moderation-select') {
-        return (
-            <div className="max-w-2xl mx-auto space-y-6">
-                <div className="text-center mb-8">
-                    <h2 className="text-3xl font-bold text-gray-800 mb-2">
-                        Phân tích Điều tiết (Moderation)
-                    </h2>
-                    <p className="text-gray-600">
-                        Kiểm tra biến W có điều tiết mối quan hệ X → Y không
-                    </p>
-                </div>
+        const title = "Phân tích Điều tiết (Moderation)";
+        const subtitle = "Kiểm tra xem biến W có làm thay đổi cường độ hoặc chiều hướng của mối quan hệ X → Y hay không.";
 
-                <div className="bg-white rounded-xl shadow-lg p-6 border">
-                    <div className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Biến phụ thuộc (Y)
-                            </label>
-                            <select
-                                className="w-full px-3 py-2 border rounded-lg"
-                                value={moderationVars.y}
-                                onChange={(e) => setModerationVars({ ...moderationVars, y: e.target.value })}
-                            >
-                                <option value="">Chọn biến...</option>
-                                {varsForFactors.map(col => (
-                                    <option key={col} value={col} disabled={moderationVars.x === col || moderationVars.w === col}>{col}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Biến độc lập (X)
-                            </label>
-                            <select
-                                className="w-full px-3 py-2 border rounded-lg"
-                                value={moderationVars.x}
-                                onChange={(e) => setModerationVars({ ...moderationVars, x: e.target.value })}
-                            >
-                                <option value="">Chọn biến...</option>
-                                {varsForFactors.map(col => (
-                                    <option key={col} value={col} disabled={moderationVars.y === col || moderationVars.w === col}>{col}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Biến điều tiết (W / Moderator)
-                            </label>
-                            <select
-                                className="w-full px-3 py-2 border rounded-lg"
-                                value={moderationVars.w}
-                                onChange={(e) => setModerationVars(prev => ({ ...prev, w: e.target.value }))}
-                            >
-                                <option value="">Chọn biến...</option>
-                                {varsForFactors.map(col => (
-                                    <option key={col} value={col} disabled={moderationVars.y === col || moderationVars.x === col}>{col}</option>
-                                ))}
-                            </select>
-                        </div>
+        return (
+            <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <ViewHeader title={title} subtitle={subtitle} icon={Shuffle} />
+                
+                <div className="bg-white rounded-2xl border border-blue-100 shadow-xl p-8 space-y-8">
+                    {/* Visual Model Preview */}
+                    <div className="bg-blue-50/50 rounded-xl p-6 border border-blue-100 border-dashed flex flex-col items-center gap-4 text-blue-900 font-bold relative">
+                         <div className="absolute top-2 right-4 text-[9px] uppercase tracking-tighter opacity-30 italic">Interaction: X * W</div>
+                         <div className="flex items-center gap-8">
+                             <div className={`px-4 py-2 bg-white rounded shadow-sm border ${moderationVars.x ? 'border-blue-500' : 'border-slate-200 text-slate-300'}`}>{moderationVars.x || 'X'}</div>
+                             <ArrowRight className="w-4 h-4 text-blue-300" />
+                             <div className={`px-4 py-2 bg-white rounded shadow-sm border ${moderationVars.y ? 'border-blue-500' : 'border-slate-200 text-slate-300'}`}>{moderationVars.y || 'Y'}</div>
+                         </div>
+                         <div className="w-px h-6 bg-blue-300"></div>
+                         <div className={`px-4 py-2 bg-blue-900 text-white rounded shadow shadow-blue-200 border-none ${moderationVars.w ? '' : 'bg-slate-200 text-slate-400'}`}>{moderationVars.w || 'W'}</div>
                     </div>
 
-                    <button
-                        onClick={async () => {
-                            if (!moderationVars.x || !moderationVars.w || !moderationVars.y) {
-                                showToast('Vui lòng chọn đủ 3 biến (Y, X, W)', 'error');
-                                return;
-                            }
-                            setIsAnalyzing(true);
-                            // NCS Credit Check
-                            if (user) {
-                                const cost = await getAnalysisCost('regression');
-                                const hasEnough = await checkBalance(user.id, cost);
-                                if (!hasEnough) {
-                                    setRequiredCredits(cost);
-                                    setCurrentAnalysisCost(cost);
-                                    setShowInsufficientCredits(true);
-                                    setIsAnalyzing(false);
-                                    return;
-                                }
-                            }
+                    <div className="grid grid-cols-1 gap-6">
+                        <SelectField 
+                            label="Biến dự báo (Predictor X)" 
+                            value={moderationVars.x} 
+                            onChange={(e: any) => setModerationVars({ ...moderationVars, x: e.target.value })}
+                            options={varsForFactors}
+                            disabledVars={[moderationVars.w, moderationVars.y]}
+                        />
+                        <SelectField 
+                            label="Biến điều tiết (Moderator W)" 
+                            value={moderationVars.w} 
+                            onChange={(e: any) => setModerationVars({ ...moderationVars, w: e.target.value })}
+                            options={varsForFactors}
+                            disabledVars={[moderationVars.x, moderationVars.y]}
+                        />
+                        <SelectField 
+                            label="Biến phụ thuộc (Dependent Y)" 
+                            value={moderationVars.y} 
+                            onChange={(e: any) => setModerationVars({ ...moderationVars, y: e.target.value })}
+                            options={varsForFactors}
+                            disabledVars={[moderationVars.x, moderationVars.w]}
+                        />
+                    </div>
 
-                            try {
-                                const cols = [moderationVars.y, moderationVars.x, moderationVars.w];
-                                const modData = data.map(row => cols.map(c => Number(row[c]) || 0));
-
-                                const result = await runModerationAnalysis(modData, cols, moderationVars.x, moderationVars.w, moderationVars.y);
-
-                                // Deduct credits on success
-                                if (user) {
-                                    const cost = await getAnalysisCost('regression');
-                                    await deductCredits(user.id, cost, `Moderation: ${moderationVars.y} ~ ${moderationVars.x} * ${moderationVars.w}`);
-                                    await logAnalysisUsage(user.id, 'moderation', cost);
-                                    setNcsBalance(prev => Math.max(0, prev - cost));
-                                }
-
-                                setResults({ type: 'moderation', data: result, columns: cols });
-                                setStep('results');
-                                showToast('Phân tích Moderation hoàn thành!', 'success');
-                            } catch (err: any) { showToast('Lỗi: ' + err.message || err, 'error'); }
-                            finally { setIsAnalyzing(false); }
-                        }}
+                    <ActionButton 
                         disabled={isAnalyzing}
-                        className="mt-6 w-full py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg"
+                        onClick={() => {
+                            if (!moderationVars.x || !moderationVars.w || !moderationVars.y) return showToast('Vui lòng chọn đủ 3 biến X, W, Y', 'error');
+                            const cols = [moderationVars.y, moderationVars.x, moderationVars.w];
+                            handleAnalysisWrapper(
+                                'moderation', 'regression',
+                                () => runModerationAnalysis(data.map(row => cols.map(c => Number(row[c]) || 0)), cols, moderationVars.x, moderationVars.w, moderationVars.y),
+                                cols, 'Phân tích Moderation hoàn tất!', `Moderation: ${moderationVars.y} ~ ${moderationVars.x} * ${moderationVars.w}`
+                            );
+                        }}
                     >
-                        {isAnalyzing ? (locale === 'vi' ? 'Đang phân tích...' : 'Analyzing...') : (locale === 'vi' ? 'Chạy Moderation Analysis' : 'Run Moderation Analysis')}
-                    </button>
+                        Chạy Moderation Analysis
+                    </ActionButton>
                 </div>
 
-                <button
-                    onClick={() => setStep('analyze')}
-                    className="w-full py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg"
-                >
-                    ← Quay lại
+                <button onClick={() => setStep('analyze')} className="w-full py-4 text-slate-400 font-black uppercase text-[10px] tracking-widest hover:text-blue-600 transition-colors flex items-center justify-center gap-2">
+                    <ChevronLeft className="w-3 h-3" /> Quay lại
                 </button>
             </div>
         );

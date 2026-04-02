@@ -2,6 +2,8 @@
 
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { FileText, Database, Activity, Target } from 'lucide-react';
+import { getStoredLocale, t, type Locale } from '@/lib/i18n';
 
 interface LogisticResultsProps {
     results: any;
@@ -9,90 +11,123 @@ interface LogisticResultsProps {
 }
 
 /**
- * Logistic Regression Results Component
- * Displays logistic regression with odds ratios and confusion matrix
+ * Logistic Regression Results Component - Scientific Academic Style (White & Blue)
  */
 export const LogisticResults = React.memo(function LogisticResults({ results, columns }: LogisticResultsProps) {
-    // columns: [Y, X1, X2...]
+    const [locale, setLocale] = React.useState<Locale>('vi');
+
+    React.useEffect(() => {
+        setLocale(getStoredLocale());
+    }, []);
+
+    if (!results) return null;
 
     return (
-        <div className="space-y-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Logistic Regression Results</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <table className="w-full text-sm mb-6">
-                        <thead>
-                            <tr className="border-b border-gray-200 bg-gray-50">
-                                <th className="py-2 text-left font-semibold">Variable</th>
-                                <th className="py-2 text-right font-semibold">Estimate</th>
-                                <th className="py-2 text-right font-semibold">Std. Error</th>
-                                <th className="py-2 text-right font-semibold">z-value</th>
-                                <th className="py-2 text-right font-semibold">p-value</th>
-                                <th className="py-2 text-right font-semibold">Odds Ratio</th>
+        <div className="space-y-8 pb-10 animate-in fade-in duration-500">
+            {/* Coefficients Table */}
+            <div className="bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-blue-50 bg-slate-50/50 flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-blue-900 uppercase tracking-wider flex items-center gap-2">
+                        <Activity className="w-4 h-4 text-blue-600" />
+                        Logistic Regression Coefficients (Hệ số hồi quy Logistic)
+                    </h3>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse text-slate-700">
+                        <thead className="bg-blue-50/50 border-y border-blue-100">
+                            <tr>
+                                <th className="py-4 px-6 text-xs font-black text-blue-900 uppercase">Variable (Biến)</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-right">Estimate (B)</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-right text-blue-600">Odds Ratio (Exp(B))</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-right text-blue-900">z-value</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-right">Sig. (p)</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            {results.coefficients?.map((coeff: any, idx: number) => (
-                                <tr key={idx} className="border-b border-gray-100 hover:bg-gray-50">
-                                    <td className="py-2 font-medium">{coeff.term}</td>
-                                    <td className="py-2 text-right">{coeff.estimate?.toFixed(4)}</td>
-                                    <td className="py-2 text-right">{coeff.stdError?.toFixed(4)}</td>
-                                    <td className="py-2 text-right">{coeff.zValue?.toFixed(3)}</td>
-                                    <td className={`py-2 text-right ${coeff.pValue < 0.05 ? 'font-bold text-green-600' : ''}`}>
-                                        {coeff.pValue?.toFixed(4)} {coeff.pValue < 0.05 && '***'}
-                                    </td>
-                                    <td className="py-2 text-right font-medium text-blue-600">
-                                        {coeff.oddsRatio?.toFixed(4)}
-                                    </td>
-                                </tr>
-                            ))}
+                        <tbody className="divide-y divide-blue-50">
+                            {results.coefficients?.map((coeff: any, idx: number) => {
+                                const sig = coeff.pValue < 0.05;
+                                return (
+                                    <tr key={idx} className="hover:bg-blue-50/30 transition-colors">
+                                        <td className="py-5 px-6 text-sm font-bold text-blue-800 italic">{coeff.term}</td>
+                                        <td className="py-5 px-4 text-sm text-right font-mono text-slate-500">{coeff.estimate?.toFixed(4)}</td>
+                                        <td className="py-5 px-4 text-sm text-right font-black text-blue-900 bg-blue-50/20">{coeff.oddsRatio?.toFixed(4)}</td>
+                                        <td className="py-5 px-4 text-sm text-right font-mono text-slate-500">{coeff.zValue?.toFixed(3)}</td>
+                                        <td className={`py-5 px-4 text-sm text-right font-black ${sig ? 'text-blue-600 underline underline-offset-4' : 'text-slate-400'}`}>
+                                            {coeff.pValue < 0.001 ? '<.001' : coeff.pValue?.toFixed(4)} {sig ? ' (Sig.)' : ''}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
+                </div>
+            </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                        <div className="p-3 bg-gray-50 rounded text-center">
-                            <div className="text-xs text-gray-500">AIC</div>
-                            <div className="font-bold">{results.modelFit?.aic?.toFixed(2)}</div>
+            {/* Model Fit & Confusion Matrix */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="bg-slate-50/50 border border-blue-50 p-8 rounded-xl shadow-sm relative overflow-hidden">
+                    <h4 className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-6 border-b border-blue-50 pb-2 flex items-center gap-2">
+                        <Target className="w-4 h-4 text-blue-600" />
+                        Model Accuracy & Fit summary
+                    </h4>
+                    <div className="space-y-6">
+                        <div className="flex justify-between items-end border-b border-blue-50/50 pb-4">
+                            <span className="text-sm font-bold text-slate-400">Classification Accuracy:</span>
+                            <span className="font-black text-3xl text-blue-900">{(results.modelFit?.accuracy * 100)?.toFixed(2)}%</span>
                         </div>
-                        <div className="p-3 bg-gray-50 rounded text-center">
-                            <div className="text-xs text-gray-500">Pseudo R² (McFadden)</div>
-                            <div className="font-bold">{results.modelFit?.pseudoR2?.toFixed(4)}</div>
-                        </div>
-                        <div className="p-3 bg-gray-50 rounded text-center">
-                            <div className="text-xs text-gray-500">Accuracy</div>
-                            <div className={`font-bold ${results.modelFit?.accuracy > 0.7 ? 'text-green-600' : ''}`}>
-                                {(results.modelFit?.accuracy * 100)?.toFixed(2)}%
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="p-3 bg-white rounded-lg border border-blue-50 shadow-sm text-center">
+                                <span className="block text-[10px] font-black text-slate-400 uppercase">McFadden R²</span>
+                                <span className="font-bold text-blue-900">{results.modelFit?.pseudoR2?.toFixed(4)}</span>
+                            </div>
+                            <div className="p-3 bg-white rounded-lg border border-blue-50 shadow-sm text-center">
+                                <span className="block text-[10px] font-black text-slate-400 uppercase">AIC</span>
+                                <span className="font-bold text-blue-900">{results.modelFit?.aic?.toFixed(2)}</span>
                             </div>
                         </div>
                     </div>
+                </div>
 
+                <div className="bg-white border border-blue-100 p-8 rounded-xl shadow-sm">
+                    <h4 className="text-[10px] font-black uppercase text-blue-500 tracking-widest mb-6 border-b border-blue-50 pb-2">Confusion Matrix (Bảng nhầm lẫn)</h4>
                     {results.confusionMatrix && (
-                        <div className="border rounded-lg p-4 max-w-md mx-auto">
-                            <h4 className="text-center font-semibold mb-3">Confusion Matrix</h4>
-                            <div className="grid grid-cols-2 gap-2 text-center text-sm">
-                                <div className="bg-green-50 p-2 rounded">
-                                    <div className="font-bold text-green-700">{results.confusionMatrix.trueNegative}</div>
-                                    <div className="text-xs">True Negative</div>
-                                </div>
-                                <div className="bg-red-50 p-2 rounded">
-                                    <div className="font-bold text-red-700">{results.confusionMatrix.falsePositive}</div>
-                                    <div className="text-xs">False Positive</div>
-                                </div>
-                                <div className="bg-red-50 p-2 rounded">
-                                    <div className="font-bold text-red-700">{results.confusionMatrix.falseNegative}</div>
-                                    <div className="text-xs">False Negative</div>
-                                </div>
-                                <div className="bg-green-50 p-2 rounded">
-                                    <div className="font-bold text-green-700">{results.confusionMatrix.truePositive}</div>
-                                    <div className="text-xs">True Positive</div>
-                                </div>
+                        <div className="grid grid-cols-2 gap-2 text-center text-sm font-mono p-4 bg-slate-50/50 rounded-xl border border-dashed border-blue-100">
+                            <div className="p-3 bg-white rounded border border-blue-50 flex flex-col justify-center">
+                                <div className="text-[9px] uppercase text-slate-400 mb-1">True Negative</div>
+                                <div className="font-black text-blue-900 text-xl">{results.confusionMatrix.trueNegative}</div>
+                            </div>
+                            <div className="p-3 bg-white rounded border border-blue-50 flex flex-col justify-center">
+                                <div className="text-[9px] uppercase text-slate-400 mb-1">False Positive</div>
+                                <div className="font-black text-slate-300 text-xl">{results.confusionMatrix.falsePositive}</div>
+                            </div>
+                            <div className="p-3 bg-white rounded border border-blue-50 flex flex-col justify-center">
+                                <div className="text-[9px] uppercase text-slate-400 mb-1">False Negative</div>
+                                <div className="font-black text-slate-300 text-xl">{results.confusionMatrix.falseNegative}</div>
+                            </div>
+                            <div className="p-3 bg-white rounded border border-blue-50 flex flex-col justify-center">
+                                <div className="text-[9px] uppercase text-slate-400 mb-1">True Positive</div>
+                                <div className="font-black text-blue-900 text-xl">{results.confusionMatrix.truePositive}</div>
                             </div>
                         </div>
                     )}
-                </CardContent>
-            </Card>
+                </div>
+            </div>
+
+            {/* Academic Interpretation Section */}
+            <div className="bg-white border border-blue-100 p-8 rounded-xl shadow-sm relative overflow-hidden">
+                <h4 className="text-xs font-black uppercase text-blue-600 tracking-widest mb-6 flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    Nhận định khoa học (Academic Interpretation - Logistic)
+                </h4>
+
+                <div className="space-y-6 border-l-2 border-blue-50 pl-6 text-sm">
+                    <div className="bg-blue-50/40 p-6 rounded-lg border border-blue-50 leading-relaxed text-slate-800">
+                        Mô hình hồi quy Logistic đạt độ chính xác dự báo là <strong>{(results.modelFit?.accuracy * 100)?.toFixed(1)}%</strong>. 
+                        Chỉ số <strong>Odds Ratio (OR)</strong> cho thấy xác suất xảy ra của sự kiện khi biến độc lập thay đổi 1 đơn vị. 
+                        Biến quan trọng nhất có ý nghĩa thống kê là <strong>{results.coefficients?.find((c:any)=>c.term !== '(Intercept)' && c.pValue < 0.05)?.term || 'mô hình chung'}</strong> (OR = {results.coefficients?.find((c:any)=>c.term !== '(Intercept)' && c.pValue < 0.05)?.oddsRatio?.toFixed(3)}).
+                    </div>
+                </div>
+            </div>
         </div>
     );
 });

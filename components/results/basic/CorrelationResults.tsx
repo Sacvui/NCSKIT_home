@@ -55,8 +55,8 @@ export const CorrelationResults = React.memo(function CorrelationResults({ resul
                                         <td rowSpan={pValues ? 2 : 1} className="py-5 px-6 font-bold text-blue-800 border-r border-blue-50 bg-slate-50/30">
                                             {columns[rowIdx]}
                                         </td>
-                                        <td className="py-4 px-4 font-black text-blue-400 border-r border-blue-50 text-[10px] uppercase bg-slate-50/20">
-                                            Pearson<br/><span className="text-[10px] text-blue-600 font-black italic tracking-tighter">Correlation</span>
+                                        <td className="py-4 px-4 font-black text-blue-900 border-r border-blue-50 text-[10px] uppercase bg-slate-50/20">
+                                            Pearson<br/><span className="text-[10px] text-blue-600 font-extrabold italic tracking-tighter">Correlation</span>
                                         </td>
                                         {row.map((value: number, colIdx: number) => {
                                             const isSelf = rowIdx === colIdx;
@@ -83,14 +83,14 @@ export const CorrelationResults = React.memo(function CorrelationResults({ resul
                                     {/* Sig. (2-tailed) Row */}
                                     {pValues && (
                                         <tr className="hover:bg-blue-50/30 transition-colors border-b border-blue-50/50">
-                                            <td className="py-2 px-4 font-bold text-slate-400 border-r border-blue-50 text-[10px] uppercase bg-slate-50/20">
+                                            <td className="py-2 px-4 font-black text-slate-800 border-r border-blue-50 text-[10px] uppercase bg-slate-50/20">
                                                 Sig.<br/><span className="italic font-normal lowercase">(2-tailed)</span>
                                             </td>
                                             {row.map((_, colIdx: number) => {
                                                 const isSelf = rowIdx === colIdx;
                                                 const pVal = pValues[rowIdx][colIdx];
                                                 return (
-                                                    <td key={colIdx} className={`py-2 px-4 text-center border-l border-blue-50 text-[10px] font-mono ${isSelf ? '' : pVal < 0.05 ? 'text-blue-600 font-black' : 'text-slate-400'}`}>
+                                                    <td key={colIdx} className={`py-2 px-4 text-center border-l border-blue-50 text-[10px] font-mono ${isSelf ? '' : pVal < 0.05 ? 'text-blue-900 font-black underline' : 'text-slate-600'}`}>
                                                         {isSelf ? '' : (pVal < 0.001 ? '<.001' : pVal.toFixed(3))}
                                                     </td>
                                                 );

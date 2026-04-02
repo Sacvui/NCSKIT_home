@@ -59,11 +59,11 @@ export function ResultsDisplay({
 
         switch (analysisType) {
             case 'ttest-indep':
-                return <TTestResults results={results} columns={results.columns || []} />;
+                return <TTestResults results={results} />;
             case 'ttest-paired':
                 return <PairedTTestResults results={results} columns={results.columns || []} />;
             case 'anova':
-                return <ANOVAResults results={results} columns={results.columns || []} />;
+                return <ANOVAResults results={results} />;
             case 'correlation':
                 return <CorrelationResults results={results} columns={results.columns || []} />;
             case 'regression':
