@@ -351,8 +351,7 @@ export const translations = {
         },
         // Docs Page
         docs: {
-                userguide: 'Hướng dẫn Sử dụng'
-            },
+            userguide: 'Hướng dẫn Sử dụng',
             theory: {
                 title: 'Nền tảng Thống kê và Giải thích Kết quả',
                 subtitle: 'Phân tích sâu các khái niệm then chốt nhằm hỗ trợ diễn giải dữ liệu khoa học.'
@@ -361,7 +360,7 @@ export const translations = {
                 title: 'Quy trình Nghiên cứu và Công bố Quốc tế',
                 subtitle: 'Hướng dẫn phối hợp các phương pháp phân tích để hoàn thiện bài nghiên cứu chuẩn APA.'
             },
-            userguide: {
+            userguide_content: {
                 title: 'Hướng dẫn Vận hành Hệ thống ncsStat',
                 subtitle: 'Các bước thao tác chi tiết cho từng tính năng phân tích và xử lý dữ liệu.'
             },
