@@ -14,6 +14,7 @@ export async function runCorrelation(
     correlationMatrix: number[][];
     pValues: number[][];
     method: string;
+    N: number[];
     rCode: string;
 }> {
     const webR = await initWebR();
@@ -36,6 +37,7 @@ export async function runCorrelation(
         correlation = as.vector(ct$r),
         p_values = as.vector(ct$p),
         n_cols = ncol(df),
+        n_obs = nrow(df),
         method = method_name
     )
     `;
@@ -50,6 +52,7 @@ export async function runCorrelation(
         correlationMatrix: parseMatrix(getValue('correlation'), numCols),
         pValues: parseMatrix(getValue('p_values'), numCols),
         method: method,
+        N: getValue('n_obs'), // Return as array/vector for consistency
         rCode: rCode
     };
 }
@@ -59,6 +62,7 @@ export async function runCorrelation(
  */
 export async function runTTestIndependent(group1: number[], group2: number[]): Promise<{
     t: number;
+    tStatistic: number; // For UI
     df: number;
     pValue: number;
     mean1: number;
@@ -68,6 +72,8 @@ export async function runTTestIndependent(group1: number[], group2: number[]): P
     ci95Upper: number;
     effectSize: number;
     varTestP: number;
+    leveneP: number; // For UI
+    leveneF: number; // For UI
     normalityP1: number;
     normalityP2: number;
     rCode: string;
@@ -117,6 +123,7 @@ export async function runTTestIndependent(group1: number[], group2: number[]): P
         ci95Upper = result$conf.int[2],
         effectSize = cohensD,
         leveneP = levene_p,
+        leveneF = as.numeric(levene_test$statistic),
         normalityP1 = if(is.na(shapiro_p1)) -1 else shapiro_p1,
         normalityP2 = if(is.na(shapiro_p2)) -1 else shapiro_p2
     )
@@ -125,8 +132,11 @@ export async function runTTestIndependent(group1: number[], group2: number[]): P
     const result = await executeRWithRecovery(rCode);
     const getValue = parseWebRResult(result);
 
+    const tVal = getValue('t')?.[0] || 0;
+
     return {
-        t: getValue('t')?.[0] || 0,
+        t: tVal,
+        tStatistic: tVal,
         df: getValue('df')?.[0] || 0,
         pValue: getValue('pValue')?.[0] || 0,
         mean1: getValue('mean1')?.[0] || 0,
@@ -136,6 +146,8 @@ export async function runTTestIndependent(group1: number[], group2: number[]): P
         ci95Upper: getValue('ci95Upper')?.[0] || 0,
         effectSize: getValue('effectSize')?.[0] || 0,
         varTestP: getValue('leveneP')?.[0] || 0,
+        leveneP: getValue('leveneP')?.[0] || 0,
+        leveneF: getValue('leveneF')?.[0] || 0,
         normalityP1: getValue('normalityP1')?.[0] || 0,
         normalityP2: getValue('normalityP2')?.[0] || 0,
         rCode: rCode
@@ -212,9 +224,14 @@ export async function runTTestPaired(before: number[], after: number[]): Promise
  */
 export async function runOneWayANOVA(groups: number[][]): Promise<{
     F: number;
+    fStatistic: number; // For UI component
     dfBetween: number;
     dfWithin: number;
     pValue: number;
+    ssBetween: number;
+    ssWithin: number;
+    msBetween: number;
+    msWithin: number;
     groupMeans: number[];
     grandMean: number;
     etaSquared: number;
@@ -232,55 +249,44 @@ export async function runOneWayANOVA(groups: number[][]): Promise<{
     groups <- factor(c(${groups.map((g, i) => g.map(() => i + 1).join(',')).join(',')}))
     
     # === Helper: Games-Howell Function ===
-    # Calculates pairwise comparisons without assuming equal variances
     run_games_howell <- function(vals, grps) {
-        # Prepare statistics
         means <- tapply(vals, grps, mean)
         vars <- tapply(vals, grps, var)
         ns <- tapply(vals, grps, length)
         grps_unique <- levels(grps)
         k <- length(grps_unique)
-        
-        # Create combinations
         combs <- combn(k, 2)
         n_pairs <- ncol(combs)
-        
         comparisons <- character(n_pairs)
         diffs <- numeric(n_pairs)
         p_adjs <- numeric(n_pairs)
-        
         for (i in 1:n_pairs) {
-            idx1 <- combs[1, i]
-            idx2 <- combs[2, i]
-            
-            # Group specific stats
+            idx1 <- combs[1, i]; idx2 <- combs[2, i]
             m1 <- means[idx1]; m2 <- means[idx2]
             v1 <- vars[idx1]; v2 <- vars[idx2]
             n1 <- ns[idx1]; n2 <- ns[idx2]
-            
-            # Welch t-statistic components
             mean_diff <- m1 - m2
             se <- sqrt(v1/n1 + v2/n2)
             t_val <- abs(mean_diff) / se
-            
-            # Welch-Satterthwaite Degrees of Freedom
             df_num <- (v1/n1 + v2/n2)^2
             df_denom <- (v1/n1)^2/(n1-1) + (v2/n2)^2/(n2-1)
             df <- df_num / df_denom
-            
-            # Games-Howell uses Studentized Range (q = t * sqrt(2))
             q_val <- t_val * sqrt(2)
-            
-            # P-value from Studentized Range distribution
             p_val <- ptukey(q_val, k, df, lower.tail = FALSE)
-            
             comparisons[i] <- paste0(grps_unique[idx1], "-", grps_unique[idx2])
             diffs[i] <- mean_diff
             p_adjs[i] <- p_val
         }
-        
         list(comparisons = comparisons, diffs = diffs, p_adjs = p_adjs)
     }
+
+    # Classic ANOVA table for SS and MS (always run even if Welch is used for F)
+    model_classic <- aov(values ~ groups)
+    res_classic <- summary(model_classic)[[1]]
+    ssb <- as.numeric(res_classic[1, "Sum Sq"])
+    ssw <- as.numeric(res_classic[2, "Sum Sq"])
+    msb <- as.numeric(res_classic[1, "Mean Sq"])
+    msw <- as.numeric(res_classic[2, "Mean Sq"])
 
     # Levene's Test (Brown-Forsythe)
     group_medians <- tapply(values, groups, median)
@@ -304,48 +310,31 @@ export async function runOneWayANOVA(groups: number[][]): Promise<{
         p_val <- welch_result$p.value
         method_used <- "Welch ANOVA"
         
-        # Calculate Eta Squared (approximate for Welch)
-        # Note: Eta squared is tricky with Welch, using raw SS from standard ANOVA as approximation or omitting
-        model_temp <- aov(values ~ groups)
-        ssb <- summary(model_temp)[[1]][1, 2]
-        sst <- ssb + summary(model_temp)[[1]][2, 2]
-        eta_squared <- ssb / sst
+        eta_squared <- ssb / (ssb + ssw)
         
-        # Run Games-Howell
         gh <- run_games_howell(values, groups)
         ph_comparisons <- gh$comparisons
         ph_diffs <- gh$diffs
         ph_padj <- gh$p_adjs
         posthoc_warning <- "Phương sai không đồng nhất (Levene p < 0.05). Sử dụng Welch ANOVA & Games-Howell Post-hoc."
-        
     } else {
         # === EQUAL VARIANCE -> CLASSIC ANOVA + TUKEY HSD ===
-        model <- aov(values ~ groups)
-        result_sum <- summary(model)[[1]]
-        
-        # Ensure we extract simple scalars, not named vectors
-        f_stat <- as.numeric(result_sum[1, "F value"])
-        df_between <- as.numeric(result_sum[1, "Df"])
-        df_within <- as.numeric(result_sum[2, "Df"])
-        p_val <- as.numeric(result_sum[1, "Pr(>F)"])
+        f_stat <- as.numeric(res_classic[1, "F value"])
+        df_between <- as.numeric(res_classic[1, "Df"])
+        df_within <- as.numeric(res_classic[2, "Df"])
+        p_val <- as.numeric(res_classic[1, "Pr(>F)"])
         method_used <- "Classic ANOVA"
         
-        ssb <- result_sum[1, "Sum Sq"]
-        sst <- ssb + result_sum[2, "Sum Sq"]
-        eta_squared <- ssb / sst
-        resids <- residuals(model)
+        eta_squared <- ssb / (ssb + ssw)
         
-        # Run Tukey HSD
-        tukey_result <- TukeyHSD(model)$groups
+        tukey_result <- TukeyHSD(model_classic)$groups
         ph_comparisons <- rownames(tukey_result)
         ph_diffs <- tukey_result[, "diff"]
         ph_padj <- tukey_result[, "p adj"]
         posthoc_warning <- "Phương sai đồng nhất. Sử dụng Classic ANOVA & Tukey HSD."
     }
     
-    model_resid <- aov(values ~ groups)
-    resids <- residuals(model_resid)
-    
+    resids <- residuals(model_classic)
     shapiro_resid_p <- tryCatch({
         if (length(resids) >= 3 && length(resids) <= 5000) shapiro.test(resids)$p.value else NA
     }, error = function(e) NA)
@@ -357,6 +346,10 @@ export async function runOneWayANOVA(groups: number[][]): Promise<{
         dfBetween = as.numeric(df_between),
         dfWithin = as.numeric(df_within),
         pValue = as.numeric(p_val),
+        ssBetween = ssb,
+        ssWithin = ssw,
+        msBetween = msb,
+        msWithin = msw,
         groupMeans = as.numeric(groupMeans),
         grandMean = mean(values, na.rm=TRUE),
         etaSquared = as.numeric(eta_squared),
@@ -378,7 +371,6 @@ export async function runOneWayANOVA(groups: number[][]): Promise<{
     const pAdjs = getValue('tukeyPAdj') || [];
     const postHoc = [];
 
-    // Safety check for array lengths
     const len = Math.min(comparisons.length, diffs.length, pAdjs.length);
     for (let i = 0; i < len; i++) {
         postHoc.push({ comparison: comparisons[i], diff: diffs[i], pAdj: pAdjs[i] });
@@ -386,9 +378,14 @@ export async function runOneWayANOVA(groups: number[][]): Promise<{
 
     return {
         F: getValue('F')?.[0] || 0,
+        fStatistic: getValue('F')?.[0] || 0,
         dfBetween: getValue('dfBetween')?.[0] || 0,
         dfWithin: getValue('dfWithin')?.[0] || 0,
         pValue: getValue('pValue')?.[0] || 0,
+        ssBetween: getValue('ssBetween')?.[0] || 0,
+        ssWithin: getValue('ssWithin')?.[0] || 0,
+        msBetween: getValue('msBetween')?.[0] || 0,
+        msWithin: getValue('msWithin')?.[0] || 0,
         groupMeans: getValue('groupMeans') || [],
         grandMean: getValue('grandMean')?.[0] || 0,
         etaSquared: getValue('etaSquared')?.[0] || 0,

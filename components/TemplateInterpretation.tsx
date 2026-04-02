@@ -142,21 +142,25 @@ export function TemplateInterpretation({
                     break;
 
                 case 'two_way_anova':
+                case 'twoway-anova':
                 case 'anova_2way':
-                    result = interpretTwoWayANOVA({
-                        factor1: variableNames.factor1 || 'Yếu tố 1',
-                        factor2: variableNames.factor2 || 'Yếu tố 2',
-                        targetVar: variableNames.targetVar || 'Biến phụ thuộc',
-                        mainEffect1F: results.mainEffect1F || 0,
-                        mainEffect1P: results.mainEffect1P || 1,
-                        mainEffect2F: results.mainEffect2F || 0,
-                        mainEffect2P: results.mainEffect2P || 1,
-                        interactionF: results.interactionF || 0,
-                        interactionP: results.interactionP || 1,
-                        df1: results.df1 || 0,
-                        df2: results.df2 || 0,
-                        dfError: results.dfError || 0
-                    });
+                    {
+                        const cols = results.columns || []; // Often stored in results directly for some types
+                        result = interpretTwoWayANOVA({
+                            factor1: variableNames.factor1 || (results.columns ? results.columns[1] : 'Yếu tố 1'),
+                            factor2: variableNames.factor2 || (results.columns ? results.columns[2] : 'Yếu tố 2'),
+                            targetVar: variableNames.targetVar || (results.columns ? results.columns[0] : 'Biến phụ thuộc'),
+                            mainEffect1F: results.factor1F || 0,
+                            mainEffect1P: results.factor1P ?? 1,
+                            mainEffect2F: results.factor2F || 0,
+                            mainEffect2P: results.factor2P ?? 1,
+                            interactionF: results.interactionF || 0,
+                            interactionP: results.interactionP ?? 1,
+                            df1: results.factor1Df || 0,
+                            df2: results.factor2Df || 0,
+                            dfError: results.residualDf || 0
+                        });
+                    }
                     break;
 
                 case 'regression':

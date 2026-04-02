@@ -113,6 +113,24 @@ export async function runTwoWayANOVA(
         mean: number;
     }[];
     rCode: string;
+    // Flat fields for UI component (TwoWayANOVAResults.tsx)
+    factor1Df: number;
+    factor1SS: number;
+    factor1F: number;
+    factor1P: number;
+    factor1Eta: number;
+    factor2Df: number;
+    factor2SS: number;
+    factor2F: number;
+    factor2P: number;
+    factor2Eta: number;
+    interactionDf: number;
+    interactionSS: number;
+    interactionF: number;
+    interactionP: number;
+    interactionEta: number;
+    residualDf: number;
+    residualSS: number;
 }> {
     // Validate inputs
     if (y.length === 0 || f1.length === 0 || f2.length === 0) {
@@ -151,12 +169,15 @@ export async function runTwoWayANOVA(
     colnames(df) <- c("y", "f1", "f2")
     
     # Run Two-Way ANOVA with Interaction
-    # Note: 'aov' in R uses Type I SS by default. 
-    # For unbalanced designs, Type III is better (requires 'car' package), 
-    # but 'aov' is standard for base R. We'll stick to base 'aov' for speed/compatibility.
-    
     model <- aov(y ~ f1 * f2, data = df)
     res <- summary(model)[[1]]
+    
+    # Calculate Partial Eta Squared
+    ss_resid <- res["Residuals", "Sum Sq"]
+    
+    eta_f1 <- res["f1", "Sum Sq"] / (res["f1", "Sum Sq"] + ss_resid)
+    eta_f2 <- res["f2", "Sum Sq"] / (res["f2", "Sum Sq"] + ss_resid)
+    eta_int <- res["f1:f2", "Sum Sq"] / (res["f1:f2", "Sum Sq"] + ss_resid)
     
     # Interaction Means for Plotting
     int_means <- aggregate(y ~ f1 + f2, data = df, mean)
@@ -168,6 +189,10 @@ export async function runTwoWayANOVA(
         mean_sq = as.numeric(res[,"Mean Sq"]),
         f_val = as.numeric(res[,"F value"]),
         p_val = as.numeric(res[,"Pr(>F)"]),
+        
+        eta_f1 = as.numeric(eta_f1),
+        eta_f2 = as.numeric(eta_f2),
+        eta_int = as.numeric(eta_int),
         
         # Interaction Plot Data
         int_f1 = as.character(int_means$f1),
@@ -189,14 +214,13 @@ export async function runTwoWayANOVA(
 
     const anovaTable = [];
     for (let i = 0; i < terms.length; i++) {
-        // Skip NA rows (residuals usually have NA for F and P)
         anovaTable.push({
             term: terms[i].replace('f1', f1Name).replace('f2', f2Name),
             df: dfs[i],
             sumSq: sumSqs[i],
             meanSq: meanSqs[i],
             F: fVals[i] || 0,
-            pValue: pVals[i] || 0 // Residuals pValue usually undefined
+            pValue: pVals[i] || 0
         });
     }
 
@@ -209,5 +233,26 @@ export async function runTwoWayANOVA(
         mean: intY[i]
     }));
 
-    return { anovaTable, interactionPlot, rCode };
+    return { 
+        anovaTable, 
+        interactionPlot, 
+        rCode,
+        factor1Df: dfs[0] || 0,
+        factor1SS: sumSqs[0] || 0,
+        factor1F: fVals[0] || 0,
+        factor1P: pVals[0] || 0,
+        factor1Eta: getValue('eta_f1')?.[0] || 0,
+        factor2Df: dfs[1] || 0,
+        factor2SS: sumSqs[1] || 0,
+        factor2F: fVals[1] || 0,
+        factor2P: pVals[1] || 0,
+        factor2Eta: getValue('eta_f2')?.[0] || 0,
+        interactionDf: dfs[2] || 0,
+        interactionSS: sumSqs[2] || 0,
+        interactionF: fVals[2] || 0,
+        interactionP: pVals[2] || 0,
+        interactionEta: getValue('eta_int')?.[0] || 0,
+        residualDf: dfs[3] || 0,
+        residualSS: sumSqs[3] || 0
+    };
 }

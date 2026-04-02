@@ -128,7 +128,13 @@ export function ResultsDisplay({
             <TemplateInterpretation
                 analysisType={analysisType}
                 results={results}
-                scaleName={results?.scaleName || 'Thang đo'}
+                scaleName={scaleName || 'Thang đo'}
+                variableNames={{
+                    targetVar: columns?.[0] || 'Biến phụ thuộc',
+                    factor1: columns?.[1] || 'Yếu tố 1',
+                    factor2: columns?.[2] || 'Yếu tố 2',
+                    dependent: columns?.[0] || 'Y'
+                }}
             />
 
             {/* AI Interpretation (Optional Premium - requires API key) */}
