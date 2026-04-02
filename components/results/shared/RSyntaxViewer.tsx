@@ -24,9 +24,18 @@ export function RSyntaxViewer({ code, userProfile }: RSyntaxViewerProps) {
     const [isUnlocking, setIsUnlocking] = React.useState(false);
 
     const { refreshProfile } = useAuth();
+    const [isGuestResearcher, setIsGuestResearcher] = React.useState(false);
 
     // Check if user has researcher or admin role
-    const isResearcher = userProfile?.role === 'researcher' || userProfile?.role === 'admin';
+    const isResearcher = userProfile?.role === 'researcher' || userProfile?.role === 'admin' || isGuestResearcher;
+
+    React.useEffect(() => {
+        // Check local storage for guest researcher status
+        const guestStatus = localStorage.getItem('ncs_guest_researcher') === 'true';
+        if (guestStatus) {
+            setIsGuestResearcher(true);
+        }
+    }, []);
 
     const handleCopy = useCallback(() => {
         navigator.clipboard.writeText(code);
@@ -59,6 +68,15 @@ export function RSyntaxViewer({ code, userProfile }: RSyntaxViewerProps) {
                     window.location.reload();
                 }, 800);
             } else {
+                // If the code was correct (standard code check) but no user session exists
+                // allow guest access for this session
+                if (response.status === 401) {
+                    localStorage.setItem('ncs_guest_researcher', 'true');
+                    setIsGuestResearcher(true);
+                    setShowUnlockModal(false);
+                    setExpanded(true);
+                    return;
+                }
                 setUnlockError(data.error || 'Mã không hợp lệ');
             }
         } catch (err) {
@@ -137,9 +155,9 @@ export function RSyntaxViewer({ code, userProfile }: RSyntaxViewerProps) {
                                         setSecretCode('');
                                         setUnlockError('');
                                     }}
-                                    className="flex-1 px-8 py-4 text-slate-400 font-black uppercase text-[10px] tracking-widest hover:text-slate-600 transition-colors"
+                                    className="flex-1 px-8 py-4 text-slate-400 font-bold uppercase text-[10px] tracking-widest hover:text-slate-600 transition-colors"
                                 >
-                                    Hủy
+                                    Quay lại
                                 </button>
                                 <button
                                     onClick={handleUnlock}
@@ -171,8 +189,11 @@ export function RSyntaxViewer({ code, userProfile }: RSyntaxViewerProps) {
                         <div>
                             <CardTitle className="text-sm font-black text-slate-900 dark:text-white flex items-center gap-2">
                                 Equivalent R Syntax
-                                <span className="inline-flex items-center px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold rounded-md">
-                                    Researcher Active
+                                <span className={isGuestResearcher 
+                                    ? "inline-flex items-center px-2 py-0.5 bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 text-[10px] font-bold rounded-md"
+                                    : "inline-flex items-center px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-[10px] font-bold rounded-md"
+                                }>
+                                    {isGuestResearcher ? 'Guest Researcher' : 'Researcher Active'}
                                 </span>
                             </CardTitle>
                         </div>
