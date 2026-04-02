@@ -46,8 +46,8 @@ import { Locale, t, getStoredLocale } from '@/lib/i18n';
 
 export default function AnalyzePage() {
     return (
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div>
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-white">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-900 border-t-transparent shadow-sm"></div>
         </div>}>
             <AnalyzeContent />
         </Suspense>
@@ -641,9 +641,9 @@ function AnalyzeContent() {
         const webRStatus = getWebRStatus();
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-50">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-slate-600 font-medium">{t(locale, 'analyze.common.authenticating')}</p>
+                 <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-4 border-blue-900 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-blue-950 font-black uppercase text-[10px] tracking-widest">{t(locale, 'analyze.common.authenticating')}</p>
                     {webRStatus.isReady && (
                         <p className="text-green-600 text-sm">✓ {t(locale, 'analyze.common.engine_ready')}</p>
                     )}
@@ -679,9 +679,9 @@ function AnalyzeContent() {
             {/* Analysis Progress Bar */}
             {isAnalyzing && analysisProgress > 0 && (
                 <div className="fixed top-0 left-0 right-0 z-40">
-                    <div className="h-1 bg-blue-200">
+                     <div className="h-1 bg-blue-100">
                         <div
-                            className="h-full bg-blue-600 transition-all duration-300"
+                            className="h-full bg-blue-900 transition-all duration-300 shadow-[0_0_10px_rgba(30,58,138,0.5)]"
                             style={{ width: `${analysisProgress}%` }}
                         />
                     </div>
@@ -799,19 +799,19 @@ function AnalyzeContent() {
                                     }}
                                     disabled={!isClickable}
                                     className={`
-                                        w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all
-                                        ${isCurrent ? 'bg-blue-600 text-white ring-4 ring-blue-100' :
-                                            isCompleted ? 'bg-green-500 text-white hover:bg-green-600 hover:scale-110' :
-                                                'bg-gray-200 text-gray-500 cursor-not-allowed'}
-                                        ${isClickable ? 'cursor-pointer hover:shadow-lg' : ''}
+                                        w-10 h-10 rounded-full flex items-center justify-center font-black text-xs transition-all shadow-sm
+                                        ${isCurrent ? 'bg-blue-900 text-white ring-4 ring-blue-100 scale-110' :
+                                            isCompleted ? 'bg-blue-600 text-white hover:bg-blue-700 hover:scale-110' :
+                                                'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'}
+                                        ${isClickable ? 'cursor-pointer hover:shadow-xl' : ''}
                                     `}
                                     title={isClickable ? `${t(locale, 'analyze.common.back')}: ${steps.find(st => st.id === s)?.label || s}` : undefined}
                                 >
                                     {idx + 1}
                                 </button>
                                 {idx < 3 && (
-                                    <div className={`w-16 h-1 ${currentIdx > idx ?
-                                        'bg-green-500' : 'bg-gray-200'
+                                    <div className={`w-16 h-1 rounded-full transition-colors ${currentIdx > idx ?
+                                        'bg-blue-600' : 'bg-slate-200'
                                         }`} />
                                 )}
                             </div>
@@ -838,11 +838,11 @@ function AnalyzeContent() {
 
                     {step === 'profile' && profile && (
                         <div className="space-y-6">
-                            <div className="text-center mb-8">
-                                <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                            <div className="text-center mb-10">
+                                <h2 className="text-4xl font-black text-blue-900 mb-3 uppercase tracking-tight">
                                     {t(locale, 'analyze.profile.title')}
                                 </h2>
-                                <p className="text-gray-600">
+                                <p className="text-sm text-slate-500 font-bold uppercase tracking-widest opacity-80">
                                     {t(locale, 'analyze.profile.desc')}
                                 </p>
                             </div>
@@ -852,11 +852,11 @@ function AnalyzeContent() {
 
                     {step === 'analyze' && (
                         <div className="max-w-4xl mx-auto space-y-6">
-                            <div className="text-center mb-8">
-                                <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                            <div className="text-center mb-10">
+                                <h2 className="text-4xl font-black text-blue-900 mb-3 uppercase tracking-tight">
                                     {t(locale, 'analyze.selector.title')}
                                 </h2>
-                                <p className="text-gray-600">
+                                <p className="text-sm text-slate-500 font-bold uppercase tracking-widest opacity-80">
                                     {t(locale, 'analyze.selector.desc')}
                                 </p>
                             </div>
@@ -987,12 +987,12 @@ function AnalyzeContent() {
 
                     {step === 'results' && (results || multipleResults.length > 0) && (
 
-                        <div className="max-w-6xl mx-auto space-y-6" id="results-container">
-                            <div className="text-center mb-8">
-                                <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                        <div className="max-w-6xl mx-auto space-y-8" id="results-container">
+                            <div className="text-center mb-10">
+                                <h1 className="text-4xl font-black text-blue-900 mb-3 uppercase tracking-tight">
                                     {t(locale, 'analyze.results.title')}
-                                </h2>
-                                <p className="text-gray-600">
+                                </h1>
+                                <p className="text-sm font-bold text-blue-600 uppercase tracking-widest bg-blue-50/50 inline-block px-4 py-1.5 rounded-full border border-blue-100">
                                     {analysisType === 'cronbach' && `Cronbach's Alpha${results?.scaleName ? ` - ${results.scaleName}` : ''}`}
                                     {analysisType === 'omega' && `McDonald's Omega${results?.scaleName ? ` - ${results.scaleName}` : ''}`}
                                     {analysisType === 'cronbach-batch' && `Cronbach's Alpha - ${multipleResults.length} ${locale === 'vi' ? 'thang đo' : 'scales'}`}

@@ -232,7 +232,7 @@ export function BasicStatsView({
                             if (!v1 || !v2) return showToast('Vui lòng chọn cả 2 biến', 'error');
                             if (v1 === v2) return showToast('Vui lòng chọn 2 biến khác nhau', 'error');
                             
-                            if (step === 'ttest-indep') {
+                            if (step === 'ttest-select') {
                                 handleAnalysisWrapper(
                                     'ttest-indep', 'ttest-indep',
                                     () => runTTestIndependent(data.map(row => Number(row[v1]) || 0), data.map(row => Number(row[v2]) || 0)),
