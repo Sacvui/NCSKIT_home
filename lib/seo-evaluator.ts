@@ -65,29 +65,29 @@ export function evaluateContent(article: ArticleData, locale: 'vi' | 'en' = 'vi'
     score += 5;
   }
 
-  // 2. Word count check
-  if (wordCount > 600) {
+  // 2. Word count check (Target: 1,000 - 1,500 words for Academic Authority)
+  if (wordCount >= 1000) {
     checks.push({
       id: 'wordCount',
-      label_vi: 'Độ sâu nội dung', label_en: 'Content Depth',
+      label_vi: 'Độ sâu học thuật', label_en: 'Academic Depth',
       status: 'pass',
-      message_vi: `Bài viết có ${wordCount} từ (Rất tốt cho SEO Authority).`, message_en: `Article has ${wordCount} words (Great for SEO Authority).`
+      message_vi: `Bài viết đạt ${wordCount} từ (Chuẩn mực học thuật quốc tế).`, message_en: `Article has ${wordCount} words (International academic standard).`
     });
-    score += 25;
-  } else if (wordCount > 300) {
+    score += 30;
+  } else if (wordCount > 600) {
     checks.push({
       id: 'wordCount',
       label_vi: 'Độ sâu nội dung', label_en: 'Content Depth',
       status: 'warning',
-      message_vi: `Bài viết chỉ có ${wordCount} từ (Nên đạt > 600 từ).`, message_en: `Article has ${wordCount} words (Target > 600 words).`
+      message_vi: `Bài viết đạt ${wordCount} từ (Tốt cho SEO, nhưng cần thêm nội dung chuyên sâu để đạt chuẩn 1000 từ).`, message_en: `Article has ${wordCount} words (Good for SEO, but needs more depth for 1000-word academic target).`
     });
-    score += 10;
+    score += 15;
   } else {
     checks.push({
       id: 'wordCount',
       label_vi: 'Độ sâu nội dung', label_en: 'Content Depth',
       status: 'fail',
-      message_vi: 'Nội dung quá ngắn để Google xếp hạng cao.', message_en: 'Content too thin for Google ranking.'
+      message_vi: `Bài viết chỉ có ${wordCount} từ (Quá ngắn, mục tiêu: 1000-1500 từ).`, message_en: `Content too thin (${wordCount} words). Target: 1000-1500 words.`
     });
   }
 
