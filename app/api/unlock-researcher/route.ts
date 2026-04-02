@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 
 // Secret code for researcher unlock - should be stored in env variable in production
-const RESEARCHER_SECRET_CODE = process.env.RESEARCHER_UNLOCK_CODE || 'NCS2026RESEARCH';
+const RESEARCHER_SECRET_CODE = process.env.RESEARCHER_UNLOCK_CODE || '300489';
 
 export async function POST(request: NextRequest) {
     try {
