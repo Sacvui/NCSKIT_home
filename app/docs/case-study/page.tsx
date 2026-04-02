@@ -211,6 +211,36 @@ function CaseStudyContent() {
                             </div>
                         </div>
                     </div>
+
+                    {/* Multi-Disciplinary Scenarios */}
+                    <div className="space-y-12">
+                        <div className="text-center">
+                            <h3 className="text-3xl font-extrabold text-slate-900 mb-4 tracking-tight">Kịch bản Đa chuyên ngành</h3>
+                            <p className="text-slate-500 font-light">Mẫu báo cáo và quy trình cho các lĩnh vực nghiên cứu khác</p>
+                        </div>
+                        
+                        <div className="grid md:grid-cols-2 gap-8">
+                            {['digital', 'marketing', 'tourism', 'economics'].map((key) => (
+                                <div key={key} className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all group">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <span className="px-3 py-1 bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-400 rounded-lg group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors">
+                                            {t(locale, `docs.casestudy_content.scenarios.${key}.name`)}
+                                        </span>
+                                        <div className="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-indigo-600 transition-colors">
+                                            <FileText className="w-4 h-4 text-slate-300 group-hover:text-white transition-colors" />
+                                        </div>
+                                    </div>
+                                    <h4 className="text-lg font-bold text-slate-900 mb-3 leading-snug">{t(locale, `docs.casestudy_content.scenarios.${key}.title`)}</h4>
+                                    <p className="text-sm text-slate-500 leading-relaxed font-light mb-6">
+                                        {t(locale, `docs.casestudy_content.scenarios.${key}.desc`)}
+                                    </p>
+                                    <button className="text-xs font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-700 flex items-center gap-2">
+                                        Xem chi tiết <GitCompare className="w-3 h-3" />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 </main>
             </div>
         </div>

@@ -407,6 +407,28 @@ export const translations = {
                     tip1: 'Trình bày kết quả đánh giá mô hình đo lường trước (Độ tin cậy, Giá trị hội tụ, Giá trị phân biệt), sau đó mới trình bày kết quả mô hình cấu trúc.',
                     tip2: 'Sử dụng đồ thị Path Diagram xuất ra từ hệ thống ncsStat để minh họa trực quan các hệ số tác động và mức ý nghĩa.',
                     tip3: 'Đối với các biến trung gian, hãy báo cáo cụ thể Tác động trực tiếp (Direct Effect), Tác động gián tiếp (Indirect Effect) và Tổng tác động (Total Effect).'
+                },
+                scenarios: {
+                    digital: {
+                        name: 'Chuyển đổi số & AI',
+                        title: 'Tác động của AI đối với hiệu quả vận hành doanh nghiệp SME',
+                        desc: 'Nghiên cứu áp dụng mô hình định lượng để đánh giá vai trò của Trí tuệ nhân tạo (AI) trong việc tối ưu hóa quy trình bảo trì dự báo và quản trị chuỗi cung ứng.'
+                    },
+                    marketing: {
+                        name: 'Marketing & E-commerce',
+                        title: 'Lòng trung thành của Gen Z trên sàn Thương mại điện tử',
+                        desc: 'Phân tích các yếu tố Trải nghiệm cá nhân hóa, Giá trị giải trí và Niềm tin ảnh hưởng đến hành vi mua lặp lại trên Shopee/TikTok Shop.'
+                    },
+                    tourism: {
+                        name: 'Du lịch & Khách sạn',
+                        title: 'Ý định du lịch bền vững tại các Vườn quốc gia',
+                        desc: 'Mở rộng Lý thuyết hành vi dự định (TPB) với yếu tố "Trách nhiệm môi trường" để giải thích ý định tham gia du lịch sinh thái.'
+                    },
+                    economics: {
+                        name: 'Kinh tế học',
+                        title: 'Kinh tế số và tăng trưởng xuất khẩu tại Việt Nam',
+                        desc: 'Sử dụng dữ liệu thứ cấp và hồi quy đa biến để đánh giá mức độ đóng góp của hạ tầng công nghệ thông tin vào kim ngạch xuất khẩu.'
+                    }
                 }
             },
             theory_content: {
@@ -871,6 +893,28 @@ export const translations = {
                     tip1: 'Report measurement model results first (Reliability, Convergent, Discriminant validity), then report structural model results.',
                     tip2: 'Use Path Diagrams exported from ncsStat to visually illustrate effect coefficients and significance levels.',
                     tip3: 'For mediating variables, specifically report Direct Effect, Indirect Effect, and Total Effect.'
+                },
+                scenarios: {
+                    digital: {
+                        name: 'Digital & AI',
+                        title: 'Impact of AI on SME Operational Efficiency',
+                        desc: 'Quantitative research evaluating the role of Artificial Intelligence in optimizing predictive maintenance and supply chain management.'
+                    },
+                    marketing: {
+                        name: 'Marketing & E-commerce',
+                        title: 'Gen Z Loyalty in E-commerce Platforms',
+                        desc: 'Analyzing Personalization, Entertainment Value, and Trust factors influencing repeat purchase behavior on Shopee/TikTok Shop.'
+                    },
+                    tourism: {
+                        name: 'Tourism & Hospitality',
+                        title: 'Sustainable Tourism Intentions at National Parks',
+                        desc: 'Extending the Theory of Planned Behavior (TPB) with "Environmental Responsibility" to explain eco-tourism participation intentions.'
+                    },
+                    economics: {
+                        name: 'Economics',
+                        title: 'Digital Economy and Export Growth in Vietnam',
+                        desc: 'Using secondary data and multivariate regression to assess the contribution of IT infrastructure to export turnover.'
+                    }
                 }
             },
             theory_content: {

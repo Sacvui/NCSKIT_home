@@ -125,15 +125,26 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
 
             // Analysis Title (On first page only)
             if (showTitle) {
-                // Background for title
-                doc.setFillColor(248, 250, 252);
-                doc.roundedRect(15, 40, pageWidth - 30, 15, 1, 1, 'F');
+                // Background for title - Professional Slate-100
+                doc.setFillColor(241, 245, 249);
+                const titleHeight = 20;
+                doc.roundedRect(15, 40, pageWidth - 30, titleHeight, 1, 1, 'F');
                 
+                // Left accent bar
+                doc.setFillColor(30, 58, 138); // Blue-900
+                doc.rect(15, 40, 3, titleHeight, 'F');
+
                 doc.setFont('NotoSans', 'bold');
                 doc.setFontSize(14);
                 doc.setTextColor(30, 58, 138);
-                const titleLines = doc.splitTextToSize(title.toUpperCase(), pageWidth - 45);
-                doc.text(titleLines, 22, 50);
+                const titleLines = doc.splitTextToSize(title.toUpperCase(), pageWidth - 50);
+                
+                // Center vertically in the box
+                const lineCount = titleLines.length;
+                const textHeight = lineCount * 7; // approximate line height
+                const yOffset = 40 + (titleHeight / 2) - (textHeight / 2) + 5;
+                
+                doc.text(titleLines, 25, yOffset);
             }
 
             // --- PROFESSIONAL FOOTER ---
@@ -777,24 +788,30 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
                 body: data,
                 headStyles: { fillColor: [44, 62, 80] as any, fontStyle: 'bold' as any },
                 styles: { fontSize: 8, font: 'NotoSans' },
-                // Heatmap coloring for correlation matrix
+                // Subtle Heatmap coloring for correlation matrix
                 didParseCell: (hookData: any) => {
                     if (hookData.section === 'body' && hookData.column.index > 0) {
                         const cellText = hookData.cell.text[0] || '';
                         const numericValue = parseFloat(cellText.replace(/\*+/g, ''));
                         if (!isNaN(numericValue)) {
                             const absVal = Math.abs(numericValue);
-                            const opacity = Math.min(absVal * 0.8, 0.8); // Scale opacity
-                            if (numericValue > 0) {
-                                // Blue for positive correlations
-                                hookData.cell.styles.fillColor = [66, 133, 244, opacity * 255];
-                            } else if (numericValue < 0) {
-                                // Red for negative correlations
-                                hookData.cell.styles.fillColor = [234, 67, 53, opacity * 255];
-                            }
-                            // Diagonal (1.0) - light gray
+                            
+                            // Diagonal (1.0) - light slate
                             if (absVal > 0.99) {
-                                hookData.cell.styles.fillColor = [200, 200, 200];
+                                hookData.cell.styles.fillColor = [241, 245, 249];
+                                hookData.cell.styles.fontStyle = 'bold';
+                            } else if (absVal >= 0.3) {
+                                // Subtle coloring for significant/meaningful correlations
+                                const intensity = Math.min((absVal - 0.3) * 1.5, 0.4); // Scale 0.3-0.7 to 0-0.4
+                                if (numericValue > 0) {
+                                    // Subtle blue
+                                    hookData.cell.styles.fillColor = [235, 245, 255];
+                                    if (absVal > 0.5) hookData.cell.styles.textColor = [30, 58, 138];
+                                } else {
+                                    // Subtle red
+                                    hookData.cell.styles.fillColor = [254, 242, 242];
+                                    if (absVal > 0.5) hookData.cell.styles.textColor = [153, 27, 27];
+                                }
                             }
                         }
                     }
