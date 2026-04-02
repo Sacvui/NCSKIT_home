@@ -310,7 +310,7 @@ export function interpretLinearRegression(params: {
     const citations = ['Hair, J. F., et al. (2010). Multivariate data analysis (7th ed.). Pearson.'];
 
     // Model fit
-    const summary = `Kết quả phân tích hồi quy cho thấy mô hình xây dựng là phù hợp với dữ liệu mẫu (F = ${formatNum(fStatistic)}, ${formatPValue(fPValue)}). Hệ số R² hiệu chỉnh là ${formatCoef(adjRSquared)}, cho biết các biến độc lập trong mô hình giải thích được ${formatNum(adjRSquared * 100, 1)}% sự biến thiên của biến phụ thuộc "${dependentVar}".`;
+    const summary = `Mô hình hồi quy tuyến tính được đánh giá là phù hợp với tập dữ liệu thực nghiệm (F = ${formatNum(fStatistic)}, ${formatPValue(fPValue)}). Hệ số R² hiệu chỉnh (Adjusted R-Square) đạt ${formatCoef(adjRSquared)}, cho biết các biến độc lập trong mô hình giải thích được khoảng ${formatNum(adjRSquared * 100, 1)}% sự biến thiên của biến phụ thuộc "${dependentVar}". Điều này khẳng định sức mạnh dự báo của mô hình ở mức độ tin cậy cao.`;
 
     // Coefficients
     const predictors = coefficients.filter(c => c.term !== '(Intercept)');
@@ -319,9 +319,9 @@ export function interpretLinearRegression(params: {
         const accepted = coef.pValue < 0.05;
 
         if (accepted) {
-            details.push(`Biến "${coef.term}" có tác động ${direction} chiều đến biến phụ thuộc (β = ${formatCoef(coef.stdBeta)}, ${formatPValue(coef.pValue)}). Giả thuyết được chấp nhận.`);
+            details.push(`Biến "${coef.term}" có tác động ${direction} chiều đến "${dependentVar}" (Standardized Beta = ${formatCoef(coef.stdBeta)}, ${formatPValue(coef.pValue)}). Kết quả này cho thấy giả thuyết nghiên cứu về vai trò của "${coef.term}" được ủng hộ về mặt thống kê.`);
         } else {
-            details.push(`Biến "${coef.term}" không có tác động có ý nghĩa thống kê (${formatPValue(coef.pValue)}).`);
+            details.push(`Biến "${coef.term}" không có tác động có ý nghĩa thống kê đến biến phụ thuộc trong mô hình này (${formatPValue(coef.pValue)}).`);
         }
 
         // VIF check
