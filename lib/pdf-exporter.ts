@@ -7,6 +7,7 @@ export interface PDFExportOptions {
     results: any;
     columns?: string[];
     filename?: string;
+    userName?: string;
     chartImages?: string[]; // Array of base64 images
     batchData?: Array<{ title: string; results: any; columns?: string[] }>; // For batch exports (e.g., Cronbach multi-scale)
 }
@@ -21,9 +22,13 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
             analysisType,
             results,
             columns = [],
-            filename = `ncskit_${analysisType}_${Date.now()}.pdf`,
+            userName = 'Researcher',
             chartImages = []
         } = options;
+
+        const dateStr = new Date().toLocaleDateString('vi-VN').replace(/\//g, '');
+        const safeUserName = userName.replace(/[^a-z0-9]/gi, '_').substring(0, 20);
+        const filename = options.filename || `ncskit_${analysisType}_${safeUserName}_${dateStr}.pdf`;
 
         // Validate input data
         if (!results && (!options.batchData || options.batchData.length === 0)) {
@@ -376,14 +381,43 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
                 doc.setFontSize(10);
             }
 
-            // Interpretative Notes for T-Test
-            checkPageBreak(25);
+            // Academic Interpretation for T-Test
+            checkPageBreak(50);
+            doc.setFillColor(248, 250, 252); // Light slate
+            doc.rect(15, yPos, 180, 45, 'F');
+            doc.setDrawColor(30, 58, 138); // Blue-900
+            doc.line(15, yPos, 15, yPos + 45); // Left accent line
+            
+            yPos += 10;
+            doc.setFont('NotoSans', 'bold');
+            doc.setFontSize(10);
+            doc.setTextColor(30, 58, 138);
+            doc.text('NHẬN ĐỊNH HỌC THUẬT (ACADEMIC INTERPRETATION)', 20, yPos);
+            
+            yPos += 8;
+            doc.setFont('NotoSans', 'normal');
+            doc.setFontSize(9);
+            doc.setTextColor(50, 50, 50);
+            
+            const isSig = results.pValue < 0.05;
+            const tText = isSig 
+                ? `Kết quả kiểm định T-test cho thấy có sự khác biệt có ý nghĩa thống kê (p < 0.05) giữa hai nhóm.` 
+                : `Kết quả kiểm định T-test cho thấy KHÔNG có sự khác biệt có ý nghĩa thống kê (p > 0.05) giữa hai nhóm.`;
+            
+            const cohenText = `Mức độ tác động (Cohen's d = ${results.effectSize.toFixed(3)}) được đánh giá ở mức ${Math.abs(results.effectSize) > 0.8 ? 'Lớn' : Math.abs(results.effectSize) > 0.5 ? 'Trung bình' : 'Nhỏ'}.`;
+            
+            doc.text([tText, cohenText], 20, yPos, { maxWidth: 170 });
+            yPos += 20;
+            
+            doc.setFont('NotoSans', 'italic');
             doc.setFontSize(8);
             doc.setTextColor(100);
-            doc.text('Effect Size (Cohen\'s d): |d| < 0.2: Negligible | 0.2-0.5: Small | 0.5-0.8: Medium | > 0.8: Large', 15, yPos);
+            doc.text('* Gợi ý: Kiểm tra tính đồng nhất phương sai (Levene\'s Test) để đảm bảo độ tin cậy của trị số t.', 20, yPos);
+            
             doc.setTextColor(0);
+            doc.setFont('NotoSans', 'normal');
             doc.setFontSize(10);
-            yPos += 10;
+            yPos += 15;
         }
         else if (analysisType === 'ttest-paired') {
             doc.text('Paired Samples T-Test:', 15, yPos);
@@ -431,7 +465,7 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
                 startY: yPos,
                 head: headers,
                 body: data,
-                headStyles: { fillColor: [155, 89, 182] as any, fontStyle: 'bold' as any }
+                headStyles: { fillColor: [30, 58, 138] as any, fontStyle: 'bold' as any }
             });
             yPos = (doc as any).lastAutoTable.finalY + 15;
 
@@ -447,6 +481,44 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
                 autoTable(doc, { ...commonTableOptions, startY: yPos, head: hMeans, body: dMeans });
                 yPos = (doc as any).lastAutoTable.finalY + 15;
             }
+
+            // Academic Interpretation for ANOVA
+            checkPageBreak(50);
+            doc.setFillColor(248, 250, 252);
+            doc.rect(15, yPos, 180, 45, 'F');
+            doc.setDrawColor(30, 58, 138); 
+            doc.line(15, yPos, 15, yPos + 45);
+            
+            yPos += 10;
+            doc.setFont('NotoSans', 'bold');
+            doc.setFontSize(10);
+            doc.setTextColor(30, 58, 138);
+            doc.text('NHẬN ĐỊNH HỌC THUẬT (ACADEMIC INTERPRETATION)', 20, yPos);
+            
+            yPos += 8;
+            doc.setFont('NotoSans', 'normal');
+            doc.setFontSize(9);
+            doc.setTextColor(50, 50, 50);
+            
+            const isSigA = results.pValue < 0.05;
+            const aText = isSigA 
+                ? `Kết quả ANOVA cho thấy có sự khác biệt có ý nghĩa thống kê (Sig < 0.05) ít nhất giữa một cặp nhóm.` 
+                : `Kết quả ANOVA cho thấy KHÔNG có sự khác biệt có ý nghĩa thống kê (Sig > 0.05) giữa các nhóm.`;
+            
+            const etaText = `Chỉ số Eta Squared (${results.etaSquared.toFixed(3)}) cho biết mức độ giải thích của biến phân loại đối với biến phụ thuộc.`;
+            
+            doc.text([aText, etaText], 20, yPos, { maxWidth: 170 });
+            yPos += 20;
+            
+            doc.setFont('NotoSans', 'italic');
+            doc.setFontSize(8);
+            doc.setTextColor(100);
+            doc.text('* Gợi ý: Nếu Sig < 0.05, hãy xem xét kết quả Post-hoc (Tukey/Games-Howell) để xác định cụ thể cặp nhóm có sự khác biệt.', 20, yPos);
+            
+            doc.setTextColor(0);
+            doc.setFont('NotoSans', 'normal');
+            doc.setFontSize(10);
+            yPos += 15;
         }
         else if (analysisType === 'chisquare') {
             doc.text('Chi-Square Test (Independence):', 15, yPos);
@@ -504,12 +576,49 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
                 head: headers,
                 body: data,
                 headStyles: { 
-                    fillColor: [50, 50, 50] as [number, number, number], 
+                    fillColor: [30, 58, 138] as [number, number, number], 
                     textColor: [255, 255, 255] as [number, number, number],
                     fontStyle: 'bold' as any 
                 }
             });
             yPos = (doc as any).lastAutoTable.finalY + 15;
+
+            // Academic Interpretation for Regression
+            checkPageBreak(50);
+            doc.setFillColor(248, 250, 252);
+            doc.rect(15, yPos, 180, 50, 'F');
+            doc.setDrawColor(30, 58, 138); 
+            doc.line(15, yPos, 15, yPos + 50);
+            
+            yPos += 10;
+            doc.setFont('NotoSans', 'bold');
+            doc.setFontSize(10);
+            doc.setTextColor(30, 58, 138);
+            doc.text('NHẬN ĐỊNH HỌC THUẬT (ACADEMIC INTERPRETATION)', 20, yPos);
+            
+            yPos += 8;
+            doc.setFont('NotoSans', 'normal');
+            doc.setFontSize(9);
+            doc.setTextColor(50, 50, 50);
+            
+            const r2 = modelFit.rSquared;
+            const rText = `Mô hình có R-Square = ${r2.toFixed(3)}, cho thấy các biến độc lập giải thích được ${(r2 * 100).toFixed(1)}% sự biến thiên của biến phụ thuộc.`;
+            const fText = modelFit.pValue < 0.05 
+                ? `Kiểm định F có Sig < 0.05, khẳng định mô hình hồi quy là phù hợp.` 
+                : `Cảnh báo: Kiểm định F có Sig > 0.05, mô hình có thể không có ý nghĩa thống kê.`;
+            
+            doc.text([rText, fText], 20, yPos, { maxWidth: 170 });
+            yPos += 22;
+            
+            doc.setFont('NotoSans', 'italic');
+            doc.setFontSize(8);
+            doc.setTextColor(100);
+            doc.text('* Gợi ý: Kiểm tra hệ số VIF (< 10 hoặc < 2) để loại trừ hiện tượng đa cộng tuyến giữa các biến độc lập.', 20, yPos);
+            
+            doc.setTextColor(0);
+            doc.setFont('NotoSans', 'normal');
+            doc.setFontSize(10);
+            yPos += 15;
         }
         else if (analysisType === 'efa') {
             doc.text(`KMO: ${results.kmo.toFixed(3)}`, 15, yPos);

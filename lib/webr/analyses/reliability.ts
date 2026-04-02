@@ -52,8 +52,8 @@ export async function runCronbachAlpha(
     omega_result <- tryCatch({
         if (ncol(data) >= 3) {
             # Detect optimal number of factors
-            nfactors_detected <- tryCatch({
-                fa_parallel <- fa.parallel(data, fm="minres", fa="fa", plot=FALSE, n.iter=20)
+                # Optimized n.iter for faster execution in WebR
+                fa_parallel <- fa.parallel(data, fm="minres", fa="fa", plot=FALSE, n.iter=5)
                 max(1, fa_parallel$nfact)  # Use suggested factors, minimum 1
             }, error = function(e) {
                 1  # Fallback to 1 factor if detection fails
@@ -202,7 +202,8 @@ export async function runEFA(data: number[][], nFactors: number, rotation: strin
 
     # PARALLEL ANALYSIS (uses complete data)
     n_factors_parallel <- tryCatch({
-        pa <- fa.parallel(df_clean, fm = "pa", fa = "fa", plot = FALSE, n.iter = 20, quant = 0.95)
+        # Optimized n.iter for faster execution
+        pa <- fa.parallel(df_clean, fm = "pa", fa = "fa", plot = FALSE, n.iter = 10, quant = 0.95)
         pa$nfact
     }, error = function(e) NA)
     

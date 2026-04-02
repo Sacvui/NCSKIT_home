@@ -572,12 +572,13 @@ function AnalyzeContent() {
                     }))
                 };
 
+                const name = userProfile?.full_name || user?.email?.split('@')[0] || 'Researcher';
                 await exportToPDF({
                     title: combinedTitle,
                     analysisType: 'cronbach-batch',
                     results: combinedResults,
                     columns: [],
-                    filename: `cronbach_batch_${multipleResults.length}_scales_${Date.now()}.pdf`,
+                    userName: name,
                     chartImages: []
                 });
                 if (user) {
@@ -586,12 +587,13 @@ function AnalyzeContent() {
                 showToast(`Đã xuất 1 file PDF tổng hợp ${multipleResults.length} thang đo!`, 'success');
             } else {
                 // Single result export
+                const name = userProfile?.full_name || user?.email?.split('@')[0] || 'Researcher';
                 await exportToPDF({
                     title: `Phân tích ${analysisType}`,
                     analysisType,
                     results: results?.data || results,
                     columns: results?.columns || [],
-                    filename: `statviet_${analysisType}_${Date.now()}.pdf`,
+                    userName: name,
                     chartImages
                 });
                 if (user) {

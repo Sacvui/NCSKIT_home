@@ -21,11 +21,12 @@ export async function loadPackageIfNeeded(packageName: string): Promise<boolean>
     try {
         const webR = await initWebR();
 
-        // Check if package is installed
+        // Optimized check: Use file.exists on the primary lib path instead of slow installed.packages()
         const checkInstalled = await webR.evalR(`
-      is_installed <- "${packageName}" %in% rownames(installed.packages())
-      is_installed
-    `);
+          pkg_name <- "${packageName}"
+          is_installed <- dir.exists(file.path(.libPaths()[1], pkg_name))
+          is_installed
+        `);
 
         const isInstalledResult = await checkInstalled.toJs();
         const isInstalled = (isInstalledResult as any)?.[0] === true ||
