@@ -272,7 +272,6 @@ function NavDropdown({ label, active, icon: Icon, children }: { label: string, a
                     : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                     }`}
             >
-                <Icon className="w-4 h-4 opacity-70" />
                 {label}
                 <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-180' : 'opacity-40'}`} />
             </button>
@@ -295,9 +294,6 @@ function NavDropdownItem({ href, active, label, icon: Icon }: { href: string, ac
                 : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                 }`}
         >
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${active ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-400'}`}>
-                <Icon className="w-4 h-4" />
-            </div>
             {label}
         </Link>
     )

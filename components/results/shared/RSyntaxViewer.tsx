@@ -94,7 +94,7 @@ export function RSyntaxViewer({ code, userProfile }: RSyntaxViewerProps) {
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                         <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
                             <h3 className="text-lg font-bold text-gray-900 mb-2">
-                                🔐 Mở khóa Researcher Mode
+                                Researcher Mode
                             </h3>
                             <p className="text-sm text-gray-600 mb-4">
                                 Nhập mã bí mật để trở thành Researcher và truy cập R Syntax code.
@@ -147,7 +147,7 @@ export function RSyntaxViewer({ code, userProfile }: RSyntaxViewerProps) {
                         <Code className="h-4 w-4 text-blue-600" />
                         <CardTitle className="text-sm font-medium text-blue-800">Equivalent R Syntax</CardTitle>
                         <span className="px-2 py-0.5 bg-blue-200 text-blue-800 text-[10px] font-semibold rounded-full">
-                            ✓ Researcher
+                            Researcher
                         </span>
                     </div>
                     <div className="text-xs text-blue-500 font-normal hover:text-blue-700">

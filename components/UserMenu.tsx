@@ -76,7 +76,6 @@ export default function UserMenu({ user: propUser, profile: propProfile }: { use
                                 className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                                 onClick={() => setIsOpen(false)}
                             >
-                                <Database className="w-4 h-4" />
                                 Quản lý dự án
                             </Link>
 
@@ -85,7 +84,6 @@ export default function UserMenu({ user: propUser, profile: propProfile }: { use
                                 className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                                 onClick={() => setIsOpen(false)}
                             >
-                                <User className="w-4 h-4" />
                                 Hồ sơ cá nhân
                             </Link>
                             <button
@@ -95,7 +93,6 @@ export default function UserMenu({ user: propUser, profile: propProfile }: { use
                                 }}
                                 className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors text-left"
                             >
-                                <MessageSquare className="w-4 h-4" />
                                 Send Feedback
                             </button>
                         </div>
@@ -106,7 +103,6 @@ export default function UserMenu({ user: propUser, profile: propProfile }: { use
                                 onClick={handleLogout}
                                 className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors text-left"
                             >
-                                <LogOut className="w-4 h-4" />
                                 Logout
                             </button>
                         </div>
