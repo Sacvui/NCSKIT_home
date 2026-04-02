@@ -3,7 +3,7 @@
 import React, { useMemo, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { TrendingUp, Activity, CheckCircle2, ChevronRight, FileText } from 'lucide-react';
-import { getStoredLocale, t, type Locale } from '@/lib/i18n';
+import { getStoredLocale, t, type Locale } from '../../../lib/i18n';
 
 interface CronbachResultsProps {
     results: any;

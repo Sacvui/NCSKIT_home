@@ -4,7 +4,7 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Scatter } from 'react-chartjs-2';
 import { FileText, TrendingUp, Info } from 'lucide-react';
-import { getStoredLocale, t, type Locale } from '@/lib/i18n';
+import { getStoredLocale, t, type Locale } from '../../../lib/i18n';
 
 interface RegressionResultsProps {
     results: any;

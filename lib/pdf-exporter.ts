@@ -761,8 +761,14 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
             doc.setFont('NotoSans', 'normal');
             doc.setTextColor(51, 65, 85);
             
-            // Simple generic descriptive interpretation in Vietnamese
-            const interpretation = `Kết quả thống kê cho thấy các biến quan sát có giá trị trung bình trong khoảng [${Math.min(...results.mean).toFixed(2)} - ${Math.max(...results.mean).toFixed(2)}]. Độ lệch chuẩn thể hiện mức độ phân tán tập trung quanh giá trị trung bình. Dựa trên chỉ số Skewness và Kurtosis (nằm trong khoảng [-2, 2]), dữ liệu có xu hướng phân phối chuẩn, đảm bảo điều kiện cho các kiểm định tham số tiếp theo.`;
+            // Dynamic academic interpretation for Descriptive stats
+            const minMean = Math.min(...results.mean);
+            const maxMean = Math.max(...results.mean);
+            const skewArr = results.skew || [];
+            const kurtArr = results.kurtosis || [];
+            const isNormal = skewArr.every((s: number) => Math.abs(s) <= 2) && kurtArr.every((k: number) => Math.abs(k) <= 2);
+
+            const interpretation = `Kết quả thống kê cho thấy các biến quan sát có giá trị trung bình trong khoảng [${minMean.toFixed(2)} - ${maxMean.toFixed(2)}]. Độ lệch chuẩn thể hiện mức độ phân tán của dữ liệu. ${isNormal ? 'Dựa trên chỉ số Skewness và Kurtosis (nằm trong khoảng [-2, 2]), dữ liệu có xu hướng phân phối chuẩn, đảm bảo điều kiện cho các kiểm định tham số tiếp theo.' : 'Tuy nhiên, phát hiện một số biến có chỉ số Skewness hoặc Kurtosis vượt ngưỡng [-2, 2], cho thấy dữ liệu có dấu hiệu vi phạm phân phối chuẩn. Cần thận trọng khi sử dụng các kiểm định tham số.'}`;
             const splitInter = doc.splitTextToSize(interpretation, 170);
             doc.text(splitInter, 20, yPos + 18);
             
