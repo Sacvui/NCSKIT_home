@@ -23,7 +23,6 @@ export default function DocsLayout({
     return (
         <div className="flex flex-col min-h-screen">
             <Header hideNav={false} />
-            <DocNav />
             <main className="flex-grow">
                 {children}
             </main>
