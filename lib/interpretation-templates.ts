@@ -806,10 +806,9 @@ export function interpretDescriptive(params: {
         'Kim, H. Y. (2013). Statistical notes for clinical researchers: assessing normal distribution.'
     ];
 
-    // Summary focused on N and basic data quality
-    const summary = `Phân tích thống kê mô tả được thực hiện trên ${columnNames.length} biến quan sát với kích thước mẫu N = ${N[0] || 'N/A'}. Kết quả cho thấy dữ liệu có sự biến thiên phù hợp và giá trị trung bình phản ánh sát đặc điểm của tập mẫu khảo sát.`;
-
+    // Check normality per variable
     let allNormal = true;
+    const nonNormalVars: string[] = [];
     
     columnNames.forEach((name, i) => {
         const mean = means[i];
@@ -817,35 +816,36 @@ export function interpretDescriptive(params: {
         const skew = skews[i];
         const kurt = kurtoses[i];
         
-        // Thresholds based on Kim (2013) for different sample sizes
-        // For N > 300, absolute z-scores of 3.29 are common, but here we use simple rules:
+        // Strict thresholds: Skewness & Kurtosis within [-2, 2] (George & Mallery, 2010)
         const isSkewNormal = Math.abs(skew) <= 2;
-        const isKurtNormal = Math.abs(kurt) <= 7;
+        const isKurtNormal = Math.abs(kurt) <= 2;
 
         let varNote = `Biến "${name}": M = ${formatNum(mean)}, SD = ${formatNum(sd)}. `;
         
         if (isSkewNormal && isKurtNormal) {
-            varNote += `Chỉ số Skewness (${formatNum(skew)}) và Kurtosis (${formatNum(kurt)}) nằm trong ngưỡng chuẩn (Skew < |2|, Kurt < |7|).`;
+            varNote += `Chỉ số Skewness (${formatNum(skew)}) và Kurtosis (${formatNum(kurt)}) nằm trong ngưỡng lý tưởng ([-2, 2]).`;
         } else {
             allNormal = false;
+            nonNormalVars.push(name);
             let violation = [];
             if (!isSkewNormal) violation.push(`Skewness = ${formatNum(skew)}`);
             if (!isKurtNormal) violation.push(`Kurtosis = ${formatNum(kurt)}`);
-            varNote += `Phát hiện dấu hiệu vi phạm phân phối chuẩn (${violation.join(', ')}).`;
-            warnings.push(`Biến "${name}" không đạt tiêu chuẩn phân phối chuẩn.`);
+            varNote += `Phát hiện dấu hiệu lệch chuẩn (${violation.join(', ')}).`;
+            warnings.push(`Biến "${name}" không đạt tiêu chuẩn phân phối chuẩn (ngưỡng +/- 2).`);
         }
         
         details.push(varNote);
     });
 
+    // Dynamic summary based on results
+    let summary = '';
     if (allNormal) {
-        details.push('Dựa trên các chỉ số mô tả, toàn bộ các biến đều có xu hướng phân phối chuẩn hoặc tiệm cận chuẩn, đảm bảo điều kiện tiên quyết cho các kiểm định tham số (Parametric tests) như T-test, ANOVA và Hồi quy.');
+        summary = `Phân tích thống kê mô tả cho ${columnNames.length} biến (N = ${N[0]}) cho thấy dữ liệu có phân phối chuẩn tốt, đảm bảo tính đại diện cho các phân tích tham số (Parametric) tiếp theo.`;
+        details.push('Dựa trên các chỉ số mô tả, toàn bộ các biến đều có xu hướng phân phối chuẩn hoặc tiệm cận chuẩn, đáp ứng tốt các giả định nghiên cứu.');
     } else {
-        details.push('Một số biến có dấu hiệu lệch chuẩn. Cần xem xét bản chất dữ liệu hoặc sử dụng các phép kiểm định phi tham số (Non-parametric tests) nếu vi phạm quá lớn.');
+        summary = `Phát hiện ${nonNormalVars.length}/${columnNames.length} biến quan sát vi phạm giả định phân phối chuẩn (Skewness hoặc Kurtosis nằm ngoài khoảng [-2, 2]). Cần thận trọng khi thực hiện các phép kiểm định tham số.`;
+        details.push(`Các biến [${nonNormalVars.slice(0, 3).join(', ')}${nonNormalVars.length > 3 ? '...' : ''}] có độ lệch hoặc độ nhọn vượt ngưỡng cho phép. Tùy thuộc vào tổng cỡ mẫu, Researcher có thể cân nhắc chuyển sang các phép kiểm định phi tham số (Non-parametric tests).`);
     }
-
-    // Add a general note about SD
-    details.push('Độ lệch chuẩn (SD) được ghi nhận ở mức phù hợp, cho biết mức độ phân tán của các quan sát so với giá trị trung bình là không quá lớn, phản ánh độ tin cậy của giá trị đại diện.');
 
     return { summary, details, warnings, citations };
 }
