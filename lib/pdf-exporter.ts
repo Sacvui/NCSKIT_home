@@ -21,7 +21,7 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
             analysisType,
             results,
             columns = [],
-            filename = `statviet_${analysisType}_${Date.now()}.pdf`,
+            filename = `ncskit_${analysisType}_${Date.now()}.pdf`,
             chartImages = []
         } = options;
 
@@ -33,14 +33,42 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
         // Helper to load font
         const loadVietnameseFont = async (doc: jsPDF) => {
             try {
-                const response = await fetch('/webr/vfs/usr/share/fonts/NotoSans-Regular.ttf');
-                if (!response.ok) throw new Error('Failed to load font');
-                const buffer = await response.arrayBuffer();
-                const binary = Array.from(new Uint8Array(buffer)).map(b => String.fromCharCode(b)).join("");
+                // Try both possible paths for NotoSans
+                const paths = [
+                    '/webr_core/vfs/usr/share/fonts/NotoSans-Regular.ttf',
+                    '/webr/vfs/usr/share/fonts/NotoSans-Regular.ttf'
+                ];
+                
+                let regularBuffer: ArrayBuffer | null = null;
+                for (const path of paths) {
+                    try {
+                        const response = await fetch(path);
+                        if (response.ok) {
+                            regularBuffer = await response.arrayBuffer();
+                            break;
+                        }
+                    } catch (e) {}
+                }
 
+                if (!regularBuffer) throw new Error('Could not load NotoSans Regular');
+
+                const binary = Array.from(new Uint8Array(regularBuffer)).map(b => String.fromCharCode(b)).join("");
                 doc.addFileToVFS('NotoSans-Regular.ttf', binary);
                 doc.addFont('NotoSans-Regular.ttf', 'NotoSans', 'normal');
-                doc.setFont('NotoSans');
+                
+                // Try loading Bold for better headers
+                const boldPath = '/webr_core/vfs/usr/share/fonts/NotoSans-Bold.ttf';
+                try {
+                    const boldResponse = await fetch(boldPath);
+                    if (boldResponse.ok) {
+                        const boldBuffer = await boldResponse.arrayBuffer();
+                        const boldBinary = Array.from(new Uint8Array(boldBuffer)).map(b => String.fromCharCode(b)).join("");
+                        doc.addFileToVFS('NotoSans-Bold.ttf', boldBinary);
+                        doc.addFont('NotoSans-Bold.ttf', 'NotoSans', 'bold');
+                    }
+                } catch (e) {}
+
+                doc.setFont('NotoSans', 'normal');
             } catch (error) {
                 console.warn('Could not load Vietnamese font, falling back to standard font:', error);
             }
@@ -55,21 +83,24 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
             doc.setFillColor(30, 58, 138); // Blue-900
             doc.rect(0, 0, pageWidth, 4, 'F');
 
+            // Set font to NotoSans if loaded
+            doc.setFont('NotoSans', 'bold');
+
             // Logo/Platform Name
             doc.setFontSize(22);
             doc.setTextColor(30, 58, 138);
-            doc.setFont('helvetica', 'bold');
             doc.text('ncsStat', 15, 22);
 
             // Academic Tagline
             doc.setFontSize(8);
             doc.setTextColor(100);
-            doc.setFont('helvetica', 'normal');
+            doc.setFont('NotoSans', 'normal');
             doc.text('SCIENTIFIC ANALYSIS PLATFORM FOR RESEARCHERS', 15, 28);
 
             // Right side meta info
             doc.setFontSize(7);
             doc.setTextColor(140);
+            doc.setFont('NotoSans', 'normal');
             doc.text('VERSION 2.0 (STABLE)', pageWidth - 15, 18, { align: 'right' });
             
             const exportDate = new Date().toLocaleDateString('vi-VN', {
@@ -79,7 +110,7 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
                 hour: '2-digit',
                 minute: '2-digit'
             });
-            doc.setFont('helvetica', 'bold');
+            doc.setFont('NotoSans', 'bold');
             doc.text(`REPORT GENERATED: ${exportDate.toUpperCase()}`, pageWidth - 15, 24, { align: 'right' });
 
             // Horizontal Separator
@@ -112,7 +143,7 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
             
             doc.setFontSize(8);
             doc.setTextColor(100);
-            doc.setFont('helvetica', 'bold');
+            doc.setFont('NotoSans', 'bold');
             doc.text(`NCSSTAT SYSTEM REPORT`, 15, pageHeight - 15);
             doc.text(`PAGE ${currentPage} / ${total}`, pageWidth / 2, pageHeight - 15, { align: 'center' });
             doc.text(`HTTPS://NCSSTAT.NC SKIT.ORG`, pageWidth - 15, pageHeight - 15, { align: 'right' });
