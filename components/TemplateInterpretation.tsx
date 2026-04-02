@@ -393,9 +393,10 @@ export function TemplateInterpretation({
                 </button>
             </div>
 
-            {/* Summary */}
-            <div className="bg-white dark:bg-slate-800 rounded-lg p-6 mb-5 border-2 border-emerald-100 dark:border-emerald-900/50 shadow-md">
-                <p className="text-slate-950 dark:text-white leading-relaxed font-bold text-base">
+            {/* Summary - High Impact Box */}
+            <div className="bg-slate-900 dark:bg-black rounded-2xl p-8 mb-6 border-b-4 border-emerald-500 shadow-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 blur-[50px] -mr-16 -mt-16"></div>
+                <p className="text-white leading-relaxed font-black text-lg relative z-10">
                     {interpretation.summary}
                 </p>
             </div>
@@ -434,20 +435,17 @@ export function TemplateInterpretation({
                 </div>
             )}
 
-            {/* Citations */}
-            {interpretation.citations.length > 0 && (
                 <div className="border-t border-emerald-200 dark:border-emerald-900/50 pt-4 mt-4">
-                    <h4 className="text-xs font-bold text-emerald-700 dark:text-emerald-500 uppercase tracking-wider mb-2 flex items-center gap-2">
+                    <h4 className="text-[10px] font-black text-emerald-800 dark:text-emerald-400 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
                         <BookMarked className="w-3 h-3" />
                         Tài liệu tham khảo
                     </h4>
-                    <ul className="text-xs text-slate-600 dark:text-slate-400 space-y-1.5 font-sans">
+                    <ul className="text-[11px] text-slate-700 dark:text-slate-300 space-y-2 font-sans">
                         {interpretation.citations.map((citation, idx) => (
-                            <li key={idx} className="italic opacity-90 hover:opacity-100 transition-opacity leading-relaxed">{citation}</li>
+                            <li key={idx} className="italic hover:text-emerald-800 dark:hover:text-emerald-200 transition-colors leading-relaxed border-l-2 border-emerald-100 dark:border-emerald-900/30 pl-3 py-0.5">{citation}</li>
                         ))}
                     </ul>
                 </div>
-            )}
         </div>
     );
 }
