@@ -402,7 +402,9 @@ export const translations = {
                 tips: {
                     title: 'Hướng dẫn trình bày trong Luận văn / Bài báo',
                     tip1: 'Trình bày kết quả đánh giá mô hình đo lường trước (Độ tin cậy, Giá trị hội tụ, Giá trị phân biệt), sau đó mới trình bày kết quả mô hình cấu trúc.',
-                    tip2: 'Sử dụng đồ thị Path Diagram xuất ra từ hệ thống ncsStat để minh họa trực qua                troubleshooting: {
+                    tip2: 'Sử dụng đồ thị Path Diagram xuất ra từ hệ thống ncsStat để minh họa trực quan kết quả.'
+                },
+                troubleshooting: {
                     title: 'Xử lý sự cố & Giải đáp (Troubleshooting)',
                     q1: 'AVE thấp hơn 0.5 thì phải làm sao?',
                     a1: 'Cần kiểm tra Outer Loadings. Loại bỏ các biến có hệ số tải thấp (< 0.4) hoặc loại bỏ từng biến một từ thấp đến cao cho đến khi AVE đạt chuẩn.',
