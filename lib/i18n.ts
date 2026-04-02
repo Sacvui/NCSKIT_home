@@ -499,66 +499,6 @@ export const translations = {
             apa_report_note: 'Sử dụng chuẩn APA 7 để trình bày kết quả cho phương pháp này.'
         }
     },
-�áp (Troubleshooting)',
-                    q1: 'AVE thấp hơn 0.5 thì phải làm sao?',
-                    a1: 'Cần kiểm tra Outer Loadings. Loại bỏ các biến có hệ số tải thấp (< 0.4) hoặc loại bỏ từng biến một từ thấp đến cao cho đến khi AVE đạt chuẩn.',
-                    q2: 'VIF cao (> 5) có ảnh hưởng gì?',
-                    a2: 'Đó là dấu hiệu của đa cộng tuyến. Bạn nên gộp các biến có tương quan quá cao hoặc loại bỏ biến có VIF cao nhất để làm sạch mô hình.',
-                    q3: 'Lỗi "Singular Matrix" khi chạy EFA/CFA?',
-                    a3: 'Thường do các biến quan sát có tương quan hoàn hảo (r=1) hoặc dữ liệu bị thiếu quá nhiều. Kiểm tra lại ma trận tương quan trước khi chạy.'
-                },
-                purpose: 'Đánh giá tác động của một hoặc nhiều biến độc lập lên một biến phụ thuộc.',
-                stepTitle: 'Cách thực hiện:',
-                whenToUse: 'Kiểm tra mối quan hệ nhân quả trong mô hình nghiên cứu.',
-                steps: [
-                    'Chọn menu Regression.',
-                    'Chọn biến phụ thuộc (Y).',
-                    'Chọn các biến độc lập (X).',
-                    'Nhấn nút Chạy Hồi Quy.'
-                ],
-                note: 'Hệ thống sẽ tự động tính toán R-bình phương, hệ số Beta và kiểm tra đa cộng tuyến (VIF).',
-                output: ['R-Square (R2)', 'Hệ số Beta']
-            },
-            chisq: {
-                name: 'Kiểm định Chi-Square',
-                desc: 'Kiểm định biến định danh',
-                purpose: 'Kiểm tra mối liên hệ giữa hai biến định danh (Categorical Variables).',
-                stepTitle: 'Cách thực hiện:',
-                steps: [
-                    'Chọn menu Chi-Square.',
-                    'Chọn biến Hàng (Row Variable) và biến Cột (Column Variable).',
-                    'Nhấn nút Chạy Kiểm Định.'
-                ]
-            },
-            nonparam: {
-                name: 'Kiểm định Phi tham số',
-                desc: 'Mann-Whitney / Kruskal-Wallis',
-                purpose: 'So sánh trung bình hạng khi dữ liệu không phân phối chuẩn (Thay thế cho T-Test/ANOVA).',
-                stepTitle: 'Cách thực hiện:',
-                steps: [
-                    'Chọn menu Non-parametric.',
-                    'Chọn các biến số cần số sánh và biến phân nhóm.',
-                    'Nhấn nút Chạy Kiểm Định.'
-                ]
-            }
-        },
-        methods_guide_labels: {
-            basic: 'Cơ bản',
-            measurement: 'Đo lường',
-            structure: 'Cấu trúc',
-            comparison: 'So sánh',
-            relationship: 'Mối quan hệ',
-            categorical: 'Định danh',
-            advanced: 'Nâng cao',
-            scientific_standard: 'Tiêu chuẩn Khoa học',
-            r_engine: 'R-ENGINE KÍCH HOẠT',
-            purpose_utility: 'MỤC TIÊU & ỨNG DỤNG',
-            expert_insights: 'Lưu ý Chuyên gia',
-            realtime_processing: 'Xử lý thời gian thực',
-            researches_done: '+2.400 nghiên cứu hoàn tất',
-            apa_report_note: 'Sử dụng chuẩn APA 7 để trình bày kết quả cho phương pháp này.'
-        }
-    },
     en: {
         // Header
         nav: {
