@@ -3,6 +3,7 @@
 import React, { useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Code, Copy, Check } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 interface RSyntaxViewerProps {
     code: string;
@@ -21,6 +22,8 @@ export function RSyntaxViewer({ code, userProfile }: RSyntaxViewerProps) {
     const [secretCode, setSecretCode] = React.useState('');
     const [unlockError, setUnlockError] = React.useState('');
     const [isUnlocking, setIsUnlocking] = React.useState(false);
+
+    const { refreshProfile } = useAuth();
 
     // Check if user has researcher or admin role
     const isResearcher = userProfile?.role === 'researcher' || userProfile?.role === 'admin';
@@ -50,8 +53,15 @@ export function RSyntaxViewer({ code, userProfile }: RSyntaxViewerProps) {
             const data = await response.json();
 
             if (data.success) {
-                // Reload page to reflect new role
-                window.location.reload();
+                // Refresh profile via context
+                await refreshProfile();
+                // Close modal and show synthetic success
+                setShowUnlockModal(false);
+                // Also trigger a slight delay before reload to ensure DB consistency if needed,
+                // but refreshProfile should be enough for the current session.
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
             } else {
                 setUnlockError(data.error || 'Mã không hợp lệ');
             }
@@ -60,7 +70,7 @@ export function RSyntaxViewer({ code, userProfile }: RSyntaxViewerProps) {
         } finally {
             setIsUnlocking(false);
         }
-    }, [secretCode]);
+    }, [secretCode, refreshProfile]);
 
     // If not researcher, show locked state
     if (!isResearcher) {

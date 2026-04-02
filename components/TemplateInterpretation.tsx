@@ -380,8 +380,8 @@ export function TemplateInterpretation({
                         <BookOpen className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                        <h3 className="text-lg font-bold text-emerald-900 dark:text-emerald-100">Nhận định Học thuật</h3>
-                        <p className="text-xs text-emerald-700 dark:text-emerald-400 font-medium">Tự động • Chuẩn APA • Dành cho Researcher</p>
+                        <h3 className="text-xl font-black text-emerald-950 dark:text-emerald-50">Nhận định Học thuật</h3>
+                        <p className="text-xs text-emerald-800 dark:text-emerald-400 font-bold">Tự động • Chuẩn APA • Dành cho Researcher</p>
                     </div>
                 </div>
                 <button
@@ -394,8 +394,8 @@ export function TemplateInterpretation({
             </div>
 
             {/* Summary */}
-            <div className="bg-white/90 dark:bg-slate-800/80 rounded-lg p-5 mb-4 border border-emerald-100 dark:border-emerald-900/30 shadow-inner">
-                <p className="text-slate-900 dark:text-slate-100 leading-relaxed font-medium">
+            <div className="bg-white dark:bg-slate-800 rounded-lg p-6 mb-5 border-2 border-emerald-100 dark:border-emerald-900/50 shadow-md">
+                <p className="text-slate-950 dark:text-white leading-relaxed font-bold text-base">
                     {interpretation.summary}
                 </p>
             </div>
@@ -407,9 +407,9 @@ export function TemplateInterpretation({
                         <CheckCircle className="w-4 h-4" />
                         Chi tiết phân tích
                     </h4>
-                    <ul className="space-y-2">
+                    <ul className="space-y-3">
                         {interpretation.details.map((detail, idx) => (
-                            <li key={idx} className="text-sm text-slate-800 dark:text-slate-200 bg-white/60 dark:bg-slate-800/40 p-3 rounded-lg border-l-4 border-emerald-500 shadow-sm">
+                            <li key={idx} className="text-sm text-slate-900 dark:text-slate-100 bg-white dark:bg-slate-800/60 p-4 rounded-xl border-l-4 border-emerald-600 shadow-sm font-medium">
                                 {detail}
                             </li>
                         ))}
