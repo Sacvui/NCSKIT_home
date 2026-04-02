@@ -168,12 +168,12 @@ export function FileUpload({ onDataLoaded, locale }: FileUploadProps) {
                         }
                     }}
                     disabled={isProcessing}
-                    className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-xl font-black uppercase tracking-tighter transition-all whitespace-nowrap"
+                    className="text-[10px] bg-blue-50/50 hover:bg-blue-100/50 text-blue-700 px-3 py-2 rounded-xl font-black uppercase tracking-tighter transition-all border border-blue-100"
                 >
                     {locale === 'vi' ? 'Dữ liệu Test (N=300)' : 'Test Data (N=300)'}
                 </button>
 
-                <div className="h-4 w-[1px] bg-slate-300 mx-1"></div>
+                <div className="h-4 w-[1px] bg-blue-100 mx-1"></div>
 
                 <button
                     onClick={async (e) => {
@@ -207,7 +207,7 @@ export function FileUpload({ onDataLoaded, locale }: FileUploadProps) {
                         }
                     }}
                     disabled={isProcessing}
-                    className="text-[11px] bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-black uppercase tracking-widest transition-all shadow-lg shadow-indigo-500/20 whitespace-nowrap"
+                    className="text-[11px] bg-blue-900 hover:bg-blue-800 text-white px-5 py-2.5 rounded-xl font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-500/20 whitespace-nowrap"
                 >
                     {locale === 'vi' ? 'Chuẩn SEM Q1 (N=500)' : 'Q1 SEM Standard (N=500)'}
                 </button>

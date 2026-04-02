@@ -725,17 +725,17 @@ function AnalyzeContent() {
             />
 
             {/* Dedicated Analysis Control Bar - Sits below Header */}
-            <div className="sticky top-16 z-30 bg-slate-900 border-b border-slate-800 py-3 shadow-2xl">
+            <div className="sticky top-16 z-30 bg-blue-900 border-b border-blue-800 py-3 shadow-xl">
                 <div className="container mx-auto px-6 flex flex-wrap items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2 pr-4 border-r border-slate-700">
-                            <BarChart3 className="w-5 h-5 text-indigo-400" />
+                        <div className="flex items-center gap-2 pr-4 border-r border-blue-800">
+                            <BarChart3 className="w-5 h-5 text-blue-400" />
                             <span className="font-black text-xs text-white uppercase tracking-widest">
-                                Standard Engine
+                                Academic Engine
                             </span>
                         </div>
                         {filename && (
-                            <div className="flex items-center gap-2 px-3 py-1 bg-slate-800 rounded-lg text-slate-400 text-[10px] font-bold uppercase tracking-tighter max-w-[150px] truncate">
+                            <div className="flex items-center gap-2 px-3 py-1 bg-blue-950 rounded-lg text-blue-300 text-[10px] font-bold uppercase tracking-tighter max-w-[150px] truncate border border-blue-800">
                                 <FileText className="w-3 h-3" /> {filename}
                             </div>
                         )}

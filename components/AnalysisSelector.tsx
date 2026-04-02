@@ -60,9 +60,9 @@ export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing, mode, l
             category: {
                 name: locale === 'vi' ? 'Độ tin cậy & Mô tả' : 'Reliability & Descriptive',
                 description: locale === 'vi' ? 'Thống kê cơ bản và độ tin cậy thang đo' : 'Basic statistics and scale reliability',
-                color: 'text-blue-700',
-                bgColor: 'bg-blue-50',
-                borderColor: 'border-blue-200',
+                color: 'text-blue-900',
+                bgColor: 'bg-blue-50/50',
+                borderColor: 'border-blue-100',
                 options: [
                     { id: 'descriptive-select', title: t(locale, 'analyze.methods.descriptive'), desc: locale === 'vi' ? 'Mean, SD, Min, Max, Median, Độ lệch, Độ nhọn' : 'Mean, SD, Min, Max, Median, Skewness, Kurtosis', icon: BarChart2, action: 'select', costType: 'descriptive' },
                     { id: 'cronbach-select', title: t(locale, 'analyze.methods.cronbach'), desc: locale === 'vi' ? 'Độ tin cậy thang đo truyền thống (α)' : 'Classic scale reliability (α)', icon: Shield, action: 'select', recommended: true, costType: 'cronbach' },
@@ -75,9 +75,9 @@ export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing, mode, l
             category: {
                 name: locale === 'vi' ? 'So sánh nhóm' : 'Group Comparison',
                 description: locale === 'vi' ? 'So sánh giá trị trung bình giữa các nhóm' : 'Compare means between groups',
-                color: 'text-green-700',
-                bgColor: 'bg-green-50',
-                borderColor: 'border-green-200',
+                color: 'text-blue-900',
+                bgColor: 'bg-white',
+                borderColor: 'border-blue-100',
                 options: [
                     { id: 'ttest-select', title: t(locale, 'analyze.methods.ttest'), desc: locale === 'vi' ? 'So sánh 2 nhóm độc lập' : 'Compare 2 independent groups', icon: GitCompare, action: 'select', costType: 'ttest-indep' },
                     { id: 'ttest-paired-select', title: t(locale, 'analyze.methods.ttest_paired'), desc: locale === 'vi' ? 'So sánh trước-sau (theo cặp)' : 'Compare before-after (paired)', icon: Users, action: 'select', costType: 'ttest-paired' },
@@ -94,9 +94,9 @@ export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing, mode, l
             category: {
                 name: locale === 'vi' ? 'Tương quan & Hồi quy' : 'Correlation & Regression',
                 description: locale === 'vi' ? 'Phân tích mối quan hệ giữa các biến' : 'Analyze relationships between variables',
-                color: 'text-purple-700',
-                bgColor: 'bg-purple-50',
-                borderColor: 'border-purple-200',
+                color: 'text-blue-900',
+                bgColor: 'bg-slate-50/50',
+                borderColor: 'border-blue-100',
                 options: [
                     { id: 'correlation', title: t(locale, 'analyze.methods.correlation'), desc: locale === 'vi' ? 'Tương quan Pearson/Spearman' : 'Pearson/Spearman correlation', icon: Network, action: 'run', costType: 'correlation' },
                     { id: 'regression-select', title: t(locale, 'analyze.methods.regression'), desc: locale === 'vi' ? 'Hồi quy tuyến tính đa biến với hệ số β' : 'Multiple linear regression with β', icon: TrendingUp, action: 'select', costType: 'regression' },
@@ -111,13 +111,13 @@ export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing, mode, l
             category: {
                 name: locale === 'vi' ? 'Phân tích nhân tố & SEM' : 'Factor Analysis & SEM',
                 description: locale === 'vi' ? 'EFA, CFA, SEM cho mô hình đo lường' : 'EFA, CFA, SEM for measurement models',
-                color: 'text-orange-700',
-                bgColor: 'bg-orange-50',
-                borderColor: 'border-orange-200',
+                color: 'text-blue-900',
+                bgColor: 'bg-white',
+                borderColor: 'border-blue-100',
                 options: [
                     { id: 'efa-select', title: t(locale, 'analyze.methods.efa'), desc: locale === 'vi' ? 'Phân tích nhân tố khám phá + Parallel Analysis' : 'Exploratory Factor Analysis + Parallel Analysis', icon: Grid3x3, action: 'select', recommended: true, costType: 'efa' },
-                    { id: 'cfa-select', title: t(locale, 'analyze.methods.cfa'), desc: locale === 'vi' ? 'Phân tích nhân tố khẳng định (Lavaan)' : 'Confirmatory Factor Analysis (Lavaan)', icon: Network, action: 'select', disabled: true, badge: 'Soon', costType: 'cfa' },
-                    { id: 'sem-select', title: t(locale, 'analyze.methods.sem'), desc: locale === 'vi' ? 'Mô hình cấu trúc tuyến tính (Lavaan)' : 'Structural Equation Modeling (Lavaan)', icon: Layers, action: 'select', disabled: true, badge: 'Soon', costType: 'sem' },
+                    { id: 'cfa-select', title: t(locale, 'analyze.methods.cfa'), desc: locale === 'vi' ? 'Phân tích nhân tố khẳng định (Lavaan)' : 'Confirmatory Factor Analysis (Lavaan)', icon: Network, action: 'select', disabled: false, badge: 'New', costType: 'cfa' },
+                    { id: 'sem-select', title: t(locale, 'analyze.methods.sem'), desc: locale === 'vi' ? 'Mô hình cấu trúc tuyến tính (Lavaan)' : 'Structural Equation Modeling (Lavaan)', icon: Layers, action: 'select', disabled: false, badge: 'New', costType: 'sem' },
                 ]
             }
         },
@@ -126,9 +126,9 @@ export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing, mode, l
             category: {
                 name: locale === 'vi' ? 'Biến định danh' : 'Categorical Variables',
                 description: locale === 'vi' ? 'Các kiểm định cho dữ liệu định danh' : 'Tests for categorical data',
-                color: 'text-teal-700',
-                bgColor: 'bg-teal-50',
-                borderColor: 'border-teal-200',
+                color: 'text-blue-900',
+                bgColor: 'bg-slate-50/50',
+                borderColor: 'border-blue-100',
                 options: [
                     { id: 'chisq-select', title: t(locale, 'analyze.methods.chisq'), desc: locale === 'vi' ? 'Kiểm định tính độc lập (Mẫu lớn)' : 'Test of independence (Large sample)', icon: Grid3x3, action: 'select', costType: 'chisquare' },
                     { id: 'fisher-select', title: locale === 'vi' ? 'Kiểm định chính xác Fisher' : "Fisher's Exact Test", desc: locale === 'vi' ? 'Kiểm định tính độc lập (Mẫu nhỏ)' : 'Test of independence (Small sample)', icon: Grid3x3, action: 'select', costType: 'chisquare' },
@@ -140,9 +140,9 @@ export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing, mode, l
             category: {
                 name: locale === 'vi' ? 'Phân cụm & Phân đoạn' : 'Clustering & Segmentation',
                 description: locale === 'vi' ? 'Phân đoạn dữ liệu thành các nhóm' : 'Segment data into groups',
-                color: 'text-pink-700',
-                bgColor: 'bg-pink-50',
-                borderColor: 'border-pink-200',
+                color: 'text-blue-900',
+                bgColor: 'bg-white',
+                borderColor: 'border-blue-100',
                 options: [
                     { id: 'cluster-select', title: t(locale, 'analyze.methods.cluster'), desc: locale === 'vi' ? 'Phân cụm K-Means với hồ sơ đặc trưng' : 'K-Means clustering with profiles', icon: CircleDot, action: 'select', costType: 'efa' },
                 ]

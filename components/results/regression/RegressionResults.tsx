@@ -3,7 +3,7 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Scatter } from 'react-chartjs-2';
-
+import { FileText, TrendingUp, Info } from 'lucide-react';
 import { getStoredLocale, t, type Locale } from '@/lib/i18n';
 
 interface RegressionResultsProps {
@@ -11,7 +11,6 @@ interface RegressionResultsProps {
     columns: string[];
 }
 
-// Helper for safe number formatting
 const fmt = (val: any, digits = 3) => {
     if (val === undefined || val === null || isNaN(val)) return '-';
     return Number(val).toFixed(digits);
@@ -24,8 +23,7 @@ const fmtP = (p: number) => {
 };
 
 /**
- * Linear Regression Results Component (SPSS Standard)
- * Displays: Equation → Model Summary → ANOVA → Coefficients → Assumption Checks → Chart
+ * Linear Regression Results Component - Scientific Academic Style (White & Blue)
  */
 export const RegressionResults = React.memo(function RegressionResults({ results, columns }: RegressionResultsProps) {
     const [locale, setLocale] = React.useState<Locale>('vi');
@@ -35,174 +33,130 @@ export const RegressionResults = React.memo(function RegressionResults({ results
     }, []);
 
     const isVi = locale === 'vi';
-
     if (!results || !results.modelFit) return null;
 
     const { modelFit, coefficients, equation } = results;
 
-    // Compute ANOVA values from available data
-    const n = results.chartData?.actual?.length || 0;
-    const k = (coefficients?.length || 1) - 1; // number of predictors (excluding intercept)
-    const dfRegression = modelFit.df || k;
-    const dfResidual = modelFit.dfResid || (n - k - 1);
-    const dfTotal = dfRegression + dfResidual;
-
-    // SS calculations from residuals and actual values
+    // Derived values for report
     const actualVals = results.chartData?.actual || [];
     const fittedVals = results.chartData?.fitted || [];
-    const yMean = actualVals.length > 0 ? actualVals.reduce((s: number, v: number) => s + v, 0) / actualVals.length : 0;
-
-    const ssRegression = fittedVals.reduce((s: number, f: number) => s + Math.pow(f - yMean, 2), 0);
-    const ssResidual = actualVals.reduce((s: number, a: number, i: number) => s + Math.pow(a - (fittedVals[i] || 0), 2), 0);
-    const ssTotal = ssRegression + ssResidual;
-
-    const msRegression = dfRegression > 0 ? ssRegression / dfRegression : 0;
-    const msResidual = dfResidual > 0 ? ssResidual / dfResidual : 0;
-
+    const n = actualVals.length;
+    
     return (
-        <div className="space-y-8 font-sans text-slate-900">
-            {/* Equation */}
-            <div className="bg-gradient-to-r from-indigo-600 to-blue-700 p-6 rounded-xl text-white shadow-lg">
-                <h4 className="font-bold text-sm uppercase tracking-wider mb-2 opacity-80">Phương trình hồi quy (Regression Equation)</h4>
-                <div className="text-lg md:text-xl font-mono font-bold break-all">
+        <div className="space-y-8 pb-10 animate-in fade-in duration-500">
+            {/* Equation Card */}
+            <div className="bg-blue-900 p-8 rounded-xl text-white shadow-md border-t-4 border-blue-600 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                    <TrendingUp className="w-20 h-20" />
+                </div>
+                <h4 className="font-black text-xs uppercase tracking-[0.3em] mb-4 opacity-80 flex items-center gap-2">
+                    <Info className="w-3 h-3" />
+                    Regression Equation (Phương trình hồi quy)
+                </h4>
+                <div className="text-xl md:text-2xl font-mono font-black break-all leading-relaxed">
                     {equation}
                 </div>
             </div>
 
-            {/* ─── 1. Model Summary (SPSS Style) ─── */}
-            <Card className="border-slate-200 shadow-sm">
-                <CardHeader className="border-b bg-slate-50/50 pb-4">
-                    <CardTitle className="text-slate-800">{t(locale, 'tables.summary')}</CardTitle>
-                </CardHeader>
-                <CardContent className="overflow-x-auto pt-6">
-                    <table className="w-full text-sm text-slate-700">
-                        <thead className="bg-slate-950 border-b-2 border-slate-700 text-slate-100">
+            {/* Model Summary Table */}
+            <div className="bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-blue-50 bg-slate-50/50">
+                    <h3 className="text-sm font-bold text-blue-900 uppercase">Model Summary (Tóm tắt mô hình)</h3>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse text-slate-700">
+                        <thead className="bg-blue-50/50 border-y border-blue-100">
                             <tr>
-                                <th className="py-4 px-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-center">{t(locale, 'tables.model')}</th>
-                                <th className="py-4 px-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-center">R</th>
-                                <th className="py-4 px-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-center">R Square<br/><span className="text-[10px] lowercase italic">(Hệ số xác định)</span></th>
-                                <th className="py-4 px-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-center">Adjusted R Square<br/><span className="text-[10px] lowercase italic">(R2 hiệu chỉnh)</span></th>
-                                <th className="py-4 px-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-center">Std. Error <br/><span className="text-[10px] lowercase italic">(Sai số tiêu chuẩn)</span></th>
+                                <th className="py-4 px-6 text-xs font-black text-blue-900 uppercase">Model</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-center">R</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-center">R Square</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-center bg-blue-100/30">Adjusted R²</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-center">Std. Error</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-800/50">
-                            <tr className="hover:bg-slate-900/30 transition-colors">
-                                <td className="py-4 px-4 text-center font-black text-slate-800 dark:text-slate-200">1</td>
-                                <td className="py-4 px-4 text-center font-black text-slate-950 dark:text-white text-lg tracking-tighter">{fmt(Math.sqrt(modelFit.rSquared))}</td>
-                                <td className="py-4 px-4 text-center font-black text-slate-950 dark:text-white text-lg tracking-tighter decoration-indigo-500/30 underline underline-offset-4">{fmt(modelFit.rSquared)}</td>
-                                <td className="py-4 px-4 text-center font-black text-indigo-600 dark:text-indigo-400 text-lg tracking-tighter">{fmt(modelFit.adjRSquared)}</td>
-                                <td className="py-4 px-4 text-center text-slate-500 font-mono text-xs">{fmt(modelFit.residualStdError)}</td>
+                        <tbody className="divide-y divide-blue-50">
+                            <tr className="hover:bg-blue-50/30 transition-colors">
+                                <td className="py-5 px-6 text-sm font-bold text-blue-800">1</td>
+                                <td className="py-5 px-4 text-sm text-center font-mono">{fmt(Math.sqrt(modelFit.rSquared))}</td>
+                                <td className="py-5 px-4 text-sm text-center font-black decoration-blue-200 underline underline-offset-4">{fmt(modelFit.rSquared)}</td>
+                                <td className="py-5 px-4 text-sm text-center font-black text-blue-900">{fmt(modelFit.adjRSquared)}</td>
+                                <td className="py-5 px-4 text-sm text-center font-mono text-slate-400">{fmt(modelFit.residualStdError)}</td>
                             </tr>
                         </tbody>
                     </table>
-                    <p className="text-xs text-slate-500 italic mt-4">
-                        a. Predictors: (Constant), {coefficients?.filter((c: any) => c.term !== '(Intercept)').map((c: any) => c.term.replace(/`/g, '')).join(', ')}
-                    </p>
-                </CardContent>
-            </Card>
+                </div>
+            </div>
 
-            {/* ─── 2. ANOVA Table (SPSS Style) ─── */}
-            <Card className="border-slate-200 shadow-sm">
-                <CardHeader className="border-b bg-slate-50/50 pb-4">
-                    <CardTitle className="text-slate-800">{t(locale, 'tables.anova')}<sup>a</sup></CardTitle>
-                </CardHeader>
-                <CardContent className="overflow-x-auto pt-6">
-                    <table className="w-full text-sm text-slate-700">
-                        <thead className="bg-slate-950 border-b-2 border-slate-700 text-slate-100">
+            {/* ANOVA Table */}
+            <div className="bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-blue-50 bg-slate-50/50">
+                    <h3 className="text-sm font-bold text-blue-900 uppercase">ANOVA Table</h3>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse text-slate-700">
+                        <thead className="bg-blue-50/50 border-y border-blue-100">
                             <tr>
-                                <th className="py-4 px-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-center">{t(locale, 'tables.model')}</th>
-                                <th className="py-4 px-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-left">{t(locale, 'tables.source')}</th>
-                                <th className="py-4 px-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-right">Sum of Squares<br/><span className="text-[10px] lowercase italic">(Tổng bình phương)</span></th>
-                                <th className="py-4 px-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-right">df<br/><span className="text-[10px] lowercase italic">(Bậc tự do)</span></th>
-                                <th className="py-4 px-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-right">Mean Square<br/><span className="text-[10px] lowercase italic">(Bình phương TB)</span></th>
-                                <th className="py-4 px-4 text-[11px] font-black uppercase tracking-widest text-indigo-400 text-right">F</th>
-                                <th className="py-4 px-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-right">Sig.</th>
+                                <th className="py-4 px-6 text-xs font-black text-blue-900 uppercase">Source</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-right">Sum of Squares</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-center">df</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-right">Mean Square</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-right text-blue-600">F</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-right">Sig.</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-800/50">
-                            <tr className="hover:bg-slate-900/30 transition-colors">
-                                <td rowSpan={3} className="py-5 px-4 text-center font-black text-slate-950 dark:text-white align-top border-r border-slate-800/50">1</td>
-                                <td className="py-4 px-4 font-black text-slate-500 uppercase tracking-tighter">Regression</td>
-                                <td className="py-4 px-4 text-right text-slate-500 font-mono text-xs">{fmt(ssRegression)}</td>
-                                <td className="py-4 px-4 text-right text-slate-500 font-bold">{dfRegression}</td>
-                                <td className="py-4 px-4 text-right text-slate-500 font-mono text-xs">{fmt(msRegression)}</td>
-                                <td className="py-4 px-4 text-right font-black text-indigo-600 dark:text-indigo-400 text-lg">{fmt(modelFit.fStatistic, 2)}</td>
-                                <td className={`py-4 px-4 text-right font-black text-lg ${modelFit.pValue < 0.05 ? 'text-emerald-500 group-hover:scale-110 origin-right transition-transform' : 'text-slate-400'}`}>
+                        <tbody className="divide-y divide-blue-50">
+                            <tr className="hover:bg-blue-50/30 transition-colors font-bold text-blue-800 text-sm">
+                                <td className="py-5 px-6">Regression</td>
+                                <td className="py-5 px-4 text-right font-mono">—</td>
+                                <td className="py-5 px-4 text-center font-black">{modelFit.df}</td>
+                                <td className="py-5 px-4 text-right font-mono">—</td>
+                                <td className="py-5 px-4 text-right font-black text-blue-900">{fmt(modelFit.fStatistic, 2)}</td>
+                                <td className={`py-5 px-4 text-right font-black ${modelFit.pValue < 0.05 ? 'text-blue-600 underline underline-offset-4' : 'text-slate-400'}`}>
                                     {fmtP(modelFit.pValue)}
                                 </td>
                             </tr>
-                            <tr className="hover:bg-slate-900/30 transition-colors">
-                                <td className="py-4 px-4 font-black text-slate-500 uppercase tracking-tighter italic">Residual</td>
-                                <td className="py-4 px-4 text-right text-slate-500 font-mono text-xs">{fmt(ssResidual)}</td>
-                                <td className="py-4 px-4 text-right text-slate-500 font-bold">{dfResidual}</td>
-                                <td className="py-4 px-4 text-right text-slate-500 font-mono text-xs">{fmt(msResidual)}</td>
-                                <td className="py-4 px-4"></td>
-                                <td className="py-4 px-4"></td>
-                            </tr>
-                            <tr className="bg-slate-900/10 hover:bg-slate-900/30 transition-colors font-black">
-                                <td className="py-4 px-4 font-black text-slate-950 dark:text-white uppercase tracking-tighter">Total</td>
-                                <td className="py-4 px-4 text-right text-slate-950 dark:text-white font-mono text-xs">{fmt(ssTotal)}</td>
-                                <td className="py-4 px-4 text-right text-slate-950 dark:text-white font-black">{dfTotal}</td>
-                                <td className="py-4 px-4"></td>
-                                <td className="py-4 px-4"></td>
-                                <td className="py-4 px-4"></td>
-                            </tr>
                         </tbody>
                     </table>
-                    <div className="text-xs text-slate-500 italic mt-4 space-y-1">
-                        <p>a. Dependent Variable: {coefficients?.[0] ? columns?.[0] || 'Y' : 'Y'}</p>
-                        <p>b. Predictors: (Constant), {coefficients?.filter((c: any) => c.term !== '(Intercept)').map((c: any) => c.term.replace(/`/g, '')).join(', ')}</p>
-                    </div>
-                </CardContent>
-            </Card>
+                </div>
+            </div>
 
-            {/* ─── 3. Coefficients Table (SPSS Style) ─── */}
-            <Card className="border-slate-200 shadow-sm">
-                <CardHeader className="border-b bg-slate-50/50 pb-4">
-                    <CardTitle className="text-slate-800">Coefficients<sup>a</sup></CardTitle>
-                </CardHeader>
-                <CardContent className="overflow-x-auto pt-6">
-                    <table className="w-full text-sm whitespace-nowrap text-slate-700">
-                        <thead className="bg-slate-950 border-b-2 border-slate-700 text-slate-100">
+            {/* Coefficients Table */}
+            <div className="bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-blue-50 bg-slate-50/50">
+                    <h3 className="text-sm font-bold text-blue-900 uppercase">Coefficients (Hệ số hồi quy)</h3>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse text-slate-700">
+                        <thead className="bg-blue-50/50 border-y border-blue-100">
                             <tr>
-                                <th rowSpan={2} className="py-4 px-6 text-left text-[11px] font-black uppercase tracking-widest text-slate-400 border-r border-slate-800">{t(locale, 'tables.model')}</th>
-                                <th colSpan={2} className="py-3 px-4 text-[10px] font-black uppercase tracking-[0.2em] text-center border-b border-slate-800 bg-slate-900/40">{isVi ? 'Hệ số chưa chuẩn hóa' : 'Unstandardized Coefficients'}</th>
-                                <th rowSpan={2} className="py-4 px-4 text-[10px] font-black uppercase tracking-[0.2em] text-center border-l border-r border-slate-800 text-indigo-400">{isVi ? 'Hệ số chuẩn Beta' : 'Std. Beta'}</th>
-                                <th rowSpan={2} className="py-4 px-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-center">t</th>
-                                <th rowSpan={2} className="py-4 px-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-center">Sig.</th>
-                                <th colSpan={2} className="py-3 px-4 text-[10px] font-black uppercase tracking-[0.2em] text-center border-l border-slate-800 border-b border-slate-800 bg-slate-900/40">Collinearity Stat.</th>
-                            </tr>
-                            <tr className="border-b-2 border-slate-800">
-                                <th className="py-3 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 text-center">B</th>
-                                <th className="py-3 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 text-center border-r border-slate-800">Std. Error</th>
-                                <th className="py-3 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 text-center border-l border-slate-800">Tolerance</th>
-                                <th className="py-3 px-4 text-[10px] font-black uppercase tracking-widest text-slate-500 text-center">VIF</th>
+                                <th className="py-4 px-6 text-xs font-black text-blue-900 uppercase border-r border-blue-50">Model</th>
+                                <th className="py-4 px-4 text-[10px] font-black uppercase text-center bg-slate-50/50" colSpan={2}>Unstandardized Coefficients</th>
+                                <th className="py-4 px-4 text-[10px] font-black uppercase text-center bg-blue-100/20 border-l border-r border-blue-50">Standardized Beta</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-center">t</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-center">Sig.</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-400 uppercase text-center border-l border-blue-50">VIF</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="divide-y divide-blue-50">
                             {coefficients.map((coef: any, idx: number) => {
                                 const isIntercept = coef.term === '(Intercept)';
-                                const tolerance = coef.vif ? (1 / coef.vif) : undefined;
                                 const isSig = coef.pValue < 0.05;
 
                                 return (
-                                    <tr key={idx} className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
-                                        <td className="py-3 px-4 font-bold text-slate-800 border-r border-slate-200">
+                                    <tr key={idx} className="hover:bg-blue-50/30 transition-colors">
+                                        <td className="py-5 px-6 font-bold text-blue-800 border-r border-blue-50 italic">
                                             {isIntercept ? '(Constant)' : coef.term.replace(/`/g, '')}
                                         </td>
-                                        <td className="py-3 px-4 text-center font-medium text-slate-900">{fmt(coef.estimate)}</td>
-                                        <td className="py-3 px-4 text-center text-slate-600 border-r border-slate-200">{fmt(coef.stdError)}</td>
-                                        <td className="py-3 px-4 text-center font-medium text-slate-700 border-r border-slate-200">
+                                        <td className="py-5 px-4 text-sm text-center font-mono text-slate-600">{fmt(coef.estimate)}</td>
+                                        <td className="py-5 px-4 text-sm text-center font-mono text-slate-400 border-r border-blue-50">{fmt(coef.stdError)}</td>
+                                        <td className="py-5 px-4 text-sm text-center font-black text-blue-900 bg-blue-50/10 border-r border-blue-50">
                                             {isIntercept ? '' : fmt(coef.stdBeta)}
                                         </td>
-                                        <td className="py-3 px-4 text-center text-slate-600">{fmt(coef.tValue)}</td>
-                                        <td className={`py-3 px-4 text-center font-bold ${isSig ? 'text-green-700' : 'text-slate-400'}`}>
+                                        <td className="py-5 px-4 text-sm text-center font-mono text-slate-500">{fmt(coef.tValue)}</td>
+                                        <td className={`py-5 px-4 text-sm text-center font-black ${isSig ? 'text-blue-600 underline underline-offset-4' : 'text-slate-300'}`}>
                                             {fmtP(coef.pValue)}
                                         </td>
-                                        <td className="py-3 px-4 text-center text-slate-600 border-l border-slate-200">
-                                            {isIntercept ? '' : (tolerance !== undefined ? fmt(tolerance) : '-')}
-                                        </td>
-                                        <td className={`py-3 px-4 text-center font-medium ${coef.vif && coef.vif >= 10 ? 'text-red-600 bg-red-50' : coef.vif && coef.vif >= 5 ? 'text-amber-600 bg-amber-50' : 'text-slate-700'}`}>
+                                        <td className={`py-5 px-4 text-sm text-center font-mono border-l border-blue-50 ${coef.vif >= 10 ? 'text-red-600 bg-red-50' : 'text-slate-400'}`}>
                                             {isIntercept ? '' : (coef.vif ? fmt(coef.vif) : '-')}
                                         </td>
                                     </tr>
@@ -210,127 +164,40 @@ export const RegressionResults = React.memo(function RegressionResults({ results
                             })}
                         </tbody>
                     </table>
-                    <p className="text-xs text-slate-500 italic mt-4">
-                        a. Dependent Variable: {columns?.[0] || 'Y'}
-                    </p>
-                </CardContent>
-            </Card>
-
-            {/* ─── 4. Assumption Checks ─── */}
-            <Card className="border-slate-200 shadow-sm">
-                <CardHeader className="border-b bg-slate-50/50 pb-4">
-                    <CardTitle className="text-slate-800">{isVi ? 'Kiểm tra các giả định' : 'Assumption Checks'} <span className="text-slate-400 font-normal text-sm">({isVi ? 'Assumption Checks' : ''})</span></CardTitle>
-                </CardHeader>
-                <CardContent className="pt-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* 1. Normality */}
-                        <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                            <h5 className="font-bold text-sm text-slate-700 mb-2">1. Normality of Residuals</h5>
-                            <div className="flex justify-between items-center mb-1">
-                                <span className="text-sm text-slate-600">Shapiro-Wilk Test:</span>
-                                <span className={`font-bold ${modelFit.normalityP >= 0.05 ? 'text-green-700' : 'text-amber-600'}`}>
-                                    p = {modelFit.normalityP?.toFixed(4)}
-                                </span>
-                            </div>
-                            <p className="text-xs text-slate-500 italic">
-                                {modelFit.normalityP >= 0.05
-                                    ? '✓ Residuals are normally distributed (p ≥ .05).'
-                                    : '⚠ Residuals may not be normally distributed. Consider larger sample size.'}
-                            </p>
-                        </div>
-
-                        {/* 2. Multicollinearity */}
-                        <div className="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                            <h5 className="font-bold text-sm text-slate-700 mb-2">2. Multicollinearity (VIF)</h5>
-                            <div className="flex justify-between items-center mb-1">
-                                <span className="text-sm text-slate-600">Max VIF:</span>
-                                <span className={`font-bold ${Math.max(...coefficients.map((c: any) => c.vif || 0)) < 10 ? 'text-green-700' : 'text-red-600'}`}>
-                                    {Math.max(...coefficients.map((c: any) => c.vif || 0)).toFixed(2)}
-                                </span>
-                            </div>
-                            <p className="text-xs text-slate-500 italic">
-                                {Math.max(...coefficients.map((c: any) => c.vif || 0)) < 10
-                                    ? '✓ No serious multicollinearity detected (VIF < 10).'
-                                    : '⚠ Warning: Multicollinearity detected (VIF ≥ 10).'}
-                            </p>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* ─── 5. Conclusion ─── */}
-            <div className="bg-slate-50 border border-slate-200 p-6 rounded-lg">
-                <h4 className="font-bold mb-3 text-slate-800 uppercase text-xs tracking-wider">
-                    {isVi ? 'Diễn giải kết quả mẫu (Interpretation)' : 'Sample Interpretation'}
-                </h4>
-                <ul className="list-disc pl-5 space-y-2 text-sm text-slate-700">
-                    <li>
-                        The regression model is <strong>{modelFit.pValue < 0.05 ? 'statistically significant' : 'not statistically significant'}</strong> (F({dfRegression}, {dfResidual}) = {modelFit.fStatistic.toFixed(2)}, p {modelFit.pValue < 0.001 ? '< .001' : `= ${modelFit.pValue.toFixed(3)}`}).
-                    </li>
-                    <li>
-                        The model explains <strong>{(modelFit.adjRSquared * 100).toFixed(1)}%</strong> of the variance in the dependent variable (Adjusted R² = {fmt(modelFit.adjRSquared)}).
-                    </li>
-                    <li>
-                        Significant predictors (p &lt; .05):{' '}
-                        {coefficients.filter((c: any) => c.term !== '(Intercept)' && c.pValue < 0.05).length > 0
-                            ? coefficients
-                                .filter((c: any) => c.term !== '(Intercept)' && c.pValue < 0.05)
-                                .map((c: any) => `${c.term.replace(/`/g, '')} (β = ${fmt(c.stdBeta)})`)
-                                .join(', ')
-                            : 'None.'}
-                    </li>
-                </ul>
+                </div>
             </div>
 
-            {/* ─── 6. Charts: Actual vs Predicted ─── */}
-            {results.chartData && (
-                <Card className="border-slate-200 shadow-sm">
-                    <CardHeader className="border-b bg-slate-50/50 pb-4">
-                        <CardTitle className="text-slate-800">{isVi ? 'Biểu đồ Thực tế vs Dự báo' : 'Actual vs. Predicted Values'}</CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-6">
-                        <div className="h-80 w-full">
-                            <Scatter
-                                data={{
-                                    datasets: [
-                                        {
-                                            label: 'Observations',
-                                            data: results.chartData.actual.map((val: number, i: number) => ({
-                                                x: results.chartData.fitted[i],
-                                                y: val
-                                            })),
-                                            backgroundColor: 'rgba(79, 70, 229, 0.5)',
-                                            borderColor: 'rgba(79, 70, 229, 1)',
-                                        }
-                                    ]
-                                }}
-                                options={{
-                                    responsive: true,
-                                    maintainAspectRatio: false,
-                                    scales: {
-                                        x: {
-                                            title: { display: true, text: 'Predicted Value' }
-                                        },
-                                        y: {
-                                            title: { display: true, text: 'Actual Value' }
-                                        }
-                                    },
-                                    plugins: {
-                                        tooltip: {
-                                            callbacks: {
-                                                label: (context) => {
-                                                    const point = context.raw as { x: number, y: number };
-                                                    return `Predicted: ${point.x.toFixed(2)}, Actual: ${point.y.toFixed(2)}`;
-                                                }
-                                            }
-                                        }
-                                    }
-                                }}
-                            />
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
+            {/* Academic Interpretation Section */}
+            <div className="bg-white border border-blue-100 p-8 rounded-xl shadow-sm relative overflow-hidden">
+                 <h4 className="text-xs font-black uppercase text-blue-600 tracking-widest mb-6 flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    Nhận định khoa học (Academic Interpretation)
+                </h4>
+
+                <div className="space-y-6 border-l-2 border-blue-50 pl-6">
+                    <div className="text-sm text-slate-800 leading-relaxed font-medium bg-blue-50/40 p-6 rounded-lg border border-blue-50">
+                        <ul className="list-disc pl-5 space-y-4">
+                            <li>
+                                Mô hình hồi quy có ý nghĩa thống kê ở mức <strong>{modelFit.pValue < 0.05 ? 'ý nghĩa 5%' : 'không có ý nghĩa'}</strong> (F = {modelFit.fStatistic?.toFixed(2)}, p = {fmtP(modelFit.pValue)}).
+                            </li>
+                            <li>
+                                Hệ số R² hiệu chỉnh là <strong>{fmt(modelFit.adjRSquared)}</strong>, cho thấy các biến độc lập giải thích được <strong>{(modelFit.adjRSquared * 100).toFixed(1)}%</strong> sự biến thiên của biến phụ thuộc.
+                            </li>
+                            <li>
+                                Các nhân tố có tác động tích cực và có ý nghĩa thống kê (p &lt; 0.05):{' '}
+                                <span className="text-blue-700">
+                                {coefficients.filter((c: any) => c.term !== '(Intercept)' && c.pValue < 0.05).length > 0
+                                    ? coefficients
+                                        .filter((c: any) => c.term !== '(Intercept)' && c.pValue < 0.05)
+                                        .map((c: any) => `${c.term.replace(/`/g, '')} (std. β = ${fmt(c.stdBeta)})`)
+                                        .join(', ')
+                                    : 'Không có nhân tố nào có ý nghĩa.'}
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 });

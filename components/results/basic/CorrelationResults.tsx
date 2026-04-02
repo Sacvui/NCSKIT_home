@@ -2,8 +2,7 @@
 
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Table, Layers } from 'lucide-react';
-
+import { FileText, Layers, Activity } from 'lucide-react';
 import { getStoredLocale, t, type Locale } from '@/lib/i18n';
 
 interface CorrelationResultsProps {
@@ -12,8 +11,7 @@ interface CorrelationResultsProps {
 }
 
 /**
- * Correlation Matrix Results Component
- * Displays correlation matrix with color-coded heatmap and high contrast
+ * Correlation Matrix Results Component - Scientific Academic Style (White & Blue)
  */
 export const CorrelationResults = React.memo(function CorrelationResults({ results, columns }: CorrelationResultsProps) {
     const [locale, setLocale] = React.useState<Locale>('vi');
@@ -25,37 +23,40 @@ export const CorrelationResults = React.memo(function CorrelationResults({ resul
     const matrix = results.correlationMatrix;
     const pValues = results.pValues;
     
+    if (!matrix || !columns) return null;
+
     return (
-        <div className="space-y-8 font-sans">
-            <Card className="border-slate-200 dark:border-slate-800 shadow-lg overflow-hidden">
-                <CardHeader className="border-b bg-slate-50/50 dark:bg-slate-800/50 pb-4">
-                    <CardTitle className="text-slate-950 dark:text-slate-100 flex items-center gap-2">
-                        <Layers className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                        {t(locale, 'tables.correlations')}
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="overflow-x-auto pt-6 px-0">
-                    <table className="min-w-full text-sm border-collapse text-slate-700 dark:text-slate-300">
-                        <thead className="bg-slate-50 dark:bg-slate-800 text-slate-950 dark:text-slate-100">
-                            <tr className="border-y-2 border-slate-300 dark:border-slate-700">
-                                <th colSpan={2} className="py-4 px-6 text-left font-black uppercase tracking-tight text-xs border-r border-slate-200 dark:border-slate-700">{t(locale, 'tables.variable')}</th>
+        <div className="space-y-8 pb-10 animate-in fade-in duration-500">
+            {/* White-Blue Academic Table */}
+            <div className="bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-blue-50 bg-slate-50/50 flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-blue-900 uppercase tracking-wider flex items-center gap-2">
+                        <Layers className="w-4 h-4 text-blue-600" />
+                        Correlations Matrix (Ma trận Tương quan Pearson)
+                    </h3>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse text-slate-700">
+                        <thead className="bg-blue-50/50 border-y border-blue-100">
+                            <tr>
+                                <th colSpan={2} className="py-4 px-6 text-xs font-black text-blue-900 uppercase">Variable (Biến)</th>
                                 {columns.map((col, idx) => (
-                                    <th key={idx} className="py-4 px-4 font-black uppercase tracking-tight text-[10px] text-center border-l dark:border-slate-700 min-w-[80px]">
+                                    <th key={idx} className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-center border-l border-blue-50 min-w-[100px]">
                                         {col}
                                     </th>
                                 ))}
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="divide-y divide-blue-50">
                             {matrix.map((row: number[], rowIdx: number) => (
                                 <React.Fragment key={rowIdx}>
                                     {/* Pearson Correlation Row */}
-                                    <tr className="border-t border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group">
-                                        <td rowSpan={pValues ? 2 : 1} className="py-4 px-6 font-black text-slate-900 dark:text-white border-r border-slate-200 dark:border-slate-700 align-top bg-slate-50/30 dark:bg-slate-900/30 group-hover:text-indigo-600 dark:group-hover:text-indigo-400">
+                                    <tr className="hover:bg-blue-50/30 transition-colors group">
+                                        <td rowSpan={pValues ? 2 : 1} className="py-5 px-6 font-bold text-blue-800 border-r border-blue-50 bg-slate-50/30">
                                             {columns[rowIdx]}
                                         </td>
-                                        <td className="py-3 px-4 font-bold text-slate-700 dark:text-slate-400 border-r border-slate-200 dark:border-slate-700 text-xs bg-white dark:bg-slate-900">
-                                            Pearson<br/><span className="text-[10px] text-slate-400 font-normal italic">Correlation</span>
+                                        <td className="py-4 px-4 font-black text-blue-400 border-r border-blue-50 text-[10px] uppercase bg-slate-50/20">
+                                            Pearson<br/><span className="text-[10px] text-blue-600 font-black italic tracking-tighter">Correlation</span>
                                         </td>
                                         {row.map((value: number, colIdx: number) => {
                                             const isSelf = rowIdx === colIdx;
@@ -66,15 +67,14 @@ export const CorrelationResults = React.memo(function CorrelationResults({ resul
                                                 else if (pVal < 0.05) stars = '*';
                                             }
 
-                                            // Heatmap background calculation
+                                            // Subdued Heatmap style for academic feel
                                             const absVal = Math.abs(value);
-                                            const bgOpacity = isSelf ? 'bg-transparent' : 
-                                                              absVal >= 0.7 ? 'bg-indigo-100/50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300' :
-                                                              absVal >= 0.5 ? 'bg-indigo-50/50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400' : 
-                                                              absVal >= 0.3 ? 'bg-blue-50/30 dark:bg-blue-950/10' : 'bg-transparent';
+                                            const bgOpacity = isSelf ? 'bg-slate-50' : 
+                                                              absVal >= 0.7 ? 'bg-blue-100/40 text-blue-900' :
+                                                              absVal >= 0.5 ? 'bg-blue-50/40 text-blue-800' : 'bg-transparent';
 
                                             return (
-                                                <td key={colIdx} className={`py-3 px-4 text-center border-l dark:border-slate-800 transition-colors ${bgOpacity} ${isSelf ? 'text-slate-300 dark:text-slate-700' : 'text-slate-900 dark:text-slate-100 font-black'}`}>
+                                                <td key={colIdx} className={`py-4 px-4 text-sm text-center border-l border-blue-50 font-mono transition-colors ${bgOpacity} ${isSelf ? 'text-slate-300' : 'text-blue-950 font-black'}`}>
                                                     {isSelf ? '1' : value.toFixed(3)}{stars}
                                                 </td>
                                             );
@@ -82,15 +82,15 @@ export const CorrelationResults = React.memo(function CorrelationResults({ resul
                                     </tr>
                                     {/* Sig. (2-tailed) Row */}
                                     {pValues && (
-                                        <tr className="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border-b border-slate-100 dark:border-slate-800/50">
-                                            <td className="py-2 px-4 text-slate-500 dark:text-slate-500 border-r border-slate-200 dark:border-slate-700 text-[10px] font-bold">
-                                                Sig.<br/><span className="italic font-normal">(2-tailed)</span>
+                                        <tr className="hover:bg-blue-50/30 transition-colors border-b border-blue-50/50">
+                                            <td className="py-2 px-4 font-bold text-slate-400 border-r border-blue-50 text-[10px] uppercase bg-slate-50/20">
+                                                Sig.<br/><span className="italic font-normal lowercase">(2-tailed)</span>
                                             </td>
                                             {row.map((_, colIdx: number) => {
                                                 const isSelf = rowIdx === colIdx;
                                                 const pVal = pValues[rowIdx][colIdx];
                                                 return (
-                                                    <td key={colIdx} className={`py-2 px-4 text-center border-l dark:border-slate-800 text-[10px] font-mono ${isSelf ? '' : pVal < 0.05 ? 'text-indigo-600 dark:text-indigo-400 font-black' : 'text-slate-400 dark:text-slate-600'}`}>
+                                                    <td key={colIdx} className={`py-2 px-4 text-center border-l border-blue-50 text-[10px] font-mono ${isSelf ? '' : pVal < 0.05 ? 'text-blue-600 font-black' : 'text-slate-400'}`}>
                                                         {isSelf ? '' : (pVal < 0.001 ? '<.001' : pVal.toFixed(3))}
                                                     </td>
                                                 );
@@ -101,19 +101,20 @@ export const CorrelationResults = React.memo(function CorrelationResults({ resul
                             ))}
                         </tbody>
                     </table>
-                </CardContent>
-            </Card>
+                </div>
+            </div>
 
-            <div className="flex items-center gap-6 text-[10px] font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest bg-slate-50 dark:bg-slate-800/30 p-4 rounded-xl border border-slate-200 dark:border-slate-700/50 shadow-inner">
+            {/* Significance Legend */}
+            <div className="flex items-center gap-6 text-[11px] font-black text-blue-900 uppercase tracking-widest p-4 rounded-xl border border-blue-100 bg-blue-50/20">
                 <div className="flex items-center gap-2">
-                    <span className="text-xl text-indigo-600 dark:text-indigo-400">**</span>
+                    <span className="text-xl text-blue-600">**</span>
                     <span>Significant at 0.01 level</span>
                 </div>
-                <div className="flex items-center gap-2 border-l border-slate-300 dark:border-slate-700 pl-6">
-                    <span className="text-xl text-indigo-500 dark:text-indigo-500 font-black">*</span>
+                <div className="flex items-center gap-2 border-l border-blue-200 pl-6">
+                    <span className="text-xl text-blue-600 font-black">*</span>
                     <span>Significant at 0.05 level</span>
                 </div>
-                <div className="flex-1 text-right italic font-normal normal-case text-slate-400 underline decoration-slate-200 decoration-dotted underline-offset-4">
+                <div className="flex-1 text-right italic font-normal normal-case text-slate-400 border-l border-blue-200 pl-6">
                     Sample size (N) = {results?.N?.[0] || 'N/A'}
                 </div>
             </div>

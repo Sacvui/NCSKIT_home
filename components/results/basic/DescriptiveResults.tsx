@@ -2,10 +2,7 @@
 
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { ChartWrapper } from '../shared/ChartWrapper';
-import { TemplateInterpretation } from '@/components/TemplateInterpretation';
-import { BarChart3, Database } from 'lucide-react';
-
+import { FileText, Database, BarChart3 } from 'lucide-react';
 import { getStoredLocale, t, type Locale } from '@/lib/i18n';
 
 interface DescriptiveResultsProps {
@@ -13,15 +10,14 @@ interface DescriptiveResultsProps {
     columns: string[];
 }
 
-/**
- * Descriptive Statistics Results Component
- * Displays descriptive statistics table and mean comparison chart
- */
-const safeToFixed = (val: any, digits = 3) => {
-    if (val === undefined || val === null || isNaN(val)) return '-';
+const safeToFixed = (val: any, digits: number = 3) => {
+    if (val === undefined || val === null || isNaN(Number(val))) return '-';
     return Number(val).toFixed(digits);
 };
 
+/**
+ * Descriptive Results Component - Scientific Academic Style (White & Blue)
+ */
 export const DescriptiveResults = React.memo(function DescriptiveResults({ results, columns }: DescriptiveResultsProps) {
     const [locale, setLocale] = React.useState<Locale>('vi');
 
@@ -29,100 +25,78 @@ export const DescriptiveResults = React.memo(function DescriptiveResults({ resul
         setLocale(getStoredLocale());
     }, []);
 
+    if (!results || !results.mean) return null;
+
     return (
-        <div className="space-y-8 font-sans">
-            {/* Descriptive Statistics Table */}
-            <Card className="border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-                <CardHeader className="border-b bg-slate-50/50 dark:bg-slate-800/50 pb-4">
-                    <CardTitle className="text-slate-900 dark:text-slate-50 flex items-center gap-2">
-                        <Database className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                        {t(locale, 'tables.summary')}
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="overflow-x-auto pt-6 px-0">
-                    <table className="w-full text-left text-sm whitespace-nowrap text-slate-700 dark:text-slate-300 border-collapse">
-                        <thead className="bg-slate-950 border-b-2 border-slate-700 text-slate-100">
+        <div className="space-y-8 pb-10 animate-in fade-in duration-500">
+            {/* White-Blue Academic Table */}
+            <div className="bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-blue-50 bg-slate-50/50 flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-blue-900 uppercase tracking-wider flex items-center gap-2">
+                        <BarChart3 className="w-4 h-4 text-blue-600" />
+                        Descriptive Statistics (Thống kê Mô tả)
+                    </h3>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse text-slate-700">
+                        <thead className="bg-blue-50/50 border-y border-blue-100">
                             <tr>
-                                <th className="py-4 px-6 text-[10px] font-black uppercase tracking-widest text-slate-400">{t(locale, 'tables.variable')}</th>
-                                <th className="py-4 px-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center border-l border-slate-800">{t(locale, 'tables.n')}</th>
-                                <th className="py-4 px-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right border-l border-slate-800">{t(locale, 'tables.min')}</th>
-                                <th className="py-4 px-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right border-l border-slate-800">{t(locale, 'tables.max')}</th>
-                                <th className="py-4 px-4 text-[10px] font-black uppercase tracking-widest text-indigo-400 text-right border-l-2 border-indigo-500/50 bg-indigo-950/20">{t(locale, 'tables.mean')}</th>
-                                <th className="py-4 px-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right border-l border-slate-800">{t(locale, 'tables.sd')}</th>
-                                <th className="py-4 px-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right border-l border-slate-800">{t(locale, 'tables.skew')}</th>
-                                <th className="py-4 px-4 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right border-l border-slate-800">{t(locale, 'tables.kurtosis')}</th>
+                                <th className="py-4 px-6 text-xs font-black text-blue-900 uppercase">Variable (Biến)</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-center">N</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-right">Min</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-right">Max</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-right bg-blue-100/30">Mean (TB)</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-right">SD (ĐLX)</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-right">Skewness</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-right">Kurtosis</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-800/50">
+                        <tbody className="divide-y divide-blue-50">
                             {columns.map((col, idx) => (
-                                <tr key={idx} className="hover:bg-slate-900/40 transition-all group border-b border-slate-800/50">
-                                    <td className="py-5 px-6 font-black text-slate-900 dark:text-white uppercase tracking-tighter group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{col}</td>
-                                    <td className="py-5 px-4 text-center text-slate-500 font-bold border-l border-slate-800/50">{(results.N && results.N[idx] !== undefined) ? results.N[idx] : 'N/A'}</td>
-                                    <td className="py-5 px-4 text-right text-slate-600 dark:text-slate-400 border-l border-slate-800/50 font-mono text-xs">{safeToFixed(results.min?.[idx])}</td>
-                                    <td className="py-5 px-4 text-right text-slate-600 dark:text-slate-400 border-l border-slate-800/50 font-mono text-xs">{safeToFixed(results.max?.[idx])}</td>
-                                    <td className="py-5 px-4 text-right border-l-2 border-indigo-500/50 bg-indigo-500/5 text-indigo-700 dark:text-indigo-400 font-black text-lg tracking-tighter">{safeToFixed(results.mean?.[idx])}</td>
-                                    <td className="py-5 px-4 text-right text-slate-600 dark:text-slate-400 border-l border-slate-800/50 font-mono text-xs">{safeToFixed(results.sd?.[idx])}</td>
-                                    <td className="py-5 px-4 text-right text-slate-600 dark:text-slate-400 border-l border-slate-800/50 font-mono text-xs italic">{safeToFixed(results.skew?.[idx])}</td>
-                                    <td className="py-5 px-4 text-right text-slate-600 dark:text-slate-400 border-l border-slate-800/50 font-mono text-xs italic">{safeToFixed(results.kurtosis?.[idx])}</td>
+                                <tr key={idx} className="hover:bg-blue-50/30 transition-colors">
+                                    <td className="py-5 px-6 text-sm font-bold text-blue-800">{col}</td>
+                                    <td className="py-5 px-4 text-sm text-center font-mono">{(results.N && results.N[idx] !== undefined) ? results.N[idx] : '-'}</td>
+                                    <td className="py-5 px-4 text-sm text-right font-mono text-slate-500">{safeToFixed(results.min?.[idx])}</td>
+                                    <td className="py-5 px-4 text-sm text-right font-mono text-slate-500">{safeToFixed(results.max?.[idx])}</td>
+                                    <td className="py-5 px-4 text-sm text-right font-black text-blue-900 bg-blue-50/20">{safeToFixed(results.mean?.[idx])}</td>
+                                    <td className="py-5 px-4 text-sm text-right font-mono text-slate-500">{safeToFixed(results.sd?.[idx])}</td>
+                                    <td className="py-5 px-4 text-sm text-right font-mono italic text-slate-400">{safeToFixed(results.skew?.[idx])}</td>
+                                    <td className="py-5 px-4 text-sm text-right font-mono italic text-slate-400">{safeToFixed(results.kurtosis?.[idx])}</td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
-                </CardContent>
-            </Card>
+                </div>
+            </div>
 
-            {/* Mean Comparison Chart Card */}
-            <Card className="border-slate-200 dark:border-slate-800 shadow-sm">
-                <CardHeader className="bg-slate-50/30 dark:bg-slate-800/30">
-                    <CardTitle className="flex items-center gap-2">
-                        <BarChart3 className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                        Mean Value Comparison (Biểu đồ Trung bình)
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="pt-8">
-                    <div className="h-80 w-full">
-                        <ChartWrapper
-                            type="bar"
-                            data={{
-                                labels: columns,
-                                datasets: [{
-                                    label: 'Mean',
-                                    data: results.mean,
-                                    backgroundColor: 'rgba(79, 70, 229, 0.7)', // Indigo-600
-                                    borderColor: 'rgba(79, 70, 229, 1)',
-                                    borderWidth: 2,
-                                    borderRadius: 6,
-                                    hoverBackgroundColor: 'rgba(79, 70, 229, 0.9)',
-                                }]
-                            }}
-                            options={{
-                                plugins: {
-                                    legend: { display: false }
-                                },
-                                scales: {
-                                    y: {
-                                        ticks: {
-                                            color: '#64748b' // slate-500
-                                        },
-                                        grid: {
-                                            color: 'rgba(203, 213, 225, 0.2)' // slate-300 with low opacity
-                                        }
-                                    },
-                                    x: {
-                                        ticks: {
-                                            color: '#64748b'
-                                        },
-                                        grid: {
-                                            display: false
-                                        }
-                                    }
-                                }
-                            }}
-                        />
+            {/* Academic Interpretation Section */}
+            <div className="bg-white border border-blue-100 p-8 rounded-xl shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-4">
+                    <span className="text-[10px] font-black text-blue-200 uppercase tracking-widest italic border border-blue-100 px-2 py-1 rounded">Descriptives</span>
+                </div>
+                
+                <h4 className="text-xs font-black uppercase text-blue-600 tracking-widest mb-6 flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    Nhận định khoa học (Academic Interpretation)
+                </h4>
+
+                <div className="space-y-6 border-l-2 border-blue-50 pl-6">
+                    <div className="text-sm text-slate-800 leading-relaxed font-medium bg-blue-50/40 p-5 rounded-lg border border-blue-50">
+                        <span className="text-blue-900 font-black uppercase text-[10px] mr-2 tracking-tighter block mb-3 underline underline-offset-4">Tóm tắt kết quả:</span>
+                        <ul className="space-y-3 list-disc pl-5">
+                            {columns.slice(0, 5).map((col, idx) => (
+                                <li key={idx}>
+                                    Biến <strong>{col}</strong> có giá trị trung bình là <strong>{safeToFixed(results.mean?.[idx])}</strong> với độ lệch chuẩn <strong>{safeToFixed(results.sd?.[idx])}</strong> (N = {results.N?.[idx]}).
+                                </li>
+                            ))}
+                            {columns.length > 5 && <li>Và các biến khác tương tự...</li>}
+                        </ul>
                     </div>
-                </CardContent>
-            </Card>
-
+                    <p className="text-xs text-slate-500 italic mt-4 px-2">
+                        * Skewness (Độ lệch) và Kurtosis (Độ nhọn) được sử dụng để kiểm tra tính chuẩn của phân phối dữ liệu (thường nằm trong khoảng ±2).
+                    </p>
+                </div>
+            </div>
         </div>
     );
 });
