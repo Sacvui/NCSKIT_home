@@ -9,6 +9,9 @@ import Footer from '@/components/layout/Footer';
 import { getStoredLocale, type Locale } from '@/lib/i18n';
 import Link from 'next/link';
 import { getSupabase } from '@/utils/supabase/client';
+import { evaluateContent } from '@/lib/seo-evaluator';
+import ContentSEOEvaluationCard from '@/components/knowledge/ContentSEOEvaluationCard';
+
 
 const supabase = getSupabase();
 
@@ -39,6 +42,7 @@ export default function ArticleClient({ initialArticle, fallbackArticles, slug }
     const [isAuthorized, setIsAuthorized] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editedArticle, setEditedArticle] = useState<ArticleData>(initialArticle);
+    const [showSEOEval, setShowSEOEval] = useState(false);
 
     const SECRET_CODE = '300489';
 
@@ -167,6 +171,12 @@ export default function ArticleClient({ initialArticle, fallbackArticles, slug }
                                         Lưu thay đổi
                                     </button>
                                 )}
+                                <button 
+                                    onClick={() => setShowSEOEval(!showSEOEval)} 
+                                    className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${showSEOEval ? 'bg-indigo-500 text-white border-indigo-400' : 'bg-white/10 text-white border-white/20 hover:bg-white/20'}`}
+                                >
+                                    SEO Evaluation
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -177,6 +187,27 @@ export default function ArticleClient({ initialArticle, fallbackArticles, slug }
                         <Link href="/knowledge" className="inline-flex items-center gap-2 text-slate-400 hover:text-indigo-600 font-bold text-sm mb-12 transition-all group">
                             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Quay lại thư viện Tri thức
                         </Link>
+
+                        {showSEOEval && (
+                            <div className="mb-16 bg-white p-2 rounded-[3.5rem] border border-indigo-100 shadow-3xl shadow-indigo-100 overflow-hidden ring-4 ring-indigo-50">
+                                <div className="p-10 border-b border-indigo-50 flex items-center justify-between bg-indigo-50/30">
+                                    <h3 className="text-xl font-black text-indigo-950 uppercase tracking-tighter flex items-center gap-3">
+                                        <TrendingUp className="w-6 h-6" /> Content SEO Evaluation
+                                    </h3>
+                                    <button onClick={() => setShowSEOEval(false)} className="p-2 bg-white rounded-full hover:bg-slate-100 transition-colors">
+                                        <X className="w-5 h-5 text-slate-400" />
+                                    </button>
+                                </div>
+                                <div className="p-10 max-h-[800px] overflow-y-auto">
+                                    <ContentSEOEvaluationCard 
+                                        evaluation={evaluateContent(isEditing ? editedArticle : displayArticle, locale)} 
+                                        locale={locale}
+                                        title={isVi ? (isEditing ? editedArticle.title_vi : displayArticle.title_vi) : (isEditing ? editedArticle.title_en : displayArticle.title_en)}
+                                        slug={slug}
+                                    />
+                                </div>
+                            </div>
+                        )}
                         
                         <div className="flex items-center gap-3 mb-8">
                             <span className="px-6 py-2.5 bg-slate-900 text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-full shadow-2xl">

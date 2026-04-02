@@ -6,6 +6,7 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { 
     Workflow, Shield, GitCompare, Bookmark, GraduationCap, Microscope, FileText
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { getStoredLocale, t, type Locale } from '@/lib/i18n';
 
 export default function CaseStudyPage() {
@@ -19,6 +20,7 @@ export default function CaseStudyPage() {
 }
 
 function CaseStudyContent() {
+    const router = useRouter();
     const [locale, setLocale] = useState<Locale>('vi');
     const [mounted, setMounted] = useState(false);
 
@@ -234,9 +236,17 @@ function CaseStudyContent() {
                                     <p className="text-sm text-slate-500 leading-relaxed font-light mb-6">
                                         {t(locale, `docs.casestudy_content.scenarios.${key}.desc`)}
                                     </p>
-                                    <button className="text-xs font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-700 flex items-center gap-2">
-                                        Xem chi tiết <GitCompare className="w-3 h-3" />
-                                    </button>
+                                    <div className="flex items-center justify-between mt-6">
+                                        <button className="text-xs font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-700 flex items-center gap-2">
+                                            Xem chi tiết <GitCompare className="w-3 h-3" />
+                                        </button>
+                                        <button 
+                                            onClick={() => router.push('/analyze?sample=true')}
+                                            className="px-4 py-2 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-indigo-600 transition-colors"
+                                        >
+                                            Thực hành ngay
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                         </div>
