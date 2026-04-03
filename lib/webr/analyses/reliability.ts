@@ -34,32 +34,30 @@ export async function runCronbachAlpha(
     await loadPackagesForMethod('cronbach');
 
     const defaultRCode = `
-    options(mc.cores = 1)
-    library(psych)
-    raw_data <- {{data}}
+    options(mc.cores = 1);
+    library(psych);
+    raw_data <- {{data}};
     
-    # DATA CLEANING: Clamp outliers to valid Likert range
-    valid_min <- {{likertMin}}
-    valid_max <- {{likertMax}}
-    data <- pmax(pmin(raw_data, valid_max), valid_min)
+    # DATA CLEANING
+    valid_min <- {{likertMin}};
+    valid_max <- {{likertMax}};
+    data <- pmax(pmin(raw_data, valid_max), valid_min);
     
-    # Run Cronbach's Alpha with auto key checking for reversed items
-    result <- alpha(data, check.keys = TRUE)
+    # Run Cronbach's Alpha
+    result <- alpha(data, check.keys = TRUE);
     
     # === McDonald's Omega (Robust) ===
-    # Auto-detect optimal number of factors using parallel analysis
+    # Factor detection using parallel analysis
     omega_result <- tryCatch({
         if (ncol(data) >= 3) {
             nfactors_detected <- tryCatch({
-                # Optimized n.iter for faster execution in WebR
-                fa_parallel <- fa.parallel(data, fm="minres", fa="fa", plot=FALSE, n.iter=5)
-                max(1, fa_parallel$nfact)
-            }, error = function(e) { 1 })
+                pa <- fa.parallel(data, fm="minres", fa="fa", plot=FALSE, n.iter=5);
+                max(1, pa$nfact)
+            }, error = function(e) { 1 });
             
-            # Calculate omega with detected number of factors
             om <- suppressWarnings(suppressMessages(
                 omega(data, nfactors = nfactors_detected, plot = FALSE, check.keys = TRUE)
-            ))
+            ));
             
             list(
                 omega_total = if(is.numeric(om$omega.tot)) om$omega.tot else NA,
@@ -68,17 +66,16 @@ export async function runCronbachAlpha(
         } else {
             list(omega_total = NA, omega_h = NA)
         }
-    }, error = function(e) { list(omega_total = NA, omega_h = NA) })
+    }, error = function(e) { list(omega_total = NA, omega_h = NA) });
     
     # Extract item-total statistics
-    item_stats <- result$item.stats
-    alpha_drop <- result$alpha.drop
-    n_items <- ncol(data)
+    item_stats <- result$item.stats;
+    alpha_drop <- result$alpha.drop;
+    n_items <- ncol(data);
     
-    # Calculate scale totals for reference
-    total_scores <- rowSums(data, na.rm = TRUE)
-    scale_mean <- mean(total_scores, na.rm = TRUE)
-    scale_var <- var(total_scores, na.rm = TRUE)
+    total_scores <- rowSums(data, na.rm = TRUE);
+    scale_mean <- mean(total_scores, na.rm = TRUE);
+    scale_var <- var(total_scores, na.rm = TRUE);
 
     list(
         raw_alpha = result$total$raw_alpha,
@@ -88,19 +85,13 @@ export async function runCronbachAlpha(
         n_items = n_items,
         likert_min = valid_min,
         likert_max = valid_max,
-        
-        # Item-total statistics
         scale_mean_deleted = alpha_drop$mean,
-        scale_var_deleted = alpha_drop$sd^2,  # Convert SD to Variance
+        scale_var_deleted = alpha_drop$sd^2,
         corrected_item_total = item_stats$r.drop,
         alpha_if_deleted = alpha_drop$raw_alpha,
-        
-        # Additional useful metrics
         average_r = result$total$average_r,
         scale_mean = scale_mean,
         scale_var = scale_var,
-
-        # Variables for interpretation
         alphaVal = result$total$raw_alpha,
         omegaVal = omega_result$omega_total,
         n = n_items
