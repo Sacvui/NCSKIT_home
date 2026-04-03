@@ -1,8 +1,9 @@
 /**
- * Hypothesis Testing Modules
+ * Hypothesis Testing Modules - Fully Template-Driven
  */
 import { initWebR, executeRWithRecovery, loadPackagesForMethod } from '../core';
 import { parseWebRResult, parseMatrix, arrayToRMatrix } from '../utils';
+import { getAnalysisRTemplate } from '../templates';
 
 /**
  * Run correlation analysis
@@ -17,42 +18,39 @@ export async function runCorrelation(
     N: number[];
     rCode: string;
 }> {
-    const webR = await initWebR();
-
-    // Lazy load required packages for correlation
     await loadPackagesForMethod('correlation');
 
-    const nCols = data[0]?.length || 0;
-
-    const rCode = `
-    library(psych)
-    data_mat <- ${arrayToRMatrix(data)}
-    df <- as.data.frame(data_mat)
-    colnames(df) <- paste0("V", 1:ncol(df))
-
-    method_name <- "${method}"
-    ct <- corr.test(df, use = "pairwise", method = method_name, adjust = "none")
-
+    const defaultRCode = `
+    library(psych);
+    data_mat <- {{data}};
+    df <- as.data.frame(data_mat);
+    colnames(df) <- paste0("V", 1:ncol(df));
+    method_name <- "{{method}}";
+    ct <- corr.test(df, use = "pairwise", method = method_name, adjust = "none");
     list(
         correlation = as.vector(ct$r),
         p_values = as.vector(ct$p),
         n_cols = ncol(df),
         n_obs = nrow(df),
         method = method_name
-    )
+    );
     `;
 
-    const result = await webR.evalR(rCode);
+    const template = await getAnalysisRTemplate('correlation', defaultRCode);
+    const rCode = template
+        .replace(/\{\{data\}\}/g, arrayToRMatrix(data))
+        .replace(/\{\{method\}\}/g, method);
+
+    const result = await (await initWebR()).evalR(rCode);
     const jsResult = await result.toJs() as any;
     const getValue = parseWebRResult(jsResult);
-
-    const numCols = getValue('n_cols')?.[0] || nCols;
+    const numCols = getValue('n_cols')?.[0] || data[0]?.length || 0;
 
     return {
         correlationMatrix: parseMatrix(getValue('correlation'), numCols),
         pValues: parseMatrix(getValue('p_values'), numCols),
         method: method,
-        N: getValue('n_obs'), // Return as array/vector for consistency
+        N: getValue('n_obs'), 
         rCode: rCode
     };
 }
@@ -62,7 +60,7 @@ export async function runCorrelation(
  */
 export async function runTTestIndependent(group1: number[], group2: number[]): Promise<{
     t: number;
-    tStatistic: number; // For UI
+    tStatistic: number;
     df: number;
     pValue: number;
     mean1: number;
@@ -72,85 +70,77 @@ export async function runTTestIndependent(group1: number[], group2: number[]): P
     ci95Upper: number;
     effectSize: number;
     varTestP: number;
-    leveneP: number; // For UI
-    leveneF: number; // For UI
+    leveneP: number;
+    leveneF: number;
     normalityP1: number;
     normalityP2: number;
     rCode: string;
 }> {
-    // Lazy load required packages (uses built-in stats)
     await loadPackagesForMethod('ttest');
-    const rCode = `
-    group1 <- c(${group1.join(',')})
-    group2 <- c(${group2.join(',')})
     
-    # Normality Test (Shapiro-Wilk)
-    shapiro_p1 <- tryCatch({
-        if (length(group1) >= 3 && length(group1) <= 5000) shapiro.test(group1)$p.value else NA
-    }, error = function(e) NA)
-    
-    shapiro_p2 <- tryCatch({
-        if (length(group2) >= 3 && length(group2) <= 5000) shapiro.test(group2)$p.value else NA
-    }, error = function(e) NA)
-    
-    # Levene's Test (Brown-Forsythe)
-    med1 <- median(group1)
-    med2 <- median(group2)
-    z1 <- abs(group1 - med1)
-    z2 <- abs(group2 - med2)
-    z_val <- c(z1, z2)
-    g_fac <- factor(c(rep(1, length(z1)), rep(2, length(z2))))
-    levene_test <- oneway.test(z_val ~ g_fac, var.equal = TRUE)
-    levene_p <- levene_test$p.value
-    
-    var_equal <- levene_p > 0.05
-
-    # T-Test
-    result <- t.test(group1, group2, var.equal = var_equal)
-    
-    # Cohen's d
-    pooledSD <- sqrt(((length(group1) - 1) * sd(group1)^2 + (length(group2) - 1) * sd(group2)^2) / (length(group1) + length(group2) - 2))
-    cohensD <- (mean(group1) - mean(group2)) / pooledSD
-
+    const defaultRCode = `
+    g1 <- c({{group1}});
+    g2 <- c({{group2}});
+    shapiro_p1 <- tryCatch({ if (length(g1) >= 3) shapiro.test(g1)$p.value else NA }, error = function(e) { NA });
+    shapiro_p2 <- tryCatch({ if (length(g2) >= 3) shapiro.test(g2)$p.value else NA }, error = function(e) { NA });
+    med1 <- median(g1); med2 <- median(g2);
+    z1 <- abs(g1 - med1); z2 <- abs(g2 - med2);
+    levene_res <- tryCatch({
+        combined <- c(z1, z2);
+        group_fact <- factor(c(rep("G1", length(z1)), rep("G2", length(z2))));
+        summary(aov(combined ~ group_fact))[[1]]
+    }, error = function(e) { NULL });
+    lev_p <- if(!is.null(levene_res)) levene_res["group_fact", "Pr(>F)"] else 0.5;
+    lev_f <- if(!is.null(levene_res)) levene_res["group_fact", "F value"] else 0;
+    var_equal <- lev_p > 0.05;
+    tt <- t.test(g1, g2, var.equal = var_equal);
+    m1 <- mean(g1); m2 <- mean(g2);
+    s1 <- sd(g1); s2 <- sd(g2);
+    n1 <- length(g1); n2 <- length(g2);
+    pooled_sd <- sqrt(((n1-1)*s1^2 + (n2-1)*s2^2)/(n1+n2-2));
+    d <- if(pooled_sd > 0) (m1 - m2) / pooled_sd else 0;
     list(
-        t = result$statistic,
-        df = result$parameter,
-        pValue = result$p.value,
-        mean1 = mean(group1),
-        mean2 = mean(group2),
-        meanDiff = mean(group1) - mean(group2),
-        ci95Lower = result$conf.int[1],
-        ci95Upper = result$conf.int[2],
-        effectSize = cohensD,
-        leveneP = levene_p,
-        leveneF = as.numeric(levene_test$statistic),
-        normalityP1 = if(is.na(shapiro_p1)) -1 else shapiro_p1,
-        normalityP2 = if(is.na(shapiro_p2)) -1 else shapiro_p2
-    )
+        t = tt$statistic,
+        df = tt$parameter,
+        p_value = tt$p.value,
+        mean1 = m1,
+        mean2 = m2,
+        mean_diff = m1 - m2,
+        ci_lower = tt$conf.int[1],
+        ci_upper = tt$conf.int[2],
+        effect_size = d,
+        levene_p = lev_p,
+        levene_f = lev_f,
+        shapiro_p1 = shapiro_p1,
+        shapiro_p2 = shapiro_p2
+    );
     `;
 
-    const result = await executeRWithRecovery(rCode);
-    const getValue = parseWebRResult(result);
+    const template = await getAnalysisRTemplate('ttest-indep', defaultRCode);
+    const rCode = template
+        .replace(/\{\{group1\}\}/g, group1.join(','))
+        .replace(/\{\{group2\}\}/g, group2.join(','));
 
-    const tVal = getValue('t')?.[0] || 0;
+    const result = await executeRWithRecovery(rCode);
+    const getValue = parseWebRResult(await result.toJs() as any);
 
     return {
-        t: tVal,
-        tStatistic: tVal,
-        df: getValue('df')?.[0] || 0,
-        pValue: getValue('pValue')?.[0] || 0,
-        mean1: getValue('mean1')?.[0] || 0,
-        mean2: getValue('mean2')?.[0] || 0,
-        meanDiff: getValue('meanDiff')?.[0] || 0,
-        ci95Lower: getValue('ci95Lower')?.[0] || 0,
-        ci95Upper: getValue('ci95Upper')?.[0] || 0,
-        effectSize: getValue('effectSize')?.[0] || 0,
-        varTestP: getValue('leveneP')?.[0] || 0,
-        leveneP: getValue('leveneP')?.[0] || 0,
-        leveneF: getValue('leveneF')?.[0] || 0,
-        normalityP1: getValue('normalityP1')?.[0] || 0,
-        normalityP2: getValue('normalityP2')?.[0] || 0,
-        rCode: rCode
+        t: getValue('t')?.[0] ?? 0,
+        tStatistic: getValue('t')?.[0] ?? 0,
+        df: getValue('df')?.[0] ?? 0,
+        pValue: getValue('p_value')?.[0] ?? 1,
+        mean1: getValue('mean1')?.[0] ?? 0,
+        mean2: getValue('mean2')?.[0] ?? 0,
+        meanDiff: getValue('mean_diff')?.[0] ?? 0,
+        ci95Lower: getValue('ci_lower')?.[0] ?? 0,
+        ci95Upper: getValue('ci_upper')?.[0] ?? 0,
+        effectSize: getValue('effect_size')?.[0] ?? 0,
+        varTestP: getValue('levene_p')?.[0] ?? 0.5,
+        leveneP: getValue('levene_p')?.[0] ?? 0.5,
+        leveneF: getValue('levene_f')?.[0] ?? 0,
+        normalityP1: getValue('shapiro_p1')?.[0] ?? 1,
+        normalityP2: getValue('shapiro_p2')?.[0] ?? 1,
+        rCode
     };
 }
 
@@ -170,52 +160,51 @@ export async function runTTestPaired(before: number[], after: number[]): Promise
     normalityDiffP: number;
     rCode: string;
 }> {
-    // Lazy load required packages (uses built-in stats)
     await loadPackagesForMethod('paired-ttest');
-    const rCode = `
-    before <- c(${before.join(',')})
-    after <- c(${after.join(',')})
-    diffs <- before - after
     
-    shapiro_diff_p <- tryCatch({
-        if (length(diffs) >= 3 && length(diffs) <= 5000) shapiro.test(diffs)$p.value else NA
-    }, error = function(e) NA)
-
-    result <- t.test(before, after, paired = TRUE)
-    
-    mean_diff <- mean(diffs)
-    sd_diff <- sd(diffs)
-    cohens_d <- mean_diff / sd_diff
-
+    const defaultRCode = `
+    b <- c({{before}});
+    a <- c({{after}});
+    diffs <- b - a;
+    sh_p <- tryCatch({ if (length(diffs) >= 3) shapiro.test(diffs)$p.value else NA }, error = function(e) { NA });
+    tt <- t.test(b, a, paired = TRUE);
+    m_diff <- mean(diffs);
+    sd_diff <- sd(diffs);
+    d <- if(!is.na(sd_diff) && sd_diff > 0) m_diff / sd_diff else 0;
     list(
-        t = result$statistic,
-        df = result$parameter,
-        pValue = result$p.value,
-        meanBefore = mean(before),
-        meanAfter = mean(after),
-        meanDiff = mean_diff,
-        ci95Lower = result$conf.int[1],
-        ci95Upper = result$conf.int[2],
-        effectSize = cohens_d,
-        normalityDiffP = if(is.na(shapiro_diff_p)) -1 else shapiro_diff_p
-    )
+        t = tt$statistic,
+        df = tt$parameter,
+        pValue = tt$p.value,
+        meanBefore = mean(b),
+        meanAfter = mean(a),
+        meanDiff = m_diff,
+        ci_lower = tt$conf.int[1],
+        ci_upper = tt$conf.int[2],
+        effect_size = d,
+        norm_p = sh_p
+    );
     `;
 
+    const template = await getAnalysisRTemplate('ttest-paired', defaultRCode);
+    const rCode = template
+        .replace(/\{\{before\}\}/g, before.join(','))
+        .replace(/\{\{after\}\}/g, after.join(','));
+
     const result = await executeRWithRecovery(rCode);
-    const getValue = parseWebRResult(result);
+    const getValue = parseWebRResult(await result.toJs() as any);
 
     return {
-        t: getValue('t')?.[0] || 0,
-        df: getValue('df')?.[0] || 0,
-        pValue: getValue('pValue')?.[0] || 0,
-        meanBefore: getValue('meanBefore')?.[0] || 0,
-        meanAfter: getValue('meanAfter')?.[0] || 0,
-        meanDiff: getValue('meanDiff')?.[0] || 0,
-        ci95Lower: getValue('ci95Lower')?.[0] || 0,
-        ci95Upper: getValue('ci95Upper')?.[0] || 0,
-        effectSize: getValue('effectSize')?.[0] || 0,
-        normalityDiffP: getValue('normalityDiffP')?.[0] || 0,
-        rCode: rCode
+        t: getValue('t')?.[0] ?? 0,
+        df: getValue('df')?.[0] ?? 0,
+        pValue: getValue('pValue')?.[0] ?? 1,
+        meanBefore: getValue('meanBefore')?.[0] ?? 0,
+        meanAfter: getValue('meanAfter')?.[0] ?? 0,
+        meanDiff: getValue('meanDiff')?.[0] ?? 0,
+        ci95Lower: getValue('ci_lower')?.[0] ?? 0,
+        ci95Upper: getValue('ci_upper')?.[0] ?? 0,
+        effectSize: getValue('effect_size')?.[0] ?? 0,
+        normalityDiffP: getValue('norm_p')?.[0] ?? 1,
+        rCode
     };
 }
 
@@ -224,7 +213,7 @@ export async function runTTestPaired(before: number[], after: number[]): Promise
  */
 export async function runOneWayANOVA(groups: number[][]): Promise<{
     F: number;
-    fStatistic: number; // For UI component
+    fStatistic: number;
     dfBetween: number;
     dfWithin: number;
     pValue: number;
@@ -242,158 +231,91 @@ export async function runOneWayANOVA(groups: number[][]): Promise<{
     postHocWarning: string;
     rCode: string;
 }> {
-    // Lazy load required packages (uses built-in stats)
     await loadPackagesForMethod('anova');
-    const rCode = `
-    values <- c(${groups.map(g => g.join(',')).join(',')})
-    groups <- factor(c(${groups.map((g, i) => g.map(() => i + 1).join(',')).join(',')}))
     
-    # === Helper: Games-Howell Function ===
-    run_games_howell <- function(vals, grps) {
-        means <- tapply(vals, grps, mean)
-        vars <- tapply(vals, grps, var)
-        ns <- tapply(vals, grps, length)
-        grps_unique <- levels(grps)
-        k <- length(grps_unique)
-        combs <- combn(k, 2)
-        n_pairs <- ncol(combs)
-        comparisons <- character(n_pairs)
-        diffs <- numeric(n_pairs)
-        p_adjs <- numeric(n_pairs)
-        for (i in 1:n_pairs) {
-            idx1 <- combs[1, i]; idx2 <- combs[2, i]
-            m1 <- means[idx1]; m2 <- means[idx2]
-            v1 <- vars[idx1]; v2 <- vars[idx2]
-            n1 <- ns[idx1]; n2 <- ns[idx2]
-            mean_diff <- m1 - m2
-            se <- sqrt(v1/n1 + v2/n2)
-            t_val <- abs(mean_diff) / se
-            df_num <- (v1/n1 + v2/n2)^2
-            df_denom <- (v1/n1)^2/(n1-1) + (v2/n2)^2/(n2-1)
-            df <- df_num / df_denom
-            q_val <- t_val * sqrt(2)
-            p_val <- ptukey(q_val, k, df, lower.tail = FALSE)
-            comparisons[i] <- paste0(grps_unique[idx1], "-", grps_unique[idx2])
-            diffs[i] <- mean_diff
-            p_adjs[i] <- p_val
+    const defaultRCode = `
+    vals <- c({{values}});
+    grps <- factor(c({{groups}}));
+    mod <- aov(vals ~ grps);
+    res <- summary(mod)[[1]];
+    ssb <- res[1, "Sum Sq"]; ssw <- res[2, "Sum Sq"];
+    msb <- res[1, "Mean Sq"]; msw <- res[2, "Mean Sq"];
+    
+    # Levene's Test
+    m_meds <- tapply(vals, grps, median);
+    devs <- vals - m_meds[as.numeric(grps)];
+    lev_p <- summary(aov(abs(devs) ~ grps))[[1]][1, "Pr(>F)"];
+    
+    if (lev_p < 0.05) {
+        w_res <- oneway.test(vals ~ grps, var.equal = FALSE);
+        f_val <- w_res$statistic; df_b <- w_res$parameter[1]; df_w <- w_res$parameter[2]; p_val <- w_res$p.value;
+        method <- "Welch ANOVA";
+        
+        # Games-Howell manually (approx)
+        means <- tapply(vals, grps, mean); vars <- tapply(vals, grps, var); ns <- tapply(vals, grps, length);
+        k <- length(levels(grps)); comb <- combn(k, 2);
+        c_names <- c(); c_diffs <- c(); c_p <- c();
+        for(i in 1:ncol(comb)) {
+            idx1 <- comb[1,i]; idx2 <- comb[2,i];
+            md <- means[idx1]-means[idx2]; se <- sqrt(vars[idx1]/ns[idx1] + vars[idx2]/ns[idx2]);
+            df_gh <- (vars[idx1]/ns[idx1] + vars[idx2]/ns[idx2])^2 / ((vars[idx1]/ns[idx1])^2/(ns[idx1]-1) + (vars[idx2]/ns[idx2])^2/(ns[idx2]-1));
+            q <- abs(md)/se * sqrt(2);
+            c_names <- c(c_names, paste0(levels(grps)[idx1], "-", levels(grps)[idx2]));
+            c_diffs <- c(c_diffs, md); c_p <- c(c_p, ptukey(q, k, df_gh, lower.tail=FALSE));
         }
-        list(comparisons = comparisons, diffs = diffs, p_adjs = p_adjs)
-    }
-
-    # Classic ANOVA table for SS and MS (always run even if Welch is used for F)
-    model_classic <- aov(values ~ groups)
-    res_classic <- summary(model_classic)[[1]]
-    ssb <- as.numeric(res_classic[1, "Sum Sq"])
-    ssw <- as.numeric(res_classic[2, "Sum Sq"])
-    msb <- as.numeric(res_classic[1, "Mean Sq"])
-    msw <- as.numeric(res_classic[2, "Mean Sq"])
-
-    # Levene's Test (Brown-Forsythe)
-    group_medians <- tapply(values, groups, median)
-    deviations <- numeric(length(values))
-    group_indices <- as.numeric(groups)
-    for(i in 1:length(values)) { deviations[i] <- abs(values[i] - group_medians[group_indices[i]]) }
-    levene_model <- aov(deviations ~ groups)
-    levene_p <- summary(levene_model)[[1]][1, 5]
-    
-    ph_comparisons <- c()
-    ph_diffs <- c()
-    ph_padj <- c()
-    posthoc_warning <- ""
-    
-    if (levene_p < 0.05) {
-        # === UNEQUAL VARIANCE -> WELCH ANOVA + GAMES-HOWELL ===
-        welch_result <- oneway.test(values ~ groups, var.equal = FALSE)
-        f_stat <- welch_result$statistic
-        df_between <- welch_result$parameter[1]
-        df_within <- welch_result$parameter[2]
-        p_val <- welch_result$p.value
-        method_used <- "Welch ANOVA"
-        
-        eta_squared <- ssb / (ssb + ssw)
-        
-        gh <- run_games_howell(values, groups)
-        ph_comparisons <- gh$comparisons
-        ph_diffs <- gh$diffs
-        ph_padj <- gh$p_adjs
-        posthoc_warning <- "Phương sai không đồng nhất (Levene p < 0.05). Sử dụng Welch ANOVA & Games-Howell Post-hoc."
+        warn <- "Phương sai không đồng nhất (Welch/GH).";
     } else {
-        # === EQUAL VARIANCE -> CLASSIC ANOVA + TUKEY HSD ===
-        f_stat <- as.numeric(res_classic[1, "F value"])
-        df_between <- as.numeric(res_classic[1, "Df"])
-        df_within <- as.numeric(res_classic[2, "Df"])
-        p_val <- as.numeric(res_classic[1, "Pr(>F)"])
-        method_used <- "Classic ANOVA"
-        
-        eta_squared <- ssb / (ssb + ssw)
-        
-        tukey_result <- TukeyHSD(model_classic)$groups
-        ph_comparisons <- rownames(tukey_result)
-        ph_diffs <- tukey_result[, "diff"]
-        ph_padj <- tukey_result[, "p adj"]
-        posthoc_warning <- "Phương sai đồng nhất. Sử dụng Classic ANOVA & Tukey HSD."
+        f_val <- res[1, "F value"]; df_b <- res[1, "Df"]; df_w <- res[2, "Df"]; p_val <- res[1, "Pr(>F)"];
+        method <- "Classic ANOVA";
+        tk <- TukeyHSD(mod)$grps;
+        c_names <- rownames(tk); c_diffs <- tk[,"diff"]; c_p <- tk[,"p adj"];
+        warn <- "Phương sai đồng nhất (Tukey).";
     }
     
-    resids <- residuals(model_classic)
-    shapiro_resid_p <- tryCatch({
-        if (length(resids) >= 3 && length(resids) <= 5000) shapiro.test(resids)$p.value else NA
-    }, error = function(e) NA)
-    
-    groupMeans <- tapply(values, groups, mean)
+    sh_res_p <- tryCatch({ if(nrow(mod$model) >= 3) shapiro.test(residuals(mod))$p.value else NA }, error = function(e) NA);
     
     list(
-        F = as.numeric(f_stat),
-        dfBetween = as.numeric(df_between),
-        dfWithin = as.numeric(df_within),
-        pValue = as.numeric(p_val),
-        ssBetween = ssb,
-        ssWithin = ssw,
-        msBetween = msb,
-        msWithin = msw,
-        groupMeans = as.numeric(groupMeans),
-        grandMean = mean(values, na.rm=TRUE),
-        etaSquared = as.numeric(eta_squared),
-        leveneP = as.numeric(levene_p),
-        normalityResidP = if(is.na(shapiro_resid_p)) -1 else shapiro_resid_p,
-        methodUsed = method_used,
-        postHocWarning = posthoc_warning,
-        tukeyComparisons = ph_comparisons,
-        tukeyDiffs = ph_diffs,
-        tukeyPAdj = ph_padj
-    )
+        f = f_val, df_b = df_b, df_w = df_w, p = p_val, ssb = ssb, ssw = ssw, msb = msb, msw = msw,
+        means = as.numeric(tapply(vals, grps, mean)), grand = mean(vals), eta = ssb/(ssb+ssw),
+        lev_p = lev_p, sh_p = sh_res_p, method = method, warn = warn,
+        comp_names = c_names, comp_diffs = c_diffs, comp_p = c_p
+    );
     `;
 
+    const values = groups.flat().join(',');
+    const groupTags = groups.map((g, i) => g.map(() => `G${i+1}`).join(',')).join(',');
+
+    const template = await getAnalysisRTemplate('anova', defaultRCode);
+    const rCode = template
+        .replace(/\{\{values\}\}/g, values)
+        .replace(/\{\{groups\}\}/g, groupTags);
+
     const result = await executeRWithRecovery(rCode);
-    const getValue = parseWebRResult(result);
+    const getValue = parseWebRResult(await result.toJs() as any);
 
-    const comparisons = getValue('tukeyComparisons') || [];
-    const diffs = getValue('tukeyDiffs') || [];
-    const pAdjs = getValue('tukeyPAdj') || [];
-    const postHoc = [];
-
-    const len = Math.min(comparisons.length, diffs.length, pAdjs.length);
-    for (let i = 0; i < len; i++) {
-        postHoc.push({ comparison: comparisons[i], diff: diffs[i], pAdj: pAdjs[i] });
-    }
+    const ph_names = getValue('comp_names') || [];
+    const ph_diffs = getValue('comp_diffs') || [];
+    const ph_p = getValue('comp_p') || [];
+    const postHoc = ph_names.map((n: string, i: number) => ({ comparison: n, diff: ph_diffs[i], pAdj: ph_p[i] }));
 
     return {
-        F: getValue('F')?.[0] || 0,
-        fStatistic: getValue('F')?.[0] || 0,
-        dfBetween: getValue('dfBetween')?.[0] || 0,
-        dfWithin: getValue('dfWithin')?.[0] || 0,
-        pValue: getValue('pValue')?.[0] || 0,
-        ssBetween: getValue('ssBetween')?.[0] || 0,
-        ssWithin: getValue('ssWithin')?.[0] || 0,
-        msBetween: getValue('msBetween')?.[0] || 0,
-        msWithin: getValue('msWithin')?.[0] || 0,
-        groupMeans: getValue('groupMeans') || [],
-        grandMean: getValue('grandMean')?.[0] || 0,
-        etaSquared: getValue('etaSquared')?.[0] || 0,
-        assumptionCheckP: getValue('leveneP')?.[0] || 0,
-        normalityResidP: getValue('normalityResidP')?.[0] || 0,
-        methodUsed: getValue('methodUsed')?.[0] || 'Classic ANOVA',
-        postHoc: postHoc,
-        postHocWarning: getValue('postHocWarning')?.[0] || '',
+        F: getValue('f')?.[0] ?? 0,
+        fStatistic: getValue('f')?.[0] ?? 0,
+        dfBetween: getValue('df_b')?.[0] ?? 0,
+        dfWithin: getValue('df_w')?.[0] ?? 0,
+        pValue: getValue('p')?.[0] ?? 1,
+        ssBetween: getValue('ssb')?.[0] ?? 0,
+        ssWithin: getValue('ssw')?.[0] ?? 0,
+        msBetween: getValue('msb')?.[0] ?? 0,
+        msWithin: getValue('msw')?.[0] ?? 0,
+        groupMeans: getValue('means') || [],
+        grandMean: getValue('grand')?.[0] ?? 0,
+        etaSquared: getValue('eta')?.[0] ?? 0,
+        assumptionCheckP: getValue('lev_p')?.[0] ?? 0.5,
+        normalityResidP: getValue('sh_p')?.[0] ?? 1,
+        methodUsed: getValue('method')?.[0] ?? 'ANOVA',
+        postHoc,
+        postHocWarning: getValue('warn')?.[0] ?? '',
         rCode
     };
 }
@@ -401,10 +323,7 @@ export async function runOneWayANOVA(groups: number[][]): Promise<{
 /**
  * Run Mann-Whitney U Test
  */
-export async function runMannWhitneyU(
-    group1: number[],
-    group2: number[]
-): Promise<{
+export async function runMannWhitneyU(group1: number[], group2: number[]): Promise<{
     statistic: number;
     pValue: number;
     median1: number;
@@ -415,50 +334,36 @@ export async function runMannWhitneyU(
     distShapeRun: string;
     rCode: string;
 }> {
-    // Lazy load required packages (needs psych for skew)
     await loadPackagesForMethod('mann-whitney');
-    const rCode = `
-    library(psych)
-    g1 <- c(${group1.join(',')})
-    g2 <- c(${group2.join(',')})
-    
-    test <- wilcox.test(g1, g2, conf.int = TRUE)
-    
-    # Effect size r: Convert p-value to z-score correctly
-    # Use lower.tail=FALSE to get the positive z corresponding to the upper tail
-    z_score <- qnorm(test$p.value / 2, lower.tail = FALSE)
-    effect_r <- z_score / sqrt(length(g1) + length(g2))
-    
-    # Check distribution shapes using Skewness
-    sk1 <- skew(g1)
-    sk2 <- skew(g2)
-    
-    # Heuristic: If skewness signs are same and diff < 1, shapes are "similar"
-    similar_shape <- (sign(sk1) == sign(sk2)) & (abs(sk1 - sk2) < 1.0)
-    dist_msg <- if(similar_shape) "Phân phối tương đồng (kiểm định Trung vị)" else "Phân phối khác biệt (kiểm định Mean Rank)"
-    
-    list(
-        statistic = test$statistic,
-        p_value = test$p.value,
-        median1 = median(g1),
-        median2 = median(g2),
-        effect_size = effect_r,
-        skew1 = sk1,
-        skew2 = sk2,
-        dist_msg = dist_msg
-    )
+    const defaultRCode = `
+    library(psych);
+    g1 <- c({{g1}}); g2 <- c({{g2}});
+    tt <- wilcox.test(g1, g2, conf.int = TRUE);
+    z <- qnorm(tt$p.value / 2, lower.tail = FALSE);
+    r <- z / sqrt(length(g1) + length(g2));
+    sk1 <- skew(g1); sk2 <- skew(g2);
+    sim <- (sign(sk1) == sign(sk2)) && (abs(sk1 - sk2) < 1.0);
+    msg <- if(sim) "Trung vị" else "Mean Rank";
+    list(stat = tt$statistic, p = tt$p.value, m1 = median(g1), m2 = median(g2), r = r, sk1 = sk1, sk2 = sk2, msg = msg);
     `;
+
+    const template = await getAnalysisRTemplate('mann-whitney', defaultRCode);
+    const rCode = template
+        .replace(/\{\{g1\}\}/g, group1.join(','))
+        .replace(/\{\{g2\}\}/g, group2.join(','));
+
     const result = await executeRWithRecovery(rCode);
-    const getValue = parseWebRResult(result);
+    const getValue = parseWebRResult(await result.toJs() as any);
+
     return {
-        statistic: getValue('statistic')?.[0] || 0,
-        pValue: getValue('p_value')?.[0] || 0,
-        median1: getValue('median1')?.[0] || 0,
-        median2: getValue('median2')?.[0] || 0,
-        effectSize: getValue('effect_size')?.[0] || 0,
-        skew1: getValue('skew1')?.[0] || 0,
-        skew2: getValue('skew2')?.[0] || 0,
-        distShapeRun: getValue('dist_msg')?.[0] || "Unknown",
+        statistic: getValue('stat')?.[0] ?? 0,
+        pValue: getValue('p')?.[0] ?? 1,
+        median1: getValue('m1')?.[0] ?? 0,
+        median2: getValue('m2')?.[0] ?? 0,
+        effectSize: getValue('r')?.[0] ?? 0,
+        skew1: getValue('sk1')?.[0] ?? 0,
+        skew2: getValue('sk2')?.[0] ?? 0,
+        distShapeRun: getValue('msg')?.[0] ?? 'N/A',
         rCode
     };
 }
@@ -473,103 +378,76 @@ export async function runChiSquare(data: any[][]): Promise<{
     observed: { data: number[][]; rows: string[]; cols: string[] };
     expected: { data: number[][]; rows: string[]; cols: string[] };
     cramersV: number;
-    phi: number; // For 2x2
-    oddsRatio: number | null; // For 2x2
+    phi: number;
+    oddsRatio: number | null;
     fisherPValue: number | null;
     warning: string;
     rCode: string;
 }> {
-    // Lazy load required packages (uses built-in stats)
     await loadPackagesForMethod('chi-square');
-    const flatData = data.flat().map(v => `"${String(v).replace(/"/g, '\\"')}"`).join(',');
-    const nRows = data.length;
-
-    const rCode = `
-    raw_vec <- c(${flatData})
-    df_raw <- matrix(raw_vec, nrow = ${nRows}, byrow = TRUE)
-    tbl <- table(df_raw[,1], df_raw[,2])
-    test <- chisq.test(tbl)
+    const flatStr = data.flat().map(v => `"${String(v).replace(/"/g, '\\"')}"`).join(',');
     
-    pct_cells_below_5 <- sum(test$expected < 5) / length(test$expected) * 100
-    warning_msg <- if (pct_cells_below_5 > 20) paste0("Cảnh báo: ", round(pct_cells_below_5, 1), "% ô < 5. Nên dùng Fisher Exact.") else ""
-    
-    fisher_p <- NA
-    odds_ratio <- NA
-    phi_val <- NA
-    
-    n <- sum(tbl)
-    
-    # 2x2 Specific Metrics
+    const defaultRCode = `
+    v <- c(${flatStr});
+    m <- matrix(v, nrow = ${data.length}, byrow = TRUE);
+    tbl <- table(m[,1], m[,2]);
+    tt <- chisq.test(tbl);
+    n <- sum(tbl);
+    cv <- if(min(dim(tbl)) > 1) sqrt(tt$statistic / (n * (min(dim(tbl)) - 1))) else 0;
+    phi <- NA; fisher_p <- NA; or <- NA;
     if (nrow(tbl) == 2 && ncol(tbl) == 2) {
-        ft <- fisher.test(tbl)
-        fisher_p <- ft$p.value
-        odds_ratio <- ft$estimate # Conditional MLE Odds Ratio
-        
-        # Phi Coefficient
-        phi_val <- sqrt(test$statistic / n)
+        phi <- sqrt(tt$statistic / n);
+        ft <- fisher.test(tbl);
+        fisher_p <- ft$p.value; or <- ft$estimate;
     }
-    
-    cramers_v <- if(min(dim(tbl)) > 1) sqrt(test$statistic / (n * (min(dim(tbl)) - 1))) else 0
-    
     list(
-       statistic = test$statistic,
-       parameter = test$parameter,
-       p_value = test$p.value,
-       observed = as.matrix(test$observed),
-       expected = as.matrix(test$expected),
-       cramers_v = cramers_v,
-       phi = if(is.na(phi_val)) 0 else phi_val,
-       odds_ratio = if(is.na(odds_ratio)) -1 else odds_ratio,
-       fisher_p = fisher_p,
-       warning_msg = warning_msg,
-       row_names = rownames(tbl),
-       col_names = colnames(tbl),
-       n_rows = nrow(tbl),
-       n_cols = ncol(tbl),
-       obs_vals = as.vector(test$observed),
-       exp_vals = as.vector(test$expected)
-    )
+        stat = tt$statistic, df = tt$parameter[1], p = tt$p.value,
+        obs = as.matrix(tt$observed), exp = as.matrix(tt$expected),
+        cv = cv, phi = phi, fisher = fisher_p, or = or,
+        rows = rownames(tbl), cols = colnames(tbl),
+        nr = nrow(tbl), nc = ncol(tbl),
+        ovs = as.vector(tt$observed), evs = as.vector(tt$expected)
+    );
     `;
 
+    const rCode = await getAnalysisRTemplate('chi-square', defaultRCode);
     const result = await executeRWithRecovery(rCode);
-    const getValue = parseWebRResult(result);
+    const getValue = parseWebRResult(await result.toJs() as any);
 
-    const nR = getValue('n_rows')?.[0];
-    const nC = getValue('n_cols')?.[0];
-    const obsVals = getValue('obs_vals');
-    const expVals = getValue('exp_vals');
-
-    const reconstruct = (vals: number[], rows: number, cols: number) => {
-        const resMatrix = [];
-        for (let r = 0; r < rows; r++) {
+    const nr = getValue('nr')?.[0] || 0;
+    const nc = getValue('nc')?.[0] || 0;
+    const ovs = getValue('ovs') || [];
+    const evs = getValue('evs') || [];
+    
+    const reconstruct = (vals: number[]) => {
+        const res = [];
+        for (let r = 0; r < nr; r++) {
             const rowArr = [];
-            for (let c = 0; c < cols; c++) rowArr.push(vals[r + c * rows]);
-            resMatrix.push(rowArr);
+            for (let c = 0; c < nc; c++) rowArr.push(vals[r + c * nr]);
+            res.push(rowArr);
         }
-        return resMatrix;
+        return res;
     };
 
     return {
-        statistic: getValue('statistic')?.[0] || 0,
-        df: getValue('parameter')?.[0] || 0,
-        pValue: getValue('p_value')?.[0] || 0,
-        observed: { data: reconstruct(obsVals, nR, nC), rows: getValue('row_names'), cols: getValue('col_names') },
-        expected: { data: reconstruct(expVals, nR, nC), rows: getValue('row_names'), cols: getValue('col_names') },
-        cramersV: getValue('cramers_v')?.[0] || 0,
-        phi: getValue('phi')?.[0] || 0,
-        oddsRatio: getValue('odds_ratio')?.[0] === -1 ? null : getValue('odds_ratio')?.[0],
-        fisherPValue: getValue('fisher_p')?.[0] ?? null,
-        warning: getValue('warning_msg')?.[0] || '',
+        statistic: getValue('stat')?.[0] ?? 0,
+        df: getValue('df')?.[0] ?? 0,
+        pValue: getValue('p')?.[0] ?? 1,
+        observed: { data: reconstruct(ovs), rows: getValue('rows') || [], cols: getValue('cols') || [] },
+        expected: { data: reconstruct(evs), rows: getValue('rows') || [], cols: getValue('cols') || [] },
+        cramersV: getValue('cv')?.[0] ?? 0,
+        phi: getValue('phi')?.[0] ?? 0,
+        oddsRatio: getValue('or')?.[0] ?? null,
+        fisherPValue: getValue('fisher')?.[0] ?? null,
+        warning: '',
         rCode
     };
 }
 
 /**
- * Run Kruskal-Wallis Test (Non-parametric One-Way ANOVA)
+ * Run Kruskal-Wallis Test
  */
-export async function runKruskalWallis(
-    groups: number[][]
-): Promise<{
+export async function runKruskalWallis(groups: number[][]): Promise<{
     statistic: number;
     df: number;
     pValue: number;
@@ -578,102 +456,77 @@ export async function runKruskalWallis(
     postHoc: { comparison: string; pAdj: number }[];
     rCode: string;
 }> {
-    // Lazy load required packages (uses built-in stats)
     await loadPackagesForMethod('kruskal');
-    const rCode = `
-    values <- c(${groups.map(g => g.join(',')).join(',')})
-    groups <- factor(c(${groups.map((g, i) => g.map(() => i + 1).join(',')).join(',')}))
-    
-    test <- kruskal.test(values ~ groups)
-    group_medians <- tapply(values, groups, median)
-    
-    # Pairwise Wilcoxon tests (Dunn-like post-hoc with Bonferroni correction)
+    const defaultRCode = `
+    vals <- c({{v}}); grps <- factor(c({{g}}));
+    tt <- kruskal.test(vals ~ grps);
+    meds <- as.numeric(tapply(vals, grps, median));
     pw <- tryCatch({
-        result <- pairwise.wilcox.test(values, groups, p.adjust.method = "bonferroni")
-        pmat <- result$p.value
-        
-        # Extract pairwise comparisons
-        comps <- c()
-        padjs <- c()
-        for(i in 1:nrow(pmat)) {
-            for(j in 1:ncol(pmat)) {
-                if(!is.na(pmat[i, j])) {
-                    comps <- c(comps, paste0(rownames(pmat)[i], "-", colnames(pmat)[j]))
-                    padjs <- c(padjs, pmat[i, j])
-                }
-            }
+        pmat <- pairwise.wilcox.test(vals, grps, p.adjust.method = "bonferroni")$p.value;
+        comps <- c(); ps <- c();
+        for(i in 1:nrow(pmat)) for(j in 1:ncol(pmat)) if(!is.na(pmat[i,j])) {
+            comps <- c(comps, paste0(rownames(pmat)[i], "-", colnames(pmat)[j]));
+            ps <- c(ps, pmat[i,j]);
         }
-        list(comparisons = comps, p_adjs = padjs)
-    }, error = function(e) list(comparisons = c(), p_adjs = c()))
-    
-    list(
-        statistic = test$statistic,
-        df = test$parameter,
-        p_value = test$p.value,
-        medians = as.numeric(group_medians),
-        method = test$method,
-        ph_comparisons = pw$comparisons,
-        ph_p_adjs = pw$p_adjs
-    )
+        list(c = comps, p = ps);
+    }, error = function(e) list(c = c(), p = c()));
+    list(stat = tt$statistic, df = tt$parameter, p = tt$p.value, meds = meds, m = tt$method, ph_c = pw$c, ph_p = pw$p);
     `;
+
+    const vStr = groups.flat().join(',');
+    const gStr = groups.map((g, i) => g.map(() => `G${i+1}`).join(',')).join(',');
+
+    const template = await getAnalysisRTemplate('kruskal', defaultRCode);
+    const rCode = template.replace(/\{\{v\}\}/g, vStr).replace(/\{\{g\}\}/g, gStr);
+
     const result = await executeRWithRecovery(rCode);
-    const getValue = parseWebRResult(result);
-    
-    const phComps = getValue('ph_comparisons') || [];
-    const phPAdjs = getValue('ph_p_adjs') || [];
-    const postHoc = [];
-    const len = Math.min(phComps.length, phPAdjs.length);
-    for (let i = 0; i < len; i++) {
-        postHoc.push({ comparison: phComps[i], pAdj: phPAdjs[i] });
-    }
-    
+    const getValue = parseWebRResult(await result.toJs() as any);
+
+    const ph_c = getValue('ph_c') || [];
+    const ph_p = getValue('ph_p') || [];
+    const postHoc = ph_c.map((n: string, i: number) => ({ comparison: n, pAdj: ph_p[i] }));
+
     return {
-        statistic: getValue('statistic')?.[0] ?? 0,
+        statistic: getValue('stat')?.[0] ?? 0,
         df: getValue('df')?.[0] ?? 0,
-        pValue: getValue('p_value')?.[0] ?? 0,
-        medians: getValue('medians') || [],
-        method: getValue('method')?.[0] || "Kruskal-Wallis rank sum test",
+        pValue: getValue('p')?.[0] ?? 1,
+        medians: getValue('meds') || [],
+        method: getValue('m')?.[0] ?? 'Kruskal-Wallis',
         postHoc,
         rCode
     };
 }
 
 /**
- * Run Wilcoxon Signed Rank Test (Non-parametric Paired T-test)
+ * Run Wilcoxon Signed Rank Test
  */
-export async function runWilcoxonSignedRank(
-    before: number[],
-    after: number[]
-): Promise<{
+export async function runWilcoxonSignedRank(before: number[], after: number[]): Promise<{
     statistic: number;
     pValue: number;
     medianDiff: number;
     method: string;
     rCode: string;
 }> {
-    // Lazy load required packages (uses built-in stats)
     await loadPackagesForMethod('wilcoxon');
-    const rCode = `
-    v_before <- c(${before.join(',')})
-    v_after <- c(${after.join(',')})
-    
-    # Wilcoxon signed rank test with continuity correction
-    test <- wilcox.test(v_before, v_after, paired = TRUE, conf.int = TRUE)
-    
-    list(
-        statistic = test$statistic,
-        p_value = test$p.value,
-        median_diff = if(!is.null(test$estimate)) test$estimate else median(v_before - v_after),
-        method = test$method
-    )
+    const defaultRCode = `
+    b <- c({{b}}); a <- c({{a}});
+    tt <- wilcox.test(b, a, paired = TRUE, conf.int = TRUE);
+    list(stat = tt$statistic, p = tt$p.value, md = if(!is.null(tt$estimate)) tt$estimate else median(b-a), m = tt$method);
     `;
+
+    const template = await getAnalysisRTemplate('wilcoxon', defaultRCode);
+    const rCode = template
+        .replace(/\{\{b\}\}/g, before.join(','))
+        .replace(/\{\{a\}\}/g, after.join(','));
+
     const result = await executeRWithRecovery(rCode);
-    const getValue = parseWebRResult(result);
+    const getValue = parseWebRResult(await result.toJs() as any);
+
     return {
-        statistic: getValue('statistic')?.[0] || 0,
-        pValue: getValue('p_value')?.[0] || 0,
-        medianDiff: getValue('median_diff')?.[0] || 0,
-        method: getValue('method')?.[0] || "Wilcoxon signed rank test",
+        statistic: getValue('stat')?.[0] ?? 0,
+        pValue: getValue('p')?.[0] ?? 1,
+        medianDiff: getValue('md')?.[0] ?? 0,
+        method: getValue('m')?.[0] ?? 'Wilcoxon',
         rCode
     };
 }

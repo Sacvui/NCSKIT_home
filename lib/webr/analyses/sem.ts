@@ -1,5 +1,9 @@
-import { initWebR, loadPackagesForMethod } from '../core';
-import { parseWebRResult } from '../utils';
+/**
+ * SEM Analysis Modules - Template-Driven
+ */
+import { initWebR, executeRWithRecovery, loadPackagesForMethod } from '../core';
+import { parseWebRResult, arrayToRMatrix } from '../utils';
+import { getAnalysisRTemplate } from '../templates';
 
 export interface SEMResult {
     fitMeasures: {
@@ -19,111 +23,83 @@ export interface SEMResult {
 
 /**
  * Run a true CFA or SEM using lavaan
- * @param data Numeric data matrix
- * @param columns Column names corresponding to the matrix
- * @param model Lavaan model string (e.g. 'F1 =~ v1 + v2 + v3 \n F2 =~ v4 + v5 + v6')
  */
 export async function runLavaanAnalysis(data: number[][], columns: string[], model: string): Promise<SEMResult> {
-    const webR = await initWebR();
-
-    // Lazy load required packages (needs lavaan and quadprog)
     await loadPackagesForMethod('sem');
 
-    // Convert data to R Matrix/Dataframe 
-    const flatData = data.flat();
-    const rModel = model.replace(/\n/g, '\\n');
-
-    const script = `
-    # Create data frame
-    df_sem <- data.frame(matrix(c(${flatData.join(',')}), ncol=${columns.length}, byrow=TRUE))
-    colnames(df_sem) <- c(${columns.map(c => `"${c}"`).join(', ')})
-    
-    # Execute lavaan
-    # We use 'sem' as a general function, which covers 'cfa' 
-    # but handles regressions/path analysis too.
-    
+    const defaultRCode = `
+    library(lavaan);
+    df <- as.data.frame({{data}});
+    colnames(df) <- c({{columns}});
+    mod_str <- "{{model}}";
     fit <- tryCatch({
-        library(lavaan)
-        sem(model = "${rModel}", data = df_sem, std.lv = TRUE)
-    }, error = function(e) {
-        # Fallback for common errors
-        stop(paste("Lavaan Error:", e$message))
-    })
+        sem(model = mod_str, data = df, std.lv = TRUE);
+    }, error = function(e) { stop(paste("Lavaan Error:", e$message)) });
     
-    # Extract fit measures
-    fit_summ <- fitMeasures(fit)
+    fm <- fitMeasures(fit);
+    est <- parameterEstimates(fit, standardized = TRUE);
     
-    # Extract estimates
-    est_df <- parameterEstimates(fit, standardized = TRUE)
-    
-    # Handle output mapping
     list(
-        fit = list(
-            cfi = as.numeric(fit_summ["cfi"]),
-            tli = as.numeric(fit_summ["tli"]),
-            rmsea = as.numeric(fit_summ["rmsea"]),
-            srmr = as.numeric(fit_summ["srmr"]),
-            chisq = as.numeric(fit_summ["chisq"]),
-            df = as.numeric(fit_summ["df"]),
-            pvalue = as.numeric(fit_summ["pvalue"])
-        ),
-        estimates = split(est_df, seq(nrow(est_df)))
-    )
+        cfi = as.numeric(fm["cfi"]),
+        tli = as.numeric(fm["tli"]),
+        rmsea = as.numeric(fm["rmsea"]),
+        srmr = as.numeric(fm["srmr"]),
+        chisq = as.numeric(fm["chisq"]),
+        df = as.numeric(fm["df"]),
+        pvalue = as.numeric(fm["pvalue"]),
+        est_list = split(est, seq(nrow(est)))
+    );
     `;
 
+    const colNames = columns.map(c => `"${c}"`).join(',');
+    const escapeModel = model.replace(/\n/g, '\\n').replace(/"/g, '\\"');
+
+    const template = await getAnalysisRTemplate('sem', defaultRCode);
+    const rCode = template
+        .replace(/\{\{data\}\}/g, arrayToRMatrix(data))
+        .replace(/\{\{columns\}\}/g, colNames)
+        .replace(/\{\{model\}\}/g, escapeModel);
+
     try {
-        const result = await webR.evalR(script);
-        const jsResult = await result.toJs() as any;
-        const getValue = parseWebRResult(jsResult);
+        const result = await executeRWithRecovery(rCode);
+        const getValue = parseWebRResult(await result.toJs() as any);
 
-        const fit = getValue('fit');
-        const estimatesRaw = getValue('estimates');
-
-        const fitMeasures = {
-            cfi: fit?.cfi?.[0] || 0,
-            tli: fit?.tli?.[0] || 0,
-            rmsea: fit?.rmsea?.[0] || 0,
-            srmr: fit?.srmr?.[0] || 0,
-            chisq: fit?.chisq?.[0] || 0,
-            df: fit?.df?.[0] || 0,
-            pvalue: fit?.pvalue?.[0] || 0
-        };
-
-        const estimates: any[] = [];
-        if (Array.isArray(estimatesRaw)) {
-            for (const item of estimatesRaw) {
-                const estValues = parseWebRResult(item);
-                estimates.push({
-                    lhs: estValues('lhs')?.[0] || '',
-                    op: estValues('op')?.[0] || '',
-                    rhs: estValues('rhs')?.[0] || '',
-                    est: estValues('est')?.[0] || 0,
-                    se: estValues('se')?.[0] || 0,
-                    z: estValues('z')?.[0] || 0,
-                    pvalue: estValues('pvalue')?.[0] || 0,
-                    std: estValues('std.all')?.[0] || 0 // standardized estimate
-                });
-            }
-        }
+        const estimatesRaw = getValue('est_list') || [];
+        const estimates = estimatesRaw.map((item: any) => {
+            const ev = parseWebRResult(item);
+            return {
+                lhs: ev('lhs')?.[0] || '',
+                op: ev('op')?.[0] || '',
+                rhs: ev('rhs')?.[0] || '',
+                est: ev('est')?.[0] || 0,
+                se: ev('se')?.[0] || 0,
+                z: ev('z')?.[0] || 0,
+                pvalue: ev('pvalue')?.[0] || 0,
+                std: ev('std.all')?.[0] || 0
+            };
+        });
 
         return {
-            fitMeasures,
+            fitMeasures: {
+                cfi: getValue('cfi')?.[0] || 0,
+                tli: getValue('tli')?.[0] || 0,
+                rmsea: getValue('rmsea')?.[0] || 0,
+                srmr: getValue('srmr')?.[0] || 0,
+                chisq: getValue('chisq')?.[0] || 0,
+                df: getValue('df')?.[0] || 0,
+                pvalue: getValue('pvalue')?.[0] || 0
+            },
             estimates,
-            rCode: script
+            rCode
         };
-
     } catch (e: any) {
-        console.error('Lavaan Execution Error:', e);
         return {
             fitMeasures: { cfi: 0, tli: 0, rmsea: 0, srmr: 0, chisq: 0, df: 0, pvalue: 0 },
             estimates: [],
-            rCode: script,
+            rCode,
             error: e.message || String(e)
         };
     }
 }
 
-/**
- * Backward compatibility alias for runSEM in upcoming.ts
- */
 export const runSEM = runLavaanAnalysis;

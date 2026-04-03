@@ -1,35 +1,22 @@
 /**
- * Descriptive Statistics & Validation Modules
+ * Descriptive Statistics & Validation - Template-Driven
  */
 import { initWebR, executeRWithRecovery, loadPackagesForMethod } from '../core';
 import { parseWebRResult, arrayToRMatrix } from '../utils';
+import { getAnalysisRTemplate } from '../templates';
 
 /**
  * Data Validation Helper
  */
 export function validateData(data: number[][], minVars: number = 1, functionName: string = 'Analysis'): void {
-    if (!data || data.length === 0) {
-        throw new Error(`${functionName}: Dữ liệu trống`);
-    }
-
-    if (data[0].length < minVars) {
-        throw new Error(`${functionName}: Cần ít nhất ${minVars} biến`);
-    }
-
-    // Check for invalid values (Infinity only, allow NaN/null/undefined for R to handle as NA)
-    const hasInfinity = data.some(row =>
-        row.some(val => val === Infinity || val === -Infinity)
-    );
-
-    if (hasInfinity) {
+    if (!data || data.length === 0) throw new Error(`${functionName}: Dữ liệu trống`);
+    if (data[0].length < minVars) throw new Error(`${functionName}: Cần ít nhất ${minVars} biến`);
+    if (data.some(row => row.some(val => val === Infinity || val === -Infinity))) {
         throw new Error(`${functionName}: Dữ liệu chứa giá trị vô cực (Infinity)`);
     }
-
-    // Check for constant columns (zero variance)
     for (let col = 0; col < data[0].length; col++) {
         const values = data.map(row => row[col]);
-        const allSame = values.every(v => v === values[0]);
-        if (allSame) {
+        if (values.every(v => v === values[0])) {
             throw new Error(`${functionName}: Biến thứ ${col + 1} có giá trị không đổi(variance = 0)`);
         }
     }
@@ -44,25 +31,18 @@ export async function runDescriptiveStats(data: number[][]): Promise<{
     min: number[];
     max: number[];
     median: number[];
-    N: number[]; // Valid N per variable
+    N: number[];
     skew: number[];
     kurtosis: number[];
     se: number[];
+    rCode: string;
 }> {
-    const webR = await initWebR();
-
-    // Lazy load required packages for descriptive stats
     await loadPackagesForMethod('descriptive');
-
-    const rCode = `
-    options(mc.cores = 1)
-    library(psych)
-    data_mat <- ${arrayToRMatrix(data)}
-    df <- as.data.frame(data_mat)
-    colnames(df) <- paste0("V", 1:ncol(df))
-    
-    desc <- describe(df, fast=FALSE)
-    
+    const defaultRCode = `
+    library(psych);
+    df <- as.data.frame({{data}});
+    colnames(df) <- paste0("V", 1:ncol(df));
+    desc <- describe(df, fast=FALSE);
     list(
         mean = as.numeric(desc$mean),
         sd = as.numeric(desc$sd),
@@ -73,21 +53,22 @@ export async function runDescriptiveStats(data: number[][]): Promise<{
         skew = as.numeric(desc$skew),
         kurtosis = as.numeric(desc$kurtosis),
         se = as.numeric(desc$se)
-    )
+    );
     `;
-
+    const template = await getAnalysisRTemplate('descriptive', defaultRCode);
+    const rCode = template.replace(/\{\{data\}\}/g, arrayToRMatrix(data));
     const result = await executeRWithRecovery(rCode);
-    const getValue = parseWebRResult(result);
-
+    const getValue = parseWebRResult(await result.toJs() as any);
     return {
         mean: getValue('mean') || [],
         sd: getValue('sd') || [],
         min: getValue('min') || [],
         max: getValue('max') || [],
         median: getValue('median') || [],
-        N: getValue('n') || [],  // Note: R returns 'n', we map to 'N'
+        N: getValue('n') || [],
         skew: getValue('skew') || [],
         kurtosis: getValue('kurtosis') || [],
-        se: getValue('se') || []
+        se: getValue('se') || [],
+        rCode
     };
 }
