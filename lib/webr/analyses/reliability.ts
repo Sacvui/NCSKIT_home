@@ -3,6 +3,7 @@
  */
 import { initWebR, executeRWithRecovery, loadPackagesForMethod } from '../core';
 import { parseWebRResult, parseMatrix, arrayToRMatrix } from '../utils';
+import { getAnalysisRTemplate } from '../templates';
 import { runLavaanAnalysis } from './sem';
 
 /**
@@ -32,32 +33,28 @@ export async function runCronbachAlpha(
     // Lazy load required packages
     await loadPackagesForMethod('cronbach');
 
-    const rCode = `
+    const defaultRCode = `
     options(mc.cores = 1)
     library(psych)
-    raw_data <- ${arrayToRMatrix(data)}
+    raw_data <- {{data}}
     
     # DATA CLEANING: Clamp outliers to valid Likert range
-    valid_min <- ${likertMin}
-    valid_max <- ${likertMax}
+    valid_min <- {{likertMin}}
+    valid_max <- {{likertMax}}
     data <- pmax(pmin(raw_data, valid_max), valid_min)
     
     # Run Cronbach's Alpha with auto key checking for reversed items
     result <- alpha(data, check.keys = TRUE)
     
-    # === McDonald's Omega (more robust than Alpha) ===
-    # omega() requires at least 3 items
     # === McDonald's Omega (Robust) ===
     # Auto-detect optimal number of factors using parallel analysis
     omega_result <- tryCatch({
         if (ncol(data) >= 3) {
-            # Detect optimal number of factors
+            nfactors_detected <- tryCatch({
                 # Optimized n.iter for faster execution in WebR
                 fa_parallel <- fa.parallel(data, fm="minres", fa="fa", plot=FALSE, n.iter=5)
-                max(1, fa_parallel$nfact)  # Use suggested factors, minimum 1
-            }, error = function(e) {
-                1  # Fallback to 1 factor if detection fails
-            })
+                max(1, fa_parallel$nfact)
+            }, error = function(e) { 1 })
             
             # Calculate omega with detected number of factors
             om <- suppressWarnings(suppressMessages(
@@ -66,12 +63,12 @@ export async function runCronbachAlpha(
             
             list(
                 omega_total = if(is.numeric(om$omega.tot)) om$omega.tot else NA,
-                omega_h = if(is.numeric(om$omega_h)) om$omega_h else NA
+                omega_h = if(is.numeric(om$omega.h)) om$omega.h else NA
             )
         } else {
             list(omega_total = NA, omega_h = NA)
         }
-    }, error = function(e) list(omega_total = NA, omega_h = NA))
+    }, error = function(e) { list(omega_total = NA, omega_h = NA) })
     
     # Extract item-total statistics
     item_stats <- result$item.stats
@@ -101,12 +98,25 @@ export async function runCronbachAlpha(
         # Additional useful metrics
         average_r = result$total$average_r,
         scale_mean = scale_mean,
-        scale_var = scale_var
+        scale_var = scale_var,
+
+        # Variables for interpretation
+        alphaVal = result$total$raw_alpha,
+        omegaVal = omega_result$omega_total,
+        n = n_items
     )
     `;
 
+    // Fetch customized template and render it
+    const template = await getAnalysisRTemplate('cronbach', defaultRCode);
+    const rCode = template
+        .replace(/\{\{data\}\}/g, arrayToRMatrix(data))
+        .replace(/\{\{likertMin\}\}/g, String(likertMin))
+        .replace(/\{\{likertMax\}\}/g, String(likertMax));
+
     const result = await executeRWithRecovery(rCode);
-    const getValue = parseWebRResult(result);
+    const resultJs = await result.toJs() as any;
+    const getValue = parseWebRResult(resultJs);
 
     const rawAlpha = getValue('raw_alpha')?.[0] ?? 0;
     const stdAlpha = getValue('std_alpha')?.[0] ?? 0;
@@ -160,14 +170,14 @@ export async function runEFA(data: number[][], nFactors: number, rotation: strin
     factorMethod: string;
     rCode: string;
 }> {
-    const webR = await initWebR(); // EFA often runs long, might not use executeWithRecovery for single-shot, but consistent init is key
+    const webR = await initWebR(); 
 
     // Lazy load required packages (needs psych and GPArotation)
     await loadPackagesForMethod('efa');
 
-    const rCode = `
+    const defaultRCode = `
     library(psych)
-    raw_data <- matrix(c(${data.flat().join(',')}), nrow = ${data.length}, byrow = TRUE)
+    raw_data <- {{data}}
     
     # Clean Data (Robust approach)
     df <- as.data.frame(raw_data)
@@ -210,7 +220,7 @@ export async function runEFA(data: number[][], nFactors: number, rotation: strin
     n_factors_kaiser <- sum(eigenvalues > 1)
     if (n_factors_kaiser < 1) n_factors_kaiser <- 1
 
-    n_factors_run <- ${nFactors}
+    n_factors_run <- {{nFactors}}
     factor_method <- "user"
     
     if (n_factors_run <= 0) {
@@ -229,7 +239,7 @@ export async function runEFA(data: number[][], nFactors: number, rotation: strin
     bartlett_result <- tryCatch(cortest.bartlett(cor_mat, n = nrow(df_clean)), error = function(e) list(p.value = 1))
     
     # Run EFA (use complete data)
-    rotation_method <- "${rotation}"
+    rotation_method <- "{{rotation}}"
     efa_result <- fa(df_clean, nfactors = n_factors_run, rotate = rotation_method, fm = "pa")
 
     list(
@@ -244,6 +254,13 @@ export async function runEFA(data: number[][], nFactors: number, rotation: strin
         factor_method = factor_method
     )
     `;
+
+    // Fetch customized template and render it
+    const template = await getAnalysisRTemplate('efa', defaultRCode);
+    const rCode = template
+        .replace(/\{\{data\}\}/g, arrayToRMatrix(data))
+        .replace(/\{\{nFactors\}\}/g, String(nFactors))
+        .replace(/\{\{rotation\}\}/g, rotation);
 
     const result = await webR.evalR(rCode);
     const jsResult = await result.toJs() as any;

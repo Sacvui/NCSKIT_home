@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { getSupabase } from '@/utils/supabase/client'
 import Link from 'next/link'
-import { Shield, MessageSquare, ArrowLeft, Users, Settings, Activity, ShieldCheck } from 'lucide-react'
+import { Shield, MessageSquare, ArrowLeft, Users, Settings, Activity, ShieldCheck, Code } from 'lucide-react'
 import { NCSLoader } from '@/components/ui/NCSLoader'
 
 export default function AdminLayout({
@@ -87,8 +87,11 @@ export default function AdminLayout({
                     <NavLink href="/admin/roles" icon={<ShieldCheck className="w-4 h-4" />} active={pathname?.includes('/roles')}>
                         Phân quyền (Roles)
                     </NavLink>
-                    <NavLink href="/admin/config" icon={<Settings className="w-4 h-4" />} active={pathname?.includes('/config')}>
-                        Cấu hình
+                    <NavLink href="/admin/config" icon={<Settings className="w-4 h-4" />} active={pathname === '/admin/config'}>
+                        Cấu hình giá
+                    </NavLink>
+                    <NavLink href="/admin/analysis-code" icon={<Code className="w-4 h-4" />} active={pathname?.includes('/analysis-code')}>
+                        Cấu hình Code (R)
                     </NavLink>
                     <NavLink href="/admin/health" icon={<Activity className="w-4 h-4" />} active={pathname?.includes('/health')}>
                         Hệ thống
