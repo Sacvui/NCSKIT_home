@@ -102,16 +102,23 @@ export const CronbachResults = React.memo(function CronbachResults({
                                     const isLow = item.correctedItemTotalCorrelation < 0.3;
                                     const isKiller = item.alphaIfItemDeleted > alpha;
                                     
+                                    // Robust formatting helper to prevent .toFixed errors
+                                    const formatNum = (val: any) => {
+                                        if (val === null || val === undefined) return 'N/A';
+                                        const num = typeof val === 'number' ? val : parseFloat(String(val));
+                                        return isNaN(num) ? 'N/A' : num.toFixed(3);
+                                    };
+                                    
                                     return (
                                         <tr key={idx} className={`hover:bg-blue-50/30 transition-colors ${isLow ? 'bg-red-50/30' : ''}`}>
                                              <td className="py-4 px-6 text-sm font-bold text-blue-800">{columns?.[idx] || item.itemName}</td>
-                                            <td className="py-4 px-4 text-sm text-right font-mono text-slate-800">{item.scaleMeanIfDeleted?.toFixed(3)}</td>
-                                            <td className="py-4 px-4 text-sm text-right font-mono text-slate-800">{item.scaleVarianceIfDeleted?.toFixed(3)}</td>
+                                            <td className="py-4 px-4 text-sm text-right font-mono text-slate-800">{formatNum(item.scaleMeanIfDeleted)}</td>
+                                            <td className="py-4 px-4 text-sm text-right font-mono text-slate-800">{formatNum(item.scaleVarianceIfDeleted)}</td>
                                             <td className={`py-4 px-4 text-sm text-right font-black ${isLow ? 'text-red-700 underline underline-offset-4 decoration-red-400 font-extrabold ring-1 ring-red-100 rounded-lg' : 'text-blue-950 bg-blue-50/20 font-black'}`}>
-                                                {item.correctedItemTotalCorrelation?.toFixed(3)}
+                                                {formatNum(item.correctedItemTotalCorrelation)}
                                             </td>
                                             <td className={`py-4 px-4 text-sm text-right font-black ${isKiller ? 'text-amber-700 font-extrabold' : 'text-slate-800 font-bold'}`}>
-                                                {item.alphaIfItemDeleted?.toFixed(3)}
+                                                {formatNum(item.alphaIfItemDeleted)}
                                             </td>
                                         </tr>
                                     );
