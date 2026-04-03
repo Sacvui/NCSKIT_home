@@ -23,7 +23,7 @@ export async function getAnalysisRTemplate(analysisKey: string, defaultCode: str
             .from('system_config')
             .select('value')
             .eq('key', configKey)
-            .single();
+            .maybeSingle();
 
         if (error || !data) {
             return defaultCode;

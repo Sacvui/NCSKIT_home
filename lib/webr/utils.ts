@@ -35,25 +35,36 @@ export function parseWebRResult(jsResult: any) {
     if (!jsResult) return (name: string) => null;
     
     return (name: string): any => {
+        let val: any = null;
+
         // Case 1: Plain JS object (unpacked)
         if (jsResult[name] !== undefined) {
-            const val = jsResult[name];
-            return Array.isArray(val) ? val : [val];
+            val = jsResult[name];
+        } 
+        // Case 2: Raw WebR toJs() object
+        else if (jsResult.names && jsResult.values) {
+            const idx = jsResult.names.indexOf(name);
+            if (idx !== -1) {
+                val = jsResult.values[idx];
+                // Handle nested WebR structure { type: '...', values: [...] }
+                if (val && typeof val === 'object' && val.values !== undefined) {
+                    val = val.values;
+                }
+            }
         }
 
-        // Case 2: Raw WebR toJs() object
-        if (jsResult.names && jsResult.values) {
-            const idx = jsResult.names.indexOf(name);
-            if (idx === -1) return null;
-            const item = jsResult.values[idx];
-            // Handle nested WebR structure
-            if (item && typeof item === 'object' && item.values !== undefined) {
-                return Array.isArray(item.values) ? item.values : [item.values];
-            }
-            return Array.isArray(item) ? item : [item];
-        }
+        if (val === null || val === undefined) return null;
+
+        // Ensure we always return a standard JS array for UI consistency
+        if (Array.isArray(val)) return val;
         
-        return null;
+        // Handle TypedArrays (Float64Array, etc.) which are common in WebR
+        if (val && typeof val === 'object' && typeof val.length === 'number' && val.buffer) {
+            return Array.from(val);
+        }
+
+        // Single value
+        return [val];
     };
 }
 
