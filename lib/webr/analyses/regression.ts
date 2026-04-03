@@ -51,11 +51,11 @@ export async function runLinearRegression(data: number[][], names: string[]): Pr
     # VIF Calculation
     vifs <- tryCatch({
         x_data <- df[, -1, drop = FALSE];
-        if (ncol(x_data) \u003e 1) {
+        if (ncol(x_data) > 1) {
             v <- numeric(ncol(x_data));
             for (i in 1:ncol(x_data)) {
                 r2 <- summary(lm(x_data[, i] ~ ., data = x_data[, -i, drop = FALSE]))$r.squared;
-                v[i] <- if (r2 \u003e= 0.9999) 999.99 else 1 / (1 - r2);
+                v[i] <- if (r2 >= 0.9999) 999.99 else 1 / (1 - r2);
             }
             v;
         } else { 1.0 }
@@ -116,7 +116,7 @@ export async function runLinearRegression(data: number[][], names: string[]): Pr
         stdError: errors[i] || 0,
         tValue: tVals[i] || 0,
         pValue: pVals[i] || 0,
-        vif: i \u003e 0 ? vifs[i - 1] : undefined
+        vif: i > 0 ? vifs[i - 1] : undefined
     }));
 
     const f = getValue('f')?.[0] ?? 0;
