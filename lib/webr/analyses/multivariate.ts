@@ -53,7 +53,7 @@ export async function runClusterAnalysis(
         .replace(/\{\{k\}\}/g, String(k));
 
     const result = await executeRWithRecovery(rCode);
-    const getValue = parseWebRResult(await result.toJs() as any);
+    const getValue = parseWebRResult(result);
 
     const centersFlat = getValue('centers') || [];
     const nCols = getValue('cols')?.[0] || columns.length;
@@ -123,7 +123,7 @@ export async function runTwoWayANOVA(
         .replace(/\{\{f2\}\}/g, f2Str);
 
     const result = await executeRWithRecovery(rCode);
-    const getValue = parseWebRResult(await result.toJs() as any);
+    const getValue = parseWebRResult(result);
 
     const sources = getValue('sources') || [];
     const df = getValue('df') || [];

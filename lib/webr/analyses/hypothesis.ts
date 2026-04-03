@@ -41,8 +41,7 @@ export async function runCorrelation(
         .replace(/\{\{data\}\}/g, arrayToRMatrix(data))
         .replace(/\{\{method\}\}/g, method);
 
-    const result = await (await initWebR()).evalR(rCode);
-    const jsResult = await result.toJs() as any;
+    const jsResult = await executeRWithRecovery(rCode);
     const getValue = parseWebRResult(jsResult);
     const numCols = getValue('n_cols')?.[0] || data[0]?.length || 0;
 
@@ -122,7 +121,7 @@ export async function runTTestIndependent(group1: number[], group2: number[]): P
         .replace(/\{\{group2\}\}/g, group2.join(','));
 
     const result = await executeRWithRecovery(rCode);
-    const getValue = parseWebRResult(await result.toJs() as any);
+    const getValue = parseWebRResult(result);
 
     return {
         t: getValue('t')?.[0] ?? 0,
@@ -191,7 +190,7 @@ export async function runTTestPaired(before: number[], after: number[]): Promise
         .replace(/\{\{after\}\}/g, after.join(','));
 
     const result = await executeRWithRecovery(rCode);
-    const getValue = parseWebRResult(await result.toJs() as any);
+    const getValue = parseWebRResult(result);
 
     return {
         t: getValue('t')?.[0] ?? 0,
@@ -291,7 +290,7 @@ export async function runOneWayANOVA(groups: number[][]): Promise<{
         .replace(/\{\{groups\}\}/g, groupTags);
 
     const result = await executeRWithRecovery(rCode);
-    const getValue = parseWebRResult(await result.toJs() as any);
+    const getValue = parseWebRResult(result);
 
     const ph_names = getValue('comp_names') || [];
     const ph_diffs = getValue('comp_diffs') || [];
@@ -353,7 +352,7 @@ export async function runMannWhitneyU(group1: number[], group2: number[]): Promi
         .replace(/\{\{g2\}\}/g, group2.join(','));
 
     const result = await executeRWithRecovery(rCode);
-    const getValue = parseWebRResult(await result.toJs() as any);
+    const getValue = parseWebRResult(result);
 
     return {
         statistic: getValue('stat')?.[0] ?? 0,
@@ -412,7 +411,7 @@ export async function runChiSquare(data: any[][]): Promise<{
 
     const rCode = await getAnalysisRTemplate('chi-square', defaultRCode);
     const result = await executeRWithRecovery(rCode);
-    const getValue = parseWebRResult(await result.toJs() as any);
+    const getValue = parseWebRResult(result);
 
     const nr = getValue('nr')?.[0] || 0;
     const nc = getValue('nc')?.[0] || 0;
@@ -480,7 +479,7 @@ export async function runKruskalWallis(groups: number[][]): Promise<{
     const rCode = template.replace(/\{\{v\}\}/g, vStr).replace(/\{\{g\}\}/g, gStr);
 
     const result = await executeRWithRecovery(rCode);
-    const getValue = parseWebRResult(await result.toJs() as any);
+    const getValue = parseWebRResult(result);
 
     const ph_c = getValue('ph_c') || [];
     const ph_p = getValue('ph_p') || [];
@@ -520,7 +519,7 @@ export async function runWilcoxonSignedRank(before: number[], after: number[]): 
         .replace(/\{\{a\}\}/g, after.join(','));
 
     const result = await executeRWithRecovery(rCode);
-    const getValue = parseWebRResult(await result.toJs() as any);
+    const getValue = parseWebRResult(result);
 
     return {
         statistic: getValue('stat')?.[0] ?? 0,

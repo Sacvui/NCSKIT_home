@@ -99,7 +99,7 @@ export async function runLinearRegression(data: number[][], names: string[]): Pr
         .replace(/\{\{names\}\}/g, namesStr);
 
     const result = await executeRWithRecovery(rCode);
-    const getValue = parseWebRResult(await result.toJs() as any);
+    const getValue = parseWebRResult(result);
 
     const cNames = getValue('c_names') || [];
     const estimates = getValue('estimates') || [];
@@ -174,5 +174,5 @@ export async function runLogisticRegression(data: number[][], names: string[]): 
     const template = await getAnalysisRTemplate('logistic', defaultRCode);
     const rCode = template.replace(/\{\{data\}\}/g, arrayToRMatrix(data)).replace(/\{\{names\}\}/g, namesStr);
     const result = await executeRWithRecovery(rCode);
-    return { result: await result.toJs(), rCode };
+    return { result, rCode };
 }

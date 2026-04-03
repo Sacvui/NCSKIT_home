@@ -106,8 +106,7 @@ export async function runCronbachAlpha(
         .replace(/\{\{likertMax\}\}/g, String(likertMax));
 
     const result = await executeRWithRecovery(rCode);
-    const resultJs = await result.toJs() as any;
-    const getValue = parseWebRResult(resultJs);
+    const getValue = parseWebRResult(result);
 
     const rawAlpha = getValue('raw_alpha')?.[0] ?? 0;
     const stdAlpha = getValue('std_alpha')?.[0] ?? 0;
@@ -253,8 +252,7 @@ export async function runEFA(data: number[][], nFactors: number, rotation: strin
         .replace(/\{\{nFactors\}\}/g, String(nFactors))
         .replace(/\{\{rotation\}\}/g, rotation);
 
-    const result = await webR.evalR(rCode);
-    const jsResult = await result.toJs() as any;
+    const jsResult = await executeRWithRecovery(rCode);
 
     const getValue = parseWebRResult(jsResult);
     const nFactorsUsed = getValue('n_factors_used')?.[0] || nFactors || 1;
@@ -375,8 +373,7 @@ export async function runCFA(data: number[][], columns: string[], modelSyntax: s
     `;
 
     try {
-        const result = await webR.evalR(rCode);
-        const jsResult = await result.toJs() as any;
+        const jsResult = await executeRWithRecovery(rCode);
         const getValue = parseWebRResult(jsResult);
         const fit = getValue('fit');
         const estimatesRaw = getValue('estimates');

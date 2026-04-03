@@ -62,7 +62,7 @@ export async function runLavaanAnalysis(data: number[][], columns: string[], mod
 
     try {
         const result = await executeRWithRecovery(rCode);
-        const getValue = parseWebRResult(await result.toJs() as any);
+        const getValue = parseWebRResult(result);
 
         const estimatesRaw = getValue('est_list') || [];
         const estimates = estimatesRaw.map((item: any) => {

@@ -58,7 +58,7 @@ export async function runDescriptiveStats(data: number[][]): Promise<{
     const template = await getAnalysisRTemplate('descriptive', defaultRCode);
     const rCode = template.replace(/\{\{data\}\}/g, arrayToRMatrix(data));
     const result = await executeRWithRecovery(rCode);
-    const getValue = parseWebRResult(await result.toJs() as any);
+    const getValue = parseWebRResult(result);
     return {
         mean: getValue('mean') || [],
         sd: getValue('sd') || [],

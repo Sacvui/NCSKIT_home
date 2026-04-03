@@ -32,14 +32,28 @@ export function translateRError(error: string): string {
  * Helper to parse WebR evaluation result (list) into a getter function
  */
 export function parseWebRResult(jsResult: any) {
+    if (!jsResult) return (name: string) => null;
+    
     return (name: string): any => {
-        if (!jsResult.names || !jsResult.values) return null;
-        const idx = jsResult.names.indexOf(name);
-        if (idx === -1) return null;
-        const item = jsResult.values[idx];
-        // Handle nested structure: WebR objects often have {type: ..., values: ...}
-        if (item && item.values) return item.values;
-        return item;
+        // Case 1: Plain JS object (unpacked)
+        if (jsResult[name] !== undefined) {
+            const val = jsResult[name];
+            return Array.isArray(val) ? val : [val];
+        }
+
+        // Case 2: Raw WebR toJs() object
+        if (jsResult.names && jsResult.values) {
+            const idx = jsResult.names.indexOf(name);
+            if (idx === -1) return null;
+            const item = jsResult.values[idx];
+            // Handle nested WebR structure
+            if (item && typeof item === 'object' && item.values !== undefined) {
+                return Array.isArray(item.values) ? item.values : [item.values];
+            }
+            return Array.isArray(item) ? item : [item];
+        }
+        
+        return null;
     };
 }
 
