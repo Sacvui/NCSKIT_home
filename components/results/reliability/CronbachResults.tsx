@@ -29,16 +29,23 @@ export const CronbachResults = React.memo(function CronbachResults({
         setLocale(getStoredLocale());
     }, []);
 
-    const alpha = results.alpha || results.rawAlpha || 0;
+    const alpha = parseFloat(String(results.alpha || results.rawAlpha || 0)) || 0;
     const nItems = results.nItems || 'N/A';
     const itemTotalStats = results.itemTotalStats || [];
 
     const isOmega = analysisType === 'omega';
+    
+    // Robust formatting helper to prevent .toFixed errors
+    const formatNum = (val: any, digits: number = 3) => {
+        if (val === null || val === undefined) return 'N/A';
+        const num = typeof val === 'number' ? val : parseFloat(String(val));
+        return isNaN(num) ? 'N/A' : num.toFixed(digits);
+    };
 
     // Extract good items for workflow (memoized)
     const goodItems = useMemo(() =>
         itemTotalStats
-            .filter((item: any) => item.correctedItemTotalCorrelation >= 0.3)
+            .filter((item: any) => parseFloat(String(item.correctedItemTotalCorrelation)) >= 0.3)
             .map((item: any, idx: number) => columns?.[idx] || item.itemName),
         [itemTotalStats, columns]
     );
@@ -63,7 +70,7 @@ export const CronbachResults = React.memo(function CronbachResults({
                     <div className="text-center">
                         <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{isOmega ? 'Omega' : 'Alpha'} Coefficient</div>
                         <div className={`text-5xl font-black ${alpha >= 0.7 ? 'text-blue-900' : 'text-slate-400'}`}>
-                            {alpha.toFixed(3)}
+                            {formatNum(alpha, 3)}
                         </div>
                         <div className={`text-[10px] font-black mt-2 uppercase px-3 py-1 rounded-full border ${alpha >= 0.7 ? 'bg-blue-900 text-white border-blue-900' : 'bg-slate-100 text-slate-400 border-slate-200'}`}>
                             {alpha >= 0.8 ? 'Very High' : alpha >= 0.7 ? 'Acceptable' : alpha >= 0.6 ? 'Questionable' : 'Poor'}
@@ -99,15 +106,10 @@ export const CronbachResults = React.memo(function CronbachResults({
                             </thead>
                             <tbody className="divide-y divide-blue-50">
                                 {itemTotalStats.map((item: any, idx: number) => {
-                                    const isLow = item.correctedItemTotalCorrelation < 0.3;
-                                    const isKiller = item.alphaIfItemDeleted > alpha;
-                                    
-                                    // Robust formatting helper to prevent .toFixed errors
-                                    const formatNum = (val: any) => {
-                                        if (val === null || val === undefined) return 'N/A';
-                                        const num = typeof val === 'number' ? val : parseFloat(String(val));
-                                        return isNaN(num) ? 'N/A' : num.toFixed(3);
-                                    };
+                                    const corr = parseFloat(String(item.correctedItemTotalCorrelation)) || 0;
+                                    const devAlpha = parseFloat(String(item.alphaIfItemDeleted)) || 0;
+                                    const isLow = corr < 0.3;
+                                    const isKiller = devAlpha > alpha;
                                     
                                     return (
                                         <tr key={idx} className={`hover:bg-blue-50/30 transition-colors ${isLow ? 'bg-red-50/30' : ''}`}>
@@ -138,7 +140,7 @@ export const CronbachResults = React.memo(function CronbachResults({
 
                 <div className="space-y-6 border-l-2 border-blue-50 pl-6 text-sm">
                     <div className="bg-blue-50/40 p-6 rounded-lg border border-blue-50 leading-relaxed text-slate-800">
-                        Hệ số tin cậy **{isOmega ? 'Omega' : 'Cronbach\'s Alpha'}** của thang đo <strong>{scaleName || 'nghiên cứu'}</strong> đạt <strong>{alpha.toFixed(3)}</strong>. 
+                        Hệ số tin cậy **{isOmega ? 'Omega' : 'Cronbach\'s Alpha'}** của thang đo <strong>{scaleName || 'nghiên cứu'}</strong> đạt <strong>{formatNum(alpha, 3)}</strong>. 
                         Số lượng biến quan sát là <strong>{nItems}</strong>. 
                         {alpha >= 0.7 
                             ? "Thang đo đạt độ tin cậy tốt để sử dụng trong các phân tích tiếp theo."

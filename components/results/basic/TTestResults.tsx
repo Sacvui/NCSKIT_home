@@ -21,9 +21,17 @@ export const TTestResults = React.memo(function TTestResults({ results }: TTestR
 
     if (!results) return null;
 
-    const pValue = results.pValue;
+    // Robust formatting helper
+    const formatNum = (val: any, digits: number = 3) => {
+        if (val === null || val === undefined) return 'N/A';
+        const num = typeof val === 'number' ? val : parseFloat(String(val));
+        return isNaN(num) ? 'N/A' : num.toFixed(digits);
+    };
+
+    const pValue = parseFloat(String(results.pValue)) || 0;
     const significant = pValue < 0.05;
-    const leveneSig = results.leveneP < 0.05;
+    const lP = parseFloat(String(results.leveneP)) || 0.5;
+    const leveneSig = lP < 0.05;
 
     return (
         <div className="space-y-8 pb-10 animate-in fade-in duration-500">
@@ -52,12 +60,12 @@ export const TTestResults = React.memo(function TTestResults({ results }: TTestR
                                     <div className="text-sm font-bold text-blue-800">Equal variances assumed</div>
                                     <div className="text-[10px] text-slate-400 italic">Giả định phương sai bằng nhau</div>
                                 </td>
-                                <td className="py-5 px-4 text-sm text-right font-mono">{results.tStatistic?.toFixed(3)}</td>
-                                <td className="py-5 px-4 text-sm text-center font-bold">{results.df?.toFixed(2)}</td>
+                                <td className="py-5 px-4 text-sm text-right font-mono">{formatNum(results.tStatistic, 3)}</td>
+                                <td className="py-5 px-4 text-sm text-center font-bold">{formatNum(results.df, 2)}</td>
                                  <td className={`py-5 px-4 text-sm text-right font-black ${significant ? 'text-blue-950 underline underline-offset-4 ring-1 ring-blue-100 rounded-lg px-2' : 'text-slate-700'}`}>
-                                    {pValue?.toFixed(4)} {significant ? ' (Sig.)' : ''}
+                                    {formatNum(pValue, 4)} {significant ? ' (Sig.)' : ''}
                                 </td>
-                                <td className="py-5 px-4 text-sm text-right font-mono text-slate-800 font-black">{results.meanDiff?.toFixed(3)}</td>
+                                <td className="py-5 px-4 text-sm text-right font-mono text-slate-800 font-black">{formatNum(results.meanDiff, 3)}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -72,12 +80,12 @@ export const TTestResults = React.memo(function TTestResults({ results }: TTestR
                 <div className="flex items-center gap-6 flex-wrap">
                     <div className="text-sm">
                         <span className="text-slate-600 font-black mr-2">F:</span>
-                        <span className="text-blue-900 font-black">{results.leveneF?.toFixed(3)}</span>
+                        <span className="text-blue-900 font-black">{formatNum(results.leveneF, 3)}</span>
                     </div>
                     <div className="text-sm">
                         <span className="text-slate-600 font-black mr-2">Sig:</span>
                         <span className={`font-black ${leveneSig ? 'text-blue-900' : 'text-slate-900'}`}>
-                            {results.leveneP?.toFixed(4)}
+                            {formatNum(lP, 4)}
                         </span>
                     </div>
                     <div className={`text-[10px] uppercase font-black px-3 py-1 rounded-lg border ${leveneSig ? 'bg-amber-50 border-amber-300 text-amber-700 shadow-sm' : 'bg-blue-900 border-blue-900 text-white shadow-lg shadow-blue-100 animate-in fade-in zoom-in-95'}`}>
@@ -101,8 +109,8 @@ export const TTestResults = React.memo(function TTestResults({ results }: TTestR
                     <p className="text-sm text-slate-800 leading-relaxed font-medium bg-blue-50/40 p-5 rounded-lg border border-blue-50">
                         <span className="text-blue-900 font-black uppercase text-[10px] mr-2 tracking-tighter block mb-2 underline underline-offset-4">Kết luận phân tích:</span>
                         {significant
-                            ? `Kết quả kiểm định T-Test t(${results.df?.toFixed(1)}) = ${results.tStatistic?.toFixed(2)} cho thấy p = ${pValue?.toFixed(4)} < 0.05. Do đó, ta bác bỏ giả thuyết H₀. Có sự khác biệt có ý nghĩa thống kê giữa hai nhóm được so sánh.`
-                            : `Kết quả kiểm định T-Test t(${results.df?.toFixed(1)}) = ${results.tStatistic?.toFixed(2)} cho thấy p = ${pValue?.toFixed(4)} >= 0.05. Chưa có đủ bằng chứng thống kê để bác bỏ giả thuyết H₀. Sự khác biệt giữa hai nhóm không có ý nghĩa thống kê.`
+                            ? `Kết quả kiểm định T-Test t(${formatNum(results.df, 1)}) = ${formatNum(results.tStatistic, 2)} cho thấy p = ${formatNum(pValue, 4)} < 0.05. Do đó, ta bác bỏ giả thuyết H₀. Có sự khác biệt có ý nghĩa thống kê giữa hai nhóm được so sánh.`
+                            : `Kết quả kiểm định T-Test t(${formatNum(results.df, 1)}) = ${formatNum(results.tStatistic, 2)} cho thấy p = ${formatNum(pValue, 4)} >= 0.05. Chưa có đủ bằng chứng thống kê để bác bỏ giả thuyết H₀. Sự khác biệt giữa hai nhóm không có ý nghĩa thống kê.`
                         }
                     </p>
                 </div>

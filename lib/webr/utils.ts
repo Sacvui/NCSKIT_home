@@ -38,11 +38,11 @@ export function parseWebRResult(jsResult: any) {
         let val: any = null;
 
         // Case 1: Plain JS object (unpacked)
-        if (jsResult[name] !== undefined) {
+        if (jsResult && typeof jsResult === 'object' && jsResult[name] !== undefined) {
             val = jsResult[name];
         } 
         // Case 2: Raw WebR toJs() object
-        else if (jsResult.names && jsResult.values) {
+        else if (jsResult && jsResult.names && jsResult.values) {
             const idx = jsResult.names.indexOf(name);
             if (idx !== -1) {
                 val = jsResult.values[idx];
@@ -59,11 +59,11 @@ export function parseWebRResult(jsResult: any) {
         if (Array.isArray(val)) return val;
         
         // Handle TypedArrays (Float64Array, etc.) which are common in WebR
-        if (val && typeof val === 'object' && typeof val.length === 'number' && val.buffer) {
+        if (val && typeof val === 'object' && typeof val.length === 'number' && (val.buffer instanceof ArrayBuffer || val.buffer instanceof SharedArrayBuffer)) {
             return Array.from(val);
         }
 
-        // Single value
+        // Single value (force to array for consistency)
         return [val];
     };
 }
