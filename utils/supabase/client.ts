@@ -14,7 +14,6 @@ export const createClient = () => {
         supabaseAnonKey,
         {
             cookieOptions: {
-                domain: isProd ? '.ncskit.org' : undefined,
                 path: '/',
                 sameSite: 'lax',
                 secure: typeof window !== 'undefined' && (window.location.protocol === 'https:' || process.env.NODE_ENV === 'production')

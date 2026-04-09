@@ -22,16 +22,9 @@ export async function createClient() {
                 },
                 setAll(cookiesToSet) {
                     try {
-                        const isProd = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1'
-                        const domain = isProd ? '.ncskit.org' : undefined
-
                         cookiesToSet.forEach(({ name, value, options }) =>
                             cookieStore.set(name, value, {
                                 ...options,
-                                domain: name.includes('supabase') ? domain : options?.domain,
-                                secure: isProd,
-                                sameSite: 'lax',
-                                path: '/',
                             })
                         )
                     } catch (error) {
@@ -40,7 +33,6 @@ export async function createClient() {
                 },
             },
             cookieOptions: {
-                domain: process.env.NODE_ENV === 'production' ? '.ncskit.org' : undefined,
                 sameSite: 'lax',
                 secure: process.env.NODE_ENV === 'production' || process.env.VERCEL === '1',
                 path: '/',

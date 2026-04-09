@@ -60,11 +60,9 @@ export async function updateSession(request: NextRequest) {
                         response = NextResponse.next({
                             request,
                         })
-                        const domain = isProduction && request.nextUrl.hostname.includes('ncskit.org') ? '.ncskit.org' : undefined
                         cookiesToSet.forEach(({ name, value, options }) =>
                             response.cookies.set(name, value, {
                                 ...options,
-                                domain,
                                 secure: useSecureCookies,
                                 sameSite: 'lax',
                                 path: '/',
@@ -73,7 +71,6 @@ export async function updateSession(request: NextRequest) {
                     },
                 },
                 cookieOptions: {
-                    domain: isProduction && request.nextUrl.hostname.includes('ncskit.org') ? '.ncskit.org' : undefined,
                     secure: useSecureCookies,
                     sameSite: 'lax',
                     path: '/',
