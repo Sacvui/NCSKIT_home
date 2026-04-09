@@ -1,6 +1,7 @@
 {
   "name": "ncsstat",
   "version": "0.1.0",
+  "description": "Triggering fresh Vercel build after cleanup",
   "private": true,
   "type": "module",
   "scripts": {
