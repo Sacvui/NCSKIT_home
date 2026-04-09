@@ -739,20 +739,22 @@ export async function generateStaticParams() {
 // Ensure the page stays dynamic even if pre-rendered
 export const dynamicParams = true;
 
-const supabase = getSupabase();
-
 export default async function KnowledgeArticlePage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params;
     
     let article = FALLBACK_ARTICLES[slug] || DEFAULT_ARTICLE;
     
-    try {
-        const { data, error } = await supabase.from('knowledge_articles').select('*').eq('slug', slug).single();
-        if (data && !error) {
-            article = data;
+    const supabase = getSupabase();
+
+    if (supabase) {
+        try {
+            const { data, error } = await supabase.from('knowledge_articles').select('*').eq('slug', slug).single();
+            if (data && !error) {
+                article = data;
+            }
+        } catch (e) {
+            console.error("Server fetch error - Using Fallback");
         }
-    } catch (e) {
-        console.error("Server fetch error - Using Fallback");
     }
 
     return (
