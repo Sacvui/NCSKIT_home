@@ -48,7 +48,7 @@ export async function getAnalysisCosts(): Promise<Record<string, number>> {
         .from('system_config')
         .select('value')
         .eq('key', 'analysis_costs')
-        .single();
+        .maybeSingle();
 
     if (error || !data) {
         console.warn('Failed to fetch analysis costs, using defaults');
@@ -85,7 +85,7 @@ export async function getDefaultBalance(): Promise<number> {
         .from('system_config')
         .select('value')
         .eq('key', 'default_ncs_balance')
-        .single();
+        .maybeSingle();
 
     if (error || !data) {
         console.warn('Failed to fetch default balance, using 100000');
@@ -286,7 +286,7 @@ export async function getReferralReward(): Promise<number> {
         .from('system_config')
         .select('value')
         .eq('key', 'referral_reward')
-        .single();
+        .maybeSingle();
 
     if (error || !data) {
         console.warn('Failed to fetch referral reward, using 5000');
