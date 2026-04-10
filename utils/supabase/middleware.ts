@@ -114,7 +114,7 @@ export async function updateSession(request: NextRequest) {
                 }
             }
 
-            console.log('[Middleware] User validated successfully:', user.email)
+            console.log('[Middleware] User validated successfully:', user?.email)
             return response
 
 
