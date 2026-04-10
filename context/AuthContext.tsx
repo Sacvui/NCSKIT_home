@@ -66,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch (err) {
             console.error('[AuthProvider] Profile fetch error:', err);
         }
-    }, [supabase]);
+    }, []);
 
     const initializeAuth = useCallback(async () => {
         if (isInitialized.current) return;
@@ -112,7 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } finally {
             setLoading(false);
         }
-    }, [supabase, fetchProfile]);
+    }, [supabase]); // initializeAuth should only depend on the client
 
     useEffect(() => {
         // Run deep initialization
@@ -157,7 +157,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return () => {
             subscription.unsubscribe();
         };
-    }, [initializeAuth, fetchProfile, profile, supabase]);
+    }, [supabase]); // ONLY depend on supabase client instance
 
     const signOut = useCallback(async () => {
         await supabase.auth.signOut();
