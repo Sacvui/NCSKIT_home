@@ -136,7 +136,12 @@ type AnalysisPhase =
     | 'ipma-select' | 'mga-select' | 'blindfolding-select' | 'plssem-select' | 'cbsem-select'
     | 'results';
 
+import { redirect } from 'next/navigation';
+
 export default function Analyze2Page() {
+    // Tạm thời vô hiệu hóa luồng phân tích mới theo yêu cầu
+    redirect('/analyze');
+    
     return (
         <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50">
             <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div>

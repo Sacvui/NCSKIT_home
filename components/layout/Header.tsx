@@ -66,12 +66,6 @@ function HeaderContent({ centerContent, rightActions, hideNav = false, user: pro
                                     label={t(locale, 'nav.analyze1')}
                                     icon={Microscope}
                                 />
-                                <NavDropdownItem
-                                    href="/analyze2"
-                                    active={pathname === '/analyze2'}
-                                    label={t(locale, 'nav.analyze2')}
-                                    icon={Network}
-                                />
                             </NavDropdown>
 
                             <NavLink href="/scales" active={pathname?.startsWith('/scales')}>
