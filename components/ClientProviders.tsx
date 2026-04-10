@@ -12,8 +12,8 @@ export function ClientProviders({ children }: { children: React.ReactNode }) {
     return (
         <ErrorBoundary>
             <LanguageProvider>
-                <AuthRedirectHandler />
                 <AuthProvider>
+                    <AuthRedirectHandler />
                     {children}
                     <FeedbackWidget />
                     <ClientToaster />

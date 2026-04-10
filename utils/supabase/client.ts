@@ -1,20 +1,19 @@
 import { createBrowserClient } from '@supabase/ssr'
 
-let supabaseInstance: any = null;
-
-export const getSupabase = () => {
-    if (supabaseInstance) return supabaseInstance;
-
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder'
-
-    supabaseInstance = createBrowserClient(
-        supabaseUrl,
-        supabaseAnonKey
-    )
-    
-    return supabaseInstance;
+// Use a global variable to preserve the client across hot reloads in development
+// and ensure a strict singleton in production.
+const globalSupabase = global as unknown as {
+  supabaseClient: ReturnType<typeof createBrowserClient> | undefined
 }
 
-// Keep createClient for compatibility but mark it
-export const createClient = getSupabase;
+export const getSupabase = () => {
+  if (globalSupabase.supabaseClient) {
+    return globalSupabase.supabaseClient
+  }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+  globalSupabase.supabaseClient = createBrowserClient(supabaseUrl, supabaseAnonKey)
+  return globalSupabase.supabaseClient
+}

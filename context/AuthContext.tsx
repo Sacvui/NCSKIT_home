@@ -149,7 +149,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return () => {
             subscription.unsubscribe();
         };
-    }, [supabase]); // ONLY depend on supabase client instance
+    }, []); // Run ONCE on mount. Supabase is now a global singleton.
 
     const signOut = useCallback(async () => {
         await supabase.auth.signOut();
