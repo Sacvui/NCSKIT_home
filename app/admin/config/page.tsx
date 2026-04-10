@@ -1,15 +1,25 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { getAnalysisCosts, updateAnalysisCosts, ANALYSIS_TYPES } from '@/lib/ncs-credits'
+import { 
+    getAnalysisCosts, updateAnalysisCosts, ANALYSIS_TYPES,
+    getDefaultBalance, updateDefaultBalance,
+    getReferralReward, updateReferralReward
+} from '@/lib/ncs-credits'
 import { toast } from 'react-hot-toast'
-import { Save, Loader2, RefreshCw } from 'lucide-react'
+import { Save, Loader2, RefreshCw, HandCoins, UserPlus } from 'lucide-react'
 
 export default function AdminConfigPage() {
     const [costs, setCosts] = useState<Record<string, number>>({})
+    const [defaultBalance, setDefaultBalance] = useState<number>(100000)
+    const [referralReward, setReferralReward] = useState<number>(5000)
+    
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
+    
     const [originalCosts, setOriginalCosts] = useState<Record<string, number>>({})
+    const [originalDefaultBalance, setOriginalDefaultBalance] = useState<number>(100000)
+    const [originalReferralReward, setOriginalReferralReward] = useState<number>(5000)
 
     useEffect(() => {
         loadData()
@@ -19,11 +29,19 @@ export default function AdminConfigPage() {
         setLoading(true)
         try {
             const data = await getAnalysisCosts()
+            const bal = await getDefaultBalance()
+            const ref = await getReferralReward()
+            
             setCosts(data)
+            setDefaultBalance(bal)
+            setReferralReward(ref)
+            
             setOriginalCosts(JSON.parse(JSON.stringify(data)))
+            setOriginalDefaultBalance(bal)
+            setOriginalReferralReward(ref)
         } catch (error) {
-            console.error('Failed to load costs', error)
-            toast.error('Không thể tải cấu hình giá')
+            console.error('Failed to load configs', error)
+            toast.error('Không thể tải cấu hình hệ thống')
         } finally {
             setLoading(false)
         }
@@ -40,12 +58,21 @@ export default function AdminConfigPage() {
     const handleSave = async () => {
         setSaving(true)
         try {
-            const success = await updateAnalysisCosts(costs)
-            if (success) {
-                toast.success('Đã cập nhật cấu hình giá thành công')
+            const promises = [
+                updateAnalysisCosts(costs),
+                updateDefaultBalance(defaultBalance),
+                updateReferralReward(referralReward)
+            ]
+            
+            const results = await Promise.all(promises)
+            
+            if (results.every(res => res)) {
+                toast.success('Đã cập nhật cấu hình hệ thống thành công')
                 setOriginalCosts(JSON.parse(JSON.stringify(costs)))
+                setOriginalDefaultBalance(defaultBalance)
+                setOriginalReferralReward(referralReward)
             } else {
-                toast.error('Lỗi khi lưu cấu hình')
+                toast.error('Lỗi khi lưu một số cấu hình')
             }
         } catch (error) {
             console.error('Save error:', error)
@@ -55,7 +82,9 @@ export default function AdminConfigPage() {
         }
     }
 
-    const hasChanges = JSON.stringify(costs) !== JSON.stringify(originalCosts)
+    const hasChanges = JSON.stringify(costs) !== JSON.stringify(originalCosts) 
+        || defaultBalance !== originalDefaultBalance
+        || referralReward !== originalReferralReward
 
     if (loading) {
         return (
@@ -66,11 +95,11 @@ export default function AdminConfigPage() {
     }
 
     return (
-        <div className="max-w-4xl space-y-6">
+        <div className="max-w-4xl space-y-6 pb-20">
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-800">Cấu hình hệ thống</h1>
-                    <p className="text-slate-500 text-sm">Quản lý giá (Credits) cho các loại phân tích.</p>
+                    <p className="text-slate-500 text-sm">Quản lý giá (Credits) và ngân sách Token mặc định.</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <button
@@ -94,6 +123,50 @@ export default function AdminConfigPage() {
                 </div>
             </div>
 
+            {/* General Tokens Config */}
+            <div className="grid md:grid-cols-2 gap-6">
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col gap-4">
+                    <div className="flex items-center gap-3 text-emerald-600 mb-2">
+                        <div className="p-2 bg-emerald-50 rounded-lg">
+                            <HandCoins className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h2 className="font-semibold text-slate-800">Token Đăng Ký Mới</h2>
+                            <p className="text-xs text-slate-500">Số dư mặc định cho tài khoản mới</p>
+                        </div>
+                    </div>
+                    <div>
+                        <input
+                            type="number"
+                            value={defaultBalance}
+                            onChange={(e) => setDefaultBalance(parseInt(e.target.value) || 0)}
+                            className="w-full px-4 py-2 text-left border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all font-mono font-bold text-lg text-slate-700"
+                        />
+                    </div>
+                </div>
+
+                <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col gap-4">
+                    <div className="flex items-center gap-3 text-purple-600 mb-2">
+                        <div className="p-2 bg-purple-50 rounded-lg">
+                            <UserPlus className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <h2 className="font-semibold text-slate-800">Token Thưởng Giới Thiệu</h2>
+                            <p className="text-xs text-slate-500">Thưởng cho user chia sẻ mã giới thiệu</p>
+                        </div>
+                    </div>
+                    <div>
+                        <input
+                            type="number"
+                            value={referralReward}
+                            onChange={(e) => setReferralReward(parseInt(e.target.value) || 0)}
+                            className="w-full px-4 py-2 text-left border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all font-mono font-bold text-lg text-slate-700"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            {/* Analysis Costs Config */}
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="p-4 border-b border-slate-100 bg-slate-50/50">
                     <h2 className="font-semibold text-slate-700">Bảng giá phân tích (Analysis Costs)</h2>
