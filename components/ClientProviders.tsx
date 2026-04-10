@@ -10,15 +10,12 @@ import AuthRedirectHandler from '@/components/auth/AuthRedirectHandler';
 
 export function ClientProviders({ children }: { children: React.ReactNode }) {
     return (
-        <ErrorBoundary>
-            <LanguageProvider>
-                <AuthProvider>
-                    <AuthRedirectHandler />
-                    {children}
-                    <FeedbackWidget />
-                    <ClientToaster />
-                </AuthProvider>
-            </LanguageProvider>
-        </ErrorBoundary>
+        <LanguageProvider>
+            <AuthProvider>
+                {children}
+                <FeedbackWidget />
+                <ClientToaster />
+            </AuthProvider>
+        </LanguageProvider>
     );
 }

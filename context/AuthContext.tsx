@@ -118,31 +118,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Run deep initialization
         initializeAuth();
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
-            const user = session?.user || null;
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            const newUser = session?.user || null;
+            const newId = newUser?.id || null;
             
-            // 1. Always sync user state immediately for UI responsiveness
-            setUser(user);
-
-            // 2. Only handle "Heavy" logic (logging, profile fetch) if ID actually changed
-            const currentUserId = user?.id || null;
-            if (currentUserId !== lastUserRef.current) {
-                lastUserRef.current = currentUserId;
+            // Only update if identity actually changed to prevent render loops
+            if (newId !== lastUserRef.current) {
+                lastUserRef.current = newId;
+                setUser(newUser);
                 
-                if (currentUserId) {
-                    // New user detected!
-                    console.log(`[AuthProvider] User detected: ${currentUserId} via ${event}`);
-                    fetchProfile(currentUserId);
-                    logLogin(currentUserId).catch(() => {});
+                if (newId) {
+                    fetchProfile(newId);
                 } else {
-                    // Sign out detected!
                     setProfile(null);
                 }
-            } else if (currentUserId && !profile) {
-                // Same user but profile missing (refresh case)
-                fetchProfile(currentUserId);
             }
-
             setLoading(false);
         });
 
