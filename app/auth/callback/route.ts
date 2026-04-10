@@ -17,24 +17,14 @@ export async function GET(request: Request) {
     console.log(`[Auth Callback] Processing. Host: ${host}, siteUrl: ${siteUrl}, Code: ${code ? 'present' : 'missing'}`);
 
     if (code) {
-        const supabase = await createClient();
-        const { error } = await supabase.auth.exchangeCodeForSession(code);
-        
-        if (!error) {
-            console.log('[Auth Callback] Success. Redirecting to:', redirectUrl.toString());
-            return NextResponse.redirect(redirectUrl.toString());
-        } else {
-            console.error('[Auth Callback] Exchange error:', error.message, error.name);
-            const errorUrl = new URL('/login', siteUrl);
-            errorUrl.searchParams.set('error', `${error.message} (${error.name})`);
-            
-            // Helpful debug info for PKCE errors
-            if (error.message.toLowerCase().includes('verifier') || error.message.toLowerCase().includes('not found')) {
-                errorUrl.searchParams.set('auth_code', 'pkce_error_details');
-                errorUrl.searchParams.set('debug_info', `host=${host};proto=${protocol}`);
-            }
-            return NextResponse.redirect(errorUrl.toString());
-        }
+        // We used to process exchangeCodeForSession here. 
+        // However, this caused intermittent 'invalid flow state' errors because the Next.js server 
+        // sometimes cannot read the code_verifier cookie set by the browser. 
+        // By redirecting the `code` parameter straight to the client URL, 
+        // the @supabase/ssr browser client will safely intercept it and authenticate natively!
+        redirectUrl.searchParams.set('code', code);
+        console.log('[Auth Callback] Deferring auth verification to client. Redirecting to:', redirectUrl.toString());
+        return NextResponse.redirect(redirectUrl.toString());
     }
 
     console.warn('[Auth Callback] No code found in URL. This might be an implicit flow callback (hash fragment). Redirecting to client to parse.');
