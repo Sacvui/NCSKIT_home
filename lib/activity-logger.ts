@@ -27,12 +27,11 @@ export async function logActivity({
 
     try {
         const { error } = await supabase
-            .from('user_activity')
+            .from('activity_logs')
             .insert({
                 user_id: userId,
                 action_type: actionType,
-                action_details: details,
-                session_id: sessionId || generateSessionId()
+                action_details: { ...details, session_id: sessionId || generateSessionId() }
             });
 
         if (error) {
@@ -144,10 +143,10 @@ export async function getActivities(params: {
     const { fromDate, toDate, actionType, limit = 50, offset = 0 } = params;
 
     let query = supabase
-        .from('user_activity')
+        .from('activity_logs')
         .select(`
             *,
-            profiles!user_activity_user_id_fkey(email, full_name, role, avatar_url)
+            profiles(email, full_name, role, avatar_url)
         `, { count: 'exact' })
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
@@ -184,7 +183,7 @@ export async function getActivityStats(fromDate?: Date, toDate?: Date): Promise<
     const supabase = getSupabase();
 
     let query = supabase
-        .from('user_activity')
+        .from('activity_logs')
         .select('action_type, user_id');
 
     if (fromDate) {

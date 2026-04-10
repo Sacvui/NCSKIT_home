@@ -207,15 +207,15 @@ export async function logEnhancedActivity(
 
     try {
         const { error } = await supabase
-            .from('user_activity')
+            .from('activity_logs')
             .insert({
                 user_id: userId,
                 action_type: activityType,
                 action_details: {
                     ...details,
                     timestamp: new Date().toISOString(),
+                    session_id: details.session_id || sessionManager.getSessionId(),
                 },
-                session_id: details.session_id || sessionManager.getSessionId(),
             });
 
         if (error) {
@@ -262,7 +262,7 @@ export async function getUserActivitySummary(userId: string): Promise<UserActivi
     try {
         // Get all activities for user
         const { data: activities, error } = await supabase
-            .from('user_activity')
+            .from('activity_logs')
             .select('action_type, action_details, created_at')
             .eq('user_id', userId)
             .order('created_at', { ascending: false });
@@ -345,7 +345,7 @@ export async function getGlobalActivityStats(
     const supabase = getSupabase();
 
     let query = supabase
-        .from('user_activity')
+        .from('activity_logs')
         .select('action_type, action_details, user_id');
 
     if (fromDate) {
