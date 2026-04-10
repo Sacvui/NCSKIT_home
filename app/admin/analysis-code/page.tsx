@@ -11,6 +11,9 @@ import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { ANALYSIS_TYPES } from '@/lib/ncs-credits';
+import defaultScriptsData from '@/lib/webr/default-scripts.json';
+
+const defaultScripts = defaultScriptsData as Record<string, string>;
 
 interface Template {
     key: string;
@@ -39,8 +42,8 @@ export default function AdminAnalysisCodePage() {
                 });
                 setTemplates(templateMap);
                 
-                // Initialize editor with selected template or default placeholder
-                setEditingCode(templateMap[selectedKey] || '# Mặc định (Sẽ sử dụng code hardcoded trong hệ thống)\n# Bạn có thể ghi đè code R tại đây để thay đổi logic tính toán.');
+                // Initialize editor with selected template or actual default script
+                setEditingCode(templateMap[selectedKey] || defaultScripts[selectedKey] || '# Mã hệ thống không khả dụng. Bạn có thể tự viết code R mới.');
             }
         } catch (error) {
             toast.error('Lỗi khi tải dữ liệu');
@@ -83,8 +86,24 @@ export default function AdminAnalysisCodePage() {
 
     const resetToDefault = () => {
         if (confirm('Bạn có chắc chắn muốn xóa override và quay về code mặc định của hệ thống?')) {
-            setEditingCode('');
-            // Trigger save with empty code (or we could add a DELETE endpoint, but empty works for our helper)
+            setEditingCode(defaultScripts[selectedKey] || '');
+            // System uses default when string is empty in DB
+            handleSaveEmpty();
+        }
+    };
+
+    const handleSaveEmpty = async () => {
+        setSaving(true);
+        try {
+            await fetch('/api/admin/analysis-templates', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ analysisKey: selectedKey, code: '' })
+            });
+            setTemplates(prev => ({ ...prev, [selectedKey]: '' }));
+            toast.success('Đã reset về mặc định');
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -114,6 +133,12 @@ export default function AdminAnalysisCodePage() {
                 </div>
                 
                 <div className="flex items-center gap-3">
+                    <Link 
+                        href="/admin/analysis-code/report"
+                        className="px-6 py-3 bg-white border border-slate-200 text-purple-600 rounded-xl font-bold text-sm hover:bg-purple-50 transition-all flex items-center gap-2 shadow-sm"
+                    >
+                        <History className="w-4 h-4" /> Báo Cáo PDF
+                    </Link>
                     <button 
                         onClick={resetToDefault}
                         className="px-6 py-3 bg-white border border-slate-200 text-slate-600 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all flex items-center gap-2 shadow-sm"
@@ -156,7 +181,7 @@ export default function AdminAnalysisCodePage() {
                                         key={key}
                                         onClick={() => {
                                             setSelectedKey(key);
-                                            setEditingCode(templates[key] || '');
+                                            setEditingCode(templates[key] || defaultScripts[key] || '');
                                         }}
                                         className={`w-full text-left px-4 py-3.5 rounded-2xl flex items-center justify-between transition-all group ${
                                             isActive 
