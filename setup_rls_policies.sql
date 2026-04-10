@@ -4,12 +4,9 @@
 -- =========================================================================
 
 -- ============================
--- STEP 0: Rename user_activity -> activity_logs
+-- STEP 0: Table rename (ALREADY DONE)
+-- user_activity was renamed to activity_logs
 -- ============================
-ALTER TABLE user_activity RENAME TO activity_logs;
-
--- Drop old session_id column if it exists (new schema stores it in action_details jsonb)
-ALTER TABLE activity_logs DROP COLUMN IF EXISTS session_id;
 
 -- Add points columns to match new schema (if missing)
 ALTER TABLE activity_logs ADD COLUMN IF NOT EXISTS points_earned integer DEFAULT 0;
