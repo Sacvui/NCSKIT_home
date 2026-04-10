@@ -83,9 +83,13 @@ function AnalyzeContent() {
     // Overall loading state - follow auth context
     useEffect(() => {
         if (!authLoading) {
-            setLoading(false);
+            if (!user) {
+                router.push('/login?next=/analyze');
+            } else {
+                setLoading(false);
+            }
         }
-    }, [authLoading]);
+    }, [authLoading, user, router]);
 
     // Session State Management
     const {
