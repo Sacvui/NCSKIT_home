@@ -118,7 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Run deep initialization
         initializeAuth();
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
             const newUser = session?.user || null;
             const newId = newUser?.id || null;
             
