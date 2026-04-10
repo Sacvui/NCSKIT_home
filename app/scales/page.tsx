@@ -112,7 +112,7 @@ function ScaleHubContent() {
 
             if (error) throw error;
             
-            const transformedScales = (data || []).map(scale => ({
+            const transformedScales = (data || []).map((scale: any) => ({
                 ...scale,
                 tags: Array.isArray(scale.tags) ? scale.tags : (scale.tags ? String(scale.tags).split(',') : []),
                 category: Array.isArray(scale.category) ? scale.category : (scale.category ? String(scale.category).split(',') : ['All'])
