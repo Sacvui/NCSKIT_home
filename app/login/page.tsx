@@ -81,15 +81,23 @@ function LoginForm() {
                 isHttps: window.location.protocol === 'https:',
             })
 
+            // Provider-specific options
+            const providerOptions: any = { redirectTo }
+            
+            if (provider === 'google') {
+                providerOptions.queryParams = {
+                    access_type: 'offline',
+                    prompt: 'consent',
+                }
+            } else if (provider === 'linkedin_oidc') {
+                // LinkedIn OIDC requires specific scopes to return the user email.
+                // We omit Google-specific offline/consent params as they cause issues.
+                providerOptions.scopes = 'openid profile email'
+            }
+
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: provider,
-                options: {
-                    redirectTo: redirectTo,
-                    queryParams: {
-                        access_type: 'offline',
-                        prompt: 'consent',
-                    },
-                },
+                options: providerOptions,
             })
 
             if (error) {
