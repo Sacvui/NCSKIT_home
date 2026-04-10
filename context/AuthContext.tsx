@@ -118,46 +118,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Run deep initialization
         initializeAuth();
 
-        // Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
-            console.log(`[AuthProvider] Auth event: ${event}`, session?.user?.id);
+            const currentUserId = session?.user?.id || null;
 
-            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+            // Log only during meaningful transitions
+            if (currentUserId !== lastUserRef.current) {
+                console.log(`[AuthProvider] Auth identity change: ${event} -> ${currentUserId}`);
+                lastUserRef.current = currentUserId;
+
                 if (session?.user) {
-                    const userId = session.user.id;
-
-                    // Always update user state to ensure UI is in sync
                     setUser(session.user);
-
-                    // Logging logic - only if user changed
-                    if (userId !== lastUserRef.current) {
-                        console.log(`[AuthProvider] User changed/detected: ${userId}`);
-                        lastUserRef.current = userId;
-                        sessionStartRef.current = new Date();
-                        // Call non-critical async tasks without blocking
-                        logLogin(userId).catch(e => console.warn('Log login fail', e));
-                        fetchProfile(userId);
-                    } else if (!profile) {
-                        // If same user but profile is missing, try fetching it
-                        fetchProfile(userId);
-                    }
-                    setLoading(false);
-                } else if (event === 'INITIAL_SESSION') {
-                    // No session on initial load, ensure loading is stopped
-                    setLoading(false);
+                    fetchProfile(session.user.id);
+                } else {
+                    setUser(null);
+                    setProfile(null);
                 }
-            } else if (event === 'SIGNED_OUT') {
-                console.log('[AuthProvider] User signed out');
-                if (lastUserRef.current) {
-                    logLogout(lastUserRef.current, sessionStartRef.current || undefined).catch(e => console.warn('Log logout fail', e));
-                }
-                setUser(null);
-                setProfile(null);
-                lastUserRef.current = null;
-                sessionStartRef.current = null;
-                clearORCIDUser();
-                setLoading(false);
+            } else if (currentUserId && !profile) {
+                // Background profile fetch if missing
+                fetchProfile(currentUserId);
             }
+            
+            // Critical: Release the loading lock regardless of event
+            setLoading(false);
         });
 
         return () => {
