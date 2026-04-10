@@ -718,6 +718,40 @@ Chúng tôi cũng hỗ trợ tính năng tính toán tác động trực tiếp,
             content_vi: `Một báo cáo SEM không thể thiếu sơ đồ đường dẫn với đầy đủ các chỉ số sai số và hệ số tải. ncsStat tích hợp tính năng vẽ diagram tự động, cho phép bạn xuất ra các hình ảnh vector chất lượng cao, giúp bài nghiên cứu của bạn đạt tiêu chuẩn trình bày của các tạp chí Q1 hàng đầu thế giới.`,
             content_en: `Professional SEM reporting requires high-quality diagrams showing errors and paths. ncsStat generates detailed, vector-ready visual models that meet the strictest requirements of top-tier academic journals.`
         }]
+    },
+    'technology-acceptance-model-tam': {
+        slug: 'technology-acceptance-model-tam', category: 'Research Models',
+        title_vi: 'Mô hình Chấp nhận Công nghệ (TAM): Hỗ trợ Chuyên sâu từ A-Z',
+        title_en: 'Technology Acceptance Model (TAM): The Ultimate Guide',
+        expert_tip_vi: 'Đừng chỉ dừng lại ở mô hình gốc năm 1989. Để đạt chuẩn Scopus/ISI, hãy tích hợp TAM với Trust hoặc Rủi ro cảm nhận.',
+        expert_tip_en: 'For Scopus/ISI standards, integrate TAM with Trust or Perceived Risk.',
+        author: 'ncsStat Academic Team', updated_at: new Date().toISOString(),
+        content_structure: [
+            { h2_vi: '1. Nguồn gốc của TAM', h2_en: '1. Origins of TAM', content_vi: 'Mô hình TAM (Davis, 1989) giải thích lý do tại sao người dùng chấp nhận công nghệ mới dựa trên PU và PEOU.', content_en: 'TAM explains tech adoption based on PU and PEOU.' },
+            { h2_vi: '2. Các biến số cốt lõi', h2_en: '2. Core Variables', content_vi: 'PU (Hữu ích cảm nhận) và PEOU (Dễ sử dụng cảm nhận) là hai chân kiềng của mô hình.', content_en: 'PU and PEOU are the two pillars of the model.' }
+        ]
+    },
+    'theory-of-planned-behavior-tpb': {
+        slug: 'theory-of-planned-behavior-tpb', category: 'Behavioral Research',
+        title_vi: 'Thuyết Hành vi Dự định (TPB): Giải mã Ý định',
+        title_en: 'Theory of Planned Behavior (TPB): Decoding Intentions',
+        expert_tip_vi: 'PBC là điểm khác biệt lớn nhất giữa TRA và TPB. Đừng quên đưa nó vào như một biến điều tiết.',
+        expert_tip_en: 'PBC is the main difference between TRA and TPB.',
+        author: 'ncsStat Academic Team', updated_at: new Date().toISOString(),
+        content_structure: [
+            { h2_vi: '1. Cấu trúc TPB', h2_en: '1. TPB Structure', content_vi: 'TPB bao gồm Thái độ, Chuẩn chủ quan và Kiểm soát hành vi cảm nhận (PBC).', content_en: 'TPB includes Attitude, Subjective Norms, and PBC.' }
+        ]
+    },
+    'signaling-theory-research': {
+        slug: 'signaling-theory-research', category: 'Market Strategy',
+        title_vi: 'Lý thuyết Tín hiệu (Signaling Theory): Khi hành động lên tiếng',
+        title_en: 'Signaling Theory: Actions Speak Louder Than Words',
+        expert_tip_vi: 'Tín hiệu chỉ có giá trị khi nó tốn kém để thực hiện (Costly signaling).',
+        expert_tip_en: 'A signal is only valuable if it is costly to implement.',
+        author: 'ncsStat Academic Team', updated_at: new Date().toISOString(),
+        content_structure: [
+            { h2_vi: '1. Cơ chế Tín hiệu', h2_en: '1. Signaling Mechanism', content_vi: 'Lý thuyết này giải thích cách người bán truyền tải thông tin về chất lượng cho người mua.', content_en: 'This theory explains quality signaling from sellers to buyers.' }
+        ]
     }
 };
 

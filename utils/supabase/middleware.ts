@@ -5,7 +5,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 const PROTECTED_ROUTES = ['/profile', '/admin']
 
 // Routes that can skip auth check entirely (public)
-const PUBLIC_ROUTES = ['/', '/login', '/terms', '/privacy', '/docs', '/methods', '/auth', '/analyze', '/scales']
+const PUBLIC_ROUTES = ['/', '/login', '/terms', '/privacy', '/docs', '/methods', '/auth', '/analyze', '/scales', '/knowledge']
 
 export async function updateSession(request: NextRequest) {
     let response = NextResponse.next({
