@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useMemo, lazy, Suspense } from 'react';
+import React, { useMemo, lazy, Suspense, useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { AIInterpretation } from './AIInterpretation';
 import { TemplateInterpretation } from './TemplateInterpretation';
 import SEMPathDiagram from './SEMPathDiagram';
+import { Maximize2, Minimize2 } from 'lucide-react';
 
 // Shared components (eager load - small and frequently used)
 import { RSyntaxViewer } from './results/shared/RSyntaxViewer';
@@ -53,6 +54,19 @@ export function ResultsDisplay({
     columns,
     scaleName
 }: ResultsDisplayProps) {
+    const [isFullscreen, setIsFullscreen] = useState(false);
+
+    // Prevent body scroll when fullscreen
+    useEffect(() => {
+        if (isFullscreen) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = 'unset';
+        }
+        return () => {
+            document.body.style.overflow = 'unset';
+        };
+    }, [isFullscreen]);
 
     const display = useMemo(() => {
         if (!results) return null;
@@ -114,7 +128,32 @@ export function ResultsDisplay({
     }, [results, analysisType, onProceedToEFA, onProceedToCFA, onProceedToSEM, columns, scaleName]);
 
     return (
-        <div id="analysis-results-container" className="space-y-8">
+        <div 
+            id="analysis-results-container" 
+            className={`space-y-8 ${isFullscreen ? 'fixed inset-0 z-[100] bg-slate-50 p-2 md:p-6 overflow-y-auto w-full h-full' : ''}`}
+        >
+            {/* Contextual Header for Fullscreen Mode */}
+            {isFullscreen ? (
+                <div className="flex justify-between items-center sticky top-0 bg-slate-50/90 backdrop-blur pb-4 pt-2 z-10 border-b border-slate-200 mb-6 px-1">
+                    <h2 className="text-lg font-bold text-slate-800">Kết quả phân tích</h2>
+                    <button 
+                        onClick={() => setIsFullscreen(false)}
+                        className="flex items-center gap-2 px-3 py-2 bg-indigo-600 border border-indigo-700 rounded-lg shadow font-medium text-white hover:bg-indigo-700 transition"
+                    >
+                        <Minimize2 className="w-4 h-4" /> Thu nhỏ
+                    </button>
+                </div>
+            ) : (
+                <div className="flex justify-end mb-[-1rem]">
+                    <button 
+                        onClick={() => setIsFullscreen(true)}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-lg shadow-sm hover:bg-slate-50 text-slate-700 text-sm font-medium relative z-10 transition-colors"
+                        title="Hiển thị full bảng"
+                    >
+                        <Maximize2 className="w-4 h-4" /> Xem toàn màn hình
+                    </button>
+                </div>
+            )}
             <Suspense fallback={<LoadingSkeleton />}>
                 {display}
             </Suspense>

@@ -23,6 +23,7 @@ const NAV_SECTIONS = [
         items: [
             { href: '/admin/users', icon: Users, label: 'Người dùng' },
             { href: '/admin/roles', icon: ShieldCheck, label: 'Phân quyền (Roles)' },
+            { href: '/admin/tokens', icon: Coins, label: 'Tokens & Giao dịch' },
             { href: '/admin/feedback', icon: MessageSquare, label: 'Phản hồi' },
         ]
     },
