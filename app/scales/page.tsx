@@ -85,7 +85,12 @@ function ScaleHubContent() {
         };
     }, []);
 
+    const isFetching = React.useRef(false);
+
     const fetchScales = async () => {
+        if (isFetching.current) return;
+        isFetching.current = true;
+        
         setLoading(true);
         try {
             const { data, error } = await supabase
@@ -109,6 +114,7 @@ function ScaleHubContent() {
             console.error('Error fetching scales:', err);
         } finally {
             setLoading(false);
+            isFetching.current = false;
         }
     };
 

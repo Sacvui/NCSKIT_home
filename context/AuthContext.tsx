@@ -119,36 +119,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         initializeAuth();
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
-            const currentUserId = session?.user?.id || null;
+            const user = session?.user || null;
             
-            // Log only for debugging
-            if (process.env.NODE_ENV !== 'production') {
-                console.log(`[AuthProvider] Event: ${event}`, currentUserId);
-            }
+            // 1. Always sync user state immediately for UI responsiveness
+            setUser(user);
 
-            // 1. If identity is the same, do NOTHING. 
-            // This is the primary defense against the SIGNED_OUT loop.
-            if (currentUserId === lastUserRef.current) {
-                // Use a functional update to be 100% sure we use latest state
-                setLoading(prev => prev ? false : prev);
-                return; 
-            }
-
-            // 2. Identity actually changed
-            lastUserRef.current = currentUserId;
-            
-            if (session?.user) {
-                setUser(session.user);
-                fetchProfile(session.user.id);
-            } else {
-                // Handle Sign Out Case
-                if (!getORCIDUser()) {
-                    setUser(null);
+            // 2. Only handle "Heavy" logic (logging, profile fetch) if ID actually changed
+            const currentUserId = user?.id || null;
+            if (currentUserId !== lastUserRef.current) {
+                lastUserRef.current = currentUserId;
+                
+                if (currentUserId) {
+                    // New user detected!
+                    console.log(`[AuthProvider] User detected: ${currentUserId} via ${event}`);
+                    fetchProfile(currentUserId);
+                    logLogin(currentUserId).catch(() => {});
+                } else {
+                    // Sign out detected!
                     setProfile(null);
                 }
+            } else if (currentUserId && !profile) {
+                // Same user but profile missing (refresh case)
+                fetchProfile(currentUserId);
             }
-            
-            // Finalize loading state
+
             setLoading(false);
         });
 
