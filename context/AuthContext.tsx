@@ -151,18 +151,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Finalize loading state
             setLoading(false);
         });
-                console.log('[AuthProvider] User signed out');
-                if (lastUserRef.current) {
-                    logLogout(lastUserRef.current, sessionStartRef.current || undefined).catch(e => console.warn('Log logout fail', e));
-                }
-                setUser(null);
-                setProfile(null);
-                lastUserRef.current = null;
-                sessionStartRef.current = null;
-                clearORCIDUser();
-                setLoading(false);
-            }
-        });
 
         return () => {
             subscription.unsubscribe();

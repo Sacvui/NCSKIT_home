@@ -70,11 +70,6 @@ function ScaleHubContent() {
         const handleLocaleChange = () => setLocale(getStoredLocale());
         window.addEventListener('localeChange', handleLocaleChange);
         
-    useEffect(() => {
-        setLocale(getStoredLocale());
-        const handleLocaleChange = () => setLocale(getStoredLocale());
-        window.addEventListener('localeChange', handleLocaleChange);
-        
         fetchScales();
         
         const handleClickOutside = (e: MouseEvent) => {
@@ -87,7 +82,6 @@ function ScaleHubContent() {
         return () => {
             window.removeEventListener('localeChange', handleLocaleChange);
             document.removeEventListener('mousedown', handleClickOutside);
-            subscription.unsubscribe();
         };
     }, []);
 
