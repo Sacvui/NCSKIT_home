@@ -60,18 +60,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isFirstRun.current = false;
 
         // 1. Initial Session Check
-        supabase.auth.getSession().then((result) => {
-            const session = result.data.session;
+        const initSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
             if (session?.user) {
                 setUser(session.user);
                 lastUserRef.current = session.user.id;
                 fetchProfile(session.user.id);
             }
             setLoading(false);
-        });
+        };
+        
+        initSession();
 
         // 2. Auth Listener
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
             const currentUserId = session?.user?.id || null;
             
             if (currentUserId !== lastUserRef.current) {
