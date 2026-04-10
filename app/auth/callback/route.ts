@@ -37,8 +37,8 @@ export async function GET(request: Request) {
         }
     }
 
-    console.warn('[Auth Callback] No code found.');
-    const noCodeUrl = new URL('/login', siteUrl);
-    noCodeUrl.searchParams.set('error', 'no_code');
-    return NextResponse.redirect(noCodeUrl.toString());
+    console.warn('[Auth Callback] No code found in URL. This might be an implicit flow callback (hash fragment). Redirecting to client to parse.');
+    // If there's no code, it might be in the URL hash fragment which the server can't read.
+    // Redirect to the intended destination so the client-side Supabase client can parse the hash.
+    return NextResponse.redirect(redirectUrl.toString());
 }
