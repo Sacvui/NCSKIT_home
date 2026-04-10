@@ -96,29 +96,34 @@ function ScaleHubContent() {
     }, []);
 
     const fetchScales = async () => {
-        setLoading(true);
+        // Prevent multiple simultaneous fetches
+        if (isFetching.current) return;
+        isFetching.current = true;
+
         try {
+            setLoading(true);
             const { data, error } = await supabase
                 .from('scales')
-                .select(`
-                    *,
-                    scale_items (*)
-                `)
-                .order('name_en', { ascending: true });
+                .select('*')
+                .order('name_vi', { ascending: true });
 
             if (error) throw error;
             
-            const transformedScales = data.map((s: any) => ({
-                ...s,
-                items: s.scale_items || [],
-                category: Array.isArray(s.category) ? s.category : [s.category]
+            const transformedScales = (data || []).map(scale => ({
+                ...scale,
+                tags: Array.isArray(scale.tags) ? scale.tags : (scale.tags ? String(scale.tags).split(',') : []),
+                category: Array.isArray(scale.category) ? scale.category : (scale.category ? String(scale.category).split(',') : ['All'])
             }));
             
             setScales(transformedScales);
-        } catch (err) {
-            console.error('Error fetching scales:', err);
+        } catch (err: any) {
+            // Ignore abort errors from the browser
+            if (err.name !== 'AbortError') {
+                console.error('Error fetching scales:', err);
+            }
         } finally {
             setLoading(false);
+            isFetching.current = false;
         }
     };
 
