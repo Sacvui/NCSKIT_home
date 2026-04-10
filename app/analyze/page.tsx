@@ -728,16 +728,16 @@ function AnalyzeContent() {
 
             {/* Dedicated Analysis Control Bar - Sits below Header */}
             <div className="sticky top-16 z-30 bg-blue-900 border-b border-blue-800 py-3 shadow-xl">
-                <div className="container mx-auto px-6 flex flex-wrap items-center justify-between gap-4">
+                <div className="container mx-auto px-4 md:px-6 flex flex-wrap items-center justify-between gap-3 md:gap-4">
                     <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2 pr-4 border-r border-blue-800">
+                        <div className="flex items-center gap-2 pr-3 md:pr-4 border-r border-blue-800">
                             <BarChart3 className="w-5 h-5 text-blue-400" />
-                            <span className="font-black text-xs text-white uppercase tracking-widest">
+                            <span className="font-black text-[10px] text-white uppercase tracking-widest hidden md:inline">
                                 Academic Engine
                             </span>
                         </div>
                         {filename && (
-                            <div className="flex items-center gap-2 px-3 py-1 bg-blue-950 rounded-lg text-blue-300 text-[10px] font-bold uppercase tracking-tighter max-w-[150px] truncate border border-blue-800">
+                            <div className="hidden sm:flex items-center gap-2 px-2 md:px-3 py-1 bg-blue-950 rounded-lg text-blue-300 text-[10px] font-bold uppercase tracking-tighter max-w-[80px] md:max-w-[150px] truncate border border-blue-800">
                                 <FileText className="w-3 h-3" /> {filename}
                             </div>
                         )}
@@ -768,8 +768,8 @@ function AnalyzeContent() {
             </div>
 
             {/* Progress Steps */}
-            <div className="container mx-auto px-6 py-8">
-                <div className="flex items-center justify-center gap-4 mb-8">
+            <div className="container mx-auto px-4 md:px-6 py-4 md:py-8">
+                <div className="flex items-center justify-center gap-2 md:gap-4 mb-4 md:mb-8">
                     {['upload', 'profile', 'analyze', 'results'].map((s, idx) => {
                         const stepOrder = ['upload', 'profile', 'analyze', 'results'];
 
@@ -801,7 +801,7 @@ function AnalyzeContent() {
                                     }}
                                     disabled={!isClickable}
                                     className={`
-                                        w-10 h-10 rounded-full flex items-center justify-center font-black text-xs transition-all shadow-sm
+                                        w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-black text-[10px] md:text-xs transition-all shadow-sm
                                         ${isCurrent ? 'bg-blue-900 text-white ring-4 ring-blue-100 scale-110' :
                                             isCompleted ? 'bg-blue-600 text-white hover:bg-blue-700 hover:scale-110' :
                                                 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'}
@@ -812,7 +812,7 @@ function AnalyzeContent() {
                                     {idx + 1}
                                 </button>
                                 {idx < 3 && (
-                                    <div className={`w-16 h-1 rounded-full transition-colors ${currentIdx > idx ?
+                                    <div className={`w-8 md:w-16 h-1 rounded-full transition-colors ${currentIdx > idx ?
                                         'bg-blue-600' : 'bg-slate-200'
                                         }`} />
                                 )}

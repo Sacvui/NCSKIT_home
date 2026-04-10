@@ -57,10 +57,10 @@ export default function FeedbackWidget() {
             {!isOpen && (
                 <button
                     onClick={() => setIsOpen(true)}
-                    className="group flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white p-3 rounded-full shadow-lg hover:shadow-indigo-500/30 transition-all duration-300 transform hover:scale-105"
+                    className="group flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white p-2.5 md:p-3 rounded-full shadow-lg hover:shadow-indigo-500/30 transition-all duration-300 transform hover:scale-105"
                 >
-                    <MessageSquarePlus className="w-6 h-6" />
-                    <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-500 ease-in-out whitespace-nowrap font-medium pr-1">
+                    <MessageSquarePlus className="w-5 h-5 md:w-6 md:h-6" />
+                    <span className="max-w-0 overflow-hidden group-hover:max-w-xs transition-all duration-500 ease-in-out whitespace-nowrap text-sm md:text-base font-medium pr-1">
                         Góp ý & Nhận quà
                     </span>
                 </button>
