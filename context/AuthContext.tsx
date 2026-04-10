@@ -119,25 +119,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         initializeAuth();
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
-            // Only log changes actually affecting user identity
-            const currentUserId = session?.user?.id;
+            const currentUserId = session?.user?.id || null; // Normalize to null
             
-            if (currentUserId !== lastUserRef.current || (currentUserId && !profile)) {
-                console.log(`[AuthProvider] Significant Auth event: ${event}`, currentUserId);
+            // Only act if the user ID actually changed
+            if (currentUserId !== lastUserRef.current) {
+                console.log(`[AuthProvider] Auth identity changed: ${event}`, currentUserId);
+                lastUserRef.current = currentUserId;
                 
                 if (session?.user) {
                     setUser(session.user);
-                    lastUserRef.current = session.user.id;
                     fetchProfile(session.user.id);
                 } else if (!getORCIDUser()) {
-                    // Only sign out if not an ORCID user
                     setUser(null);
                     setProfile(null);
-                    lastUserRef.current = null;
                 }
+                setLoading(false);
+            } else if (currentUserId && !profile) {
+                // Same user but profile missing (e.g. after a refresh)
+                fetchProfile(currentUserId);
             } else {
-                // For other events (like minor token refreshes that didn't change the user)
-                // just make sure loading is stopped
+                // No change, just ensure loading is gone
                 setLoading(false);
             }
         });
@@ -164,6 +165,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         clearORCIDUser();
         setUser(null);
         setProfile(null);
+        lastUserRef.current = null;
         window.location.href = '/login';
     }, [supabase]);
 
