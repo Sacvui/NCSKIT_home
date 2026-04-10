@@ -31,11 +31,6 @@ export async function createClient() {
                         console.error('[Supabase Server] Error setting cookies:', error)
                     }
                 },
-            },
-            cookieOptions: {
-                sameSite: 'lax',
-                secure: process.env.NODE_ENV === 'production' || process.env.VERCEL === '1',
-                path: '/',
             }
         }
     )

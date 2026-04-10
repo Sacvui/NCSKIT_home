@@ -11,14 +11,7 @@ export const createClient = () => {
 
     return createBrowserClient(
         supabaseUrl,
-        supabaseAnonKey,
-        {
-            cookieOptions: {
-                path: '/',
-                sameSite: 'lax',
-                secure: typeof window !== 'undefined' && (window.location.protocol === 'https:' || process.env.NODE_ENV === 'production')
-            }
-        }
+        supabaseAnonKey
     )
 }
 
