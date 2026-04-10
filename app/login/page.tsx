@@ -171,19 +171,23 @@ function LoginForm() {
                             <span>{loading === 'google' ? 'Redirecting to Google...' : 'Continue with Google'}</span>
                         </button>
 
-                        {/* LinkedIn - Temporarily disabled due to VN ISP blocking */}
+                        {/* LinkedIn */}
                         <button
-                            disabled={true}
-                            type="button"
-                            className="group relative w-full flex items-center justify-center gap-3 px-4 py-4 border border-gray-200 text-base font-medium rounded-xl bg-gray-50 opacity-60 grayscale cursor-not-allowed"
-                            title={isVi ? "LinkedIn đang bị chặn bởi nhiều nhà mạng tại VN" : "LinkedIn is blocked by ISPs in Vietnam"}
+                            disabled={!!loading}
+                            onClick={() => handleLogin('linkedin_oidc')}
+                            className={`group relative w-full flex items-center justify-center gap-3 px-4 py-4 border border-transparent text-base font-medium rounded-xl text-white transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0A66C2]
+                                ${loading === 'linkedin_oidc' ? 'bg-[#004182] scale-[0.98]' : 'bg-[#0A66C2] hover:bg-[#004182] hover:shadow-md'}
+                                ${loading && loading !== 'linkedin_oidc' ? 'opacity-50 grayscale' : ''}
+                            `}
                         >
-                            <svg className="h-5 w-5 fill-current text-gray-500" viewBox="0 0 24 24">
-                                <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-                            </svg>
-                            <span className="text-gray-500 leading-tight">
-                                {isVi ? 'Đăng nhập LinkedIn (Tạm bảo trì do mạng VN)' : 'Continue with LinkedIn (Network restricted)'}
-                            </span>
+                            {loading === 'linkedin_oidc' ? (
+                                <Loader2 className="h-5 w-5 animate-spin text-white" />
+                            ) : (
+                                <svg className="h-5 w-5 fill-current" viewBox="0 0 24 24">
+                                    <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+                                </svg>
+                            )}
+                            <span>{loading === 'linkedin_oidc' ? 'Redirecting to LinkedIn...' : 'Continue with LinkedIn'}</span>
                         </button>
 
                         {/* Text Carousel for Context (Only show when loading) */}
