@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, useRef, Suspense } from 'react';
 import { 
     Search, Filter, Library, BookOpen, Download, ChevronRight, 
     ArrowLeft, Quote, Clock, Layers, Sparkles, ExternalLink,
@@ -52,6 +52,7 @@ function ScaleHubContent() {
     const [locale, setLocale] = useState<Locale>('vi');
     const [scales, setScales] = useState<Scale[]>([]);
     const [loading, setLoading] = useState(true);
+    const isFetching = useRef(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [expandedScale, setExpandedScale] = useState<string | null>(null);
