@@ -14,6 +14,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // 2. FORCE PRIMARY DOMAIN: Avoid PKCE/Cookie mismatch between stat.ncskit.org and ncsstat.ncskit.org
+    /*
     if (host.includes('stat.ncskit.org') && !host.includes('ncsstat.ncskit.org')) {
         console.log(`[Middleware] Redirecting from ${host} to ncsstat.ncskit.org`)
         url.hostname = 'ncsstat.ncskit.org'
@@ -21,6 +22,7 @@ export async function middleware(request: NextRequest) {
         url.port = '' // Ensure port is stripped in production
         return NextResponse.redirect(url, { status: 301 })
     }
+    */
 
     // Skip session update for static assets
     if (request.nextUrl.pathname.startsWith('/_next') || request.nextUrl.pathname.includes('.')) {
