@@ -17,3 +17,6 @@ export const getSupabase = () => {
   globalSupabase.supabaseClient = createBrowserClient(supabaseUrl, supabaseAnonKey)
   return globalSupabase.supabaseClient
 }
+
+// Alias for backward compatibility
+export const createClient = getSupabase;
