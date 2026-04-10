@@ -72,11 +72,13 @@ function ScaleHubContent() {
         window.addEventListener('localeChange', handleLocaleChange);
         
         // Initial session check
-        supabase.auth.getSession().then(({ data: { session: currentSession } }: { data: { session: Session | null } }) => {
+        const initSession = async () => {
+            const { data: { session: currentSession } } = await supabase.auth.getSession();
             setSession(currentSession);
-        });
+        };
+        initSession();
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, newSession: Session | null) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
             setSession(newSession);
         });
 
@@ -148,16 +150,19 @@ function ScaleHubContent() {
             
             let matchesAdvisor = true;
             if (advisorSelection) {
+                const categoryArray = Array.isArray(scale.category) ? scale.category : [];
+                const tagsArray = Array.isArray(scale.tags) ? scale.tags : [];
+                
                 if (advisorSelection === 'acceptance') {
-                    matchesAdvisor = scale.tags?.some(t => ['Technology', 'Acceptance', 'Behavior', 'Intent', 'AI', 'ChatGPT'].includes(t)) || false;
+                    matchesAdvisor = tagsArray.some(t => ['Technology', 'Acceptance', 'Behavior', 'Intent', 'AI', 'ChatGPT'].includes(t));
                 } else if (advisorSelection === 'service') {
-                    matchesAdvisor = scale.tags?.some(t => ['Service', 'Quality', 'Satisfaction', 'Signal', 'Communication', 'Chatbot'].includes(t)) || false;
+                    matchesAdvisor = tagsArray.some(t => ['Service', 'Quality', 'Satisfaction', 'Signal', 'Communication', 'Chatbot'].includes(t));
                 } else if (advisorSelection === 'hr') {
-                    matchesAdvisor = scale.category.includes('HR') || scale.tags?.some(t => ['Leadership', 'Employee', 'Trust', 'Transparency', 'Remote Work', 'Zoom Fatigue'].includes(t)) || false;
+                    matchesAdvisor = categoryArray.includes('HR') || tagsArray.some(t => ['Leadership', 'Employee', 'Trust', 'Transparency', 'Remote Work', 'Zoom Fatigue'].includes(t));
                 } else if (advisorSelection === 'systems') {
-                    matchesAdvisor = scale.category.some(cat => ['Logistics', 'MIS'].includes(cat)) || (scale.tags?.includes('Digitalization') ?? false);
+                    matchesAdvisor = categoryArray.some(cat => ['Logistics', 'MIS'].includes(cat)) || tagsArray.includes('Digitalization');
                 } else if (advisorSelection === 'modern') {
-                    matchesAdvisor = scale.tags?.includes('Modern (2020+)') ?? false;
+                    matchesAdvisor = tagsArray.includes('Modern (2020+)');
                 }
             }
 
