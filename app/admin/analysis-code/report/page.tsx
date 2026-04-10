@@ -78,7 +78,7 @@ export default function AnalysisCodeReport() {
                         const activeCode = isOverridden ? templates[key] : (defaultScripts[key] || "Không có code mặc định hệ thống cho thuật toán này.");
 
                         return (
-                            <div key={key} className="break-inside-avoid border border-slate-200 rounded-xl overflow-hidden print:border-none print:shadow-none print:mb-8">
+                            <div key={key} className="break-before-auto break-inside-avoid page-break-inside-avoid border border-slate-200 rounded-xl overflow-hidden print:border-none print:shadow-none print:mb-8">
                                 <div className="bg-slate-50 p-4 border-b border-slate-200 print:bg-transparent print:border-b-2 print:border-slate-800 print:px-0 flex flex-col md:flex-row justify-between items-start md:items-center">
                                     <h2 className="text-lg font-bold text-slate-800">
                                         {index + 1}. {label} <span className="font-normal text-slate-500 text-sm">({key})</span>
@@ -91,8 +91,8 @@ export default function AnalysisCodeReport() {
                                         )}
                                     </div>
                                 </div>
-                                <div className="p-4 bg-slate-900 print:bg-slate-50 print:text-black">
-                                    <pre className="text-xs text-indigo-100 font-mono whitespace-pre-wrap leading-relaxed print:text-slate-800 break-words">
+                                <div className="p-4 bg-slate-900 print:bg-transparent print:text-black print:p-2">
+                                    <pre className="text-xs text-indigo-100 font-mono whitespace-pre-wrap leading-relaxed print:text-slate-900 break-words overflow-x-hidden">
                                         {activeCode}
                                     </pre>
                                 </div>
