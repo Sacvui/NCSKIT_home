@@ -22,17 +22,22 @@ export default function AuthRedirectHandler() {
         const hasTokenHash = searchParams.has('token_hash');
         const hasError = searchParams.has('error');
 
-        // Only act if we have code/error and are NOT already on a dedicated auth callback page
+        // Only act if we have code/error and are NOT already on a dedicated auth page.
+        // We explicitly allow /analyze because we intentionally route auth callbacks there 
+        // to bypass server-side cookie bugs and use client-side PKCE parsing.
         const isAuthPage = pathname?.includes('/auth/callback') || 
                           pathname?.includes('/auth/orcid') || 
-                          pathname?.includes('/login');
+                          pathname?.includes('/login') ||
+                          pathname?.includes('/analyze');
 
         if ((hasCode || hasTokenHash || hasError) && !isAuthPage) {
             console.log('[AuthRedirectHandler] Auth parameters detected on root or non-auth page. Redirecting to /auth/callback...');
             
-            // We use window.location.href instead of router.push to ensure a clean state 
-            // and trigger the exchangeCodeForSession properly.
-            window.location.href = `/auth/callback${window.location.search}`;
+            // Limit this redirect strictly to the root page. 
+            // If they are on a random page, just let Supabase handle it.
+            if (pathname === '/') {
+                window.location.href = `/auth/callback${window.location.search}`;
+            }
         }
     }, [pathname]);
 
