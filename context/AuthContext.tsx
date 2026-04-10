@@ -4,7 +4,6 @@ import React, { createContext, useContext, useEffect, useState, useRef, useMemo,
 import { getSupabase } from '@/utils/supabase/client';
 import { getORCIDUser, clearORCIDUser } from '@/utils/cookie-helper';
 import { User, AuthChangeEvent, Session } from '@supabase/supabase-js';
-import { logLogin, logLogout } from '@/lib/activity-logger';
 
 export interface Profile {
     id: string;
@@ -43,135 +42,68 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [profile, setProfile] = useState<Profile | null>(null);
     const [loading, setLoading] = useState(true);
-    const isInitialized = useRef(false);
     const lastUserRef = useRef<string | null>(null);
-    const sessionStartRef = useRef<Date | null>(null);
+    const isFirstRun = useRef(true);
     const supabase = getSupabase();
 
     const fetchProfile = useCallback(async (userId: string) => {
         try {
-            console.log(`[AuthProvider] Fetching profile for ${userId}...`);
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', userId)
-                .single();
-
-            if (error) {
-                console.warn('[AuthProvider] Profile fetch warning:', error.message);
-            }
-            if (data) {
-                setProfile(data as Profile);
-            }
+            const { data } = await supabase.from('profiles').select('*').eq('id', userId).single();
+            if (data) setProfile(data as Profile);
         } catch (err) {
-            console.error('[AuthProvider] Profile fetch error:', err);
+            console.error('[Auth] Profile fetch fail', err);
         }
     }, [supabase]);
 
-    const initializeAuth = useCallback(async () => {
-        if (isInitialized.current) return;
-        isInitialized.current = true;
-        console.log('[AuthProvider] Initializing...');
+    useEffect(() => {
+        if (!isFirstRun.current) return;
+        isFirstRun.current = false;
 
-        try {
-            // 1. Check Supabase Session
-            const { data: { session } } = await supabase.auth.getSession();
-
+        // 1. Initial Session Check
+        supabase.auth.getSession().then(({ data: { session } }) => {
             if (session?.user) {
                 setUser(session.user);
                 lastUserRef.current = session.user.id;
-                sessionStartRef.current = new Date();
-                await logLogin(session.user.id);
-                await fetchProfile(session.user.id);
-            } else {
-                // 2. Check ORCID Session
-                const orcidUserId = getORCIDUser();
-                if (orcidUserId) {
-                    // Fetch profile for ORCID user
-                    const { data: orcidProfile } = await supabase
-                        .from('profiles')
-                        .select('*')
-                        .eq('id', orcidUserId)
-                        .single();
-
-                    if (orcidProfile) {
-                        setProfile(orcidProfile as Profile);
-                        // Mock user object for ORCID
-                        setUser({
-                            id: orcidUserId,
-                            email: orcidProfile.email || `${orcidProfile.orcid_id}@orcid.org`,
-                        } as any);
-                    }
-                }
+                fetchProfile(session.user.id);
             }
-        } catch (err: any) {
-            // Silence harmless AbortError commonly caused by React Strict Mode or rapid navigation
-            if (err.name !== 'AbortError') {
-                console.error('[AuthProvider] Init error:', err);
-            }
-        } finally {
-            setLoading(false);
-        }
-    }, [supabase, fetchProfile]);
-
-    useEffect(() => {
-        // Run deep initialization
-        initializeAuth();
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
-            const currentUserId = session?.user?.id || null;
-
-            // Log only during meaningful transitions
-            if (currentUserId !== lastUserRef.current) {
-                console.log(`[AuthProvider] Auth identity change: ${event} -> ${currentUserId}`);
-                lastUserRef.current = currentUserId;
-
-                if (session?.user) {
-                    setUser(session.user);
-                    fetchProfile(session.user.id);
-                } else {
-                    setUser(null);
-                    setProfile(null);
-                }
-            } else if (currentUserId && !profile) {
-                // Background profile fetch if missing
-                fetchProfile(currentUserId);
-            }
-            
-            // Critical: Release the loading lock regardless of event
             setLoading(false);
         });
 
-        return () => {
-            subscription.unsubscribe();
-        };
-    }, [initializeAuth, fetchProfile, profile, supabase]);
+        // 2. Auth Listener
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            const currentUserId = session?.user?.id || null;
+            
+            if (currentUserId !== lastUserRef.current) {
+                lastUserRef.current = currentUserId;
+                setUser(session?.user || null);
+                
+                if (currentUserId) {
+                    fetchProfile(currentUserId);
+                } else {
+                    setProfile(null);
+                }
+            }
+            setLoading(false);
+        });
+
+        return () => subscription.unsubscribe();
+    }, [supabase, fetchProfile]);
 
     const signOut = useCallback(async () => {
         await supabase.auth.signOut();
         clearORCIDUser();
-        setUser(null);
-        setProfile(null);
         window.location.href = '/login';
     }, [supabase]);
 
-    const refreshProfile = useCallback(async () => {
-        const currentUserId = user?.id || (profile?.id);
-        if (currentUserId) {
-            await fetchProfile(currentUserId);
-        }
-    }, [user?.id, profile?.id, fetchProfile]);
-
-    // Memoize context value to prevent unnecessary re-renders
     const value = useMemo(() => ({
         user,
         profile,
         loading,
         isAdmin: profile?.role === 'admin',
-        isOrcidUser: !!profile?.orcid_id,
-        refreshProfile,
+        isOrcidUser: !!profile?.orcid_id || !!getORCIDUser(),
+        refreshProfile: async () => { if (user) await fetchProfile(user.id); },
         signOut,
-    }), [user, profile, loading, refreshProfile, signOut]);
+    }), [user, profile, loading, signOut, fetchProfile]);
 
     return (
         <AuthContext.Provider value={value}>
