@@ -60,7 +60,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isFirstRun.current = false;
 
         // 1. Initial Session Check
-        supabase.auth.getSession().then(({ data: { session } }) => {
+        supabase.auth.getSession().then((result) => {
+            const session = result.data.session;
             if (session?.user) {
                 setUser(session.user);
                 lastUserRef.current = session.user.id;
