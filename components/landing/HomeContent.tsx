@@ -35,17 +35,16 @@ import MethodsGuide from './MethodsGuide';
 
 export default function HomeContent() {
     const [locale, setLocale] = useState<Locale>('vi');
-    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        setLocale(getStoredLocale());
-        setMounted(true);
+        const stored = getStoredLocale();
+        if (stored && stored !== locale) {
+            setLocale(stored);
+        }
         const handleLocaleChange = () => setLocale(getStoredLocale());
         window.addEventListener('localeChange', handleLocaleChange);
         return () => window.removeEventListener('localeChange', handleLocaleChange);
     }, []);
-
-    if (!mounted) return null;
 
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -61,7 +60,7 @@ export default function HomeContent() {
     };
 
     return (
-        <div className="overflow-x-hidden">
+        <div className="overflow-x-hidden" suppressHydrationWarning>
             {/* Beta Warning Banner */}
             <motion.div 
                 initial={{ y: -50 }}

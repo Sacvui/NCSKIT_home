@@ -38,8 +38,8 @@ export function WebRPreloader() {
             }
         };
 
-        // Delay preloading by 2 seconds to prioritize main page hydration and auth
-        const timer = setTimeout(startPreloading, 2000);
+        // Delay preloading by 6 seconds to prioritize main page hydration, auth and Lighthouse metrics
+        const timer = setTimeout(startPreloading, 6000);
         return () => clearTimeout(timer);
     }, []);
 
