@@ -282,7 +282,7 @@ export async function runOneWayANOVA(groups: number[][]): Promise<{
     `;
 
     const values = groups.flat().join(',');
-    const groupTags = groups.map((g, i) => g.map(() => `G${i+1}`).join(',')).join(',');
+    const groupTags = groups.map((g, i) => g.map(() => `"G${i+1}"`).join(',')).join(',');
 
     const template = await getAnalysisRTemplate('anova', defaultRCode);
     const rCode = template
@@ -473,7 +473,7 @@ export async function runKruskalWallis(groups: number[][]): Promise<{
     `;
 
     const vStr = groups.flat().join(',');
-    const gStr = groups.map((g, i) => g.map(() => `G${i+1}`).join(',')).join(',');
+    const gStr = groups.map((g, i) => g.map(() => `"G${i+1}"`).join(',')).join(',');
 
     const template = await getAnalysisRTemplate('kruskal', defaultRCode);
     const rCode = template.replace(/\{\{v\}\}/g, vStr).replace(/\{\{g\}\}/g, gStr);
