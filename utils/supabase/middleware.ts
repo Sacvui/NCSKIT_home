@@ -102,9 +102,10 @@ export async function updateSession(request: NextRequest) {
                 return NextResponse.redirect(new URL('/login?error=invalid_orcid_session', request.url))
             }
 
-            // For Supabase auth: Use a single getUser() call which is more secure and verifies the JWT
-            // getSession() is less secure as it only reads the cookie locally.
-            const { data: { user }, error: userError } = await supabase.auth.getUser()
+            // Safe way to get user to avoid 500 error if data is null
+            const authResponse = await supabase.auth.getUser()
+            const user = authResponse.data?.user || null
+            const userError = authResponse.error
 
             if (userError || !user) {
                 const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route))
