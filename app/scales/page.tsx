@@ -70,15 +70,11 @@ function ScaleHubContent() {
         const handleLocaleChange = () => setLocale(getStoredLocale());
         window.addEventListener('localeChange', handleLocaleChange);
         
-        // Initial session check
-        supabase.auth.getSession().then(({ data: { session: currentSession } }: { data: { session: Session | null } }) => {
-            setSession(currentSession);
-        });
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, newSession: Session | null) => {
-            setSession(newSession);
-        });
-
+    useEffect(() => {
+        setLocale(getStoredLocale());
+        const handleLocaleChange = () => setLocale(getStoredLocale());
+        window.addEventListener('localeChange', handleLocaleChange);
+        
         fetchScales();
         
         const handleClickOutside = (e: MouseEvent) => {

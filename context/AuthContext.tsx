@@ -118,35 +118,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Run deep initialization
         initializeAuth();
 
-        // Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
-            console.log(`[AuthProvider] Auth event: ${event}`, session?.user?.id);
-
-            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+            // Only log changes actually affecting user identity
+            const currentUserId = session?.user?.id;
+            
+            if (currentUserId !== lastUserRef.current || (currentUserId && !profile)) {
+                console.log(`[AuthProvider] Significant Auth event: ${event}`, currentUserId);
+                
                 if (session?.user) {
-                    const userId = session.user.id;
-
-                    // Always update user state to ensure UI is in sync
                     setUser(session.user);
-
-                    // Logging logic - only if user changed
-                    if (userId !== lastUserRef.current) {
-                        console.log(`[AuthProvider] User changed/detected: ${userId}`);
-                        lastUserRef.current = userId;
-                        sessionStartRef.current = new Date();
-                        // Call non-critical async tasks without blocking
-                        logLogin(userId).catch(e => console.warn('Log login fail', e));
-                        fetchProfile(userId);
-                    } else if (!profile) {
-                        // If same user but profile is missing, try fetching it
-                        fetchProfile(userId);
-                    }
-                    setLoading(false);
-                } else if (event === 'INITIAL_SESSION') {
-                    // No session on initial load, ensure loading is stopped
-                    setLoading(false);
+                    lastUserRef.current = session.user.id;
+                    fetchProfile(session.user.id);
+                } else if (!getORCIDUser()) {
+                    // Only sign out if not an ORCID user
+                    setUser(null);
+                    setProfile(null);
+                    lastUserRef.current = null;
                 }
-            } else if (event === 'SIGNED_OUT') {
+            } else {
+                // For other events (like minor token refreshes that didn't change the user)
+                // just make sure loading is stopped
+                setLoading(false);
+            }
+        });
                 console.log('[AuthProvider] User signed out');
                 if (lastUserRef.current) {
                     logLogout(lastUserRef.current, sessionStartRef.current || undefined).catch(e => console.warn('Log logout fail', e));
