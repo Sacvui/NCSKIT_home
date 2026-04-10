@@ -1,19 +1,32 @@
 -- =========================================================================
--- NCSKIT 2026 - FULL DATABASE RLS POLICIES
--- Run this script in Supabase SQL Editor (Dashboard > SQL Editor > + New Query)
+-- NCSKIT 2026 - FULL DATABASE UPGRADE & RLS POLICIES
+-- Run this script in Supabase SQL Editor
 -- =========================================================================
+
+-- ============================
+-- STEP 0: Rename user_activity -> activity_logs
+-- ============================
+ALTER TABLE user_activity RENAME TO activity_logs;
+
+-- Drop old session_id column if it exists (new schema stores it in action_details jsonb)
+ALTER TABLE activity_logs DROP COLUMN IF EXISTS session_id;
+
+-- Add points columns to match new schema (if missing)
+ALTER TABLE activity_logs ADD COLUMN IF NOT EXISTS points_earned integer DEFAULT 0;
+ALTER TABLE activity_logs ADD COLUMN IF NOT EXISTS points_spent integer DEFAULT 0;
+
 
 -- ============================
 -- 1. system_config
 -- ============================
 ALTER TABLE system_config ENABLE ROW LEVEL SECURITY;
 
--- Everyone can read system config
+DROP POLICY IF EXISTS "system_config_select_public" ON system_config;
 CREATE POLICY "system_config_select_public"
   ON system_config FOR SELECT
   USING (true);
 
--- Only admins can manage system config
+DROP POLICY IF EXISTS "system_config_admin_manage" ON system_config;
 CREATE POLICY "system_config_admin_manage"
   ON system_config FOR ALL
   USING ((SELECT role FROM profiles WHERE id = auth.uid()) = 'admin')
@@ -21,23 +34,23 @@ CREATE POLICY "system_config_admin_manage"
 
 
 -- ============================
--- 2. activity_logs
+-- 2. activity_logs (was user_activity)
 -- ============================
 ALTER TABLE activity_logs ENABLE ROW LEVEL SECURITY;
 
--- Users can insert their own activity
+DROP POLICY IF EXISTS "activity_logs_insert_own" ON activity_logs;
 CREATE POLICY "activity_logs_insert_own"
   ON activity_logs FOR INSERT
   TO authenticated
   WITH CHECK (auth.uid() = user_id);
 
--- Users can view their own activity
+DROP POLICY IF EXISTS "activity_logs_select_own" ON activity_logs;
 CREATE POLICY "activity_logs_select_own"
   ON activity_logs FOR SELECT
   TO authenticated
   USING (auth.uid() = user_id);
 
--- Admins can view all activity
+DROP POLICY IF EXISTS "activity_logs_admin_select" ON activity_logs;
 CREATE POLICY "activity_logs_admin_select"
   ON activity_logs FOR SELECT
   USING ((SELECT role FROM profiles WHERE id = auth.uid()) = 'admin');
@@ -48,19 +61,19 @@ CREATE POLICY "activity_logs_admin_select"
 -- ============================
 ALTER TABLE token_transactions ENABLE ROW LEVEL SECURITY;
 
--- Users can view their own transactions
+DROP POLICY IF EXISTS "token_transactions_select_own" ON token_transactions;
 CREATE POLICY "token_transactions_select_own"
   ON token_transactions FOR SELECT
   TO authenticated
   USING (auth.uid() = user_id);
 
--- Admins can view all transactions
+DROP POLICY IF EXISTS "token_transactions_admin_select" ON token_transactions;
 CREATE POLICY "token_transactions_admin_select"
   ON token_transactions FOR SELECT
   USING ((SELECT role FROM profiles WHERE id = auth.uid()) = 'admin');
 
--- System/Admins can insert transactions
-CREATE POLICY "token_transactions_admin_insert"
+DROP POLICY IF EXISTS "token_transactions_insert_auth" ON token_transactions;
+CREATE POLICY "token_transactions_insert_auth"
   ON token_transactions FOR INSERT
   TO authenticated
   WITH CHECK (true);
@@ -71,26 +84,26 @@ CREATE POLICY "token_transactions_admin_insert"
 -- ============================
 ALTER TABLE user_sessions ENABLE ROW LEVEL SECURITY;
 
--- Users can insert their own sessions
+DROP POLICY IF EXISTS "user_sessions_insert_own" ON user_sessions;
 CREATE POLICY "user_sessions_insert_own"
   ON user_sessions FOR INSERT
   TO authenticated
   WITH CHECK (auth.uid() = user_id);
 
--- Users can view their own sessions
+DROP POLICY IF EXISTS "user_sessions_select_own" ON user_sessions;
 CREATE POLICY "user_sessions_select_own"
   ON user_sessions FOR SELECT
   TO authenticated
   USING (auth.uid() = user_id);
 
--- Users can update their own sessions (for logout_at)
+DROP POLICY IF EXISTS "user_sessions_update_own" ON user_sessions;
 CREATE POLICY "user_sessions_update_own"
   ON user_sessions FOR UPDATE
   TO authenticated
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
 
--- Admins can view all sessions
+DROP POLICY IF EXISTS "user_sessions_admin_select" ON user_sessions;
 CREATE POLICY "user_sessions_admin_select"
   ON user_sessions FOR SELECT
   USING ((SELECT role FROM profiles WHERE id = auth.uid()) = 'admin');
@@ -101,19 +114,19 @@ CREATE POLICY "user_sessions_admin_select"
 -- ============================
 ALTER TABLE invitations ENABLE ROW LEVEL SECURITY;
 
--- Users can create invitations
+DROP POLICY IF EXISTS "invitations_insert_own" ON invitations;
 CREATE POLICY "invitations_insert_own"
   ON invitations FOR INSERT
   TO authenticated
   WITH CHECK (auth.uid() = inviter_id);
 
--- Users can view their own invitations (sent or received)
+DROP POLICY IF EXISTS "invitations_select_own" ON invitations;
 CREATE POLICY "invitations_select_own"
   ON invitations FOR SELECT
   TO authenticated
   USING (auth.uid() = inviter_id OR auth.uid() = invitee_id);
 
--- Admins can manage all invitations
+DROP POLICY IF EXISTS "invitations_admin_all" ON invitations;
 CREATE POLICY "invitations_admin_all"
   ON invitations FOR ALL
   USING ((SELECT role FROM profiles WHERE id = auth.uid()) = 'admin')
@@ -125,29 +138,32 @@ CREATE POLICY "invitations_admin_all"
 -- ============================
 ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
 
--- Users can manage their own projects
+DROP POLICY IF EXISTS "projects_insert_own" ON projects;
 CREATE POLICY "projects_insert_own"
   ON projects FOR INSERT
   TO authenticated
   WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "projects_select_own" ON projects;
 CREATE POLICY "projects_select_own"
   ON projects FOR SELECT
   TO authenticated
   USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "projects_update_own" ON projects;
 CREATE POLICY "projects_update_own"
   ON projects FOR UPDATE
   TO authenticated
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "projects_delete_own" ON projects;
 CREATE POLICY "projects_delete_own"
   ON projects FOR DELETE
   TO authenticated
   USING (auth.uid() = user_id);
 
--- Admins can view all projects
+DROP POLICY IF EXISTS "projects_admin_select" ON projects;
 CREATE POLICY "projects_admin_select"
   ON projects FOR SELECT
   USING ((SELECT role FROM profiles WHERE id = auth.uid()) = 'admin');
@@ -158,19 +174,19 @@ CREATE POLICY "projects_admin_select"
 -- ============================
 ALTER TABLE feedback ENABLE ROW LEVEL SECURITY;
 
--- Users can submit feedback
+DROP POLICY IF EXISTS "feedback_insert_auth" ON feedback;
 CREATE POLICY "feedback_insert_auth"
   ON feedback FOR INSERT
   TO authenticated
   WITH CHECK (auth.uid() = user_id);
 
--- Users can view their own feedback
+DROP POLICY IF EXISTS "feedback_select_own" ON feedback;
 CREATE POLICY "feedback_select_own"
   ON feedback FOR SELECT
   TO authenticated
   USING (auth.uid() = user_id);
 
--- Admins can view all feedback
+DROP POLICY IF EXISTS "feedback_admin_select" ON feedback;
 CREATE POLICY "feedback_admin_select"
   ON feedback FOR SELECT
   USING ((SELECT role FROM profiles WHERE id = auth.uid()) = 'admin');
@@ -181,25 +197,25 @@ CREATE POLICY "feedback_admin_select"
 -- ============================
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
--- Users can view their own profile
+DROP POLICY IF EXISTS "profiles_select_own" ON profiles;
 CREATE POLICY "profiles_select_own"
   ON profiles FOR SELECT
   TO authenticated
   USING (auth.uid() = id);
 
--- Users can update their own profile
+DROP POLICY IF EXISTS "profiles_update_own" ON profiles;
 CREATE POLICY "profiles_update_own"
   ON profiles FOR UPDATE
   TO authenticated
   USING (auth.uid() = id)
   WITH CHECK (auth.uid() = id);
 
--- Admins can view all profiles
+DROP POLICY IF EXISTS "profiles_admin_select" ON profiles;
 CREATE POLICY "profiles_admin_select"
   ON profiles FOR SELECT
   USING ((SELECT role FROM profiles WHERE id = auth.uid()) = 'admin');
 
--- Admins can update all profiles (role, tokens)
+DROP POLICY IF EXISTS "profiles_admin_update" ON profiles;
 CREATE POLICY "profiles_admin_update"
   ON profiles FOR UPDATE
   USING ((SELECT role FROM profiles WHERE id = auth.uid()) = 'admin')
@@ -207,16 +223,16 @@ CREATE POLICY "profiles_admin_update"
 
 
 -- ============================
--- 9. knowledge_articles (Public Read)
+-- 9. knowledge_articles
 -- ============================
 ALTER TABLE knowledge_articles ENABLE ROW LEVEL SECURITY;
 
--- Everyone can read articles
+DROP POLICY IF EXISTS "knowledge_articles_public_read" ON knowledge_articles;
 CREATE POLICY "knowledge_articles_public_read"
   ON knowledge_articles FOR SELECT
   USING (true);
 
--- Only admins can manage articles
+DROP POLICY IF EXISTS "knowledge_articles_admin_manage" ON knowledge_articles;
 CREATE POLICY "knowledge_articles_admin_manage"
   ON knowledge_articles FOR ALL
   USING ((SELECT role FROM profiles WHERE id = auth.uid()) = 'admin')
@@ -224,14 +240,16 @@ CREATE POLICY "knowledge_articles_admin_manage"
 
 
 -- ============================
--- 10. scales (Public Read)
+-- 10. scales
 -- ============================
 ALTER TABLE scales ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "scales_public_read" ON scales;
 CREATE POLICY "scales_public_read"
   ON scales FOR SELECT
   USING (true);
 
+DROP POLICY IF EXISTS "scales_admin_manage" ON scales;
 CREATE POLICY "scales_admin_manage"
   ON scales FOR ALL
   USING ((SELECT role FROM profiles WHERE id = auth.uid()) = 'admin')
@@ -239,15 +257,22 @@ CREATE POLICY "scales_admin_manage"
 
 
 -- ============================
--- 11. scale_items (Public Read)
+-- 11. scale_items
 -- ============================
 ALTER TABLE scale_items ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "scale_items_public_read" ON scale_items;
 CREATE POLICY "scale_items_public_read"
   ON scale_items FOR SELECT
   USING (true);
 
+DROP POLICY IF EXISTS "scale_items_admin_manage" ON scale_items;
 CREATE POLICY "scale_items_admin_manage"
   ON scale_items FOR ALL
   USING ((SELECT role FROM profiles WHERE id = auth.uid()) = 'admin')
   WITH CHECK ((SELECT role FROM profiles WHERE id = auth.uid()) = 'admin');
+
+
+-- =========================================================================
+-- DONE! All 11 tables now have proper Row Level Security policies.
+-- =========================================================================
