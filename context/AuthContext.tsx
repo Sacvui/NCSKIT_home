@@ -66,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch (err) {
             console.error('[AuthProvider] Profile fetch error:', err);
         }
-    }, []);
+    }, [supabase]);
 
     const initializeAuth = useCallback(async () => {
         if (isInitialized.current) return;
@@ -112,41 +112,64 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } finally {
             setLoading(false);
         }
-    }, [supabase]); // initializeAuth should only depend on the client
+    }, [supabase, fetchProfile]);
 
     useEffect(() => {
         // Run deep initialization
         initializeAuth();
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
-            const newUser = session?.user || null;
-            const newId = newUser?.id || null;
-            
-            // Only update if identity actually changed to prevent render loops
-            if (newId !== lastUserRef.current) {
-                lastUserRef.current = newId;
-                setUser(newUser);
-                
-                if (newId) {
-                    fetchProfile(newId);
-                } else {
-                    setProfile(null);
+        // Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, session: Session | null) => {
+            console.log(`[AuthProvider] Auth event: ${event}`, session?.user?.id);
+
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+                if (session?.user) {
+                    const userId = session.user.id;
+
+                    // Always update user state to ensure UI is in sync
+                    setUser(session.user);
+
+                    // Logging logic - only if user changed
+                    if (userId !== lastUserRef.current) {
+                        console.log(`[AuthProvider] User changed/detected: ${userId}`);
+                        lastUserRef.current = userId;
+                        sessionStartRef.current = new Date();
+                        // Call non-critical async tasks without blocking
+                        logLogin(userId).catch(e => console.warn('Log login fail', e));
+                        fetchProfile(userId);
+                    } else if (!profile) {
+                        // If same user but profile is missing, try fetching it
+                        fetchProfile(userId);
+                    }
+                    setLoading(false);
+                } else if (event === 'INITIAL_SESSION') {
+                    // No session on initial load, ensure loading is stopped
+                    setLoading(false);
                 }
+            } else if (event === 'SIGNED_OUT') {
+                console.log('[AuthProvider] User signed out');
+                if (lastUserRef.current) {
+                    logLogout(lastUserRef.current, sessionStartRef.current || undefined).catch(e => console.warn('Log logout fail', e));
+                }
+                setUser(null);
+                setProfile(null);
+                lastUserRef.current = null;
+                sessionStartRef.current = null;
+                clearORCIDUser();
+                setLoading(false);
             }
-            setLoading(false);
         });
 
         return () => {
             subscription.unsubscribe();
         };
-    }, []); // Run ONCE on mount. Supabase is now a global singleton.
+    }, [initializeAuth, fetchProfile, profile, supabase]);
 
     const signOut = useCallback(async () => {
         await supabase.auth.signOut();
         clearORCIDUser();
         setUser(null);
         setProfile(null);
-        lastUserRef.current = null;
         window.location.href = '/login';
     }, [supabase]);
 

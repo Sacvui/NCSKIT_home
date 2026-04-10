@@ -70,6 +70,15 @@ function ScaleHubContent() {
         const handleLocaleChange = () => setLocale(getStoredLocale());
         window.addEventListener('localeChange', handleLocaleChange);
         
+        // Initial session check
+        supabase.auth.getSession().then(({ data: { session: currentSession } }: { data: { session: Session | null } }) => {
+            setSession(currentSession);
+        });
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, newSession: Session | null) => {
+            setSession(newSession);
+        });
+
         fetchScales();
         
         const handleClickOutside = (e: MouseEvent) => {
@@ -82,15 +91,11 @@ function ScaleHubContent() {
         return () => {
             window.removeEventListener('localeChange', handleLocaleChange);
             document.removeEventListener('mousedown', handleClickOutside);
+            subscription.unsubscribe();
         };
     }, []);
 
-    const isFetching = React.useRef(false);
-
     const fetchScales = async () => {
-        if (isFetching.current) return;
-        isFetching.current = true;
-        
         setLoading(true);
         try {
             const { data, error } = await supabase
@@ -114,7 +119,6 @@ function ScaleHubContent() {
             console.error('Error fetching scales:', err);
         } finally {
             setLoading(false);
-            isFetching.current = false;
         }
     };
 

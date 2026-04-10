@@ -107,14 +107,11 @@ export async function updateSession(request: NextRequest) {
             const { data: { user }, error: userError } = await supabase.auth.getUser()
 
             if (userError || !user) {
-                const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route))
-                if (isProtectedRoute) {
-                    console.log('[Middleware] Unauthorized access to protected route:', pathname)
-                    return NextResponse.redirect(new URL('/login?error=no_session&path=' + encodeURIComponent(pathname), request.url))
-                }
+                console.log('[Middleware] No valid Supabase user found for protected route:', pathname, userError?.message)
+                return NextResponse.redirect(new URL('/login?error=no_session&path=' + encodeURIComponent(pathname), request.url))
             }
 
-            console.log('[Middleware] User validated successfully:', user?.email)
+            console.log('[Middleware] User validated successfully:', user.email)
             return response
 
 
