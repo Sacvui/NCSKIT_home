@@ -5,9 +5,10 @@ import {
     Search, Filter, Library, BookOpen, Download, ChevronRight, 
     ArrowLeft, Quote, Clock, Layers, Sparkles, ExternalLink,
     CheckCircle2, Info, FileSpreadsheet, ChevronDown, 
-    Target, UserCheck, Settings, Cpu, HelpCircle, X, Lock
+    Target, UserCheck, Settings, Cpu, HelpCircle, X, Lock, ArrowRight
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { getSupabase } from '@/utils/supabase/client';
 import { getStoredLocale, t, type Locale } from '@/lib/i18n';
 import Header from '@/components/layout/Header';
@@ -442,6 +443,40 @@ function ScaleHubContent() {
 
                                                 {/* Panel Content (Scrollable) */}
                                                 <div className="p-8 overflow-y-auto no-scrollbar flex-1 space-y-10">
+                                                    {/* Related Knowledge Section */}
+                                                    <div className="p-6 bg-indigo-900 rounded-3xl text-white shadow-xl relative overflow-hidden group">
+                                                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:rotate-12 transition-transform">
+                                                            <HelpCircle className="w-24 h-24" />
+                                                        </div>
+                                                        <div className="relative z-10">
+                                                            <h4 className="flex items-center gap-2 text-sm font-black mb-3 text-indigo-300 uppercase tracking-widest">
+                                                                <Sparkles className="w-4 h-4" />
+                                                                {isVi ? 'Kiến thức liên quan' : 'Related Knowledge'}
+                                                            </h4>
+                                                            <div className="space-y-3">
+                                                                {[
+                                                                    { slug: 'cronbach-alpha', title: isVi ? 'Kiểm định Cronbach Alpha' : 'Cronbach Alpha Test' },
+                                                                    { slug: 'efa-factor-analysis', title: isVi ? 'Phân tích nhân tố EFA' : 'Factor Analysis EFA' },
+                                                                    ...(activeScale.name_en.includes('TAM') || activeScale.name_en.includes('Technology') 
+                                                                        ? [{ slug: 'technology-acceptance-model-tam', title: isVi ? 'Mô hình TAM Chuyên sâu' : 'TAM In-depth Guide' }] 
+                                                                        : []),
+                                                                    ...(activeScale.name_en.includes('TPB') || activeScale.name_en.includes('Behavior') 
+                                                                        ? [{ slug: 'theory-of-planned-behavior-tpb', title: isVi ? 'Thuyết TPB Chuyên sâu' : 'TPB In-depth Guide' }] 
+                                                                        : [])
+                                                                ].map((guide, idx) => (
+                                                                    <Link 
+                                                                        key={idx}
+                                                                        href={`/knowledge/${guide.slug}`}
+                                                                        className="flex items-center justify-between p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-all border border-white/5 font-bold text-xs"
+                                                                    >
+                                                                        <span>{guide.title}</span>
+                                                                        <ArrowRight className="w-4 h-4 text-indigo-400" />
+                                                                    </Link>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
                                                     {/* Description */}
                                                     <div className="bg-indigo-50/50 p-6 rounded-3xl border border-indigo-100">
                                                         <p className="text-slate-700 leading-relaxed italic">
@@ -478,13 +513,23 @@ function ScaleHubContent() {
 
                                                     {/* Action Bar */}
                                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 border-t border-slate-100">
-                                                        <button className="flex items-center justify-center gap-2 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs hover:bg-slate-800 transition-all shadow-xl shadow-slate-200">
-                                                            <FileSpreadsheet className="w-5 h-5 text-indigo-400" />
-                                                            {isVi ? 'XUẤT FILE MẪU' : 'EXPORT EXCEL'}
-                                                        </button>
+                                                        <Link 
+                                                            href={`/scales/${activeScale.id}`}
+                                                            className="flex items-center justify-center gap-2 py-4 bg-indigo-600 text-white rounded-2xl font-black text-xs hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200"
+                                                        >
+                                                            <ExternalLink className="w-5 h-5 flex-shrink-0" />
+                                                            {isVi ? 'XEM TRANG SEO & CHI TIẾT' : 'VIEW FULL SEO PAGE'}
+                                                        </Link>
                                                         <button className="flex items-center justify-center gap-2 py-4 bg-white border-2 border-indigo-600 text-indigo-600 rounded-2xl font-black text-xs hover:bg-indigo-50 transition-all">
                                                             <Quote className="w-5 h-5" />
                                                             {isVi ? 'CHÉP TRÍCH DẪN' : 'COPY CITATION'}
+                                                        </button>
+                                                    </div>
+                                                    
+                                                    <div className="pt-4 text-center">
+                                                        <button className="flex items-center justify-center gap-2 py-3 w-full bg-slate-100 text-slate-700 rounded-xl font-bold text-xs hover:bg-slate-200 transition-all shadow-sm">
+                                                            <FileSpreadsheet className="w-5 h-5 text-green-600" />
+                                                            {isVi ? 'XUẤT FILE EXCEL MẪU' : 'EXPORT EXCEL TEMPLATE'}
                                                         </button>
                                                     </div>
                                                 </div>

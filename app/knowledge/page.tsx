@@ -86,11 +86,25 @@ const STATIC_ARTICLES = [
         title_en: 'Data Cleaning & Outliers: Scientific Scrubbing'
     },
     {
-        slug: 'sem-cfa-structural-modeling',
-        category: 'Advanced Analysis',
+        slug: 'technology-acceptance-model-tam',
+        category: 'Research Models',
         icon_name: 'TrendingUp',
-        title_vi: 'Mô hình SEM và CFA: Đỉnh cao học thuật toàn cầu',
-        title_en: 'SEM & CFA: The Academic Pinnacle'
+        title_vi: 'Mô hình Chấp nhận Công nghệ (TAM): Hướng dẫn Chuyên sâu',
+        title_en: 'Technology Acceptance Model (TAM): The Ultimate Guide'
+    },
+    {
+        slug: 'theory-of-planned-behavior-tpb',
+        category: 'Behavioral Research',
+        icon_name: 'Brain',
+        title_vi: 'Thuyết Hành vi Dự định (TPB): Chìa khóa giải mã Ý định',
+        title_en: 'Theory of Planned Behavior (TPB): Decoding Intentions'
+    },
+    {
+        slug: 'signaling-theory-research',
+        category: 'Market Strategy',
+        icon_name: 'Zap',
+        title_vi: 'Lý thuyết Tín hiệu (Signaling Theory): Khi Hành động lên tiếng',
+        title_en: 'Signaling Theory: Actions Speak Louder Than Words'
     }
 ];
 
