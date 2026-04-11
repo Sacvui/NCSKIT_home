@@ -142,8 +142,11 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     localStorage.removeItem('webr_fs_broken');
                 }
 
-                // Check for previously flagged storage issues
-                const isFsBroken = typeof localStorage !== 'undefined' ? localStorage.getItem('webr_fs_broken') === 'true' : false;
+                // Auto-heal legacy false-positive corruption flags
+                const isFsBroken = false;
+                if (typeof localStorage !== 'undefined') {
+                    localStorage.removeItem('webr_fs_broken');
+                }
 
                 try {
                     // Ensure recursive-like folder creation
