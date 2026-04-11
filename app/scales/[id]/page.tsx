@@ -214,6 +214,46 @@ export default async function ScaleDetailPage({ params }: { params: { id: string
                                 </Link>
                             </div>
 
+                            {/* Detailed Theory Guides Link */}
+                            <div className="bg-gradient-to-br from-slate-900 to-indigo-950 p-7 rounded-3xl text-white shadow-xl border border-indigo-500/20">
+                                <div className="flex items-start gap-4 mb-4">
+                                    <div className="p-3 bg-indigo-500/20 rounded-2xl text-indigo-300 shrink-0">
+                                        <BookOpen className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-black text-lg text-white mb-1">Cơ sở Lý thuyết</h4>
+                                        <p className="text-[11px] text-indigo-200 leading-relaxed">
+                                            Tìm hiểu chuyên sâu hơn về phương pháp luận, cơ sở lý thuyết 1000+ chữ và các kịch bản chạy Data thực tế sử dụng thang đo này.
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <div className="space-y-2.5">
+                                    {((scale.name_en || '').toLowerCase().includes('tam') || (scale.name_en || '').toLowerCase().includes('technology')) && (
+                                        <Link href="/knowledge/technology-acceptance-model-tam" className="block w-full p-4 bg-white/10 hover:bg-white/20 border border-white/5 rounded-2xl transition-all group">
+                                            <p className="font-bold text-sm text-white flex items-center justify-between">
+                                                Mô hình TAM - Hướng dẫn chi tiết
+                                                <ArrowRight className="w-4 h-4 text-indigo-300 group-hover:translate-x-1 transition-transform" />
+                                            </p>
+                                        </Link>
+                                    )}
+                                    {((scale.name_en || '').toLowerCase().includes('tpb') || (scale.name_en || '').toLowerCase().includes('behavior')) && (
+                                        <Link href="/knowledge/theory-of-planned-behavior-tpb" className="block w-full p-4 bg-white/10 hover:bg-white/20 border border-white/5 rounded-2xl transition-all group">
+                                            <p className="font-bold text-sm text-white flex items-center justify-between">
+                                                Thuyết Hành vi TPB - Bản đầy đủ
+                                                <ArrowRight className="w-4 h-4 text-indigo-300 group-hover:translate-x-1 transition-transform" />
+                                            </p>
+                                        </Link>
+                                    )}
+                                    <Link href="/knowledge" className="block w-full p-4 bg-white/5 hover:bg-white/10 border border-dashed border-white/20 rounded-2xl transition-all group text-center">
+                                        <p className="font-bold text-xs text-indigo-300 uppercase tracking-widest">
+                                            Duyệt Thư viện Tạp chí
+                                        </p>
+                                    </Link>
+                                </div>
+                            </div>
+
+
                             {/* Model Info */}
                             {scale.research_model && (
                                 <div className="bg-slate-100 p-6 rounded-3xl border border-slate-200">
