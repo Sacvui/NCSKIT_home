@@ -566,9 +566,60 @@ function ScaleHubContent() {
                                                         </div>
                                                     </div>
 
+                                                    {/* Expert Research Insight Section */}
+                                                    <div className="bg-slate-900 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl">
+                                                        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 blur-3xl -mr-16 -mt-16"></div>
+                                                        <div className="relative z-10">
+                                                            <div className="flex items-center gap-3 mb-6">
+                                                                <div className="p-2 bg-indigo-500 rounded-lg">
+                                                                    <Brain className="w-5 h-5 text-white" />
+                                                                </div>
+                                                                <h4 className="font-black text-xs uppercase tracking-[0.2em]">{isVi ? 'Lưu ý từ Chuyên gia' : 'Expert Research Insight'}</h4>
+                                                            </div>
+                                                            <ul className="space-y-4">
+                                                                <li className="flex gap-3 text-sm">
+                                                                    <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                                                                    <span className="text-slate-300 leading-relaxed font-medium">
+                                                                        {isVi 
+                                                                            ? 'Thang đo này thường được sử dụng trong các mô hình SEM nâng cao để đo lường các tiền tố tâm lý của người tiêu dùng.' 
+                                                                            : 'This scale is frequently used in advanced SEM models to measure consumer psychological antecedents.'}
+                                                                    </span>
+                                                                </li>
+                                                                <li className="flex gap-3 text-sm">
+                                                                    <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                                                                    <span className="text-slate-300 leading-relaxed font-medium">
+                                                                        {isVi 
+                                                                            ? 'Độ tin cậy Cronbach\'s Alpha kỳ vọng nên đạt > 0.8 trong các nghiên cứu mảng Marketing hiện đại.' 
+                                                                            : 'Expected Cronbach\'s Alpha reliability should exceed 0.8 in modern Marketing research.'}
+                                                                    </span>
+                                                                </li>
+                                                                <li className="flex gap-3 text-sm">
+                                                                    <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                                                                    <span className="text-slate-300 leading-relaxed font-medium">
+                                                                        {isVi 
+                                                                            ? 'Khuyến nghị chạy CFA (Phân tích nhân tố khẳng định) để kiểm định giá trị hội tụ trước khi đưa vào mô hình cấu trúc chính.' 
+                                                                            : 'Recommended to run CFA to verify convergent validity before proceeding to structural model analysis.'}
+                                                                    </span>
+                                                                </li>
+                                                            </ul>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Academic Benchmarks */}
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div className="p-5 bg-emerald-50 rounded-2xl border border-emerald-100/50">
+                                                            <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Standard Alpha</p>
+                                                            <p className="text-lg font-black text-emerald-900">&gt; 0.70</p>
+                                                        </div>
+                                                        <div className="p-5 bg-indigo-50 rounded-2xl border border-indigo-100/50">
+                                                            <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-1">Standard AVE</p>
+                                                            <p className="text-lg font-black text-indigo-900">&gt; 0.50</p>
+                                                        </div>
+                                                    </div>
+
                                                     {/* Description */}
-                                                    <div className="bg-indigo-50/50 p-6 rounded-3xl border border-indigo-100">
-                                                        <p className="text-slate-700 leading-relaxed italic">
+                                                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                                                        <p className="text-slate-600 leading-relaxed italic text-sm">
                                                             {isVi ? activeScale.description_vi : activeScale.description_en}
                                                         </p>
                                                     </div>
@@ -584,15 +635,15 @@ function ScaleHubContent() {
                                                             </h4>
                                                         </div>
                                                         <div className="space-y-3">
-                                                            {activeScale.items?.map((item) => (
+                                                            {(activeScale.scale_items || []).map((item: any) => (
                                                                 <div key={item.id} className="p-5 bg-white rounded-2xl border border-slate-100 hover:border-indigo-200 transition-all group shadow-sm flex items-start gap-4">
-                                                                    <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-100 flex items-center justify-center font-black text-indigo-600 text-[10px] group-hover:bg-indigo-600 group-hover:border-indigo-600 group-hover:text-white transition-all shrink-0">
+                                                                    <div className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center font-black text-indigo-600 text-[10px] group-hover:bg-indigo-600 group-hover:border-indigo-600 group-hover:text-white transition-all shrink-0">
                                                                         {item.code}
                                                                     </div>
                                                                     <div className="pt-0.5">
-                                                                        <p className="text-slate-800 font-bold mb-1 leading-snug">{isVi ? item.text_vi : item.text_en}</p>
+                                                                        <p className="text-slate-800 font-bold mb-1 leading-snug">{isVi ? item.content_vi : item.content_en}</p>
                                                                         <p className="text-[10px] text-slate-400 italic">
-                                                                            {isVi ? item.text_en : item.text_vi}
+                                                                            {isVi ? item.content_en : item.content_vi}
                                                                         </p>
                                                                     </div>
                                                                 </div>
