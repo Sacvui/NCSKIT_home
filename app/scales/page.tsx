@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { 
     Search, BookOpen, Clock, ArrowRight, TrendingUp, ShieldCheck, 
     Brain, FileSearch, LineChart, Hash, Zap, HelpCircle, Layers, Activity,
-    ArrowLeft, Quote, Sparkles, ExternalLink,
-    CheckCircle2, Info, FileSpreadsheet, ChevronDown, 
+    ArrowLeft, Quote, Sparkles, ExternalLink, Copy, Check,
+    CheckCircle2, Info, FileSpreadsheet, ChevronDown, SearchX,
     Target, UserCheck, Settings, Cpu, X, Lock, Users, ListChecks
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -21,10 +21,12 @@ export default function ScalesLibrary() {
     const router = useRouter();
     const [locale, setLocale] = useState<Locale>('vi');
     const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('All');
     const [expandedScale, setExpandedScale] = useState<string | null>(null);
     const [scales, setScales] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [copiedCitation, setCopiedCitation] = useState(false);
 
     useEffect(() => {
         setLocale(getStoredLocale());
@@ -34,6 +36,12 @@ export default function ScalesLibrary() {
         window.addEventListener('localeChange', handleLocaleChange);
         return () => window.removeEventListener('localeChange', handleLocaleChange);
     }, []);
+
+    // Debounce search input (300ms)
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
 
     const fetchScales = async () => {
         setLoading(true);
@@ -51,17 +59,54 @@ export default function ScalesLibrary() {
         }
     };
 
-    const categories = [
-        'All', 'Modern Research (2020+)', 'MIS & Digital', 'Innovation & Strategy', 
-        'Marketing', 'Human Resources', 'Accounting & Finance', 'Economics', 'Psychology', 'Tourism & Hospitality'
-    ];
+    // Category display names mapped to actual DB values
+    const categoryMap: Record<string, string[]> = {
+        'All': [],
+        'Modern Research (2020+)': ['Modern (2020+)'],
+        'MIS & Digital': ['MIS'],
+        'Innovation & Strategy': ['Innovation'],
+        'Marketing': ['Marketing'],
+        'Human Resources': ['HR'],
+        'Accounting & Finance': ['Accounting'],
+        'Economics': ['Economics'],
+        'Psychology': ['Psychology'],
+        'Tourism & Hospitality': ['Tourism'],
+        'Logistics & Supply Chain': ['Logistics'],
+    };
+    const categories = Object.keys(categoryMap);
 
-    const filteredScales = scales.filter(scale => {
-        const matchesSearch = (scale.name_vi + scale.name_en + scale.description_vi + scale.description_en + (scale.author || ''))
-            .toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesCategory = selectedCategory === 'All' || scale.category.includes(selectedCategory);
+    const filteredScales = useMemo(() => scales.filter(scale => {
+        const searchText = (scale.name_vi + scale.name_en + scale.description_vi + scale.description_en + (scale.author || '')).toLowerCase();
+        const matchesSearch = !debouncedSearch || searchText.includes(debouncedSearch.toLowerCase());
+        const dbCategories = categoryMap[selectedCategory];
+        const matchesCategory = selectedCategory === 'All' || 
+            (dbCategories && dbCategories.some(cat => (scale.category || []).includes(cat)));
         return matchesSearch && matchesCategory;
-    });
+    }), [scales, debouncedSearch, selectedCategory]);
+
+    // Helpers
+    const getCodeRange = useCallback((scale: any) => {
+        const items = scale.scale_items;
+        if (!items || items.length === 0) return null;
+        const first = items[0]?.code;
+        const last = items[items.length - 1]?.code;
+        return { first, last };
+    }, []);
+
+    const getDimensionCount = useCallback((scale: any) => {
+        const items = scale.scale_items || [];
+        const prefixes = new Set(items.map((i: any) => i.code?.replace(/[0-9]/g, '') || ''));
+        return prefixes.size;
+    }, []);
+
+    const copyCitation = useCallback((scale: any) => {
+        const text = scale.citation || 
+            `${scale.author} (${scale.year}). ${scale.name_en}. Scale for Research Purposes.`;
+        navigator.clipboard.writeText(text).then(() => {
+            setCopiedCitation(true);
+            setTimeout(() => setCopiedCitation(false), 2000);
+        });
+    }, []);
 
     const isVi = locale === 'vi';
     const activeScale = scales.find(s => s.id === expandedScale);
@@ -126,42 +171,95 @@ export default function ScalesLibrary() {
 
                             {/* Main Grid */}
                             <div className="lg:col-span-9">
+                                {/* Result Counter */}
+                                {!loading && (
+                                    <div className="flex items-center justify-between mb-6">
+                                        <p className="text-sm font-bold text-slate-400">
+                                            {isVi ? 'Hiển thị' : 'Showing'} <span className="text-indigo-600">{filteredScales.length}</span> {isVi ? 'trên' : 'of'} <span className="text-slate-600">{scales.length}</span> {isVi ? 'thang đo' : 'scales'}
+                                        </p>
+                                        {(debouncedSearch || selectedCategory !== 'All') && (
+                                            <button onClick={() => { setSearchQuery(''); setSelectedCategory('All'); }} className="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors">
+                                                {isVi ? '✕ Xóa bộ lọc' : '✕ Clear filters'}
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+
                                 {loading ? (
-                                    <div className="grid md:grid-cols-2 gap-8 animate-pulse">
-                                        {[1, 2, 3, 4].map(i => <div key={i} className="h-80 bg-white rounded-3xl"></div>)}
+                                    <div className="grid md:grid-cols-2 gap-6 animate-pulse">
+                                        {[1, 2, 3, 4].map(i => (
+                                            <div key={i} className="h-72 bg-white rounded-[2.5rem] border border-slate-100">
+                                                <div className="p-6 space-y-4">
+                                                    <div className="h-4 w-20 bg-slate-100 rounded-lg"></div>
+                                                    <div className="h-6 w-3/4 bg-slate-100 rounded-lg"></div>
+                                                    <div className="h-4 w-full bg-slate-50 rounded-lg"></div>
+                                                    <div className="h-4 w-2/3 bg-slate-50 rounded-lg"></div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : filteredScales.length === 0 ? (
+                                    /* Empty State */
+                                    <div className="text-center py-20 px-8">
+                                        <div className="w-20 h-20 mx-auto bg-slate-100 rounded-[2rem] flex items-center justify-center mb-6">
+                                            <SearchX className="w-10 h-10 text-slate-300" />
+                                        </div>
+                                        <h3 className="text-2xl font-black text-slate-900 mb-3">
+                                            {isVi ? 'Không tìm thấy thang đo' : 'No scales found'}
+                                        </h3>
+                                        <p className="text-slate-500 font-medium mb-8 max-w-md mx-auto">
+                                            {isVi 
+                                                ? 'Thử thay đổi từ khóa tìm kiếm hoặc chọn danh mục khác.' 
+                                                : 'Try adjusting your search terms or selecting a different category.'}
+                                        </p>
+                                        <button 
+                                            onClick={() => { setSearchQuery(''); setSelectedCategory('All'); }}
+                                            className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-bold text-sm hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100"
+                                        >
+                                            {isVi ? 'Xem tất cả thang đo' : 'View all scales'}
+                                        </button>
                                     </div>
                                 ) : (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                        {filteredScales.map(scale => (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {filteredScales.map(scale => {
+                                            const codeRange = getCodeRange(scale);
+                                            const itemCount = scale.scale_items?.length || 0;
+                                            return (
                                             <div 
                                                 key={scale.id} 
                                                 onClick={() => setExpandedScale(scale.id)}
-                                                className="group bg-white rounded-[2.5rem] border border-slate-100 shadow-sm hover:translate-y-[-8px] hover:shadow-2xl hover:border-indigo-200 transition-all duration-500 overflow-hidden flex flex-col cursor-pointer relative"
+                                                className="group bg-white rounded-[2.5rem] border border-slate-100 shadow-sm hover:translate-y-[-6px] hover:shadow-2xl hover:border-indigo-200 transition-all duration-500 overflow-hidden flex flex-col cursor-pointer relative"
                                             >
                                                 <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                                                <div className="p-8 flex flex-col h-full">
-                                                    <div className="flex items-start justify-between mb-6">
+                                                <div className="p-6 flex flex-col h-full">
+                                                    <div className="flex items-start justify-between mb-5">
                                                         <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[9px] font-black uppercase tracking-widest border border-indigo-100/50">
-                                                            {scale.category[0]}
+                                                            {scale.category?.[0] || 'General'}
                                                         </span>
-                                                        <span className="text-[10px] text-slate-400 font-bold bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 italic">
-                                                            {scale.scale_items?.length || 0} items
+                                                        <span className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border italic ${
+                                                            itemCount === 0 
+                                                                ? 'text-amber-500 bg-amber-50 border-amber-100' 
+                                                                : 'text-slate-400 bg-slate-50 border-slate-100'
+                                                        }`}>
+                                                            {itemCount === 0 ? (isVi ? 'Đang cập nhật' : 'Coming soon') : `${itemCount} items`}
                                                         </span>
                                                     </div>
-                                                    <h3 className="text-2xl font-black text-slate-900 mb-4 leading-tight group-hover:text-indigo-600 transition-colors">
+                                                    <h3 className="text-xl font-bold text-slate-900 mb-3 leading-tight group-hover:text-indigo-600 transition-colors">
                                                         {isVi ? scale.name_vi : scale.name_en}
                                                     </h3>
-                                                    <p className="text-sm text-slate-500 font-medium mb-8 line-clamp-3 leading-relaxed italic">
+                                                    <p className="text-sm text-slate-500 font-normal mb-6 line-clamp-2 leading-relaxed">
                                                         {isVi ? scale.description_vi : scale.description_en}
                                                     </p>
-                                                    <div className="mt-auto pt-6 border-t border-slate-50 flex items-center justify-between">
+                                                    <div className="mt-auto pt-5 border-t border-slate-50 flex items-center justify-between">
                                                         <div className="space-y-1">
                                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{scale.author} ({scale.year})</p>
-                                                            <div className="flex gap-2">
-                                                                <span className="text-[19px] font-black text-indigo-700 bg-indigo-50 px-2 rounded-md">
-                                                                    {scale.scale_items?.[0]?.code.replace(/[0-9]/g, '')}1 - {scale.scale_items?.[0]?.code.replace(/[0-9]/g, '')}{scale.scale_items?.length}
-                                                                </span>
-                                                            </div>
+                                                            {codeRange && (
+                                                                <div className="flex gap-2">
+                                                                    <span className="text-base font-black text-indigo-700 bg-indigo-50 px-2 rounded-md">
+                                                                        {codeRange.first} → {codeRange.last}
+                                                                    </span>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                         <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
                                                             <ArrowRight className="w-5 h-5" />
@@ -169,7 +267,7 @@ export default function ScalesLibrary() {
                                                     </div>
                                                 </div>
                                             </div>
-                                        ))}
+                                        );})}
                                     </div>
                                 )}
                             </div>
@@ -219,16 +317,16 @@ export default function ScalesLibrary() {
                                                     <p className="text-4xl font-black">{activeScale.scale_items?.length || 0}</p>
                                                 </div>
                                                 <div className="p-8 bg-white/5 rounded-[2.5rem] border border-white/5 backdrop-blur-sm">
-                                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Alpha</p>
-                                                    <p className="text-4xl font-black text-emerald-400">&gt; 0.8</p>
+                                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Dimensions</p>
+                                                    <p className="text-4xl font-black text-emerald-400">{getDimensionCount(activeScale)}</p>
                                                 </div>
                                                 <div className="p-8 bg-white/5 rounded-[2.5rem] border border-white/5 backdrop-blur-sm">
-                                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Min. AVE</p>
-                                                    <p className="text-4xl font-black text-indigo-400">&gt; 0.5</p>
+                                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Published</p>
+                                                    <p className="text-4xl font-black text-indigo-400">{activeScale.year}</p>
                                                 </div>
                                                 <div className="p-8 bg-white/5 rounded-[2.5rem] border border-white/5 backdrop-blur-sm shadow-xl shadow-indigo-500/10">
-                                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">CR Level</p>
-                                                    <p className="text-4xl font-black text-amber-400">&gt; 0.7</p>
+                                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Categories</p>
+                                                    <p className="text-4xl font-black text-amber-400">{activeScale.category?.length || 1}</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -330,11 +428,19 @@ export default function ScalesLibrary() {
                                                 </p>
                                             </div>
                                             <div className="flex flex-col md:flex-row gap-6 w-full max-w-2xl">
-                                                <button className="flex-1 py-7 bg-indigo-600 text-white rounded-[2rem] font-black hover:bg-slate-900 transition-all shadow-3xl shadow-indigo-100 text-sm">
-                                                    DOWNLOAD DATA TEMPLATE
+                                                <button 
+                                                    onClick={(e) => { e.stopPropagation(); copyCitation(activeScale); }}
+                                                    className="flex-1 py-7 bg-indigo-600 text-white rounded-[2rem] font-black hover:bg-slate-900 transition-all shadow-xl shadow-indigo-100 text-sm flex items-center justify-center gap-3"
+                                                >
+                                                    {copiedCitation ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                                                    {copiedCitation ? (isVi ? 'ĐÃ SAO CHÉP!' : 'COPIED!') : (isVi ? 'SAO CHÉP TRÍCH DẪN APA' : 'COPY APA CITATION')}
                                                 </button>
-                                                <button className="flex-1 py-7 bg-white border-4 border-slate-900 text-slate-900 rounded-[2rem] font-black hover:bg-slate-900 hover:text-white transition-all text-sm">
-                                                    COPY APA CITATION
+                                                <button 
+                                                    onClick={(e) => { e.stopPropagation(); router.push('/analyze'); }}
+                                                    className="flex-1 py-7 bg-white border-4 border-slate-900 text-slate-900 rounded-[2rem] font-black hover:bg-slate-900 hover:text-white transition-all text-sm flex items-center justify-center gap-3"
+                                                >
+                                                    <LineChart className="w-5 h-5" />
+                                                    {isVi ? 'PHÂN TÍCH VỚI NCSSTAT' : 'ANALYZE WITH NCSSTAT'}
                                                 </button>
                                             </div>
                                         </div>
