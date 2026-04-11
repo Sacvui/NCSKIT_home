@@ -114,7 +114,10 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 // Use the standardized webr_core folder for consistent resolution
                 const webR = new WebR({
                     baseUrl: BASE_URL,
-                    channelType: 3, 
+                    // channelType 0 = Automatic: uses SharedArrayBuffer if COOP/COEP headers are set,
+                    // falls back to PostMessage otherwise. SharedArrayBuffer uses Atomics.wait()
+                    // instead of FileReaderSync/Blob, completely avoiding the Blob crash.
+                    channelType: 0,
                     serviceWorkerUrl: '/webr-serviceworker.js'
                 });
 
