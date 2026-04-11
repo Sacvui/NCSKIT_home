@@ -337,7 +337,7 @@ export async function executeRWithRecovery(
         // ============================================================================
         const buildAndEvalLargeString = async (largeStr: string) => {
             const MAX_CHUNK = 500;
-            await webR.evalR(`__ncs_script <- ""`);
+            await webR.evalR(`ncs_script_buf <- ""`);
             for (let i = 0; i < largeStr.length; i += MAX_CHUNK) {
                 const chunk = largeStr.substring(i, i + MAX_CHUNK);
                 const safeChunk = chunk
@@ -346,9 +346,9 @@ export async function executeRWithRecovery(
                     .replace(/\n/g, '\\n')
                     .replace(/\r/g, '\\r')
                     .replace(/\t/g, '\\t');
-                await webR.evalR(`__ncs_script <- paste0(__ncs_script, "${safeChunk}")`);
+                await webR.evalR(`ncs_script_buf <- paste0(ncs_script_buf, "${safeChunk}")`);
             }
-            return await webR.evalR(`eval(parse(text=__ncs_script))`);
+            return await webR.evalR(`eval(parse(text=ncs_script_buf))`);
         };
 
         if (csvData && csvData.length > 0) {
