@@ -5,7 +5,8 @@ import {
     Search, Filter, Library, BookOpen, Download, ChevronRight, 
     ArrowLeft, Quote, Clock, Layers, Sparkles, ExternalLink,
     CheckCircle2, Info, FileSpreadsheet, ChevronDown, 
-    Target, UserCheck, Settings, Cpu, HelpCircle, X, Lock, ArrowRight
+    Target, UserCheck, Settings, Cpu, HelpCircle, X, Lock, ArrowRight,
+    Users
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
