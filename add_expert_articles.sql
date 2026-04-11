@@ -51,7 +51,7 @@ INSERT INTO "public"."knowledge_articles" ("id", "slug", "category", "title_vi",
     ]$$
 ),
 (
-    'd4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8g', 
+    'd4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f80', 
     'cronbach-alpha', 
     'Preliminary Analysis', 
     'Kiểm định Cronbach''s Alpha: Bản giao hưởng của Tin cậy nội tại', 
@@ -66,7 +66,7 @@ INSERT INTO "public"."knowledge_articles" ("id", "slug", "category", "title_vi",
     ]$$
 ),
 (
-    'e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8g9h', 
+    'e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8011', 
     'efa-factor-analysis', 
     'Factor Analysis', 
     'Phân tích nhân tố khám phá (EFA): Cỗ máy lọc nhiễu dữ liệu vĩ đại', 
@@ -81,7 +81,7 @@ INSERT INTO "public"."knowledge_articles" ("id", "slug", "category", "title_vi",
     ]$$
 ),
 (
-    'f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f8g9h0i', 
+    'f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f801122', 
     'regression-vif-multicollinearity', 
     'Impact Analysis', 
     'Hồi quy tuyến tính Đa biến và rào cản Đa cộng tuyến (VIF)', 
