@@ -44,6 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [loading, setLoading] = useState(true);
     const lastUserRef = useRef<string | null>(null);
     const isFirstRun = useRef(true);
+    const isExchangingCode = useRef(false);
     const supabase = getSupabase();
 
     const fetchProfile = useCallback(async (userId: string) => {
@@ -55,73 +56,74 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }, [supabase]);
 
+    const handleUser = useCallback((sessionUser: User | null) => {
+        const userId = sessionUser?.id || null;
+        if (userId !== lastUserRef.current) {
+            lastUserRef.current = userId;
+            setUser(sessionUser || null);
+            if (userId) {
+                fetchProfile(userId);
+            } else {
+                setProfile(null);
+            }
+        }
+    }, [fetchProfile]);
+
     useEffect(() => {
         if (!isFirstRun.current) return;
         isFirstRun.current = false;
 
-        // 1. Initial Session Check (with PKCE code exchange)
         const initSession = async () => {
-            try {
-                // Check if there's an OAuth code in the URL that needs to be exchanged
-                if (typeof window !== 'undefined') {
-                    const params = new URLSearchParams(window.location.search);
-                    const code = params.get('code');
-                    
-                    if (code) {
-                        console.log('[Auth] OAuth code detected, exchanging for session...');
+            // Step 1: Check for OAuth code in URL
+            if (typeof window !== 'undefined') {
+                const params = new URLSearchParams(window.location.search);
+                const code = params.get('code');
+                
+                if (code) {
+                    isExchangingCode.current = true;
+                    console.log('[Auth] OAuth code detected, exchanging...');
+                    try {
                         const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-                        
                         if (error) {
                             console.error('[Auth] Code exchange failed:', error.message);
                         } else if (data.session?.user) {
-                            console.log('[Auth] Code exchange successful for:', data.session.user.email);
-                            setUser(data.session.user);
-                            lastUserRef.current = data.session.user.id;
-                            fetchProfile(data.session.user.id);
-                            
-                            // Clean the URL to remove the code parameter
-                            const cleanUrl = window.location.pathname;
-                            window.history.replaceState({}, '', cleanUrl);
+                            console.log('[Auth] Exchange OK:', data.session.user.email);
+                            handleUser(data.session.user);
+                            window.history.replaceState({}, '', window.location.pathname);
                         }
-                        setLoading(false);
-                        return;
+                    } catch (err) {
+                        console.error('[Auth] Exchange error:', err);
                     }
+                    isExchangingCode.current = false;
+                    setLoading(false);
+                    return; // Done — don't call getSession again
                 }
-                
-                // No code in URL — normal session restoration from cookies
+            }
+
+            // Step 2: No code — restore session from cookies
+            try {
                 const { data: { session } } = await supabase.auth.getSession();
-                if (session?.user) {
-                    setUser(session.user);
-                    lastUserRef.current = session.user.id;
-                    fetchProfile(session.user.id);
-                }
+                handleUser(session?.user || null);
             } catch (err) {
-                console.error('[Auth] Session init error:', err);
+                console.error('[Auth] Session restore error:', err);
             }
             setLoading(false);
         };
         
         initSession();
 
-        // 2. Auth Listener
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
-            const currentUserId = session?.user?.id || null;
-            
-            if (currentUserId !== lastUserRef.current) {
-                lastUserRef.current = currentUserId;
-                setUser(session?.user || null);
-                
-                if (currentUserId) {
-                    fetchProfile(currentUserId);
-                } else {
-                    setProfile(null);
-                }
+        // Auth state listener — but NEVER set loading=false while code exchange is in progress
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
+            if (isExchangingCode.current) {
+                // Code exchange is still running — don't touch loading state
+                return;
             }
+            handleUser(session?.user || null);
             setLoading(false);
         });
 
         return () => subscription.unsubscribe();
-    }, [supabase, fetchProfile]);
+    }, [supabase, handleUser]);
 
     const signOut = useCallback(async () => {
         await supabase.auth.signOut();
