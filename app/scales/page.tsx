@@ -35,6 +35,7 @@ interface Scale {
     tags?: string[];
     research_model?: string;
     items?: ScaleItem[];
+    scale_items?: ScaleItem[];
 }
 
 export default function ScaleHubPage() {
@@ -420,7 +421,7 @@ function ScaleHubContent() {
                                                             ))}
                                                         </div>
                                                         <div className="text-[10px] text-slate-400 font-bold">
-                                                            {scale.items?.length || 0} items
+                                                            {scale.scale_items?.length || 0} items
                                                         </div>
                                                     </div>
                                                     
