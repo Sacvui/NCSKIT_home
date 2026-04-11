@@ -37,9 +37,6 @@ export async function runCronbachAlpha(
     options(mc.cores = 1);
     library(psych);
     
-    # Read from extremely fast binary-written CSV
-    raw_data <- as.matrix(read.csv('/home/web_user/fast_data.csv', header=FALSE));
-    
     # DATA CLEANING
     valid_min <- {{likertMin}};
     valid_max <- {{likertMax}};
@@ -168,9 +165,6 @@ export async function runEFA(data: number[][], nFactors: number, rotation: strin
 
     const defaultRCode = `
     library(psych)
-    
-    # Read from extremely fast binary-written CSV
-    raw_data <- as.matrix(read.csv('/home/web_user/fast_data.csv', header=FALSE))
     
     # Clean Data (Robust approach)
     df <- as.data.frame(raw_data)

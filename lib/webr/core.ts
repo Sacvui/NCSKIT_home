@@ -331,12 +331,18 @@ export async function executeRWithRecovery(
     try {
         if (method) await loadPackagesForMethod(method);
 
+        // Chunked matrix data transfer ensures we NEVER trigger WebR's broken internal 
+        // Blob-serialization threshold over channelType: 3 (PostMessage)
         if (csvData && csvData.length > 0) {
-            // Robust binary File transfer circumvents postMessage string-limit drops and JS proxy type bugs.
-            const csvRows = csvData.map(row => row.map(v => (v === null || v === undefined || Number.isNaN(v)) ? 'NA' : v).join(','));
-            const csvContent = csvRows.join('\n');
-            const dataBytes = new TextEncoder().encode(csvContent);
-            await webR.FS.writeFile('/home/web_user/fast_data.csv', dataBytes);
+            const cols = csvData[0].length;
+            await webR.evalR(`raw_data <- matrix(numeric(0), ncol=${cols})`);
+            
+            const CHUNK_ROWS = 20; // Extremely safe batch size to avoid Blob string-length crashes
+            for (let i = 0; i < csvData.length; i += CHUNK_ROWS) {
+                const batch = csvData.slice(i, i + CHUNK_ROWS);
+                const flat = batch.flat().map(v => (v === null || v === undefined || Number.isNaN(v as number)) ? 'NA' : v).join(',');
+                await webR.evalR(`raw_data <- rbind(raw_data, matrix(c(${flat}), ncol=${cols}, byrow=TRUE))`);
+            }
         }
 
         const rResultPromise = webR.evalR(rCode);
