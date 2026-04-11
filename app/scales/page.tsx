@@ -438,7 +438,7 @@ function ScaleHubContent() {
                                                             <div className="text-xs text-slate-600">
                                                                 <span className="font-black text-slate-800 uppercase tracking-tight mr-2">{isVi ? 'Ký hiệu biến:' : 'Variables:'}</span>
                                                                 <span className="italic text-indigo-600 font-bold">
-                                                                    {scale.scale_items?.length > 0 
+                                                                    {(scale.scale_items?.length || 0) > 0 
                                                                         ? Array.from(new Set((scale.scale_items || []).map((i:any) => i.code.replace(/[0-9]/g, '')))).join(', ') 
                                                                         : (isVi ? 'Đang cập nhật' : 'Updating')}
                                                                 </span>
