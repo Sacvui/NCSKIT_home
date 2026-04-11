@@ -61,6 +61,7 @@ function AnalyzeContent() {
     const { user, profile: userProfile, loading: authLoading } = useAuth();
     const [loading, setLoading] = useState(true);
     const [isClient, setIsClient] = useState(false);
+    const supabase = getSupabase();
 
     useEffect(() => {
         setIsClient(true);
