@@ -99,10 +99,6 @@ function ScaleHubContent() {
     }, []);
 
     const fetchScales = async () => {
-        // Prevent multiple simultaneous fetches
-        if (isFetching.current) return;
-        isFetching.current = true;
-
         try {
             setLoading(true);
             const { data, error } = await supabase
@@ -110,7 +106,12 @@ function ScaleHubContent() {
                 .select('*')
                 .order('name_vi', { ascending: true });
 
-            if (error) throw error;
+            if (error) {
+                if (error.message !== 'Fetch is aborted') {
+                    console.error('Error fetching scales:', error);
+                }
+                return;
+            }
             
             const transformedScales = (data || []).map((scale: any) => ({
                 ...scale,
@@ -121,12 +122,11 @@ function ScaleHubContent() {
             setScales(transformedScales);
         } catch (err: any) {
             // Ignore abort errors from the browser
-            if (err.name !== 'AbortError') {
+            if (err.name !== 'AbortError' && err.message !== 'Fetch is aborted') {
                 console.error('Error fetching scales:', err);
             }
         } finally {
             setLoading(false);
-            isFetching.current = false;
         }
     };
 

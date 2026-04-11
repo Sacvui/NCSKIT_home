@@ -83,11 +83,14 @@ function AnalyzeContent() {
     // Overall loading state - follow auth context
     useEffect(() => {
         if (!authLoading) {
-            if (!user) {
+            const hasAuthCode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('code');
+            if (!user && !hasAuthCode) {
                 router.push('/login?next=/analyze');
-            } else {
+            } else if (user) {
                 setLoading(false);
             }
+            // If they don't have a user but DO have a code, just wait. 
+            // The AuthContext onAuthStateChange will eventually resolve the PKCE exchange and set the user.
         }
     }, [authLoading, user, router]);
 
