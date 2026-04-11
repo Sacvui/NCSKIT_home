@@ -15,31 +15,25 @@ const __dirname = path.dirname(__filename)
 
 console.log('🔍 Checking Environment Variables...\n')
 
-// Check if .env.local exists
+// Try to load from .env.local if it exists (for local development)
 const envLocalPath = path.join(__dirname, '..', '.env.local')
-const envExamplePath = path.join(__dirname, '..', 'env.example')
+const envVars = { ...process.env } // Start with system env vars
 
-if (!fs.existsSync(envLocalPath)) {
-    console.log('❌ .env.local file not found')
-    if (fs.existsSync(envExamplePath)) {
-        console.log('💡 Copy env.example to .env.local and configure your values')
-    }
-    process.exit(1)
-}
-
-// Load environment variables
-const envContent = fs.readFileSync(envLocalPath, 'utf8')
-const envVars = {}
-
-envContent.split('\n').forEach(line => {
-    const trimmed = line.trim()
-    if (trimmed && !trimmed.startsWith('#')) {
-        const [key, ...valueParts] = trimmed.split('=')
-        if (key && valueParts.length > 0) {
-            envVars[key] = valueParts.join('=')
+if (fs.existsSync(envLocalPath)) {
+    console.log('📄 Found .env.local, loading values...')
+    const envContent = fs.readFileSync(envLocalPath, 'utf8')
+    envContent.split('\n').forEach(line => {
+        const trimmed = line.trim()
+        if (trimmed && !trimmed.startsWith('#')) {
+            const [key, ...valueParts] = trimmed.split('=')
+            if (key && valueParts.length > 0) {
+                envVars[key] = valueParts.join('=').replace(/^["']|["']$/g, '')
+            }
         }
-    }
-})
+    })
+} else {
+    console.log('ℹ️  .env.local not found, using system environment variables')
+}
 
 const requiredVars = [
     'NEXT_PUBLIC_SUPABASE_URL',
