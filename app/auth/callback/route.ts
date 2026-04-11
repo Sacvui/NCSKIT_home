@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 
 export async function GET(request: Request) {
-    const { searchParams, origin: urlOrigin } = new URL(request.url);
+    const { searchParams } = new URL(request.url);
     const code = searchParams.get('code');
     const next = searchParams.get('next') ?? '/analyze';
     
@@ -10,25 +10,30 @@ export async function GET(request: Request) {
     const protocol = (request.headers.get('x-forwarded-proto') || 'https').split(',')[0];
     const origin = `${protocol}://${host}`;
     
-    // Standardize siteUrl: if localhost, use origin. If production sub-domain, use primary.
     const siteUrl = host.includes('localhost') ? origin : origin.replace('stat.ncskit.org', 'ncsstat.ncskit.org');
-    const redirectUrl = new URL(next, siteUrl);
 
-    console.log(`[Auth Callback] Processing. Host: ${host}, siteUrl: ${siteUrl}, Code: ${code ? 'present' : 'missing'}`);
+    console.log(`[Auth Callback] Processing. Host: ${host}, Code: ${code ? 'present' : 'missing'}, Next: ${next}`);
 
     if (code) {
-        // We used to process exchangeCodeForSession here. 
-        // However, this caused intermittent 'invalid flow state' errors because the Next.js server 
-        // sometimes cannot read the code_verifier cookie set by the browser. 
-        // By redirecting the `code` parameter straight to the client URL, 
-        // the @supabase/ssr browser client will safely intercept it and authenticate natively!
-        redirectUrl.searchParams.set('code', code);
-        console.log('[Auth Callback] Deferring auth verification to client. Redirecting to:', redirectUrl.toString());
-        return NextResponse.redirect(redirectUrl.toString());
+        try {
+            const supabase = await createClient();
+            const { error } = await supabase.auth.exchangeCodeForSession(code);
+            
+            if (error) {
+                console.error('[Auth Callback] Exchange failed:', error.message);
+                // Redirect to login with error
+                return NextResponse.redirect(new URL(`/login?error=exchange_failed&next=${next}`, siteUrl));
+            }
+            
+            console.log('[Auth Callback] Exchange successful! Redirecting to:', next);
+            // Redirect to target WITHOUT code param — session is now in cookies
+            return NextResponse.redirect(new URL(next, siteUrl));
+        } catch (err) {
+            console.error('[Auth Callback] Unexpected error:', err);
+            return NextResponse.redirect(new URL(`/login?error=auth_error&next=${next}`, siteUrl));
+        }
     }
 
-    console.warn('[Auth Callback] No code found in URL. This might be an implicit flow callback (hash fragment). Redirecting to client to parse.');
-    // If there's no code, it might be in the URL hash fragment which the server can't read.
-    // Redirect to the intended destination so the client-side Supabase client can parse the hash.
-    return NextResponse.redirect(redirectUrl.toString());
+    console.warn('[Auth Callback] No code found. Redirecting to:', next);
+    return NextResponse.redirect(new URL(next, siteUrl));
 }
