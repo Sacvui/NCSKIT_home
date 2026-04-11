@@ -441,7 +441,7 @@ function ScaleHubContent() {
                                                                 </div>
                                                                 <div>
                                                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">{isVi ? 'Ý nghĩa' : 'Meaning'}</p>
-                                                                    <p className="text-sm text-slate-600 line-clamp-2 font-medium leading-relaxed">{isVi ? scale.description_vi : scale.description_en}</p>
+                                                                    <p className="text-sm text-slate-600 line-clamp-5 font-medium leading-relaxed">{isVi ? scale.description_vi : scale.description_en}</p>
                                                                 </div>
                                                             </div>
 
@@ -465,7 +465,7 @@ function ScaleHubContent() {
                                                                 </div>
                                                                 <div>
                                                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">{isVi ? 'Nguồn tham khảo' : 'Citation Reference'}</p>
-                                                                    <p className="text-xs text-slate-500 italic line-clamp-1">{scale.citation || `${scale.author} (${scale.year})`}</p>
+                                                                    <p className="text-xs text-slate-500 italic line-clamp-2">{scale.citation || `${scale.author} (${scale.year})`}</p>
                                                                 </div>
                                                             </div>
                                                         </div>
