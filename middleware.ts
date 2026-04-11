@@ -29,6 +29,13 @@ export async function middleware(request: NextRequest) {
         return NextResponse.next()
     }
 
+    // CRITICAL: Skip ALL session processing when an OAuth code is present.
+    // The middleware's getUser() call destroys the PKCE code_verifier cookie
+    // before the client-side can use it for exchangeCodeForSession().
+    if (request.nextUrl.searchParams.has('code')) {
+        return NextResponse.next()
+    }
+
     return await updateSession(request)
 }
 
