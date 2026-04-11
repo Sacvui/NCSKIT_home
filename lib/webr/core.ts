@@ -358,15 +358,9 @@ export async function executeRWithRecovery(
         if (errorMsg.includes('promise already under evaluation') || 
             errorMsg.includes('FileReaderSync') || 
             errorMsg.includes('Blob')) {
-             console.error('[WebR] Fatal R state or FS corruption detected. Resetting engine...');
-             
-             // Flag the storage as broken so next init skips it
-             if (typeof localStorage !== 'undefined') {
-                 localStorage.setItem('webr_fs_broken', 'true');
-             }
-
+             console.error('[WebR] Fatal R state. Resetting engine...');
              resetWebR(); // Clear the hung instance
-             throw new Error("Hệ thống R đang bận hoặc lưu trữ bị lỗi. Tôi đã tự động khởi động lại, vui lòng thực hiện lại phân tích sau vài giây.");
+             throw new Error("Hệ thống R đang bận. Tôi đã tự động khởi động lại, vui lòng thực hiện lại phân tích sau vài giây.");
         }
 
         // SELF-HEALING for missing packages
