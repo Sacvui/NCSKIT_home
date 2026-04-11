@@ -450,11 +450,31 @@ function ScaleHubContent() {
                                                                     <Layers className="w-4 h-4" />
                                                                 </div>
                                                                 <div>
-                                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">{isVi ? 'Nhóm nhân tố / Biến' : 'Variables'}</p>
-                                                                    <p className="text-[13px] text-slate-800 font-bold bg-slate-50 inline-block px-2.5 py-1 rounded-lg border border-slate-200/60">
-                                                                        {(scale.scale_items?.length || 0) > 0 
-                                                                            ? Array.from(new Set((scale.scale_items || []).map((i:any) => i.code.replace(/[0-9]/g, '')))).join(', ') 
-                                                                            : (isVi ? 'Đấu nối dữ liệu...' : 'Fetching...')}
+                                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">{isVi ? 'Hệ thống Biến số' : 'Variable System'}</p>
+                                                                    <div className="flex flex-wrap gap-2">
+                                                                        <span className="text-[13px] text-indigo-700 font-bold bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100">
+                                                                            {(scale.scale_items?.length || 0)} {isVi ? 'Biến quan sát' : 'Items'}
+                                                                        </span>
+                                                                        <span className="text-[13px] text-slate-600 font-medium bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200/60">
+                                                                            {(() => {
+                                                                                const items = scale.scale_items || [];
+                                                                                if (items.length === 0) return isVi ? 'Đang cập nhật...' : 'Updating...';
+                                                                                const prefix = items[0].code.replace(/[0-9]/g, '');
+                                                                                return `${prefix}1 - ${prefix}${items.length}`;
+                                                                            })()}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="flex items-start gap-3.5">
+                                                                <div className="mt-0.5 p-2 bg-amber-50/80 rounded-xl text-amber-600 shrink-0 group-hover:scale-110 group-hover:bg-amber-600 group-hover:text-white transition-all duration-300 shadow-sm border border-amber-100/50">
+                                                                    <Target className="w-4 h-4" />
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">{isVi ? 'Loại thang đo' : 'Scale Type'}</p>
+                                                                    <p className="text-[13px] text-slate-700 font-bold italic">
+                                                                        Likert 5-point {isVi ? '(Chuẩn học thuật)' : '(Academic Standard)'}
                                                                     </p>
                                                                 </div>
                                                             </div>
@@ -464,8 +484,10 @@ function ScaleHubContent() {
                                                                     <Users className="w-4 h-4" />
                                                                 </div>
                                                                 <div>
-                                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">{isVi ? 'Nguồn tham khảo' : 'Citation Reference'}</p>
-                                                                    <p className="text-xs text-slate-500 italic line-clamp-2">{scale.citation || `${scale.author} (${scale.year})`}</p>
+                                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">{isVi ? 'Nguồn trích dẫn' : 'Full Citation'}</p>
+                                                                    <p className="text-xs text-slate-500 font-medium leading-relaxed italic line-clamp-3">
+                                                                        {scale.citation || `${scale.author} (${scale.year})`}
+                                                                    </p>
                                                                 </div>
                                                             </div>
                                                         </div>
