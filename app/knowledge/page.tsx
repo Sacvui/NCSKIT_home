@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Search, BookOpen, Clock, ArrowRight, TrendingUp, ShieldCheck, 
-  Brain, FileSearch, LineChart, Hash, Zap, HelpCircle, Layers, Activity
+  Brain, FileSearch, LineChart, Hash, Zap, HelpCircle, Layers, Activity, Quote
 } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
@@ -105,6 +105,27 @@ const STATIC_ARTICLES = [
         icon_name: 'Zap',
         title_vi: 'Lý thuyết Tín hiệu (Signaling Theory): Khi Hành động lên tiếng',
         title_en: 'Signaling Theory: Actions Speak Louder Than Words'
+    },
+    {
+        slug: 'common-method-bias-survey-research',
+        category: 'Advanced Research',
+        icon_name: 'ShieldCheck',
+        title_vi: 'Common Method Bias (CMB): Kẻ hủy diệt âm thầm của nghiên cứu khảo sát',
+        title_en: 'Common Method Bias (CMB): The Silent Assassin of Survey Research'
+    },
+    {
+        slug: 'pls-sem-vs-cb-sem-selection',
+        category: 'Advanced Statistics',
+        icon_name: 'Zap',
+        title_vi: 'PLS-SEM vs CB-SEM: Chọn đúng "vũ khí" cho bài báo quốc tế',
+        title_en: 'PLS-SEM vs CB-SEM: Choosing the Right Weapon for International Journals'
+    },
+    {
+        slug: 'writing-academic-results-apa',
+        category: 'Academic Writing',
+        icon_name: 'Quote',
+        title_vi: 'Viết kết quả nghiên cứu chuẩn Q1: Biến con số thành câu chuyện học thuật',
+        title_en: 'Writing Q1-Level Results: Turning Numbers into Academic Narratives'
     }
 ];
 
@@ -119,7 +140,8 @@ const iconMap: Record<string, any> = {
   Layers: Layers,
   Activity: Activity,
   BookOpen: BookOpen,
-  TrendingUp: TrendingUp
+  TrendingUp: TrendingUp,
+  Quote: Quote
 };
 
 export default function KnowledgeBase() {

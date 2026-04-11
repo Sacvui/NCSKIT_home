@@ -752,6 +752,90 @@ Chúng tôi cũng hỗ trợ tính năng tính toán tác động trực tiếp,
         content_structure: [
             { h2_vi: '1. Cơ chế Tín hiệu', h2_en: '1. Signaling Mechanism', content_vi: 'Lý thuyết này giải thích cách người bán truyền tải thông tin về chất lượng cho người mua.', content_en: 'This theory explains quality signaling from sellers to buyers.' }
         ]
+    },
+    'common-method-bias-survey-research': {
+        slug: 'common-method-bias-survey-research', category: 'Advanced Research',
+        title_vi: 'Common Method Bias (CMB): Kẻ hủy diệt âm thầm của nghiên cứu khảo sát',
+        title_en: 'Common Method Bias (CMB): The Silent Assassin of Survey Research',
+        expert_tip_vi: 'Kiểm định Harman Single Factor là mức tối thiểu; hãy thử Marker Variable technique nếu muốn nộp tạp chí Q1.',
+        expert_tip_en: "Harman's Single Factor test is the baseline; consider the Marker Variable technique for Q1 journal submissions.",
+        author: 'ncsStat Academic Team', updated_at: new Date().toISOString(),
+        content_structure: [
+            {
+                h2_vi: '1. CMB là gì và tại sao nó lại nguy hiểm?',
+                h2_en: '1. What is CMB and Why is it Dangerous?',
+                content_vi: 'CMB xảy ra khi sự biến thiên trong dữ liệu không đến từ các biến nghiên cứu, mà đến từ phương pháp thu thập dữ liệu (ví dụ: cùng một người trả lời tất cả câu hỏi trong một thời điểm). Nó làm thổi phồng các mối quan hệ giữa các biến một cách giả tạo, dẫn đến những kết luận sai lầm về mặt khoa học.',
+                content_en: 'CMB occurs when variance is attributed to the measurement method rather than the constructs themselves (e.g., same respondent answering all items at once). It artificially inflates correlations, leading to misleading scientific conclusions.'
+            },
+            {
+                h2_vi: '2. Kiểm định Harman: Cách chẩn đoán nhanh',
+                h2_en: '2. Harman\'s Single Factor: The Quick Diagnostic',
+                content_vi: 'Cách phổ biến nhất là đưa tất cả các biến vào một phân tích EFA không xoay. Nếu một nhân tố duy nhất giải thích hơn 50% tổng phương sai, dữ liệu của bạn đang bị nhiễm CMB nặng. Tại ncsStat, chúng tôi hỗ trợ bạn thực hiện kiểm định này chỉ với một cú chạm.',
+                content_en: 'The most common check involves running an unrotated EFA on all items. If a single factor explains more than 50% of the variance, your data is heavily contaminated with CMB. ncsStat helps you run this diagnostic instantly.'
+            },
+            {
+                h2_vi: '3. Chiến lược phòng ngừa thực tế',
+                h2_en: '3. Practical Prevention Strategies',
+                content_vi: 'Đừng đợi đến khi có dữ liệu mới lo CMB. Hãy thiết kế bảng hỏi với các thang đo khác nhau (Likert 5 và 7 điểm), đảo thứ tự câu hỏi, hoặc thu thập dữ liệu tại hai thời điểm khác nhau (Time-lagged design). Đây là những điểm cộng rất lớn trong mắt các Reviewer khó tính.',
+                content_en: 'Don\'t wait for data to fix CMB. Design your survey using different scales (5-point vs 7-point Likert), randomize item order, or use a time-lagged design. These methods earn significant points with rigorous reviewers.'
+            }
+        ]
+    },
+    'pls-sem-vs-cb-sem-selection': {
+        slug: 'pls-sem-vs-cb-sem-selection', category: 'Advanced Statistics',
+        title_vi: 'PLS-SEM vs CB-SEM: Chọn đúng "vũ khí" cho bài báo quốc tế',
+        title_en: 'PLS-SEM vs CB-SEM: Choosing the Right Weapon for International Journals',
+        expert_tip_vi: 'Chọn CB-SEM (Amos) khi bạn muốn xác nhận lý thuyết; chọn PLS-SEM (SmartPLS) khi bạn muốn khám phá hoặc mẫu nhỏ.',
+        expert_tip_en: 'Choose CB-SEM (Amos) for theory testing/confirmation; choose PLS-SEM (SmartPLS) for exploration or small samples.',
+        author: 'ncsStat Academic Team', updated_at: new Date().toISOString(),
+        content_structure: [
+            {
+                h2_vi: '1. CB-SEM (Amos): Tiêu chuẩn vàng của tính khẳng định',
+                h2_en: '1. CB-SEM (Amos): The Gold Standard for Confirmation',
+                content_vi: 'Nếu bạn có một khung lý thuyết vững chãi và muốn xác nhận xem dữ liệu thực tế có khớp với mô hình lý thuyết hay không, Amos là lựa chọn số 1. Nó đòi hỏi phân phối chuẩn và kích thước mẫu lớn nhưng mang lại độ chính xác cực cao về tham số.',
+                content_en: 'If you have a solid theoretical framework and want to confirm if the empirical data fits the theory, Amos is the top choice. It requires normality and large samples but offers high parameter precision.'
+            },
+            {
+                h2_vi: '2. PLS-SEM (SmartPLS): Tính linh hoạt và sức mạnh khám phá',
+                h2_en: '2. PLS-SEM (SmartPLS): Versatility and Exploratory Power',
+                content_vi: 'Bạn đang nghiên cứu một chủ đề mới? Mẫu của bạn chỉ có khoảng 100-150 người? Dữ liệu không chuẩn? PLS-SEM là cứu cánh. Nó không đòi hỏi các giả định khắt khe và cực kỳ mạnh mẽ trong việc dự báo (Predictive power).',
+                content_en: 'Researching a new topic? Sample size around 100-150? Non-normal data? PLS-SEM is your savior. It doesn\'t require strict assumptions and is incredibly powerful for prediction.'
+            },
+            {
+                h2_vi: '3. Lời khuyên cho nhà nghiên cứu hiện đại',
+                h2_en: '3. Advice for the Modern Researcher',
+                content_vi: 'Xu hướng hiện nay là kết hợp cả hai hoặc chọn công cụ phù hợp nhất với mục tiêu nghiên cứu hơn là chạy theo phần mềm. Hãy nhớ: Reviewer quan tâm đến sự phù hợp (Fit) chứ không phải bạn dùng phần mềm đắt tiền hay không.',
+                content_en: 'The current trend is selecting the tool that best fits your research goal rather than following software hype. Remember: Reviewers care about fit, not how expensive your software is.'
+            }
+        ]
+    },
+    'writing-academic-results-apa': {
+        slug: 'writing-academic-results-apa', category: 'Academic Writing',
+        title_vi: 'Viết kết quả nghiên cứu chuẩn Q1: Biến con số thành câu chuyện học thuật',
+        title_en: 'Writing Q1-Level Results: Turning Numbers into Academic Narratives',
+        expert_tip_vi: 'Đừng chỉ liệt kê trị số p; hãy kết nối chúng với giả thuyết và ý nghĩa thực tiễn của nghiên cứu.',
+        expert_tip_en: 'Don\'t just list p-values; connect them to your hypotheses and the practical implications of the study.',
+        author: 'ncsStat Academic Team', updated_at: new Date().toISOString(),
+        content_structure: [
+            {
+                h2_vi: '1. Tránh bẫy "Liệt kê con số"',
+                h2_en: '1. Avoid the "Number Listing" Trap',
+                content_vi: 'Nhiều người mắc lỗi viết: "Biến A có Beta là 0.3, p < 0.05". Reviewer muốn đọc: "Kết quả ủng hộ giả thuyết H1, cho thấy sự gia tăng của A dẫn đến sự cải thiện đáng kể trong B (Beta = 0.3; p < 0.05)". Hãy tập trung vào thông điệp đằng sau con số.',
+                content_en: 'A common mistake: "Variable A has Beta = 0.3, p < 0.05". Reviewers want to read: "The results support H1, indicating that an increase in A leads to a significant improvement in B (Beta = 0.3; p < 0.05)". Focus on the message behind the numbers.'
+            },
+            {
+                h2_vi: '2. Cấu trúc một đoạn nhận định chuyên nghiệp',
+                h2_en: '2. Structuring a Professional Interpretation',
+                content_vi: 'Bắt đầu bằng việc nhắc lại giả thuyết, trình bày bằng chứng thống kê (Beta, t-value, p), và kết thúc bằng việc khẳng định giả thuyết có được chấp nhận hay không. Đừng quên so sánh với các nghiên cứu trước đó để tăng tính thuyết phục.',
+                content_en: 'Start by restating the hypothesis, present the statistical evidence (Beta, t-value, p), and conclude by confirming if the hypothesis is supported. Don\'t forget to compare with previous studies to build a strong case.'
+            },
+            {
+                h2_vi: '3. Ngôn ngữ của sự thận trọng (Hedging)',
+                h2_en: '3. The Language of Hedging',
+                content_vi: 'Trong khoa học, chúng ta không bao giờ nói "chứng minh tuyệt đối". Hãy dùng các cụm từ như "kết quả gợi ý rằng", "có bằng chứng cho thấy", hoặc "ủng hộ mạnh mẽ". Điều này thể hiện tư duy phản biện và sự khiêm tốn của một nhà nghiên cứu thực thụ.',
+                content_en: 'In science, we never say "absolutely proven". Use phrases like "results suggest", "evidence indicates", or "strongly supports". This demonstrates critical thinking and the humility of a true researcher.'
+            }
+        ]
     }
 };
 
@@ -766,7 +850,8 @@ export async function generateStaticParams() {
         { slug: 'cronbach-alpha' }, { slug: 'efa-factor-analysis' }, { slug: 'regression-vif-multicollinearity' },
         { slug: 'descriptive-statistics-interpretation' }, { slug: 'independent-t-test-guide' }, { slug: 'one-way-anova-post-hoc' },
         { slug: 'pearson-correlation-analysis' }, { slug: 'chi-square-test-independence' }, { slug: 'mediation-analysis-sobel-test' },
-        { slug: 'data-cleaning-outliers-detection' }, { slug: 'sem-cfa-structural-modeling' }
+        { slug: 'data-cleaning-outliers-detection' }, { slug: 'sem-cfa-structural-modeling' },
+        { slug: 'common-method-bias-survey-research' }, { slug: 'pls-sem-vs-cb-sem-selection' }, { slug: 'writing-academic-results-apa' }
     ];
 }
 
