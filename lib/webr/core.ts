@@ -66,6 +66,31 @@ export function resetWebR(): void {
 }
 
 /**
+ * Force clear the persistent storage and reset flags
+ */
+export async function clearWebRStorage(): Promise<void> {
+    if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem('webr_fs_broken');
+    }
+    
+    // Clear IndexedDB 'WebR' database if possible
+    if (typeof window !== 'undefined' && window.indexedDB) {
+        try {
+            console.log('[WebR] Deleting IDBFS database for fresh start...');
+            // Most implementations use 'IDBFS' or a specific name. 
+            // We can't easily target a specific sub-folder inside /home/web_user 
+            // without a running WebR, so we flag it to be wiped on next init.
+            localStorage.setItem('webr_fs_wipe_requested', 'true');
+        } catch (e) {
+            console.warn('[WebR] Could not flag storage for wipe:', e);
+        }
+    }
+    
+    resetWebR();
+    window.location.reload(); // Hard reload is safest after storage wipe
+}
+
+/**
  * Initialize WebR instance (singleton with promise caching and retry logic)
  */
 export async function initWebR(maxRetries: number = 3): Promise<WebR> {
@@ -106,9 +131,16 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 await webR.init();
                 const persistentLib = '/home/web_user/library';
 
-                // 1. Prepare Storage with Sanity Check
+                // Prepare Storage with Sanity Check
                 updateProgress('📂 Đang kết nối bộ nhớ...');
                 let storageSane = false;
+
+                // Handle manual wipe request
+                if (typeof localStorage !== 'undefined' && localStorage.getItem('webr_fs_wipe_requested') === 'true') {
+                    console.warn('[WebR] Force wipe requested. Resetting persistent storage...');
+                    localStorage.removeItem('webr_fs_wipe_requested');
+                    localStorage.removeItem('webr_fs_broken');
+                }
 
                 // Check for previously flagged storage issues
                 const isFsBroken = typeof localStorage !== 'undefined' ? localStorage.getItem('webr_fs_broken') === 'true' : false;
@@ -119,27 +151,38 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     try { await webR.FS.mkdir(persistentLib); } catch (e) {}
                     
                     if (!isFsBroken) {
+                        console.log('[WebR] Attempting to mount IDBFS storage...');
                         await webR.FS.mount('IDBFS', {}, persistentLib);
                         await webR.FS.syncfs(true);
                         
-                        // Pre-flight sanity check for IDBFS (Prevents FileReaderSync Blob errors)
+                        // Sanity check for IDBFS
                         await webR.evalR(`writeLines("sane", "${persistentLib}/sanity.txt")`);
                         const sanity = await webR.evalR(`readLines("${persistentLib}/sanity.txt")`);
                         const sanityVal = unpackWebRObject(await sanity.toJs());
+                        
                         if (sanityVal === "sane") {
                             storageSane = true;
-                            console.log('[WebR] IDBFS Sanity check passed.');
+                            console.log('[WebR] IDBFS Sanity check passed! Storage is healthy.');
+                            // SELF-HEALING: If it's working now, remove the broken flag if it existed
+                            if (typeof localStorage !== 'undefined' && localStorage.getItem('webr_fs_broken')) {
+                                console.log('[WebR] Clearing previous corruption flag. High-speed caching restored.');
+                                localStorage.removeItem('webr_fs_broken');
+                            }
                         }
                     } else {
-                        console.warn('[WebR] Skipping IDBFS due to previous corruption flag.');
+                        console.warn('[WebR] Skipping IDBFS due to previous corruption flag. Performance will be degraded.');
                     }
                 } catch (fsErr) {
-                    console.warn('[WebR] IDBFS Sanity check failed or not available:', fsErr);
+                    console.warn('[WebR] IDBFS mount or sanity check failed:', fsErr);
                     try { await webR.FS.unmount(persistentLib); } catch(u) {}
+                    // If we tried to use IDBFS and it failed, flag it (unless already flagged)
+                    if (!isFsBroken && typeof localStorage !== 'undefined') {
+                        localStorage.setItem('webr_fs_broken', 'true');
+                    }
                 }
                 
                 if (!storageSane) {
-                    console.log('[WebR] Falling back to memory-only storage mode.');
+                    console.warn('[WebR] Falling back to slow memory-only mode. Every page load will require re-downloading packages.');
                 }
 
                 // 2. Configure Environment
