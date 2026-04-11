@@ -331,33 +331,15 @@ export async function executeRWithRecovery(
     try {
         if (method) await loadPackagesForMethod(method);
 
-        // Chunked matrix data transfer ensures we NEVER trigger WebR's broken internal 
-        // Blob-serialization threshold over channelType: 3 (PostMessage)
-        if (csvData && csvData.length > 0) {
-            const cols = csvData[0].length;
-            await webR.evalR(`raw_data <- matrix(numeric(0), ncol=${cols})`);
-            
-            const CHUNK_ROWS = 20; // Extremely safe batch size to avoid Blob string-length crashes
-            for (let i = 0; i < csvData.length; i += CHUNK_ROWS) {
-                const batch = csvData.slice(i, i + CHUNK_ROWS);
-                const flat = batch.flat().map(v => (v === null || v === undefined || Number.isNaN(v as number)) ? 'NA' : v).join(',');
-                await webR.evalR(`raw_data <- rbind(raw_data, matrix(c(${flat}), ncol=${cols}, byrow=TRUE))`);
-            }
-        }
-
-        // -------------------------------------------------------------
-        // BLOB-CRASH BYPASS: If rCode is large, evaluate it in chunks 
-        // to bypass Emscripten's PostMessage Blob limits in WebR channel 3
-        // -------------------------------------------------------------
-        const MAX_SAFE_LEN = 4000;
-        let rResultPromise;
-
-        if (rCode.length > MAX_SAFE_LEN) {
-            console.log(`[WebR] Large script detected (${rCode.length} bytes). Chunking evaluation to bypass Blob bugs...`);
+        // ============================================================================
+        // BULLETPROOF STRING BUILDER (BYPASSES WEBR BLOB/TYPEDARRAY CRASH)
+        // Limits every single postMessage payload to 500 bytes.
+        // ============================================================================
+        const buildAndEvalLargeString = async (largeStr: string) => {
+            const MAX_CHUNK = 500;
             await webR.evalR(`__ncs_script <- ""`);
-            
-            for (let i = 0; i < rCode.length; i += MAX_SAFE_LEN) {
-                const chunk = rCode.substring(i, i + MAX_SAFE_LEN);
+            for (let i = 0; i < largeStr.length; i += MAX_CHUNK) {
+                const chunk = largeStr.substring(i, i + MAX_CHUNK);
                 const safeChunk = chunk
                     .replace(/\\/g, '\\\\')
                     .replace(/"/g, '\\"')
@@ -366,13 +348,23 @@ export async function executeRWithRecovery(
                     .replace(/\t/g, '\\t');
                 await webR.evalR(`__ncs_script <- paste0(__ncs_script, "${safeChunk}")`);
             }
-            
-            // Evaluate the assembled script
-            rResultPromise = webR.evalR(`eval(parse(text=__ncs_script))`);
+            return await webR.evalR(`eval(parse(text=__ncs_script))`);
+        };
+
+        if (csvData && csvData.length > 0) {
+            const cols = csvData[0].length;
+            const flat = csvData.flat().map(v => (v === null || v === undefined || Number.isNaN(v as number)) ? 'NA' : v).join(',');
+            const matBuilder = `raw_data <- matrix(c(${flat}), ncol=${cols}, byrow=TRUE)`;
+            await buildAndEvalLargeString(matBuilder);
+        }
+
+        let rResultPromise;
+        if (rCode.length > 500) {
+            rResultPromise = buildAndEvalLargeString(rCode);
         } else {
-            // Safe to evaluate directly
             rResultPromise = webR.evalR(rCode);
         }
+
         const timeoutPromise = new Promise((_, reject) =>
             setTimeout(() => reject(new Error(`Timeout after ${timeoutMs / 1000}s`)), timeoutMs)
         );
