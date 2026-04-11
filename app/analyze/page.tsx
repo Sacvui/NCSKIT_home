@@ -81,47 +81,15 @@ function AnalyzeContent() {
         }
     }, [userProfile?.tokens]);
 
-    // AUTHENTICATION & REDIRECT FLOW
-    // 1. Proactive Code Exchange (Fix for hangs on /analyze?code=...)
-    useEffect(() => {
-        const exchangeCode = async () => {
-            const hasAuthCode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('code');
-            if (hasAuthCode && !user && !authLoading) {
-                console.log('[Analyze] Detect auth code but no user. Verifying session...');
-                try {
-                    // Force Supabase to process the code exchange
-                    const { error } = await supabase.auth.getSession();
-                    if (error) throw error;
-                    
-                    // After successful exchange, we want to clean the URL to prevent re-activation
-                    const params = new URLSearchParams(window.location.search);
-                    if (params.has('code')) {
-                        console.log('[Analyze] Login successful. Cleaning URL parameters...');
-                        router.replace('/analyze');
-                    }
-                } catch (err) {
-                    console.error('[Analyze] Auth code exchange fail:', err);
-                    router.push('/login?error=auth_failed');
-                }
-            }
-        };
-        exchangeCode();
-    }, [user, authLoading, router, supabase]);
-
-    // 2. Main Loading & Protection Guard
+    // Auth guard: AuthContext handles code exchange. We just wait for it to finish.
     useEffect(() => {
         if (!authLoading) {
-            const hasAuthCode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('code');
-            
             if (user) {
-                // We have a user, ready to analyze
                 setLoading(false);
-            } else if (!hasAuthCode) {
-                // No user and no code to exchange, go to login
+            } else {
+                // AuthContext is done loading and there's no user — redirect to login
                 router.push('/login?next=/analyze');
             }
-            // If hasAuthCode is true but user is null, we are in the middle of exchangeCode() above.
-            // We keep loading=true to show the authenticating state.
         }
     }, [authLoading, user, router]);
 

@@ -21,30 +21,9 @@ export default function ProfilePage() {
     const [projectsCount, setProjectsCount] = useState(0)
     const [referralsCount, setReferralsCount] = useState(0)
 
-    // Handle OAuth code exchange if user lands here from Google redirect
-    useEffect(() => {
-        const handleCodeExchange = async () => {
-            const params = new URLSearchParams(window.location.search)
-            if (params.has('code') && !user) {
-                try {
-                    const { error } = await supabase.auth.getSession()
-                    if (error) console.error('[Profile] Code exchange error:', error)
-                    // Clean the URL after exchange
-                    window.history.replaceState({}, '', '/profile')
-                } catch (err) {
-                    console.error('[Profile] Code exchange failed:', err)
-                }
-            }
-        }
-        handleCodeExchange()
-    }, [user, supabase])
-
+    // Auth guard: AuthContext handles code exchange centrally
     useEffect(() => {
         if (authLoading) return;
-        
-        // Don't redirect if we're still processing an OAuth code
-        const hasCode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('code')
-        if (hasCode) return;
 
         if (!user) {
             router.push('/login?next=/profile');

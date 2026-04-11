@@ -59,13 +59,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!isFirstRun.current) return;
         isFirstRun.current = false;
 
-        // 1. Initial Session Check
+        // 1. Initial Session Check (with PKCE code exchange)
         const initSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session?.user) {
-                setUser(session.user);
-                lastUserRef.current = session.user.id;
-                fetchProfile(session.user.id);
+            try {
+                // Check if there's an OAuth code in the URL that needs to be exchanged
+                if (typeof window !== 'undefined') {
+                    const params = new URLSearchParams(window.location.search);
+                    const code = params.get('code');
+                    
+                    if (code) {
+                        console.log('[Auth] OAuth code detected, exchanging for session...');
+                        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+                        
+                        if (error) {
+                            console.error('[Auth] Code exchange failed:', error.message);
+                        } else if (data.session?.user) {
+                            console.log('[Auth] Code exchange successful for:', data.session.user.email);
+                            setUser(data.session.user);
+                            lastUserRef.current = data.session.user.id;
+                            fetchProfile(data.session.user.id);
+                            
+                            // Clean the URL to remove the code parameter
+                            const cleanUrl = window.location.pathname;
+                            window.history.replaceState({}, '', cleanUrl);
+                        }
+                        setLoading(false);
+                        return;
+                    }
+                }
+                
+                // No code in URL — normal session restoration from cookies
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session?.user) {
+                    setUser(session.user);
+                    lastUserRef.current = session.user.id;
+                    fetchProfile(session.user.id);
+                }
+            } catch (err) {
+                console.error('[Auth] Session init error:', err);
             }
             setLoading(false);
         };

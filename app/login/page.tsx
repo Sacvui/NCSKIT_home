@@ -29,7 +29,7 @@ function LoginForm() {
         setLocale(getStoredLocale())
     }, [])
 
-    // Proactive Exchange Safety Net (If they land back here with a code)
+    // Safety net: If user lands here with a code (e.g., redirected from middleware), exchange it
     useEffect(() => {
         const exchangeCode = async () => {
             const code = searchParams.get('code')
@@ -37,15 +37,15 @@ function LoginForm() {
                 setLoading('resolving')
                 try {
                     const supabase = getSupabase()
-                    const { error } = await supabase.auth.getSession()
+                    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
                     if (error) throw error
                     
-                    // Success! Redirect to target or analyze
+                    console.log('[Login] Code exchange successful, redirecting...')
                     window.location.href = next || '/analyze'
-                } catch (err) {
-                    console.error('Proactive login exchange fail:', err)
+                } catch (err: any) {
+                    console.error('[Login] Code exchange failed:', err)
                     setLoading(null)
-                    setErrorMsg(isVi ? 'Không thể xác thực phiên làm việc. Vui lòng thử lại.' : 'Could not establish session. Please try again.')
+                    setErrorMsg(isVi ? 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.' : 'Session expired. Please sign in again.')
                 }
             }
         }
