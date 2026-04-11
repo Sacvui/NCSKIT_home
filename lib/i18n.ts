@@ -430,6 +430,7 @@ export const translations = {
                     'Chọn các biến số cần tính toán.',
                     'Nhấn nút Chạy Phân Tích.'
                 ],
+                note: 'Hãy chú ý đến hệ số Skewness (độ xiên) và Kurtosis (độ nhọn). Nếu các chỉ số này nằm trong khoảng [-2, 2], dữ liệu được coi là có phân phối chuẩn.',
                 output: ['Mean, SD, Min, Max', 'Skewness & Kurtosis']
             },
             cronbach: {
@@ -443,8 +444,68 @@ export const translations = {
                     'Chọn tất cả các biến quan sát thuộc cùng một nhân tố.',
                     'Nhấn nút Chạy Phân Tích.'
                 ],
-                note: 'Kết quả sẽ hiển thị Alpha tổng và bảng "Item-Total Statistics" để loại biến rác.',
+                note: 'Ưu tiên loại các biến có hệ số "Item-Total Correlation" nhỏ hơn 0.3 để tăng độ tin cậy của toàn bộ thang đo.',
                 output: ['Hệ số Alpha', 'Alpha nếu loại biến']
+            },
+            efa: {
+                name: 'Phân tích nhân tố EFA',
+                desc: 'Khám phá cấu trúc nhân tố',
+                purpose: 'Rút gọn một tập hợp nhiều biến quan sát thành một số ít các nhân tố có ý nghĩa hơn.',
+                stepTitle: 'Cách thực hiện:',
+                whenToUse: 'Sử dụng khi bạn muốn kiểm tra xem các câu hỏi có hội tụ vào đúng nhóm lý thuyết hay không.',
+                steps: [
+                    'Chọn menu EFA.',
+                    'Đưa các biến quan sát vào ô phân tích.',
+                    'Chọn phương pháp trích và xoay nhân tố.',
+                    'Nhấn nút Chạy Phân Tích.'
+                ],
+                note: 'Kiểm tra hệ số KMO (> 0.5) và kiểm định Bartlett (p < 0.05) trước khi đọc kết quả ma trận xoay.',
+                output: ['Hệ số KMO', 'Ma trận xoay nhân tố']
+            },
+            ttest: {
+                name: 'Kiểm định T-Test',
+                desc: 'So sánh trung bình 2 nhóm',
+                purpose: 'Kiểm tra xem có sự khác biệt có ý nghĩa thống kê về trị trung bình giữa hai nhóm độc lập hay không.',
+                stepTitle: 'Cách thực hiện:',
+                whenToUse: 'Ví dụ: So sánh mức độ hài lòng giữa Nam và Nữ.',
+                steps: [
+                    'Chọn menu Independent T-Test.',
+                    'Chọn biến phụ thuộc (định lượng).',
+                    'Chọn biến phân nhóm (định danh, 2 nhóm).',
+                    'Nhấn nút Chạy Kiểm Định.'
+                ],
+                note: 'Luôn kiểm tra kiểm định Levene trước. Nếu Sig Levene > 0.05, sử dụng kết quả ở dòng "Equal variances assumed".',
+                output: ['Hệ số t', 'Mức ý nghĩa Sig.']
+            },
+            anova: {
+                name: 'Phân tích ANOVA',
+                desc: 'So sánh trung bình từ 3 nhóm',
+                purpose: 'Kiểm tra sự khác biệt về trị trung bình của biến phụ thuộc giữa 3 nhóm trở lên.',
+                stepTitle: 'Cách thực hiện:',
+                whenToUse: 'Ví dụ: So sánh sự hài lòng giữa các nhóm thu nhập khác nhau.',
+                steps: [
+                    'Chọn menu ANOVA.',
+                    'Chọn biến phụ thuộc và biến phân nhóm.',
+                    'Chọn các kiểm định Post-hoc nếu cần.',
+                    'Nhấn nút Chạy Phân Tích.'
+                ],
+                note: 'Nếu Sig. ANOVA < 0.05, hãy xem kết quả Post-hoc (như Tukey hoặc Scheffe) để biết nhóm nào cụ thể khác biệt với nhóm nào.',
+                output: ['Chỉ số F', 'Kiểm định Post-hoc']
+            },
+            correlation: {
+                name: 'Ma trận Tương quan',
+                desc: 'Mối liên hệ giữa các biến',
+                purpose: 'Đo lường mức độ chặt chẽ của mối quan hệ tuyến tính giữa các cặp biến số.',
+                stepTitle: 'Cách thực hiện:',
+                whenToUse: 'Chạy trước khi phân tích hồi quy để kiểm tra sơ bộ các mối liên hệ.',
+                steps: [
+                    'Chọn menu Correlation.',
+                    'Chèn danh sách các biến cần kiểm tra.',
+                    'Chọn phương pháp Pearson hoặc Spearman.',
+                    'Nhấn nút Chạy Phân Tích.'
+                ],
+                note: 'Hệ số tương quan (r) nằm trong khoảng [-1, 1]. Nếu r > 0.7, cần chú ý hiện tượng đa cộng tuyến khi đưa vào mô hình hồi quy.',
+                output: ['Hệ số Pearson (r)', 'Mức ý nghĩa p-value']
             },
             regression: {
                 name: 'Hồi quy Tuyến tính',
