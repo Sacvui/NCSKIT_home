@@ -103,7 +103,7 @@ function ScaleHubContent() {
             if (retryCount === 0) setLoading(true);
             const { data, error } = await supabase
                 .from('scales')
-                .select('*')
+                .select('*, scale_items(code)')
                 .order('name_vi', { ascending: true });
 
             if (error) {
@@ -427,9 +427,31 @@ function ScaleHubContent() {
                                                     <h3 className="text-lg font-black text-slate-900 mb-2 leading-tight group-hover:text-indigo-600 transition-colors line-clamp-2">
                                                         {isVi ? scale.name_vi : scale.name_en}
                                                     </h3>
-                                                    <p className="text-slate-500 text-xs leading-relaxed line-clamp-2">
-                                                        {scale.author} ({scale.year})
-                                                    </p>
+                                                    
+                                                    {!expandedScale ? (
+                                                        <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col gap-2.5">
+                                                            <div className="text-xs text-slate-600">
+                                                                <span className="font-black text-slate-800 uppercase tracking-tight mr-2">{isVi ? 'Ý nghĩa:' : 'Meaning:'}</span>
+                                                                <span className="line-clamp-2 font-medium leading-relaxed">{isVi ? scale.description_vi : scale.description_en}</span>
+                                                            </div>
+                                                            <div className="text-xs text-slate-600">
+                                                                <span className="font-black text-slate-800 uppercase tracking-tight mr-2">{isVi ? 'Ký hiệu biến:' : 'Variables:'}</span>
+                                                                <span className="italic text-indigo-600 font-bold">
+                                                                    {scale.scale_items?.length > 0 
+                                                                        ? Array.from(new Set((scale.scale_items || []).map((i:any) => i.code.replace(/[0-9]/g, '')))).join(', ') 
+                                                                        : (isVi ? 'Đang cập nhật' : 'Updating')}
+                                                                </span>
+                                                            </div>
+                                                            <div className="text-xs text-slate-500">
+                                                                <span className="font-black text-slate-800 uppercase tracking-tight mr-2">{isVi ? 'Nguồn gốc:' : 'Source:'}</span>
+                                                                <span className="italic line-clamp-1">{scale.citation || `${scale.author} (${scale.year})`}</span>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <p className="text-slate-500 text-xs leading-relaxed line-clamp-2">
+                                                            {scale.author} ({scale.year})
+                                                        </p>
+                                                    )}
                                                 </div>
                                             </div>
                                         ))}
