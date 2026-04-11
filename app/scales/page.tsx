@@ -366,7 +366,7 @@ function ScaleHubContent() {
                                                                 {isVi ? s.name_vi : s.name_en}
                                                             </p>
                                                             <div className="flex items-center gap-2 text-[10px] text-slate-400 font-medium">
-                                                                <span className="bg-slate-100 px-1.5 py-0.5 rounded uppercase">{s.author.split(',')[0]}</span>
+                                                                <span className="bg-slate-100 px-1.5 py-0.5 rounded uppercase">{(s.author || 'Unknown').split(',')[0]}</span>
                                                                 <span>•</span>
                                                                 <span>{s.year}</span>
                                                             </div>
