@@ -22,47 +22,56 @@ export default function ProfilePage() {
     const [referralsCount, setReferralsCount] = useState(0)
 
     useEffect(() => {
-        if (!authLoading && !user) {
-            router.push('/login?next=/profile')
-            return
+        if (authLoading) return;
+        
+        if (!user) {
+            router.push('/login?next=/profile');
+            return;
         }
 
-        if (user && profile) {
-            const loadData = async () => {
-                try {
-                    // Fetch projects count
-                    const { count: pCount } = await supabase
-                        .from('projects')
+        let isMounted = true;
+
+        const loadData = async () => {
+            try {
+                // Fetch projects count
+                const { count: pCount } = await supabase
+                    .from('projects')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', user.id);
+                
+                if (isMounted) setProjectsCount(pCount || 0);
+
+                // Fetch referrals count if profile has a referral code
+                if (profile?.referral_code) {
+                    const { count: rCount } = await supabase
+                        .from('profiles')
                         .select('*', { count: 'exact', head: true })
-                        .eq('user_id', user.id);
-                    setProjectsCount(pCount || 0);
-
-                    // Fetch referrals count
-                    if (profile?.referral_code) {
-                        const { count: rCount } = await supabase
-                            .from('profiles')
-                            .select('*', { count: 'exact', head: true })
-                            .eq('referred_by_code', profile.referral_code);
-                        setReferralsCount(rCount || 0);
-                    }
-
-                    // Fetch recent projects
-                    const { data: projectsData } = await supabase
-                        .from('projects')
-                        .select('*')
-                        .eq('user_id', user.id)
-                        .order('updated_at', { ascending: false })
-                        .limit(10);
-                    setProjects(projectsData || []);
-                } catch (e) {
-                    console.error('[ProfilePage] Auxiliary data load error:', e);
-                } finally {
-                    setLoading(false);
+                        .eq('referred_by_code', profile.referral_code);
+                    if (isMounted) setReferralsCount(rCount || 0);
                 }
-            };
-            loadData();
-        }
-    }, [user, profile, authLoading, router, supabase]);
+
+                // Fetch recent projects
+                const { data: projectsData } = await supabase
+                    .from('projects')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .order('updated_at', { ascending: false })
+                    .limit(10);
+                
+                if (isMounted) setProjects(projectsData || []);
+            } catch (e) {
+                console.error('[ProfilePage] Auxiliary data load error:', e);
+            } finally {
+                if (isMounted) setLoading(false);
+            }
+        };
+
+        // We run loadData if we have a user. It doesn't strict-block on profile anymore,
+        // so new users without a profile row won't get stuck infinitely spinning.
+        loadData();
+
+        return () => { isMounted = false; };
+    }, [user, profile?.referral_code, authLoading, router, supabase]);
 
     if (loading) {
         return (
