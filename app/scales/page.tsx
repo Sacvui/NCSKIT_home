@@ -98,18 +98,24 @@ function ScaleHubContent() {
         };
     }, []);
 
-    const fetchScales = async () => {
+    const fetchScales = async (retryCount = 0) => {
         try {
-            setLoading(true);
+            if (retryCount === 0) setLoading(true);
             const { data, error } = await supabase
                 .from('scales')
                 .select('*')
                 .order('name_vi', { ascending: true });
 
             if (error) {
-                if (error.message !== 'Fetch is aborted') {
-                    console.error('Error fetching scales:', error);
+                if (error.message === 'Fetch is aborted' || error.message.includes('aborted')) {
+                    if (retryCount < 3) {
+                        console.warn(`[Scales] Fetch aborted, retrying (${retryCount + 1}/3)...`);
+                        setTimeout(() => fetchScales(retryCount + 1), 500);
+                        return;
+                    }
                 }
+                console.error('Error fetching scales:', error);
+                setLoading(false);
                 return;
             }
             
@@ -120,12 +126,16 @@ function ScaleHubContent() {
             }));
             
             setScales(transformedScales);
+            setLoading(false);
         } catch (err: any) {
-            // Ignore abort errors from the browser
-            if (err.name !== 'AbortError' && err.message !== 'Fetch is aborted') {
-                console.error('Error fetching scales:', err);
+            if (err.name === 'AbortError' || err.message?.includes('aborted')) {
+                if (retryCount < 3) {
+                    console.warn(`[Scales] Exception aborted, retrying (${retryCount + 1}/3)...`);
+                    setTimeout(() => fetchScales(retryCount + 1), 500);
+                    return;
+                }
             }
-        } finally {
+            console.error('Error fetching scales:', err);
             setLoading(false);
         }
     };
