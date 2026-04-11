@@ -1,687 +1,356 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useRef, Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-    Search, Filter, Library, BookOpen, Download, ChevronRight, 
-    ArrowLeft, Quote, Clock, Layers, Sparkles, ExternalLink,
+    Search, BookOpen, Clock, ArrowRight, TrendingUp, ShieldCheck, 
+    Brain, FileSearch, LineChart, Hash, Zap, HelpCircle, Layers, Activity,
+    ArrowLeft, Quote, Sparkles, ExternalLink,
     CheckCircle2, Info, FileSpreadsheet, ChevronDown, 
-    Target, UserCheck, Settings, Cpu, HelpCircle, X, Lock, ArrowRight,
-    Users, Brain
+    Target, UserCheck, Settings, Cpu, X, Lock, Users, ListChecks
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getSupabase } from '@/utils/supabase/client';
-import { getStoredLocale, t, type Locale } from '@/lib/i18n';
+import { getStoredLocale, type Locale, t } from '@/lib/i18n';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
-import type { Session, AuthChangeEvent } from '@supabase/supabase-js';
 
-interface ScaleItem {
-    id: string;
-    code: string;
-    text_vi: string;
-    text_en: string;
-}
+const supabase = getSupabase();
 
-interface Scale {
-    id: string;
-    category: string[];
-    name_vi: string;
-    name_en: string;
-    author: string;
-    year: number;
-    citation: string;
-    description_vi: string;
-    description_en: string;
-    tags?: string[];
-    research_model?: string;
-    items?: ScaleItem[];
-    scale_items?: ScaleItem[];
-}
-
-export default function ScaleHubPage() {
-    return (
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-slate-50">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div>
-        </div>}>
-            <ScaleHubContent />
-        </Suspense>
-    );
-}
-
-function ScaleHubContent() {
+export default function ScalesLibrary() {
     const router = useRouter();
     const [locale, setLocale] = useState<Locale>('vi');
-    const [scales, setScales] = useState<Scale[]>([]);
-    const [loading, setLoading] = useState(true);
-    const isFetching = useRef(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState('All');
+    const [selectedCategory, setSelectedCategory] = useState<string>('All');
     const [expandedScale, setExpandedScale] = useState<string | null>(null);
-    const [session, setSession] = useState<Session | null>(null);
-    
-    // Advisor State
-    const [showAdvisor, setShowAdvisor] = useState(false);
-    const [advisorSelection, setAdvisorSelection] = useState<string | null>(null);
-    const [suggestionsOpen, setSuggestionsOpen] = useState(false);
-
-    const isVi = locale === 'vi';
-    const supabase = getSupabase();
+    const [scales, setScales] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         setLocale(getStoredLocale());
-        const handleLocaleChange = () => setLocale(getStoredLocale());
-        window.addEventListener('localeChange', handleLocaleChange);
-        
-        // Initial session check
-        const initSession = async () => {
-            const { data: { session: currentSession } } = await supabase.auth.getSession();
-            setSession(currentSession);
-        };
-        initSession();
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, newSession: Session | null) => {
-            setSession(newSession);
-        });
-
         fetchScales();
         
-        const handleClickOutside = (e: MouseEvent) => {
-            if (!(e.target as HTMLElement).closest('.search-container')) {
-                setSuggestionsOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        
-        return () => {
-            window.removeEventListener('localeChange', handleLocaleChange);
-            document.removeEventListener('mousedown', handleClickOutside);
-            subscription.unsubscribe();
-        };
+        const handleLocaleChange = () => setLocale(getStoredLocale());
+        window.addEventListener('localeChange', handleLocaleChange);
+        return () => window.removeEventListener('localeChange', handleLocaleChange);
     }, []);
 
-    const fetchScales = async (retryCount = 0) => {
+    const fetchScales = async () => {
+        setLoading(true);
         try {
-            if (retryCount === 0) setLoading(true);
             const { data, error } = await supabase
                 .from('scales')
-                .select('*, scale_items(code)')
-                .order('name_vi', { ascending: true });
-
-            if (error) {
-                if (error.message === 'Fetch is aborted' || error.message.includes('aborted')) {
-                    if (retryCount < 3) {
-                        console.warn(`[Scales] Fetch aborted, retrying (${retryCount + 1}/3)...`);
-                        setTimeout(() => fetchScales(retryCount + 1), 500);
-                        return;
-                    }
-                }
-                console.error('Error fetching scales:', error);
-                setLoading(false);
-                return;
-            }
+                .select('*, scale_items(*)')
+                .order('name_en', { ascending: true });
             
-            const transformedScales = (data || []).map((scale: any) => ({
-                ...scale,
-                tags: Array.isArray(scale.tags) ? scale.tags : (scale.tags ? String(scale.tags).split(',') : []),
-                category: Array.isArray(scale.category) ? scale.category : (scale.category ? String(scale.category).split(',') : ['All'])
-            }));
-            
-            setScales(transformedScales);
-            setLoading(false);
-        } catch (err: any) {
-            if (err.name === 'AbortError' || err.message?.includes('aborted')) {
-                if (retryCount < 3) {
-                    console.warn(`[Scales] Exception aborted, retrying (${retryCount + 1}/3)...`);
-                    setTimeout(() => fetchScales(retryCount + 1), 500);
-                    return;
-                }
-            }
-            console.error('Error fetching scales:', err);
+            if (data) setScales(data);
+        } catch (err) {
+            console.error('Fetch error:', err);
+        } finally {
             setLoading(false);
         }
     };
 
-    const categories = ['All', 'Modern (2020+)', 'MIS', 'Innovation', 'Marketing', 'HR', 'Accounting', 'Economics', 'Psychology'];
+    const categories = [
+        'All', 'Modern Research (2020+)', 'MIS & Digital', 'Innovation & Strategy', 
+        'Marketing', 'Human Resources', 'Accounting & Finance', 'Economics', 'Psychology', 'Tourism & Hospitality'
+    ];
 
-    const handleExpandScale = (id: string) => {
-        setExpandedScale(expandedScale === id ? null : id);
-    };
+    const filteredScales = scales.filter(scale => {
+        const matchesSearch = (scale.name_vi + scale.name_en + scale.description_vi + scale.description_en + (scale.author || ''))
+            .toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesCategory = selectedCategory === 'All' || scale.category.includes(selectedCategory);
+        return matchesSearch && matchesCategory;
+    });
 
-    const filteredScales = useMemo(() => {
-        return scales.filter(scale => {
-            const matchesSearch = 
-                scale.name_vi.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                scale.name_en.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                scale.author?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                scale.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()));
-            
-            const matchesCategory = selectedCategory === 'All' || 
-                                    scale.category.includes(selectedCategory) ||
-                                    (selectedCategory === 'Modern (2020+)' && scale.tags?.includes('Modern (2020+)'));
-            
-            let matchesAdvisor = true;
-            if (advisorSelection) {
-                const categoryArray = Array.isArray(scale.category) ? scale.category : [];
-                const tagsArray = Array.isArray(scale.tags) ? scale.tags : [];
-                
-                if (advisorSelection === 'acceptance') {
-                    matchesAdvisor = tagsArray.some(t => ['Technology', 'Acceptance', 'Behavior', 'Intent', 'AI', 'ChatGPT'].includes(t));
-                } else if (advisorSelection === 'service') {
-                    matchesAdvisor = tagsArray.some(t => ['Service', 'Quality', 'Satisfaction', 'Signal', 'Communication', 'Chatbot'].includes(t));
-                } else if (advisorSelection === 'hr') {
-                    matchesAdvisor = categoryArray.includes('HR') || tagsArray.some(t => ['Leadership', 'Employee', 'Trust', 'Transparency', 'Remote Work', 'Zoom Fatigue'].includes(t));
-                } else if (advisorSelection === 'systems') {
-                    matchesAdvisor = categoryArray.some(cat => ['Logistics', 'MIS'].includes(cat)) || tagsArray.includes('Digitalization');
-                } else if (advisorSelection === 'modern') {
-                    matchesAdvisor = tagsArray.includes('Modern (2020+)');
-                }
-            }
-
-            return matchesSearch && matchesCategory && matchesAdvisor;
-        });
-    }, [scales, searchQuery, selectedCategory, advisorSelection]);
-
-    const suggestions = useMemo(() => {
-        if (!searchQuery.trim()) return [];
-        return scales
-            .filter(s => 
-                s.name_vi.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                s.name_en.toLowerCase().includes(searchQuery.toLowerCase())
-            )
-            .slice(0, 5);
-    }, [scales, searchQuery]);
-
-    const recommendations = useMemo(() => {
-        return scales.filter(s => s.tags?.includes('Modern (2020+)')).slice(0, 3);
-    }, [scales]);
-
-    const activeScale = useMemo(() => {
-        return scales.find(s => s.id === expandedScale) || null;
-    }, [scales, expandedScale]);
+    const isVi = locale === 'vi';
+    const activeScale = scales.find(s => s.id === expandedScale);
 
     return (
-        <div className="min-h-screen bg-white font-sans selection:bg-blue-100 selection:text-blue-900">
+        <div className="min-h-screen bg-slate-50 font-sans selection:bg-indigo-100 selection:text-indigo-900">
             <Header />
-            <div className="min-h-screen bg-slate-50 pb-20">
-                <div className="bg-slate-900 text-white py-20 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
-                        <Library className="w-96 h-96 rotate-12" />
-                    </div>
-                    <div className="container mx-auto px-4 max-w-6xl relative z-10">
-                        <div className="flex flex-col md:flex-row items-center gap-12">
-                            <div className="flex-1 text-center md:text-left">
-                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 text-xs font-bold mb-6 uppercase tracking-wider border border-indigo-500/30">
-                                    <Sparkles className="w-3 h-3" />
-                                    <span>{isVi ? 'Hệ sinh thái NC' : 'Research Ecosystem'}</span>
-                                </div>
-                                <h1 className="text-4xl md:text-6xl font-black mb-6 tracking-tight leading-tight">
-                                    {t(locale, 'scales.title')}
-                                </h1>
-                                <p className="text-slate-400 text-lg max-w-2xl leading-relaxed mb-8">
-                                    {t(locale, 'scales.subtitle')}
-                                </p>
-                                <div className="flex flex-wrap justify-center md:justify-start gap-4">
-                                    <button 
-                                        onClick={() => setShowAdvisor(!showAdvisor)}
-                                        className="px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-lg shadow-indigo-500/20"
-                                    >
-                                        <Target className="w-5 h-5" />
-                                        {t(locale, 'scales.advisor.title')}
-                                    </button>
-                                </div>
+            
+            <main className="pt-32 pb-24">
+                <div className="container mx-auto px-6">
+                    {/* Hero Section - Only show when NOT in focus mode */}
+                    {!expandedScale && (
+                        <div className="max-w-4xl mx-auto text-center mb-20 animate-in fade-in duration-700">
+                            <h1 className="text-5xl md:text-7xl font-black text-slate-900 mb-8 tracking-tighter leading-[0.95]">
+                                {isVi ? 'Thang đo' : 'Measurement'}
+                                <span className="text-indigo-600 block">ncsScales.</span>
+                            </h1>
+                            <p className="text-xl text-slate-500 font-medium mb-12 max-w-2xl mx-auto leading-relaxed">
+                                {isVi 
+                                    ? 'Thư viện thang đo chuẩn hóa, đã được kiểm định qua các công bố quốc tế uy tín.' 
+                                    : 'Validated measurement scales library, verified through prestigious international publications.'}
+                            </p>
+                            
+                            <div className="relative max-w-2xl mx-auto group">
+                                <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-400" />
+                                <input 
+                                    type="text"
+                                    placeholder={isVi ? "Tìm kiếm thang đo (ví dụ: TAM, SERVQUAL...)" : "Search scales (e.g., TAM, SERVQUAL...)"}
+                                    className="w-full pl-16 pr-8 py-6 bg-white border-2 border-slate-100 rounded-[2rem] text-slate-900 font-bold text-lg focus:outline-none focus:border-indigo-600 shadow-xl"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="container mx-auto px-4 max-w-6xl -mt-10 relative z-20">
-                    {showAdvisor && (
-                        <div className="bg-gradient-to-br from-indigo-700 to-slate-900 p-8 rounded-3xl shadow-2xl mb-12 text-white border border-indigo-500/20">
-                            <div className="flex justify-between items-start mb-8">
-                                <div>
-                                    <h2 className="text-2xl font-black mb-2 flex items-center gap-2">
-                                        <Sparkles className="w-6 h-6 text-yellow-400" />
-                                        {t(locale, 'scales.advisor.title')}
-                                    </h2>
-                                    <p className="text-indigo-200">{t(locale, 'scales.advisor.subtitle')}</p>
-                                </div>
-                                <button onClick={() => {setShowAdvisor(false); setAdvisorSelection(null);}} className="p-2 hover:bg-white/10 rounded-full transition-colors">
-                                    <X className="w-6 h-6" />
-                                </button>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                {[
-                                    { id: 'acceptance', icon: <Cpu className="w-6 h-6" />, label: t(locale, 'scales.advisor.opt1') },
-                                    { id: 'service', icon: <Sparkles className="w-6 h-6" />, label: t(locale, 'scales.advisor.opt2') },
-                                    { id: 'hr', icon: <UserCheck className="w-6 h-6" />, label: t(locale, 'scales.advisor.opt3') },
-                                    { id: 'systems', icon: <Settings className="w-6 h-6" />, label: t(locale, 'scales.advisor.opt4') },
-                                    { id: 'modern', icon: <Target className="w-6 h-6" />, label: t(locale, 'scales.advisor.modern') }
-                                ].map(opt => (
-                                    <button
-                                        key={opt.id}
-                                        onClick={() => setAdvisorSelection(advisorSelection === opt.id ? null : opt.id)}
-                                        className={`p-6 rounded-2xl border-2 transition-all flex flex-col gap-4 text-left ${
-                                            advisorSelection === opt.id 
-                                            ? 'bg-white text-indigo-900 border-white shadow-xl scale-105' 
-                                            : 'bg-white/5 border-white/10 hover:bg-white/10'
-                                        }`}
-                                    >
-                                        <div className={`p-3 rounded-xl inline-flex ${advisorSelection === opt.id ? 'bg-indigo-100' : 'bg-white/10'}`}>
-                                            {opt.icon}
-                                        </div>
-                                        <span className="font-bold text-sm leading-snug">{opt.label}</span>
-                                    </button>
-                                ))}
-                            </div>
-
-                            {advisorSelection && (
-                                <div className="mt-8 pt-8 border-t border-white/10 animate-in fade-in slide-in-from-top-4">
-                                    <p className="flex items-center gap-2 text-indigo-300 font-medium italic">
-                                        <ChevronRight className="w-4 h-4" />
-                                        {t(locale, 'scales.advisor.resultText')} 
-                                        <span className="text-white font-bold ml-1">{filteredScales.length} {isVi ? 'thang đo học thuật' : 'academic scales'}</span>
-                                    </p>
-                                </div>
-                            )}
                         </div>
                     )}
 
-                    <div className="flex flex-col lg:flex-row gap-8">
-                        {/* Sidebar Filters */}
-                        <div className="lg:w-64 shrink-0 space-y-6">
-                            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-                                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                    <Filter className="w-3.5 h-3.5" />
-                                    {isVi ? 'DANH MỤC' : 'CATEGORIES'}
-                                </h3>
-                                <div className="flex flex-col gap-1.5">
-                                    {categories.map(cat => (
-                                        <button
-                                            key={cat}
-                                            onClick={() => setSelectedCategory(cat)}
-                                            className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                                                selectedCategory === cat 
-                                                ? 'bg-indigo-600 text-white shadow-md shadow-indigo-200' 
-                                                : 'text-slate-600 hover:bg-slate-50'
-                                            }`}
-                                        >
-                                            {cat === 'All' ? (isVi ? 'Tất cả' : 'All') : t(locale, `scales.${cat.toLowerCase()}`, cat)}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                            
-                            <div className="bg-indigo-900 p-6 rounded-3xl text-white shadow-xl">
-                                <h4 className="text-sm font-black mb-2 flex items-center gap-2">
-                                    <Clock className="w-4 h-4" />
-                                    {isVi ? 'Ghi chú' : 'Notice'}
-                                </h4>
-                                <p className="text-[10px] text-indigo-200 leading-relaxed font-medium">
-                                    {isVi ? 'Dữ liệu được cập nhật từ các công bố khoa học mới nhất (2023-2024).' : 'Data updated from the latest academic publications (2023-2024).'}
-                                </p>
-                            </div>
-                        </div>
-
-                        {/* Main Content Area */}
-                        <div className="flex-1 space-y-8">
-                            {/* Search Bar */}
-                            <div className="bg-white p-4 rounded-[2rem] shadow-xl border border-slate-200/60 relative search-container">
-                                <Search className="absolute left-8 top-1/2 -translate-y-1/2 w-5 h-5 text-indigo-500" />
-                                <input 
-                                    type="text" 
-                                    placeholder={t(locale, 'scales.searchPlaceholder')}
-                                    className="w-full pl-14 pr-6 py-4 bg-slate-50 border-none rounded-2xl focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-slate-800 font-bold placeholder:text-slate-400 placeholder:font-medium"
-                                    value={searchQuery}
-                                    onFocus={() => setSuggestionsOpen(true)}
-                                    onChange={(e) => {
-                                        setSearchQuery(e.target.value);
-                                        setSuggestionsOpen(true);
-                                    }}
-                                />
-                                
-                                {suggestionsOpen && (searchQuery.trim() || recommendations.length > 0) && (
-                                    <div className="absolute top-full left-0 right-0 mt-3 bg-white rounded-[2rem] shadow-2xl border border-slate-100 z-50 overflow-hidden animate-in fade-in slide-in-from-top-4 duration-300">
-                                        <div className="p-4 bg-slate-50 border-b border-slate-100">
-                                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">
-                                                {searchQuery.trim() ? (isVi ? 'KẾT QUẢ GỢI Ý' : 'SUGGESTIONS') : (isVi ? 'KHUYÊN DÙNG' : 'RECOMMENDED')}
-                                            </h4>
-                                        </div>
-                                        <div className="max-h-[400px] overflow-y-auto no-scrollbar">
-                                            {(searchQuery.trim() ? suggestions : recommendations).length > 0 ? (
-                                                (searchQuery.trim() ? suggestions : recommendations).map(s => (
-                                                    <button
-                                                        key={s.id}
-                                                        onClick={() => {
-                                                            setSearchQuery(isVi ? s.name_vi : s.name_en);
-                                                            setExpandedScale(s.id);
-                                                            setSuggestionsOpen(false);
-                                                        }}
-                                                        className="w-full text-left px-6 py-4 hover:bg-indigo-50/50 flex items-center gap-4 transition-all group border-b border-slate-50 last:border-0"
-                                                    >
-                                                        <div className="w-10 h-10 bg-indigo-50 rounded-xl text-indigo-600 flex items-center justify-center shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                                                            <BookOpen className="w-5 h-5" />
-                                                        </div>
-                                                        <div className="flex-1 overflow-hidden">
-                                                            <p className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors truncate">
-                                                                {isVi ? s.name_vi : s.name_en}
-                                                            </p>
-                                                            <div className="flex items-center gap-2 text-[10px] text-slate-400 font-medium">
-                                                                <span className="bg-slate-100 px-1.5 py-0.5 rounded uppercase">{(s.author || 'Unknown').split(',')[0]}</span>
-                                                                <span>•</span>
-                                                                <span>{s.year}</span>
-                                                            </div>
-                                                        </div>
-                                                        <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all" />
-                                                    </button>
-                                                ))
-                                            ) : (
-                                                <div className="p-8 text-center">
-                                                    <Info className="w-8 h-8 text-slate-200 mx-auto mb-3" />
-                                                    <p className="text-slate-400 text-sm italic">
-                                                        {isVi ? 'Không tìm thấy thang đo nào phù hợp' : 'No matching scales found'}
-                                                    </p>
-                                                </div>
-                                            )}
-                                        </div>
+                    {!expandedScale ? (
+                        /* --- LIST VIEW --- */
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+                            {/* Sidebar Filters */}
+                            <div className="lg:col-span-3 space-y-6 sticky top-28">
+                                <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                                    <h4 className="flex items-center gap-2 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-6">
+                                        <Layers className="w-4 h-4" />
+                                        Categories
+                                    </h4>
+                                    <div className="space-y-2">
+                                        {categories.map((cat) => (
+                                            <button
+                                                key={cat}
+                                                onClick={() => setSelectedCategory(cat)}
+                                                className={`w-full text-left px-5 py-3.5 rounded-2xl text-sm font-bold transition-all ${
+                                                    selectedCategory === cat 
+                                                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' 
+                                                    : 'text-slate-500 hover:bg-slate-50 hover:text-indigo-600'
+                                                }`}
+                                            >
+                                                {cat}
+                                            </button>
+                                        ))}
                                     </div>
-                                )}
+                                </div>
                             </div>
 
-                            {loading ? (
-                                <div className="grid md:grid-cols-3 gap-8 animate-pulse">
-                                    {[1, 2, 3, 4, 5, 6].map(i => (
-                                        <div key={i} className="h-80 bg-white rounded-3xl border border-slate-200 shadow-sm"></div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
-                                    {/* Scales List */}
-                                    <div className={`${expandedScale ? 'md:col-span-4 lg:col-span-5' : 'md:col-span-12'} grid grid-cols-1 ${expandedScale ? 'lg:grid-cols-1' : 'md:grid-cols-2 lg:grid-cols-3'} gap-6 transition-all duration-500`}>
+                            {/* Main Grid */}
+                            <div className="lg:col-span-9">
+                                {loading ? (
+                                    <div className="grid md:grid-cols-2 gap-8 animate-pulse">
+                                        {[1, 2, 3, 4].map(i => <div key={i} className="h-80 bg-white rounded-3xl"></div>)}
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                         {filteredScales.map(scale => (
                                             <div 
                                                 key={scale.id} 
                                                 onClick={() => setExpandedScale(scale.id)}
-                                                className={`group bg-white rounded-[2rem] border transition-all duration-500 overflow-hidden flex flex-col cursor-pointer relative hover:-translate-y-1 ${
-                                                    expandedScale === scale.id 
-                                                    ? 'ring-4 ring-indigo-500/20 border-indigo-400 shadow-2xl' 
-                                                    : 'border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-indigo-100/50 hover:border-indigo-200'
-                                                }`}
+                                                className="group bg-white rounded-[2.5rem] border border-slate-100 shadow-sm hover:translate-y-[-8px] hover:shadow-2xl hover:border-indigo-200 transition-all duration-500 overflow-hidden flex flex-col cursor-pointer relative"
                                             >
-                                                {/* Top Accent Line */}
-                                                <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-                                                <div className="p-6 md:p-8 flex flex-col h-full">
-                                                    <div className="flex items-start justify-between mb-5">
-                                                        <div className="flex flex-wrap gap-2">
-                                                            {scale.category.slice(0, 1).map(cat => (
-                                                                <div 
-                                                                    key={cat}
-                                                                    className="px-2.5 py-1 bg-indigo-50/80 rounded-lg text-[9px] font-black text-indigo-600 uppercase tracking-widest border border-indigo-100/50"
-                                                                >
-                                                                    {t(locale, `scales.${cat.toLowerCase()}`, cat)}
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                        <div className="text-[10px] text-slate-400 font-bold bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">
+                                                <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                                <div className="p-8 flex flex-col h-full">
+                                                    <div className="flex items-start justify-between mb-6">
+                                                        <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[9px] font-black uppercase tracking-widest border border-indigo-100/50">
+                                                            {scale.category[0]}
+                                                        </span>
+                                                        <span className="text-[10px] text-slate-400 font-bold bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100 italic">
                                                             {scale.scale_items?.length || 0} items
-                                                        </div>
+                                                        </span>
                                                     </div>
-                                                    
-                                                    <h3 className="text-xl font-black text-slate-900 mb-3 leading-tight group-hover:text-indigo-600 transition-colors line-clamp-2">
+                                                    <h3 className="text-2xl font-black text-slate-900 mb-4 leading-tight group-hover:text-indigo-600 transition-colors">
                                                         {isVi ? scale.name_vi : scale.name_en}
                                                     </h3>
-                                                    
-                                                    {!expandedScale ? (
-                                                        <div className="mt-auto pt-6 border-t border-slate-100/60 flex flex-col gap-5">
-                                                            <div className="flex items-start gap-3.5">
-                                                                <div className="mt-0.5 p-2 bg-indigo-50/80 rounded-xl text-indigo-600 shrink-0 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300 shadow-sm border border-indigo-100/50">
-                                                                    <BookOpen className="w-4 h-4" />
-                                                                </div>
-                                                                <div>
-                                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">{isVi ? 'Ý nghĩa' : 'Meaning'}</p>
-                                                                    <p className="text-sm text-slate-600 line-clamp-5 font-medium leading-relaxed">{isVi ? scale.description_vi : scale.description_en}</p>
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="flex items-start gap-3.5">
-                                                                <div className="mt-0.5 p-2 bg-purple-50/80 rounded-xl text-purple-600 shrink-0 group-hover:scale-110 group-hover:bg-purple-600 group-hover:text-white transition-all duration-300 shadow-sm border border-purple-100/50">
-                                                                    <Layers className="w-4 h-4" />
-                                                                </div>
-                                                                <div>
-                                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">{isVi ? 'Hệ thống Biến số' : 'Variable System'}</p>
-                                                                    <div className="flex flex-wrap gap-2">
-                                                                        <span className="text-[13px] text-indigo-700 font-bold bg-indigo-50 px-2.5 py-1 rounded-lg border border-indigo-100">
-                                                                            {(scale.scale_items?.length || 0)} {isVi ? 'Biến quan sát' : 'Items'}
-                                                                        </span>
-                                                                        <span className="text-[13px] text-slate-600 font-medium bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200/60">
-                                                                            {(() => {
-                                                                                const items = scale.scale_items || [];
-                                                                                if (items.length === 0) return isVi ? 'Đang cập nhật...' : 'Updating...';
-                                                                                const prefix = items[0].code.replace(/[0-9]/g, '');
-                                                                                return `${prefix}1 - ${prefix}${items.length}`;
-                                                                            })()}
-                                                                        </span>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="flex items-start gap-3.5">
-                                                                <div className="mt-0.5 p-2 bg-amber-50/80 rounded-xl text-amber-600 shrink-0 group-hover:scale-110 group-hover:bg-amber-600 group-hover:text-white transition-all duration-300 shadow-sm border border-amber-100/50">
-                                                                    <Target className="w-4 h-4" />
-                                                                </div>
-                                                                <div>
-                                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">{isVi ? 'Loại thang đo' : 'Scale Type'}</p>
-                                                                    <p className="text-[13px] text-slate-700 font-bold italic">
-                                                                        Likert 5-point {isVi ? '(Chuẩn học thuật)' : '(Academic Standard)'}
-                                                                    </p>
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="flex items-start gap-3.5">
-                                                                <div className="mt-0.5 p-2 bg-slate-50/80 rounded-xl text-slate-500 shrink-0 group-hover:scale-110 group-hover:bg-slate-800 group-hover:text-white transition-all duration-300 shadow-sm border border-slate-200/50">
-                                                                    <Users className="w-4 h-4" />
-                                                                </div>
-                                                                <div>
-                                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">{isVi ? 'Nguồn trích dẫn' : 'Full Citation'}</p>
-                                                                    <p className="text-xs text-slate-500 font-medium leading-relaxed italic line-clamp-3">
-                                                                        {scale.citation || `${scale.author} (${scale.year})`}
-                                                                    </p>
-                                                                </div>
+                                                    <p className="text-sm text-slate-500 font-medium mb-8 line-clamp-3 leading-relaxed italic">
+                                                        {isVi ? scale.description_vi : scale.description_en}
+                                                    </p>
+                                                    <div className="mt-auto pt-6 border-t border-slate-50 flex items-center justify-between">
+                                                        <div className="space-y-1">
+                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{scale.author} ({scale.year})</p>
+                                                            <div className="flex gap-2">
+                                                                <span className="text-[19px] font-black text-indigo-700 bg-indigo-50 px-2 rounded-md">
+                                                                    {scale.scale_items?.[0]?.code.replace(/[0-9]/g, '')}1 - {scale.scale_items?.[0]?.code.replace(/[0-9]/g, '')}{scale.scale_items?.length}
+                                                                </span>
                                                             </div>
                                                         </div>
-                                                    ) : (
-                                                        <div className="mt-auto pt-6 border-t border-slate-100/60">
-                                                            <p className="text-slate-500 text-sm font-medium leading-relaxed line-clamp-2">
-                                                                <span className="font-bold text-slate-700">{scale.author}</span> ({scale.year})
-                                                            </p>
+                                                        <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
+                                                            <ArrowRight className="w-5 h-5" />
                                                         </div>
-                                                    )}
+                                                    </div>
                                                 </div>
                                             </div>
                                         ))}
                                     </div>
+                                )}
+                            </div>
+                        </div>
+                    ) : (
+                        /* --- FOCUS DETAIL VIEW --- */
+                        <div className="max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700">
+                            {/* Back Button */}
+                            <div className="mb-10">
+                                <button 
+                                    onClick={() => setExpandedScale(null)}
+                                    className="group flex items-center gap-3 px-8 py-5 bg-white border border-slate-200 rounded-3xl text-slate-600 font-black text-xs hover:border-indigo-600 hover:text-indigo-600 transition-all shadow-sm"
+                                >
+                                    <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                                    {isVi ? 'QUAY LẠI DANH SÁCH THANG ĐO' : 'BACK TO SCALES ARRAY'}
+                                </button>
+                            </div>
 
-                                    {/* Scale Details Panel (Right Side) */}
-                                    {expandedScale && activeScale && (
-                                        <div className="md:col-span-8 lg:col-span-7 sticky top-24 animate-in slide-in-from-right-4 duration-500">
-                                            <div className="bg-white rounded-[2rem] border border-indigo-100 shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
-                                                {/* Panel Header */}
-                                                <div className="p-8 bg-slate-900 text-white flex justify-between items-start">
-                                                    <div className="flex-1">
-                                                        <div className="flex flex-wrap gap-2 mb-4">
-                                                            {activeScale.category.map(cat => (
-                                                                <span key={cat} className="px-2 py-1 bg-white/10 rounded-lg text-[9px] font-black tracking-widest uppercase text-indigo-300 border border-white/10">
-                                                                    {t(locale, `scales.${cat.toLowerCase()}`, cat)}
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                        <h3 className="text-2xl md:text-3xl font-black tracking-tight leading-tight mb-2">
-                                                            {isVi ? activeScale.name_vi : activeScale.name_en}
-                                                        </h3>
-                                                        <p className="text-slate-400 font-medium">By {activeScale.author} ({activeScale.year})</p>
-                                                    </div>
-                                                    <button 
-                                                        onClick={() => setExpandedScale(null)}
-                                                        className="p-2 hover:bg-white/10 rounded-full transition-colors text-white/50 hover:text-white"
-                                                    >
-                                                        <X className="w-6 h-6" />
-                                                    </button>
+                            {activeScale && (
+                                <div className="bg-white rounded-[4rem] border border-slate-100 shadow-2xl overflow-hidden shadow-indigo-100/40">
+                                    {/* Detailed Hero */}
+                                    <div className="bg-slate-900 p-12 md:p-24 text-white relative">
+                                        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-indigo-500/10 blur-[120px] pointer-events-none rounded-full"></div>
+                                        <div className="relative z-10">
+                                            <div className="flex flex-wrap gap-3 mb-10">
+                                                {activeScale.category.map(cat => (
+                                                    <span key={cat} className="px-5 py-2 bg-white/10 rounded-full text-[10px] font-black uppercase tracking-widest border border-white/5">
+                                                        {cat}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                            <h2 className="text-4xl md:text-7xl font-black mb-8 tracking-tighter leading-[0.9] max-w-4xl">
+                                                {isVi ? activeScale.name_vi : activeScale.name_en}
+                                            </h2>
+                                            <div className="flex flex-col md:flex-row md:items-center gap-6 text-indigo-300 font-black text-xl mb-16">
+                                                <div className="flex items-center gap-3">
+                                                    <Users className="w-6 h-6" />
+                                                    <span>{activeScale.author}</span>
                                                 </div>
+                                                <div className="hidden md:block w-2 h-2 rounded-full bg-white/20"></div>
+                                                <div className="flex items-center gap-3">
+                                                    <Clock className="w-6 h-6" />
+                                                    <span>Year: {activeScale.year}</span>
+                                                </div>
+                                            </div>
 
-                                                {/* Panel Content (Scrollable) */}
-                                                <div className="p-8 overflow-y-auto no-scrollbar flex-1 space-y-10">
-                                                    {/* Related Knowledge Section */}
-                                                    <div className="p-6 bg-indigo-900 rounded-3xl text-white shadow-xl relative overflow-hidden group">
-                                                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:rotate-12 transition-transform">
-                                                            <HelpCircle className="w-24 h-24" />
-                                                        </div>
-                                                        <div className="relative z-10">
-                                                            <h4 className="flex items-center gap-2 text-sm font-black mb-3 text-indigo-300 uppercase tracking-widest">
-                                                                <Sparkles className="w-4 h-4" />
-                                                                {isVi ? 'Kiến thức liên quan' : 'Related Knowledge'}
-                                                            </h4>
-                                                            <div className="space-y-3">
-                                                                {[
-                                                                    { slug: 'cronbach-alpha', title: isVi ? 'Kiểm định Cronbach Alpha' : 'Cronbach Alpha Test' },
-                                                                    { slug: 'efa-factor-analysis', title: isVi ? 'Phân tích nhân tố EFA' : 'Factor Analysis EFA' },
-                                                                    ...(activeScale.name_en.includes('TAM') || activeScale.name_en.includes('Technology') 
-                                                                        ? [{ slug: 'technology-acceptance-model-tam', title: isVi ? 'Mô hình TAM Chuyên sâu' : 'TAM In-depth Guide' }] 
-                                                                        : []),
-                                                                    ...(activeScale.name_en.includes('TPB') || activeScale.name_en.includes('Behavior') 
-                                                                        ? [{ slug: 'theory-of-planned-behavior-tpb', title: isVi ? 'Thuyết TPB Chuyên sâu' : 'TPB In-depth Guide' }] 
-                                                                        : [])
-                                                                ].map((guide, idx) => (
-                                                                    <Link 
-                                                                        key={idx}
-                                                                        href={`/knowledge/${guide.slug}`}
-                                                                        className="flex items-center justify-between p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-all border border-white/5 font-bold text-xs"
-                                                                    >
-                                                                        <span>{guide.title}</span>
-                                                                        <ArrowRight className="w-4 h-4 text-indigo-400" />
-                                                                    </Link>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Expert Research Insight Section */}
-                                                    <div className="bg-slate-900 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl">
-                                                        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 blur-3xl -mr-16 -mt-16"></div>
-                                                        <div className="relative z-10">
-                                                            <div className="flex items-center gap-3 mb-6">
-                                                                <div className="p-2 bg-indigo-500 rounded-lg">
-                                                                    <Brain className="w-5 h-5 text-white" />
-                                                                </div>
-                                                                <h4 className="font-black text-xs uppercase tracking-[0.2em]">{isVi ? 'Lưu ý từ Chuyên gia' : 'Expert Research Insight'}</h4>
-                                                            </div>
-                                                            <ul className="space-y-4">
-                                                                <li className="flex gap-3 text-sm">
-                                                                    <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-                                                                    <span className="text-slate-300 leading-relaxed font-medium">
-                                                                        {isVi 
-                                                                            ? 'Thang đo này thường được sử dụng trong các mô hình SEM nâng cao để đo lường các tiền tố tâm lý của người tiêu dùng.' 
-                                                                            : 'This scale is frequently used in advanced SEM models to measure consumer psychological antecedents.'}
-                                                                    </span>
-                                                                </li>
-                                                                <li className="flex gap-3 text-sm">
-                                                                    <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-                                                                    <span className="text-slate-300 leading-relaxed font-medium">
-                                                                        {isVi 
-                                                                            ? 'Độ tin cậy Cronbach\'s Alpha kỳ vọng nên đạt > 0.8 trong các nghiên cứu mảng Marketing hiện đại.' 
-                                                                            : 'Expected Cronbach\'s Alpha reliability should exceed 0.8 in modern Marketing research.'}
-                                                                    </span>
-                                                                </li>
-                                                                <li className="flex gap-3 text-sm">
-                                                                    <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
-                                                                    <span className="text-slate-300 leading-relaxed font-medium">
-                                                                        {isVi 
-                                                                            ? 'Khuyến nghị chạy CFA (Phân tích nhân tố khẳng định) để kiểm định giá trị hội tụ trước khi đưa vào mô hình cấu trúc chính.' 
-                                                                            : 'Recommended to run CFA to verify convergent validity before proceeding to structural model analysis.'}
-                                                                    </span>
-                                                                </li>
-                                                            </ul>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Academic Benchmarks */}
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        <div className="p-5 bg-emerald-50 rounded-2xl border border-emerald-100/50">
-                                                            <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Standard Alpha</p>
-                                                            <p className="text-lg font-black text-emerald-900">&gt; 0.70</p>
-                                                        </div>
-                                                        <div className="p-5 bg-indigo-50 rounded-2xl border border-indigo-100/50">
-                                                            <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-1">Standard AVE</p>
-                                                            <p className="text-lg font-black text-indigo-900">&gt; 0.50</p>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Description */}
-                                                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                                                        <p className="text-slate-600 leading-relaxed italic text-sm">
-                                                            {isVi ? activeScale.description_vi : activeScale.description_en}
-                                                        </p>
-                                                    </div>
-
-                                                    {/* Scale Items */}
-                                                    <div>
-                                                        <div className="flex items-center gap-3 mb-6">
-                                                            <div className="p-2.5 bg-indigo-600 rounded-xl text-white shadow-lg">
-                                                                <Layers className="w-5 h-5" />
-                                                            </div>
-                                                            <h4 className="text-xl font-black text-slate-800 uppercase tracking-tight">
-                                                                {isVi ? 'Hệ thống câu hỏi' : 'Scale Items'}
-                                                            </h4>
-                                                        </div>
-                                                        <div className="space-y-3">
-                                                            {(activeScale.scale_items || []).map((item: any) => (
-                                                                <div key={item.id} className="p-5 bg-white rounded-2xl border border-slate-100 hover:border-indigo-200 transition-all group shadow-sm flex items-start gap-4">
-                                                                    <div className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center font-black text-indigo-600 text-[10px] group-hover:bg-indigo-600 group-hover:border-indigo-600 group-hover:text-white transition-all shrink-0">
-                                                                        {item.code}
-                                                                    </div>
-                                                                    <div className="pt-0.5">
-                                                                        <p className="text-slate-800 font-bold mb-1 leading-snug">{isVi ? item.content_vi : item.content_en}</p>
-                                                                        <p className="text-[10px] text-slate-400 italic">
-                                                                            {isVi ? item.content_en : item.content_vi}
-                                                                        </p>
-                                                                    </div>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Action Bar */}
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-6 border-t border-slate-100">
-                                                        <Link 
-                                                            href={`/scales/${activeScale.id}`}
-                                                            className="flex items-center justify-center gap-2 py-4 bg-indigo-600 text-white rounded-2xl font-black text-xs hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200"
-                                                        >
-                                                            <ExternalLink className="w-5 h-5 flex-shrink-0" />
-                                                            {isVi ? 'XEM TRANG SEO & CHI TIẾT' : 'VIEW FULL SEO PAGE'}
-                                                        </Link>
-                                                        <button className="flex items-center justify-center gap-2 py-4 bg-white border-2 border-indigo-600 text-indigo-600 rounded-2xl font-black text-xs hover:bg-indigo-50 transition-all">
-                                                            <Quote className="w-5 h-5" />
-                                                            {isVi ? 'CHÉP TRÍCH DẪN' : 'COPY CITATION'}
-                                                        </button>
-                                                    </div>
-                                                    
-                                                    <div className="pt-4 text-center">
-                                                        <button className="flex items-center justify-center gap-2 py-3 w-full bg-slate-100 text-slate-700 rounded-xl font-bold text-xs hover:bg-slate-200 transition-all shadow-sm">
-                                                            <FileSpreadsheet className="w-5 h-5 text-green-600" />
-                                                            {isVi ? 'XUẤT FILE EXCEL MẪU' : 'EXPORT EXCEL TEMPLATE'}
-                                                        </button>
-                                                    </div>
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+                                                <div className="p-8 bg-white/5 rounded-[2.5rem] border border-white/5 backdrop-blur-sm">
+                                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Items</p>
+                                                    <p className="text-4xl font-black">{activeScale.scale_items?.length || 0}</p>
+                                                </div>
+                                                <div className="p-8 bg-white/5 rounded-[2.5rem] border border-white/5 backdrop-blur-sm">
+                                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Alpha</p>
+                                                    <p className="text-4xl font-black text-emerald-400">&gt; 0.8</p>
+                                                </div>
+                                                <div className="p-8 bg-white/5 rounded-[2.5rem] border border-white/5 backdrop-blur-sm">
+                                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Min. AVE</p>
+                                                    <p className="text-4xl font-black text-indigo-400">&gt; 0.5</p>
+                                                </div>
+                                                <div className="p-8 bg-white/5 rounded-[2.5rem] border border-white/5 backdrop-blur-sm shadow-xl shadow-indigo-500/10">
+                                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">CR Level</p>
+                                                    <p className="text-4xl font-black text-amber-400">&gt; 0.7</p>
                                                 </div>
                                             </div>
                                         </div>
-                                    )}
+                                    </div>
+
+                                    {/* Insights & Items */}
+                                    <div className="p-10 md:p-20 space-y-24">
+                                        {/* Academic Insight Block */}
+                                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
+                                            <div className="lg:col-span-2 space-y-10">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="p-4 bg-indigo-600 rounded-3xl text-white shadow-2xl shadow-indigo-200">
+                                                        <Brain className="w-8 h-8" />
+                                                    </div>
+                                                    <h4 className="text-3xl font-black text-slate-900 uppercase tracking-tighter">Academic Insight</h4>
+                                                </div>
+                                                <div className="p-10 bg-slate-50 rounded-[3rem] border border-slate-100 shadow-inner">
+                                                    <p className="text-xl text-slate-700 leading-relaxed font-black italic mb-6">"Expert Hack:"</p>
+                                                    <p className="text-lg text-slate-600 leading-relaxed font-medium italic">
+                                                        {isVi ? activeScale.description_vi : activeScale.description_en}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div className="space-y-10">
+                                                <div className="flex items-center gap-4 text-slate-900">
+                                                    <Sparkles className="w-7 h-7" />
+                                                    <h4 className="text-2xl font-black uppercase tracking-tighter">Resources</h4>
+                                                </div>
+                                                <div className="space-y-4">
+                                                    {[
+                                                        { slug: 'cronbach-alpha', title: 'Cronbach Alpha Logic' },
+                                                        { slug: 'efa-factor-analysis', title: 'EFA Master Guide' }
+                                                    ].map(guide => (
+                                                        <Link key={guide.slug} href={`/knowledge/${guide.slug}`} className="flex items-center justify-between p-6 bg-slate-900 text-white hover:bg-indigo-600 rounded-3xl transition-all font-black text-xs group uppercase tracking-widest">
+                                                            <span>{guide.title}</span>
+                                                            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                                        </Link>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Grouped Scale Items */}
+                                        <div className="space-y-16">
+                                            <div className="flex items-center gap-4">
+                                                <div className="p-4 bg-slate-900 rounded-3xl text-white shadow-xl">
+                                                    <ListChecks className="w-8 h-8" />
+                                                </div>
+                                                <h4 className="text-3xl font-black text-slate-900 uppercase tracking-tighter">Dimension Breakdown</h4>
+                                            </div>
+
+                                            <div className="space-y-20">
+                                                {(() => {
+                                                    const items = activeScale.scale_items || [];
+                                                    const grouped: Record<string, any[]> = {};
+                                                    items.forEach((item: any) => {
+                                                        const prefix = item.code.replace(/[0-9]/g, '') || 'Global';
+                                                        if (!grouped[prefix]) grouped[prefix] = [];
+                                                        grouped[prefix].push(item);
+                                                    });
+
+                                                    return Object.entries(grouped).map(([prefix, groupItems]) => (
+                                                        <div key={prefix}>
+                                                            <div className="flex items-center gap-8 mb-10">
+                                                                <div className="px-8 py-3 bg-indigo-900 text-white rounded-[1.25rem] text-xs font-black uppercase tracking-[0.4em] shadow-xl shadow-indigo-100">
+                                                                    Dimensions Group: {prefix}
+                                                                </div>
+                                                                <div className="h-px bg-slate-100 flex-grow"></div>
+                                                            </div>
+                                                            <div className="grid grid-cols-1 gap-6">
+                                                                {groupItems.map(item => (
+                                                                    <div key={item.id} className="p-10 bg-white border-2 border-slate-50 rounded-[3rem] flex items-start gap-10 hover:border-indigo-200 hover:shadow-2xl transition-all duration-500 group">
+                                                                        <div className="w-16 h-16 bg-slate-50 rounded-[1.5rem] flex items-center justify-center font-black text-indigo-600 border border-slate-100 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm shrink-0 text-xl">
+                                                                            {item.code}
+                                                                        </div>
+                                                                        <div className="space-y-4 pt-2">
+                                                                            <p className="text-2xl text-slate-900 font-black tracking-tight leading-tight">{isVi ? item.content_vi : item.content_en}</p>
+                                                                            <p className="text-sm text-slate-400 font-bold italic border-l-4 border-indigo-100 pl-4">
+                                                                                {isVi ? item.content_en : item.content_vi}
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    ));
+                                                })()}
+                                            </div>
+                                        </div>
+
+                                        {/* Citation Footer */}
+                                        <div className="pt-20 border-t border-slate-100 flex flex-col items-center text-center space-y-12">
+                                            <div className="max-w-3xl">
+                                                <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-full mb-6 font-black text-[10px] uppercase tracking-widest border border-indigo-100">
+                                                    <Quote className="w-4 h-4" /> Academic Citation
+                                                </div>
+                                                <p className="text-2xl text-slate-700 italic font-medium leading-relaxed">
+                                                    "{activeScale.citation || `${activeScale.author} (${activeScale.year}). Scale for Research Purposes.`}"
+                                                </p>
+                                            </div>
+                                            <div className="flex flex-col md:flex-row gap-6 w-full max-w-2xl">
+                                                <button className="flex-1 py-7 bg-indigo-600 text-white rounded-[2rem] font-black hover:bg-slate-900 transition-all shadow-3xl shadow-indigo-100 text-sm">
+                                                    DOWNLOAD DATA TEMPLATE
+                                                </button>
+                                                <button className="flex-1 py-7 bg-white border-4 border-slate-900 text-slate-900 rounded-[2rem] font-black hover:bg-slate-900 hover:text-white transition-all text-sm">
+                                                    COPY APA CITATION
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             )}
                         </div>
-                    </div>
+                    )}
                 </div>
-            </div>
+            </main>
+
             <Footer locale={locale} />
         </div>
     );
