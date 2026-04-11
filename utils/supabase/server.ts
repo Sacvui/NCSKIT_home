@@ -25,6 +25,8 @@ export async function createClient() {
                         cookiesToSet.forEach(({ name, value, options }) =>
                             cookieStore.set(name, value, {
                                 ...options,
+                                domain: host.includes('localhost') ? undefined : '.ncskit.org',
+                                path: '/',
                             })
                         )
                     } catch (error) {
