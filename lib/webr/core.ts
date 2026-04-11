@@ -345,7 +345,34 @@ export async function executeRWithRecovery(
             }
         }
 
-        const rResultPromise = webR.evalR(rCode);
+        // -------------------------------------------------------------
+        // BLOB-CRASH BYPASS: If rCode is large, evaluate it in chunks 
+        // to bypass Emscripten's PostMessage Blob limits in WebR channel 3
+        // -------------------------------------------------------------
+        const MAX_SAFE_LEN = 4000;
+        let rResultPromise;
+
+        if (rCode.length > MAX_SAFE_LEN) {
+            console.log(`[WebR] Large script detected (${rCode.length} bytes). Chunking evaluation to bypass Blob bugs...`);
+            await webR.evalR(`__ncs_script <- ""`);
+            
+            for (let i = 0; i < rCode.length; i += MAX_SAFE_LEN) {
+                const chunk = rCode.substring(i, i + MAX_SAFE_LEN);
+                const safeChunk = chunk
+                    .replace(/\\/g, '\\\\')
+                    .replace(/"/g, '\\"')
+                    .replace(/\n/g, '\\n')
+                    .replace(/\r/g, '\\r')
+                    .replace(/\t/g, '\\t');
+                await webR.evalR(`__ncs_script <- paste0(__ncs_script, "${safeChunk}")`);
+            }
+            
+            // Evaluate the assembled script
+            rResultPromise = webR.evalR(`eval(parse(text=__ncs_script))`);
+        } else {
+            // Safe to evaluate directly
+            rResultPromise = webR.evalR(rCode);
+        }
         const timeoutPromise = new Promise((_, reject) =>
             setTimeout(() => reject(new Error(`Timeout after ${timeoutMs / 1000}s`)), timeoutMs)
         );

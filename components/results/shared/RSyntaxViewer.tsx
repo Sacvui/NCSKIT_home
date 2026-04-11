@@ -211,7 +211,18 @@ export function RSyntaxViewer({ code, userProfile }: RSyntaxViewerProps) {
                             ncsstat_engine_v1.r
                         </div>
                         <pre className="bg-slate-900 text-indigo-300 p-6 pt-8 rounded-xl text-xs font-mono overflow-x-auto whitespace-pre-wrap border border-slate-800 shadow-2xl custom-scrollbar leading-relaxed">
-                            {code}
+                            {(() => {
+                                const lines = code.split('\n');
+                                if (lines.length > 0 && lines[0].trim() === '') lines.shift();
+                                if (lines.length > 0 && lines[lines.length - 1].trim() === '') lines.pop();
+                                
+                                const minIndent = lines.filter(l => l.trim() !== '').reduce((min, line) => {
+                                    const match = line.match(/^(\s*)/);
+                                    return match ? Math.min(min, match[1].length) : min;
+                                }, Infinity);
+                                
+                                return minIndent === Infinity ? lines.join('\n') : lines.map(l => l.startsWith(' '.repeat(minIndent)) ? l.substring(minIndent) : l).join('\n');
+                            })()}
                         </pre>
                         <button
                             onClick={(e) => { e.stopPropagation(); handleCopy(); }}
