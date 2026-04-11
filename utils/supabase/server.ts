@@ -1,20 +1,13 @@
 import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
-
-// Fallback for build time when env vars may not be available
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
+import { cookies, headers } from 'next/headers'
 
 export async function createClient() {
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-        console.warn('[Supabase Server] Missing environment variables. Using placeholder values.')
-    }
-
     const cookieStore = await cookies()
+    const host = (await headers()).get('host') || ''
 
     return createServerClient(
-        supabaseUrl,
-        supabaseAnonKey,
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
             cookies: {
                 getAll() {
@@ -30,10 +23,12 @@ export async function createClient() {
                             })
                         )
                     } catch (error) {
-                        console.error('[Supabase Server] Error setting cookies:', error)
+                        // The `setAll` method was called from a Server Component.
+                        // This can be ignored if you have middleware refreshing
+                        // user sessions.
                     }
                 },
-            }
+            },
         }
     )
 }
