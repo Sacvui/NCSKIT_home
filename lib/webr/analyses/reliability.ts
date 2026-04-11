@@ -36,7 +36,9 @@ export async function runCronbachAlpha(
     const defaultRCode = `
     options(mc.cores = 1);
     library(psych);
-    raw_data <- {{data}};
+    
+    # Reconstruct matrix from bound Float64Array
+    raw_data <- matrix(raw_data_flat, nrow={{nrow}}, byrow=TRUE);
     
     # DATA CLEANING
     valid_min <- {{likertMin}};
@@ -101,11 +103,14 @@ export async function runCronbachAlpha(
     // Fetch customized template and render it
     const template = await getAnalysisRTemplate('cronbach', defaultRCode);
     const rCode = template
-        .replace(/\{\{data\}\}/g, arrayToRMatrix(data))
+        .replace(/\{\{nrow\}\}/g, String(data.length))
         .replace(/\{\{likertMin\}\}/g, String(likertMin))
         .replace(/\{\{likertMax\}\}/g, String(likertMax));
 
-    const result = await executeRWithRecovery(rCode);
+    // Flatten data for binary postMessage transfer (avoids WebR JSON/Blob string length crashes)
+    const flatData = new Float64Array(data.flat().map(v => (v === null || v === undefined || isNaN(v as number)) ? NaN : v));
+
+    const result = await executeRWithRecovery(rCode, 'cronbach', 0, 2, 120000, { name: 'raw_data_flat', data: flatData as any });
     const getValue = parseWebRResult(result);
 
     const rawAlpha = getValue('raw_alpha')?.[0] ?? 0;
@@ -167,7 +172,9 @@ export async function runEFA(data: number[][], nFactors: number, rotation: strin
 
     const defaultRCode = `
     library(psych)
-    raw_data <- {{data}}
+    
+    # Reconstruct matrix from bound Float64Array
+    raw_data <- matrix(raw_data_flat, nrow={{nrow}}, byrow=TRUE)
     
     # Clean Data (Robust approach)
     df <- as.data.frame(raw_data)
@@ -248,11 +255,13 @@ export async function runEFA(data: number[][], nFactors: number, rotation: strin
     // Fetch customized template and render it
     const template = await getAnalysisRTemplate('efa', defaultRCode);
     const rCode = template
-        .replace(/\{\{data\}\}/g, arrayToRMatrix(data))
+        .replace(/\{\{nrow\}\}/g, String(data.length))
         .replace(/\{\{nFactors\}\}/g, String(nFactors))
         .replace(/\{\{rotation\}\}/g, rotation);
 
-    const jsResult = await executeRWithRecovery(rCode);
+    const flatData = new Float64Array(data.flat().map(v => (v === null || v === undefined || isNaN(v as number)) ? NaN : v));
+
+    const jsResult = await executeRWithRecovery(rCode, 'efa', 0, 2, 120000, { name: 'raw_data_flat', data: flatData as any });
 
     const getValue = parseWebRResult(jsResult);
     const nFactorsUsed = getValue('n_factors_used')?.[0] || nFactors || 1;

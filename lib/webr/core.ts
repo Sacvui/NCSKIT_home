@@ -320,12 +320,17 @@ export async function executeRWithRecovery(
     method?: string,
     retryCount: number = 0,
     maxRetries: number = 2,
-    timeoutMs: number = 120000 
+    timeoutMs: number = 120000,
+    bindData?: { name: string, data: number[] }
 ): Promise<any> {
     const webR = await initWebR();
 
     try {
         if (method) await loadPackagesForMethod(method);
+
+        if (bindData) {
+            await webR.objs.globalEnv.bind(bindData.name, bindData.data);
+        }
 
         const rResultPromise = webR.evalR(rCode);
         const timeoutPromise = new Promise((_, reject) =>
@@ -370,13 +375,13 @@ export async function executeRWithRecovery(
                 updateProgress(`Setting up ${missingPkg}...`);
                 await webR.installPackages([missingPkg]);
                 markPackageLoaded(missingPkg);
-                return executeRWithRecovery(rCode, method, retryCount + 1, maxRetries, timeoutMs);
+                return executeRWithRecovery(rCode, method, retryCount + 1, maxRetries, timeoutMs, bindData);
             }
         }
 
         if (retryCount < maxRetries) {
             await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
-            return executeRWithRecovery(rCode, method, retryCount + 1, maxRetries, timeoutMs);
+            return executeRWithRecovery(rCode, method, retryCount + 1, maxRetries, timeoutMs, bindData);
         }
 
         throw error;
