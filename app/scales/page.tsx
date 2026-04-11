@@ -197,7 +197,7 @@ export default function ScalesLibrary() {
                                         <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-indigo-500/10 blur-[120px] pointer-events-none rounded-full"></div>
                                         <div className="relative z-10">
                                             <div className="flex flex-wrap gap-3 mb-10">
-                                                {activeScale.category.map(cat => (
+                                                {activeScale.category.map((cat: string) => (
                                                     <span key={cat} className="px-5 py-2 bg-white/10 rounded-full text-[10px] font-black uppercase tracking-widest border border-white/5">
                                                         {cat}
                                                     </span>
@@ -304,7 +304,7 @@ export default function ScalesLibrary() {
                                                                 <div className="h-px bg-slate-100 flex-grow"></div>
                                                             </div>
                                                             <div className="grid grid-cols-1 gap-6">
-                                                                {groupItems.map(item => (
+                                                                {groupItems.map((item: any) => (
                                                                     <div key={item.id} className="p-10 bg-white border-2 border-slate-50 rounded-[3rem] flex items-start gap-10 hover:border-indigo-200 hover:shadow-2xl transition-all duration-500 group">
                                                                         <div className="w-16 h-16 bg-slate-50 rounded-[1.5rem] flex items-center justify-center font-black text-indigo-600 border border-slate-100 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm shrink-0 text-xl">
                                                                             {item.code}
