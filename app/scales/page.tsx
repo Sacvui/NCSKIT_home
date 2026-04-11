@@ -72,9 +72,8 @@ export default function ScalesLibrary() {
             
             <main className="pt-32 pb-24">
                 <div className="container mx-auto px-6">
-                    {/* Hero Section - Only show when NOT in focus mode */}
-                    {!expandedScale && (
-                        <div className="max-w-4xl mx-auto text-center mb-20 animate-in fade-in duration-700">
+                    {/* Hero Section */}
+                    <div className="max-w-4xl mx-auto text-center mb-20 animate-in fade-in duration-700">
                             <h1 className="text-5xl md:text-7xl font-black text-slate-900 mb-8 tracking-tighter leading-[0.95]">
                                 {isVi ? 'Thang đo' : 'Measurement'}
                                 <span className="text-indigo-600 block">ncsScales.</span>
@@ -96,11 +95,10 @@ export default function ScalesLibrary() {
                                 />
                             </div>
                         </div>
-                    )}
+                    
 
-                    {!expandedScale ? (
-                        /* --- LIST VIEW --- */
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+                    {/* --- LIST VIEW --- */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
                             {/* Sidebar Filters */}
                             <div className="lg:col-span-3 space-y-6 sticky top-28">
                                 <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
@@ -175,24 +173,21 @@ export default function ScalesLibrary() {
                                     </div>
                                 )}
                             </div>
-                        </div>
-                    ) : (
-                        /* --- FOCUS DETAIL VIEW --- */
-                        <div className="max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-700">
-                            {/* Back Button */}
-                            <div className="mb-10">
+                    </div>
+
+                    {/* --- FOCUS DETAIL VIEW MODAL (AJAX-STYLE) --- */}
+                    {expandedScale && activeScale && (
+                        <div className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-300">
+                            <div className="w-full max-w-5xl max-h-[95vh] overflow-y-auto no-scrollbar bg-white rounded-[3rem] shadow-2xl relative shadow-indigo-100/40 animate-in zoom-in-95 duration-500">
+                                {/* Close Button */}
                                 <button 
                                     onClick={() => setExpandedScale(null)}
-                                    className="group flex items-center gap-3 px-8 py-5 bg-white border border-slate-200 rounded-3xl text-slate-600 font-black text-xs hover:border-indigo-600 hover:text-indigo-600 transition-all shadow-sm"
+                                    className="absolute top-6 right-6 md:top-8 md:right-8 z-[110] p-3 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white backdrop-blur-md transition-all shadow-xl group"
                                 >
-                                    <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                                    {isVi ? 'QUAY LẠI DANH SÁCH THANG ĐO' : 'BACK TO SCALES ARRAY'}
+                                    <X className="w-6 h-6 group-hover:scale-110 transition-transform" />
                                 </button>
-                            </div>
-
-                            {activeScale && (
-                                <div className="bg-white rounded-[4rem] border border-slate-100 shadow-2xl overflow-hidden shadow-indigo-100/40">
-                                    {/* Detailed Hero */}
+                                
+                                {/* Detailed Hero */}
                                     <div className="bg-slate-900 p-12 md:p-24 text-white relative">
                                         <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-indigo-500/10 blur-[120px] pointer-events-none rounded-full"></div>
                                         <div className="relative z-10">
@@ -345,7 +340,8 @@ export default function ScalesLibrary() {
                                         </div>
                                     </div>
                                 </div>
-                            )}
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>
