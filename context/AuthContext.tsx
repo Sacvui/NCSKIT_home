@@ -83,30 +83,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         const initSession = async () => {
-            // Step 1: Exchange OAuth code if present
-            if (urlCode) {
-                console.log('[Auth] OAuth code detected, exchanging...');
-                try {
-                    const { data, error } = await supabase.auth.exchangeCodeForSession(urlCode);
-                    if (error) {
-                        console.error('[Auth] Code exchange failed:', error.message);
-                    } else if (data.session?.user) {
-                        console.log('[Auth] Exchange OK:', data.session.user.email);
-                        handleUser(data.session.user);
-                        window.history.replaceState({}, '', window.location.pathname);
-                    }
-                } catch (err) {
-                    console.error('[Auth] Exchange error:', err);
-                }
-                isExchangingCode.current = false;
-                setLoading(false);
-                return;
-            }
-
-            // Step 2: No code — restore session from cookies
+            // STEP 1: Restore existing session from cookies
             try {
+                console.log('[Auth] Restoring session from cookies...');
                 const { data: { session } } = await supabase.auth.getSession();
-                handleUser(session?.user || null);
+                
+                if (session?.user) {
+                    console.log('[Auth] Session restored for:', session.user.email);
+                    handleUser(session.user);
+                } else {
+                    console.log('[Auth] No active session found in cookies.');
+                    
+                    // FALLBACK: If there's still a code in the URL (server redirect failed), 
+                    // we try one last exchange on client.
+                    const params = new URLSearchParams(window.location.search);
+                    const code = params.get('code');
+                    if (code && !isExchangingCode.current) {
+                        isExchangingCode.current = true;
+                        console.log('[Auth] Fallback: Exchanging code on client...');
+                        const { data: exchangeData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+                        if (!exchangeError && exchangeData.session?.user) {
+                            handleUser(exchangeData.session.user);
+                            window.history.replaceState({}, '', window.location.pathname);
+                        }
+                        isExchangingCode.current = false;
+                    }
+                }
             } catch (err) {
                 console.error('[Auth] Session restore error:', err);
             }
