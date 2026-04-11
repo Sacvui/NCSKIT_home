@@ -47,7 +47,12 @@ export async function updateSession(request: NextRequest) {
 
     const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route))
 
-    if (!user && isProtectedRoute) {
+    // CRITICAL: If the request carries an OAuth code, the user is mid-authentication.
+    // We MUST let them through so the client-side Supabase can exchange the code for a session.
+    // Blocking them here causes the infamous redirect loop to /login?error=no_session.
+    const hasAuthCode = request.nextUrl.searchParams.has('code')
+
+    if (!user && isProtectedRoute && !hasAuthCode) {
         console.log('[Middleware] Protected access denied:', pathname)
         const url = request.nextUrl.clone()
         url.pathname = '/login'
