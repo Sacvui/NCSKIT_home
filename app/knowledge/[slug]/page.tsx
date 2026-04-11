@@ -755,85 +755,226 @@ Chúng tôi cũng hỗ trợ tính năng tính toán tác động trực tiếp,
     },
     'common-method-bias-survey-research': {
         slug: 'common-method-bias-survey-research', category: 'Advanced Research',
-        title_vi: 'Common Method Bias (CMB): Kẻ hủy diệt âm thầm của nghiên cứu khảo sát',
-        title_en: 'Common Method Bias (CMB): The Silent Assassin of Survey Research',
-        expert_tip_vi: 'Kiểm định Harman Single Factor là mức tối thiểu; hãy thử Marker Variable technique nếu muốn nộp tạp chí Q1.',
-        expert_tip_en: "Harman's Single Factor test is the baseline; consider the Marker Variable technique for Q1 journal submissions.",
+        title_vi: 'Common Method Bias (CMB): Hiểm họa vô hình và Cách khắc chế chuẩn Scopus',
+        title_en: 'Common Method Bias (CMB): Invisible Threats and Scopus-Grade Remedies',
+        expert_tip_vi: 'Kiểm định Harman là chưa đủ để thuyết phục Reviewer quốc tế. Hãy thảo luận về "Procedural Remedies" (biện pháp quy trình) ngay trong phần phương pháp nghiên cứu.',
+        expert_tip_en: "Harman's test isn't enough for international journals. Discuss 'Procedural Remedies' directly in your Methodology section.",
         author: 'ncsStat Academic Team', updated_at: new Date().toISOString(),
         content_structure: [
             {
-                h2_vi: '1. CMB là gì và tại sao nó lại nguy hiểm?',
-                h2_en: '1. What is CMB and Why is it Dangerous?',
-                content_vi: 'CMB xảy ra khi sự biến thiên trong dữ liệu không đến từ các biến nghiên cứu, mà đến từ phương pháp thu thập dữ liệu (ví dụ: cùng một người trả lời tất cả câu hỏi trong một thời điểm). Nó làm thổi phồng các mối quan hệ giữa các biến một cách giả tạo, dẫn đến những kết luận sai lầm về mặt khoa học.',
-                content_en: 'CMB occurs when variance is attributed to the measurement method rather than the constructs themselves (e.g., same respondent answering all items at once). It artificially inflates correlations, leading to misleading scientific conclusions.'
+                h2_vi: '1. Bản chất của CMB: Tại sao dữ liệu của bạn bị "nhiễm độc"?',
+                h2_en: '1. The Essence of CMB: Why Is Your Data Contaminated?',
+                content_vi: `Common Method Bias (CMB) không phải là lỗi ngẫu nhiên, mà là sai số hệ thống phát sinh từ phương pháp đo lường. Khi bạn sử dụng cùng một bảng hỏi, cùng một thang đo (ví dụ Likert 5 điểm), và thu thập từ cùng một người trả lời trong cùng một thời điểm cho cả biến độc lập và phụ thuộc, dữ liệu sẽ phát sinh một "mẫu số chung". 
+                Mẫu số chung này làm thổi phồng các tương quan giữa các biến một cách giả tạo. Reviewer gọi đây là hiện tượng "Mối quan hệ ảo" (Spurious relationships). Tại ncsStat, chúng tôi giúp bạn nhận diện sự thổi phồng này để bảo vệ tính chính xác của các kết luận khoa học.`,
+                content_en: `CMB is systematic error variance shared among variables measured with the same method. When independent and dependent variables are collected from the same respondent at the same time using identical scale formats, an artificial "common variance" is created. This inflates correlations, leading to spurious results. ncsStat helps you detect and mitigate this inflation to maintain scientific integrity.`
             },
             {
-                h2_vi: '2. Kiểm định Harman: Cách chẩn đoán nhanh',
-                h2_en: '2. Harman\'s Single Factor: The Quick Diagnostic',
-                content_vi: 'Cách phổ biến nhất là đưa tất cả các biến vào một phân tích EFA không xoay. Nếu một nhân tố duy nhất giải thích hơn 50% tổng phương sai, dữ liệu của bạn đang bị nhiễm CMB nặng. Tại ncsStat, chúng tôi hỗ trợ bạn thực hiện kiểm định này chỉ với một cú chạm.',
-                content_en: 'The most common check involves running an unrotated EFA on all items. If a single factor explains more than 50% of the variance, your data is heavily contaminated with CMB. ncsStat helps you run this diagnostic instantly.'
+                h2_vi: '2. Nguồn gốc của sai lệch: Cái bẫy của Tâm lý học hành vi',
+                h2_en: '2. Sources of Bias: The Trap of Behavioral Psychology',
+                content_vi: `CMB đến từ nhiều nguồn mà nhà nghiên cứu thường bỏ qua:
+                - **Sự mong muốn xã hội (Social Desirability)**: Người trả lời cố gắng trả lời sao cho "có vẻ tốt" thay vì trả lời đúng sự thật.
+                - **Hiệu ứng hào quang (Halo Effect)**: Một cảm xúc tốt về công ty sẽ khiến họ chấm điểm cao cho mọi khía cạnh khác (lương, sếp, môi trường).
+                - **Xu hướng đồng thuận (Acquiescence)**: Người trả lời có thói quen chọn "Đồng ý" mà không đọc kỹ nội dung.
+                Hiểu rõ các nguồn này giúp bạn viết phần "Thảo luận" (Discussion) sâu sắc hơn khi giải thích về các hạn chế của nghiên cứu.`,
+                content_en: `CMB stems from various psychological factors: Social Desirability (answering to "look good"), the Halo Effect (one positive perception coloring all responses), and Acquiescence bias (blindly agreeing). Identifying these sources allows for a more nuanced Discussion section and realistic interpretation of findings.`
             },
             {
-                h2_vi: '3. Chiến lược phòng ngừa thực tế',
-                h2_en: '3. Practical Prevention Strategies',
-                content_vi: 'Đừng đợi đến khi có dữ liệu mới lo CMB. Hãy thiết kế bảng hỏi với các thang đo khác nhau (Likert 5 và 7 điểm), đảo thứ tự câu hỏi, hoặc thu thập dữ liệu tại hai thời điểm khác nhau (Time-lagged design). Đây là những điểm cộng rất lớn trong mắt các Reviewer khó tính.',
-                content_en: 'Don\'t wait for data to fix CMB. Design your survey using different scales (5-point vs 7-point Likert), randomize item order, or use a time-lagged design. These methods earn significant points with rigorous reviewers.'
+                h2_vi: '3. Kiểm định Harman’s Single Factor: "Cửa ngõ" đầu tiên',
+                h2_en: '3. Harman’s Single Factor: The Entry-level Diagnostic',
+                content_vi: `Đây là kiểm định phổ biến nhất thế giới nhờ tính đơn giản. Bạn đưa tất cả các biến quan sát vào một phân tích nhân tố khám phá (EFA) và ép chúng về một nhân tố duy nhất (không xoay). 
+                **Ngưỡng quyết định**: Nếu nhân tố duy nhất này giải thích > 50% tổng phương sai, mô hình của bạn đã bị "nhiễm độc" CMB nặng nề. ncsStat thực hiện kiểm định này chỉ trong 1 giây, cung cấp bằng chứng thép để bạn ghi vào bài báo cáo khoa học của mình.`,
+                content_en: `Harman's Single Factor test involves running an unrotated EFA on all items. If one factor captures more than 50% of the total variance, CMB is likely a significant issue. ncsStat automates this calculation, providing the empirical proof needed for your 'Results' section.`
+            },
+            {
+                h2_vi: '4. Kiểm định Marker Variable: Tiêu chuẩn của các tạp chí hạng A',
+                h2_en: '4. The Marker Variable Technique: The A-Journal Standard',
+                content_vi: `Reviewer quốc tế hiện nay thường yêu cầu phương pháp Marker Variable. Bạn chọn một biến "Dấu hiệu" hoàn toàn không liên quan đến mô hình lý thuyết (ví dụ: "Thái độ với màu xanh lá cây") và đưa vào phân tích. 
+                Nếu tương quan giữa biến Marker và các biến chính cao, đó là bằng chứng không thể chối cãi của CMB. Tại ncsStat, chúng tôi hướng dẫn bạn cách chọn và tính toán sự thay đổi của tương quan (Correlation adjustments) khi có sự hiện diện của biến Marker.`,
+                content_en: `Marker Variable technique involves adding a construct theoretically unrelated to your model. If this "Marker" correlates significantly with your primary variables, CMB is present. High-impact journals prefer this method over Harman's. ncsStat provides the computational guidance to perform correlation adjustments using Marker data.`
+            },
+            {
+                h2_vi: '5. Biện pháp Quy trình (Procedural Remedies): Phòng bệnh hơn chữa bệnh',
+                h2_en: '5. Procedural Remedies: Prevention is Better Than Cure',
+                content_vi: `Đừng đợi đến khi có dữ liệu mới lo CMB. Các chuyên gia tại ncsStat khuyên bạn áp dụng các biện pháp sau ngay khi thiết kế:
+                1. **Temporal Separation**: Thu thập biến X vào tuần 1, biến Y vào tuần 2.
+                2. **Scale Diversity**: Dùng Likert 5 điểm cho X và 7 điểm cho Y.
+                3. **Anonymity Assurance**: Cam kết bảo mật tuyệt đối để giảm sự mong muốn xã hội.
+                Việc liệt kê các biện pháp này trong bài báo sẽ làm tăng tính thuyết phục của nghiên cứu lên gấp bội.`,
+                content_en: `Proactive prevention includes: Temporal Separation (time-lagged surveys), Scale Diversity (mixing 5-point and 7-point Likert scales), and guaranteeing anonymity to reduce social desirability. Documenting these steps in your paper significantly boosts research credibility.`
+            },
+            {
+                h2_vi: '6. Common Latent Factor (CLF) trong AMOS/CFA',
+                h2_en: '6. Common Latent Factor (CLF) in AMOS/CFA',
+                content_vi: `Nếu bạn sử dụng AMOS, phương pháp CLF là mạnh mẽ nhất. Bạn tạo một biến tiềm ẩn chung và nối nó vào tất cả các biến quan sát trong mô hình. 
+                Bằng cách so sánh các hệ số đường dẫn trước và sau khi có CLF, bạn có thể xác định chính xác mức độ sai lệch của từng biến. ncsStat cung cấp video hướng dẫn chi tiết cách thực hiện kỹ thuật phức tạp này trong AMOS để bảo vệ luận văn của bạn trước các phản biện khắt khe.`,
+                content_en: `The CLF method in AMOS creates a common factor linked to all indicators. By comparing path coefficients with and without this factor, you quantify the bias on a per-item basis. ncsStat provides specialized tutorials for this advanced structural technique to bulletproof your dissertation.`
+            },
+            {
+                h2_vi: '7. Tác động của CMB đến kết quả: Thổi phồng hay Triệt tiêu?',
+                h2_en: '7. Impact on Results: Inflation or Suppression?',
+                content_vi: `Một quan niệm sai lầm là CMB chỉ làm tăng tương quan. Trong một số trường hợp, nó có thể gây ra hiện tượng "Triệt tiêu" (Suppression), làm cho các mối quan hệ có thật trở nên không có ý nghĩa thống kê. 
+                Điều này cực kỳ nguy hiểm vì nó có thể khiến bạn bác bỏ những giả thuyết đúng (Sai lầm loại II). Hiểu rõ cơ chế này giúp bạn tự tin hơn khi bảo vệ kết quả nghiên cứu trước hội đồng.`,
+                content_en: `CMB doesn't just inflate results; it can also suppress them, making significant relationships appear non-significant. This leads to Type II errors (rejecting true hypotheses). Understanding this mechanism is vital for defending your findings during a viva or peer review.`
+            },
+            {
+                h2_vi: '8. Tổng kết: Bảng kiểm soát CMB cho bài báo quốc tế',
+                h2_en: '8. Conclusion: The CMB Checklist for Quality Output',
+                content_vi: `Để bài báo đạt chuẩn, hãy đảm bảo:
+                1. Đã áp dụng ít nhất 2 biện pháp quy trình (Procedural).
+                2. Đã thực hiện kiểm định Harman (mức sàn).
+                3. Đã thực hiện ít nhất 1 kiểm định nâng cao (CLF hoặc Marker Variable).
+                4. Đã thảo luận về CMB trong phần "Hạn chế của nghiên cứu".
+                ncsStat luôn đồng hành cùng bạn để biến những quy trình phức tạp này thành những dòng báo cáo mượt mà và thuyết phục.`,
+                content_en: `For a publishable paper, tick these boxes: Use at least two procedural remedies, run Harman's test, perform one advanced diagnostic (CLF/Marker), and discuss CMB in your 'Limitations' section. ncsStat transforms these rigorous steps into a streamlined, high-quality research narrative.`
             }
         ]
     },
     'pls-sem-vs-cb-sem-selection': {
         slug: 'pls-sem-vs-cb-sem-selection', category: 'Advanced Statistics',
-        title_vi: 'PLS-SEM vs CB-SEM: Chọn đúng "vũ khí" cho bài báo quốc tế',
-        title_en: 'PLS-SEM vs CB-SEM: Choosing the Right Weapon for International Journals',
-        expert_tip_vi: 'Chọn CB-SEM (Amos) khi bạn muốn xác nhận lý thuyết; chọn PLS-SEM (SmartPLS) khi bạn muốn khám phá hoặc mẫu nhỏ.',
-        expert_tip_en: 'Choose CB-SEM (Amos) for theory testing/confirmation; choose PLS-SEM (SmartPLS) for exploration or small samples.',
+        title_vi: 'PLS-SEM vs CB-SEM: Cuộc soán ngôi trong Phân tích mô hình cấu trúc',
+        title_en: 'PLS-SEM vs CB-SEM: The Battle of Structural Equation Modeling',
+        expert_tip_vi: 'Đừng chọn phần mềm trước khi chọn phương pháp. Hãy dùng CB-SEM (Amos) để kiểm định lý thuyết cũ, và PLS-SEM (SmartPLS) để phát triển lý thuyết mới hoặc khi mẫu nhỏ.',
+        expert_tip_en: 'Theoretical goals drive method selection. Use CB-SEM for theory testing and PLS-SEM for theory development or small samples.',
         author: 'ncsStat Academic Team', updated_at: new Date().toISOString(),
+        thresholds: 'CB-SEM: CFI > 0.90; PLS-SEM: SRMR < 0.08, Q2 > 0',
         content_structure: [
             {
-                h2_vi: '1. CB-SEM (Amos): Tiêu chuẩn vàng của tính khẳng định',
-                h2_en: '1. CB-SEM (Amos): The Gold Standard for Confirmation',
-                content_vi: 'Nếu bạn có một khung lý thuyết vững chãi và muốn xác nhận xem dữ liệu thực tế có khớp với mô hình lý thuyết hay không, Amos là lựa chọn số 1. Nó đòi hỏi phân phối chuẩn và kích thước mẫu lớn nhưng mang lại độ chính xác cực cao về tham số.',
-                content_en: 'If you have a solid theoretical framework and want to confirm if the empirical data fits the theory, Amos is the top choice. It requires normality and large samples but offers high parameter precision.'
+                h2_vi: '1. Triết học đằng sau: Xác nhận (Confirmation) vs. Dự báo (Prediction)',
+                h2_en: '1. Theoretical Nuance: Confirmation vs. Prediction',
+                content_vi: `Sự khác biệt cốt lõi giữa CB-SEM (Covariance-Based) và PLS-SEM (Partial Least Squares) không nằm ở phần mềm, mà nằm ở mục tiêu nghiên cứu. 
+                CB-SEM (như Amos, Lavaan) được thiết kế để **xác nhận** một lý thuyết đã vững chắc. Nó cố gắng giảm thiểu sự khác biệt giữa ma trận hiệp phương sai của mẫu và ma trận hiệp phương sai dự kiến của mô hình. 
+                Ngược lại, PLS-SEM (như SmartPLS) tập trung vào việc **giải thích phương sai** của các biến phụ thuộc. Nói cách khác, nếu bạn muốn biết các biến độc lập "dự báo" được bao nhiêu phần trăm hành vi của khách hàng, PLS-SEM là vũ khí tối thượng. Tại ncsStat, chúng tôi giúp bạn định hướng đúng mục tiêu này ngay từ bước đầu tiên.`,
+                content_en: `CB-SEM (Amos) is designed for theory testing and confirmation by minimizing the discrepancy between sample and predicted covariance matrices. PLS-SEM (SmartPLS) targets variance explanation and prediction. If your goal is to maximize R-squared and identify key drivers, PLS-SEM is the superior choice.`
             },
             {
-                h2_vi: '2. PLS-SEM (SmartPLS): Tính linh hoạt và sức mạnh khám phá',
-                h2_en: '2. PLS-SEM (SmartPLS): Versatility and Exploratory Power',
-                content_vi: 'Bạn đang nghiên cứu một chủ đề mới? Mẫu của bạn chỉ có khoảng 100-150 người? Dữ liệu không chuẩn? PLS-SEM là cứu cánh. Nó không đòi hỏi các giả định khắt khe và cực kỳ mạnh mẽ trong việc dự báo (Predictive power).',
-                content_en: 'Researching a new topic? Sample size around 100-150? Non-normal data? PLS-SEM is your savior. It doesn\'t require strict assumptions and is incredibly powerful for prediction.'
+                h2_vi: '2. Bản chất Toán học: Hiệp phương sai vs. Thành phần chính',
+                h2_en: '2. Mathematical Foundations: Covariance vs. Variance',
+                content_vi: `CB-SEM coi các biến tiềm ẩn là các thực thể "thực sự" gây ra các biến quan sát (Reflective). Nó đòi hỏi dữ liệu phải có phân phối chuẩn đa biến để các ước lượng ML (Maximum Likelihood) đạt độ chính xác.
+                PLS-SEM lại coi biến tiềm ẩn là các "tổng hợp tuyến tính" (Composites) của các biến quan sát. Nó sử dụng thuật toán lặp để ước lượng các trọng số, do đó nó không yêu cầu giả định phân phối chuẩn. Đây là lý do tại sao PLS-SEM cực kỳ mạnh mẽ khi xử lý dữ liệu khảo sát thực tế vốn thường bị lệch hoặc có Outliers.`,
+                content_en: `CB-SEM estimates model parameters to reproduce the covariance matrix, requiring multivariate normality. PLS-SEM uses a series of ordinary least squares (OLS) regressions to maximize explained variance. This non-parametric nature makes PLS-SEM robust against non-normal data and complex model specifications.`
             },
             {
-                h2_vi: '3. Lời khuyên cho nhà nghiên cứu hiện đại',
-                h2_en: '3. Advice for the Modern Researcher',
-                content_vi: 'Xu hướng hiện nay là kết hợp cả hai hoặc chọn công cụ phù hợp nhất với mục tiêu nghiên cứu hơn là chạy theo phần mềm. Hãy nhớ: Reviewer quan tâm đến sự phù hợp (Fit) chứ không phải bạn dùng phần mềm đắt tiền hay không.',
-                content_en: 'The current trend is selecting the tool that best fits your research goal rather than following software hype. Remember: Reviewers care about fit, not how expensive your software is.'
+                h2_vi: '3. Bài toán Cỡ mẫu: Quy tắc "10 lần" và sự thật đằng sau',
+                h2_en: '3. Sample Size: The "10-times Rule" and Modern Reality',
+                content_vi: `Một trong những lý do lớn nhất khiến PLS-SEM trở nên phổ biến là khả năng làm việc với mẫu nhỏ (Small samples). Quy tắc kinh điển của Barclay et al. (1995) cho rằng mẫu chỉ cần gấp 10 lần số đường dẫn tác động vào biến tiềm ẩn phức tạp nhất. 
+                Tuy nhiên, ncsStat khuyến cáo bạn nên thận trọng: mẫu nhỏ trong PLS-SEM mang lại kết quả nhưng có thể thiếu "công suất thống kê" (Power). CB-SEM ngược lại, yêu cầu mẫu khá lớn (thường N > 200) để mô hình hội tụ. Nếu bạn chỉ thu thập được 100-150 mẫu, hãy mạnh dạn chọn PLS-SEM để tránh lỗi "Non-positive definite matrix" trong Amos.`,
+                content_en: `While CB-SEM typically requires N > 200 for stable estimates, PLS-SEM can function with samples as small as 30-50, famously following the "10-times rule." However, for high-impact publishing, ncsStat suggests power analysis to ensure your sample size provides sufficient sensitivity to detect effects.`
+            },
+            {
+                h2_vi: '4. Đánh giá Mô hình đo lường: Chỉ số nào mới quan trọng?',
+                h2_en: '4. Measurement Model: Which Indices Matter?',
+                content_vi: `Trong CB-SEM, chúng ta "tôn thờ" Model Fit như CFI, TLI, RMSEA. Nếu các chỉ số này không đạt, mô hình coi như bị bác bỏ.
+                Trong PLS-SEM, Model Fit không phải là ưu tiên hàng đầu. Thay vào đó, chúng ta tập trung vào **Độ tin cậy tổng hợp (CR)**, **AVE (>0.5)** và đặc biệt là hệ số **HTMT** để kiểm tra tính phân biệt. ncsStat tự động tính toán HTMT - tiêu chuẩn khắt khe nhất hiện nay - giúp bạn chứng minh các nhân tố của mình là hoàn toàn khác biệt và đáng tin cậy.`,
+                content_en: `CB-SEM relies heavily on global fit indices (CFI, TLI, RMSEA). PLS-SEM prioritizes predictive power and indicator reliability. Standard reports in PLS-SEM must include Composite Reliability (CR), AVE, and the HTMT ratio for discriminant validity. ncsStat provides automated HTMT tables, the gold standard in modern SEM research.`
+            },
+            {
+                h2_vi: '5. Xử lý Mô hình phức tạp và Biến điều tiết',
+                h2_en: '5. Handling Complexity and Moderation',
+                content_vi: `Khi mô hình của bạn bắt đầu xuất hiện hàng chục biến và hàng trăm mũi tên, CB-SEM thường gặp khó khăn trong việc "hội tụ" và đưa ra các con số vô lý (Heywood cases). 
+                PLS-SEM xử lý các mô hình khổng lồ một cách mượt mà. Đặc biệt, việc phân tích **Biến điều tiết (Moderation)** và **Phân tích đa nhóm (MGA)** trong SmartPLS đơn giản và mạnh mẽ hơn Amos rất nhiều. Nếu bài viết của bạn tập trung vào sự khác biệt giữa các nhóm khách hàng, PLS-SEM là sự lựa chọn không cần bàn cãi.`,
+                content_en: `Complex models with many constructs and indicators often fail to reach convergence in CB-SEM. PLS-SEM excels in high-complexity environments and offers superior tools for Moderating effects and Multi-Group Analysis (MGA). If your thesis involves interaction effects, PLS-SEM is computationally more stable and user-friendly.`
+            },
+            {
+                h2_vi: '6. Sức mạnh dự báo: Thông số PLSpredict',
+                h2_en: '6. Predictive Power: The Rise of PLSpredict',
+                content_vi: `Các tạp chí hàng đầu (Q1) hiện nay không còn thỏa mãn với p-value < 0.05. Họ muốn thấy khả năng dự báo của mô hình trên dữ liệu mới. 
+                Đây là nơi PLS-SEM tỏa sáng rực rỡ với tính năng **PLSpredict**. Nó sử dụng kỹ thuật "hold-out sample" để chứng minh rằng mô hình của bạn thực sự có giá trị ứng dụng thực tiễn chứ không chỉ là khớp số liệu một cách ngẫu nhiên. ncsStat tích hợp các hướng dẫn sâu để bạn báo cáo RMSE và MAE từ PLSpredict, ghi điểm tuyệt đối với các phản biện quốc tế.`,
+                content_en: `Top-tier journals now demand evidence of out-of-sample predictive power. PLSpredict is the standard metric for this in PLS-SEM. By comparing RMSE and MAE across model and benchmark samples, you prove your research has real-world utility. ncsStat helps you interpret these advanced "Predictive Relevance" figures.`
+            },
+            {
+                h2_vi: '7. Nhược điểm cần lưu ý: Tính chệch (Bias) và Tính nhất quán',
+                h2_en: '7. Critical Drawbacks: Bias and Consistency Issues',
+                content_vi: `Học thuật công tâm đòi hỏi chúng ta nhìn vào cả nhược điểm. PLS-SEM bị chỉ trích là có "tính chệch" (PLS bias) - các hệ số tải có xu hướng cao hơn và hệ số đường dẫn thấp hơn một chút so với giá trị thực. 
+                Tuy nhiên, với sự ra đời của **Consistent PLS (PLSc)**, nhược điểm này đã được khắc phục hoàn toàn. ncsStat hỗ trợ cả hai thuật toán này, giúp bạn trả lời mọi câu hỏi chất vấn của hội đồng về tính nhất quán của ước lượng.`,
+                content_en: `PLS-SEM was traditionally criticized for "parameter estimation bias." However, Consistent PLS (PLSc) algorithms have bridged the gap between PLS and Covariance methods. ncsStat allows you to toggle between standard and consistent PLS to satisfy rigorous reviewers demanding unbiased estimates.`
+            },
+            {
+                h2_vi: '8. Quy trình 05 bước ra quyết định chuẩn chuyên gia',
+                h2_en: '8. 5-Step Expert Decision Framework',
+                content_vi: `Để chọn đúng phương pháp, hãy tự hỏi:
+                1. **Mục tiêu?** (Test lý thuyết -> CB-SEM; Khám phá/Dự báo -> PLS-SEM).
+                2. **Mô hình phức tạp?** (Rất phức tạp -> PLS-SEM).
+                3. **Dữ liệu?** (Không chuẩn/Mẫu nhỏ -> PLS-SEM).
+                4. **Biến quan sát?** (Reflective -> Cả hai; Formative -> Bắt buộc PLS-SEM).
+                5. **Sức mạnh dự báo?** (Cần thiết -> PLS-SEM).
+                
+                Tại ncsStat, chúng tôi cung cấp công cụ "Methodology Advisor" tự động gợi ý phương pháp cho bạn dựa trên dữ liệu thật. Hãy nhớ: không có phương pháp tốt nhất, chỉ có phương pháp phù hợp nhất với bài nghiên cứu của bạn.`,
+                content_en: `1. Study Goal? 2. Structural Complexity? 3. Data Distribution? 4. Measurement Perspective (Reflective vs Formative)? 5. Predictive Importance? ncsStat’s Methodology Advisor automates this decision matrix to ensure you start your analysis on the right track.`
             }
         ]
     },
     'writing-academic-results-apa': {
         slug: 'writing-academic-results-apa', category: 'Academic Writing',
-        title_vi: 'Viết kết quả nghiên cứu chuẩn Q1: Biến con số thành câu chuyện học thuật',
-        title_en: 'Writing Q1-Level Results: Turning Numbers into Academic Narratives',
-        expert_tip_vi: 'Đừng chỉ liệt kê trị số p; hãy kết nối chúng với giả thuyết và ý nghĩa thực tiễn của nghiên cứu.',
-        expert_tip_en: 'Don\'t just list p-values; connect them to your hypotheses and the practical implications of the study.',
+        title_vi: 'Viết kết quả nghiên cứu chuẩn Q1: Bậc thầy ngôn ngữ học thuật',
+        title_en: 'Writing Q1-Level Results: Master of Academic Narrative',
+        expert_tip_vi: 'Đừng chỉ báo cáo p-value. Hãy tập trung vào "Effect Size" và "Confidence Intervals". Đây mới là thứ Reviewer các tạp chí lớn quan tâm nhất.',
+        expert_tip_en: "Don't just report p-values. Focus on Effect Size and Confidence Intervals. This is what top-tier journal reviewers look for.",
         author: 'ncsStat Academic Team', updated_at: new Date().toISOString(),
         content_structure: [
             {
-                h2_vi: '1. Tránh bẫy "Liệt kê con số"',
-                h2_en: '1. Avoid the "Number Listing" Trap',
-                content_vi: 'Nhiều người mắc lỗi viết: "Biến A có Beta là 0.3, p < 0.05". Reviewer muốn đọc: "Kết quả ủng hộ giả thuyết H1, cho thấy sự gia tăng của A dẫn đến sự cải thiện đáng kể trong B (Beta = 0.3; p < 0.05)". Hãy tập trung vào thông điệp đằng sau con số.',
-                content_en: 'A common mistake: "Variable A has Beta = 0.3, p < 0.05". Reviewers want to read: "The results support H1, indicating that an increase in A leads to a significant improvement in B (Beta = 0.3; p < 0.05)". Focus on the message behind the numbers.'
+                h2_vi: '1. Nghệ thuật kể chuyện (Storytelling) qua ma trận số liệu',
+                h2_en: '1. The Art of Storytelling via Statistical Matrices',
+                content_vi: `Sai lầm lớn nhất của các nghiên cứu sinh là coi chương 4 (Kết quả) như một bản báo cáo khô khan. Thực tế, kết quả nghiên cứu là một câu chuyện. Bạn dẫn dắt người đọc từ việc mô tả tập mẫu, đến việc khẳng định thang đo sạch sẽ, và cuối cùng là sự vỡ òa khi giả thuyết được ủng hộ. 
+                Tại ncsStat, chúng tôi giúp bạn xây dựng mạch truyện này một cách logic. Hãy bắt đầu bằng một cái nhìn tổng thể trước khi đi sâu vào chi tiết, giúp người đọc không bị "ngộp" giữa hàng trăm con số.`,
+                content_en: `The biggest mistake in reporting results is treating the data chapter as a dry list. Instead, view it as a narrative. Guide your reader from sample descriptions to measurement purification, culminating in the "eureka" moment of supported hypotheses. ncsStat helps you build this logical flow, starting with the big picture before diving into granular statistics.`
             },
             {
-                h2_vi: '2. Cấu trúc một đoạn nhận định chuyên nghiệp',
-                h2_en: '2. Structuring a Professional Interpretation',
-                content_vi: 'Bắt đầu bằng việc nhắc lại giả thuyết, trình bày bằng chứng thống kê (Beta, t-value, p), và kết thúc bằng việc khẳng định giả thuyết có được chấp nhận hay không. Đừng quên so sánh với các nghiên cứu trước đó để tăng tính thuyết phục.',
-                content_en: 'Start by restating the hypothesis, present the statistical evidence (Beta, t-value, p), and conclude by confirming if the hypothesis is supported. Don\'t forget to compare with previous studies to build a strong case.'
+                h2_vi: '2. Trình bày Tương quan: Bước đệm cho sự bùng nổ',
+                h2_en: '2. Reporting Correlations: The Prelude to Significance',
+                content_vi: `Đừng chỉ dán bảng tương quan rồi viết "Các biến có tương quan với nhau". Hãy viết về **mức độ (magnitude)** và **hướng (direction)**. 
+                "Kết quả sơ bộ cho thấy một mối liên hệ thuận mạnh mẽ giữa A và B (r = .65, p < .01), điều này cung cấp căn cứ thực nghiệm ban đầu để tiến hành các phân tích hồi quy chuyên sâu hơn." Cách viết này cho thấy bạn là một nhà nghiên cứu có tầm nhìn hệ thống chứ không phải chỉ chạy phần mềm một cách máy móc.`,
+                content_en: `Don't just paste a table and say "variables are correlated." Discuss the magnitude and direction. "Preliminary results reveal a strong positive association (r = .65, p < .01), providing initial empirical grounds for further regression testing." This phrasing demonstrates a systemic understanding of your analysis.`
             },
             {
-                h2_vi: '3. Ngôn ngữ của sự thận trọng (Hedging)',
-                h2_en: '3. The Language of Hedging',
-                content_vi: 'Trong khoa học, chúng ta không bao giờ nói "chứng minh tuyệt đối". Hãy dùng các cụm từ như "kết quả gợi ý rằng", "có bằng chứng cho thấy", hoặc "ủng hộ mạnh mẽ". Điều này thể hiện tư duy phản biện và sự khiêm tốn của một nhà nghiên cứu thực thụ.',
-                content_en: 'In science, we never say "absolutely proven". Use phrases like "results suggest", "evidence indicates", or "strongly supports". This demonstrates critical thinking and the humility of a true researcher.'
+                h2_vi: '3. Mô tả giả thuyết: Ngôn ngữ của sự khẳng định',
+                h2_en: '3. Stating Hypotheses: The Language of Confirmation',
+                content_vi: `Khi trình bày kết quả kiểm định giả thuyết, hãy sử dụng các cụm từ mạnh mẽ nhưng thận trọng:
+                - **"Kết quả thực nghiệm ủng hộ mạnh mẽ giả thuyết H1..."**
+                - **"Bằng chứng thống kê cho thấy sự tồn tại của tác động..."**
+                Tránh dùng từ "chứng minh" (prove) vì trong khoa học chúng ta chỉ đang "thu thập bằng chứng ủng hộ". Việc dùng đúng thuật ngữ giúp bạn ghi điểm chuyên nghiệp trong mắt hội đồng. ncsStat tự động gợi ý các mẫu câu này dựa trên kết quả p-value của bạn.`,
+                content_en: `Use strong yet scholarly phrases: "Empirical results strongly support H1..." or "Statistical evidence indicates the presence of an effect..." Avoid "prove," as science is about supporting claims with evidence. Using correct terminology marks you as a professional researcher. ncsStat's auto-narrative feature suggests these phrases based on your exact p-values.`
+            },
+            {
+                h2_vi: '4. Giải mã Hệ số Beta: Ý nghĩa thực tiễn quan trọng hơn con số',
+                h2_en: '4. Decoding Beta: Practical Significance Over Raw Numbers',
+                content_vi: `Reviewer không quan tâm Beta = 0.35 nghĩa là gì về mặt toán học. Họ muốn biết nó có nghĩa gì về mặt thực tế. 
+                "Với hệ số Beta = 0.35, nghiên cứu cho thấy khi doanh nghiệp tăng 1 đơn vị trong đầu tư công nghệ, sự hài lòng của khách hàng sẽ tăng thêm 0.35 đơn vị." Cách diễn giải này đưa con số từ sách giáo khoa ra ngoài thực tiễn, làm cho bài nghiên cứu của bạn trở nên sống động và có giá trị áp dụng cao.`,
+                content_en: `Reviewers aren't interested in the math behind Beta = 0.35; they want practical meaning. "With a Beta of 0.35, the study indicates that for each unit increase in tech investment, customer satisfaction rises by 0.35 units." This interpretation brings data to life, making your research impactful and actionable.`
+            },
+            {
+                h2_vi: '5. Tầm quan trọng của Effect Size (f²) và R-square',
+                h2_en: '5. The Power of Effect Size (f²) and R2',
+                content_vi: `P-value chỉ nói lên "có tác động", nhưng R-square và f² mới nói lên "tác động đó lớn thế nào". 
+                "Dù tác động có ý nghĩa thống kê (p < .05), nhưng hệ số f² = .02 cho thấy mức độ tác động rất nhỏ." Việc trung thực báo cáo cả những tác động nhỏ cho thấy sự khách quan và liêm chính trong nghiên cứu của bạn. ncsStat bôi đậm các chỉ số này để bạn không bao giờ bỏ sót chúng trong báo cáo.`,
+                content_en: `P-values indicate presence; R2 and f2 indicate magnitude. "Despite the significant p-value, an f2 of .02 suggests a negligible effect." Reporting small effects with honesty demonstrates research integrity. ncsStat highlights these metrics so you never miss them in your final report.`
+            },
+            {
+                h2_vi: '6. Trình bày Bảng biểu chuẩn APA 7: Sạch đẹp và Chuyên nghiệp',
+                h2_en: '6. APA 7 Table Standards: Clean, Crisp, Professional',
+                content_vi: `Một bảng biểu chuẩn APA không có các đường kẻ dọc, font chữ thường là Times New Roman 12, và ghi chú (Note) phải rõ ràng. 
+                ncsStat cung cấp tính năng "Một click xuất bảng APA", giúp bạn tiết kiệm hàng giờ đồng hồ ngồi kẻ bảng trong Word. Hãy nhớ: một bài luận văn sạch đẹp về hình thức đã chiếm được 30% thiện cảm của hội đồng chấm.`,
+                content_en: `APA tables have no vertical lines and use clear notes for significance levels. ncsStat's "One-Click APA Export" saves hours of formatting. A clean, well-presented dissertation immediately earns academic respect from the committee.`
+            },
+            {
+                h2_vi: '7. Ngôn ngữ của sự thận trọng (Hedging) và Hạn chế',
+                h2_en: '7. Hedging Language and Acknowledging Limitations',
+                content_vi: `Người mới thường cố gắng khẳng định mọi thứ là hoàn hảo. Chuyên gia thường dùng "Hedging":
+                - "Kết quả này gợi ý rằng..."
+                - "Có khả năng là..."
+                Việc thừa nhận các giới hạn của dữ liệu và dùng ngôn ngữ thận trọng không phải là yếu kém, mà là sự trưởng thành trong tư duy phản biện. Điều này giúp bạn "né" được các câu hỏi vặn vẹo của hội đồng về tính tổng quát hóa của kết quả.`,
+                content_en: `Novices claim perfection; experts use "hedging." Phrases like "results suggest that..." or "it is possible that..." reflect critical maturity. Acknowledging data limits protects you from tough questions regarding the generalizability of your findings.`
+            },
+            {
+                h2_vi: '8. Tổng kết: Check-list viết kết quả không thể bị bác bỏ',
+                h2_en: '8. Conclusion: The Irrefutable Results Checklist',
+                content_vi: `Trước khi nộp bài, hãy kiểm tra:
+                1. Đã báo cáo giá trị trung bình (M) và độ lệch chuẩn (SD)?
+                2. Đã có trị số t, f, p cho mọi kiểm định?
+                3. Đã có Confidence Intervals (CI)?
+                4. Đã có Effect Size?
+                5. Bảng biểu đã bỏ đường kẻ dọc chưa?
+                Cùng ncsStat, mỗi con số bạn viết ra đều mang trong mình sức nặng của tri thức và sự chính xác tuyệt đối.`,
+                content_en: `Final checklist: Did you report M and SD? Are t, F, and p values included for all tests? Did you provide CIs and Effect Sizes? Are your tables free of vertical lines? With ncsStat, every number you report carries the weight of academic authority and precision.`
             }
         ]
     }
