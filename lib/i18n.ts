@@ -327,6 +327,7 @@ export const translations = {
             accounting: 'Kế toán & Kiểm toán',
             innovation: 'Đổi mới & Chiến lược',
             tourism: 'Du lịch & Khách sạn',
+            psychology: 'Tâm lý học',
             'modern (2020+)': 'Nghiên cứu Hiện đại (2020+)',
             author: 'Tác giả',
             year: 'Năm',
@@ -823,6 +824,7 @@ export const translations = {
             accounting: 'Accounting & Finance',
             innovation: 'Innovation & Strategy',
             tourism: 'Tourism & Hospitality',
+            psychology: 'Psychology',
             'modern (2020+)': 'Modern Research (2020+)',
             author: 'Author',
             year: 'Year',
@@ -1108,7 +1110,7 @@ export const translations = {
 } as const;
 
 // Helper to get translation
-export function t(locale: Locale, key: string): string {
+export function t(locale: Locale, key: string, fallback?: string): string {
     const keys = key.split('.');
     let value: any = translations[locale];
 
@@ -1116,7 +1118,11 @@ export function t(locale: Locale, key: string): string {
         value = value?.[k];
     }
 
-    return value || key;
+    if (value) return value;
+    if (fallback) return fallback;
+    
+    // If not found, gracefully return the last part of the key instead of the full technical path
+    return keys[keys.length - 1];
 }
 
 // Default locale

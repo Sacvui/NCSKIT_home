@@ -305,7 +305,7 @@ function ScaleHubContent() {
                                                 : 'text-slate-600 hover:bg-slate-50'
                                             }`}
                                         >
-                                            {cat === 'All' ? (isVi ? 'Tất cả' : 'All') : t(locale, `scales.${cat.toLowerCase()}`)}
+                                            {cat === 'All' ? (isVi ? 'Tất cả' : 'All') : t(locale, `scales.${cat.toLowerCase()}`, cat)}
                                         </button>
                                     ))}
                                 </div>
@@ -415,7 +415,7 @@ function ScaleHubContent() {
                                                                     key={cat}
                                                                     className="px-2 py-0.5 bg-indigo-50 rounded-lg text-[8px] font-black text-indigo-600 uppercase tracking-widest border border-indigo-100"
                                                                 >
-                                                                    {t(locale, `scales.${cat.toLowerCase()}`)}
+                                                                    {t(locale, `scales.${cat.toLowerCase()}`, cat)}
                                                                 </div>
                                                             ))}
                                                         </div>
@@ -445,7 +445,7 @@ function ScaleHubContent() {
                                                         <div className="flex flex-wrap gap-2 mb-4">
                                                             {activeScale.category.map(cat => (
                                                                 <span key={cat} className="px-2 py-1 bg-white/10 rounded-lg text-[9px] font-black tracking-widest uppercase text-indigo-300 border border-white/10">
-                                                                    {t(locale, `scales.${cat.toLowerCase()}`)}
+                                                                    {t(locale, `scales.${cat.toLowerCase()}`, cat)}
                                                                 </span>
                                                             ))}
                                                         </div>
