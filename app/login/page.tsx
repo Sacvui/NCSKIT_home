@@ -92,9 +92,10 @@ function LoginForm() {
             const isLocalhost = origin.includes('localhost')
             // Only force the primary production domain if we are clearly on a production sub-environment
             const siteUrl = isLocalhost ? origin : origin.replace('stat.ncskit.org', 'ncsstat.ncskit.org')
-            // Route through server-side /auth/callback to reliably complete PKCE code exchange
-            // avoiding client side race-condition aborts.
-            const redirectTo = `${siteUrl}/auth/callback?next=${encodeURIComponent(next || '/analyze')}`
+            // Bypass server-side route handler and let the browser client handle the PKCE code exchange directly.
+            // This avoids Next.js Server Action / Redirect cookie dropping bugs.
+            const targetPath = next && next !== '/' ? next : '/analyze'
+            const redirectTo = `${siteUrl}${targetPath}`
             console.log('[Login Debug] Initiating Auth Flow:', {
                 provider,
                 origin,
