@@ -340,10 +340,8 @@ export default function ScalesLibrary() {
                                         </div>
                                     </div>
                                 </div>
-                                </div>
                             </div>
-                        </div>
-                    )}
+                        )}
                 </div>
             </main>
 
