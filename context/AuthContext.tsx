@@ -73,31 +73,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!isFirstRun.current) return;
         isFirstRun.current = false;
 
+        // SYNCHRONOUS: Detect code BEFORE registering listener (listener fires immediately!)
+        const urlCode = typeof window !== 'undefined'
+            ? new URLSearchParams(window.location.search).get('code')
+            : null;
+        
+        if (urlCode) {
+            isExchangingCode.current = true;
+        }
+
         const initSession = async () => {
-            // Step 1: Check for OAuth code in URL
-            if (typeof window !== 'undefined') {
-                const params = new URLSearchParams(window.location.search);
-                const code = params.get('code');
-                
-                if (code) {
-                    isExchangingCode.current = true;
-                    console.log('[Auth] OAuth code detected, exchanging...');
-                    try {
-                        const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-                        if (error) {
-                            console.error('[Auth] Code exchange failed:', error.message);
-                        } else if (data.session?.user) {
-                            console.log('[Auth] Exchange OK:', data.session.user.email);
-                            handleUser(data.session.user);
-                            window.history.replaceState({}, '', window.location.pathname);
-                        }
-                    } catch (err) {
-                        console.error('[Auth] Exchange error:', err);
+            // Step 1: Exchange OAuth code if present
+            if (urlCode) {
+                console.log('[Auth] OAuth code detected, exchanging...');
+                try {
+                    const { data, error } = await supabase.auth.exchangeCodeForSession(urlCode);
+                    if (error) {
+                        console.error('[Auth] Code exchange failed:', error.message);
+                    } else if (data.session?.user) {
+                        console.log('[Auth] Exchange OK:', data.session.user.email);
+                        handleUser(data.session.user);
+                        window.history.replaceState({}, '', window.location.pathname);
                     }
-                    isExchangingCode.current = false;
-                    setLoading(false);
-                    return; // Done — don't call getSession again
+                } catch (err) {
+                    console.error('[Auth] Exchange error:', err);
                 }
+                isExchangingCode.current = false;
+                setLoading(false);
+                return;
             }
 
             // Step 2: No code — restore session from cookies
@@ -112,11 +115,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         initSession();
 
-        // Auth state listener — but NEVER set loading=false while code exchange is in progress
+        // Auth state listener — NEVER touch loading while code exchange is in progress
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
             if (isExchangingCode.current) {
-                // Code exchange is still running — don't touch loading state
-                return;
+                return; // Code exchange owns the loading state
             }
             handleUser(session?.user || null);
             setLoading(false);
