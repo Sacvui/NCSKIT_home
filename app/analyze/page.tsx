@@ -83,19 +83,21 @@ function AnalyzeContent() {
 
     // Auth guard: Wait for AuthContext to finish loading
     useEffect(() => {
+        const hasCode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('code');
+        
+        if (hasCode) {
+            console.log('[Analyze] URL has code, holding redirect guard.');
+            // If URL has code, AuthContext MUST be loading or exchanging. We stay here.
+            return;
+        }
+
         if (!authLoading) {
             if (user) {
-                console.log('[Analyze] User authenticated, ready.');
+                console.log('[Analyze] User found, allowing access.');
                 setLoading(false);
             } else {
-                console.log('[Analyze] No user found after auth load, checking for pending code...');
-                const hasCode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('code');
-                if (!hasCode) {
-                    console.log('[Analyze] No session and no code, redirecting to login');
-                    router.push('/login?next=/analyze');
-                } else {
-                    console.log('[Analyze] Waiting for AuthContext fallback code exchange...');
-                }
+                console.log('[Analyze] No user and no code, redirecting to login');
+                router.push('/login?next=/analyze');
             }
         }
     }, [authLoading, user, router]);

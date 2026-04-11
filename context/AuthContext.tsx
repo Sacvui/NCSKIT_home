@@ -83,46 +83,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         const initSession = async () => {
-            // STEP 1: Restore existing session from cookies
             try {
                 console.log('[Auth] Initiating session restoration...');
-                
-                // Brief delay to allow Supabase JS to hydrate cookies
-                await new Promise(resolve => setTimeout(resolve, 800));
-                
                 const { data: { session } } = await supabase.auth.getSession();
                 
                 if (session?.user) {
                     console.log('[Auth] Session successfully recovered for:', session.user.email);
                     handleUser(session.user);
+                    setLoading(false);
                 } else {
-                    console.log('[Auth] Still no session after delay, checking for OAuth code...');
-                    
                     const params = new URLSearchParams(window.location.search);
                     const code = params.get('code');
+                    
                     if (code && !isExchangingCode.current) {
                         isExchangingCode.current = true;
-                        console.log('[Auth] OAuth code found, exchanging on client...');
-                        const { data: exchangeData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-                        if (!exchangeError && exchangeData.session?.user) {
-                            console.log('[Auth] Client exchange successful.');
-                            handleUser(exchangeData.session.user);
-                            window.history.replaceState({}, '', window.location.pathname);
-                        } else {
-                            console.error('[Auth] Client exchange failed:', exchangeError);
+                        console.log('[Auth] OAuth code found, exchanging...');
+                        try {
+                            const { data: exchangeData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+                            if (!exchangeError && exchangeData.session?.user) {
+                                console.log('[Auth] Exchange successful!');
+                                handleUser(exchangeData.session.user);
+                                window.history.replaceState({}, '', window.location.pathname);
+                            } else {
+                                console.error('[Auth] Exchange failed:', exchangeError);
+                            }
+                        } catch (e) {
+                            console.error('[Auth] Exchange exception:', e);
                         }
                         isExchangingCode.current = false;
+                        setLoading(false);
+                    } else {
+                        // Truly no session and no code
+                        console.log('[Auth] No session and no code to exchange.');
+                        setLoading(false);
                     }
                 }
             } catch (err) {
-                console.error('[Auth] Session restoration sequence failed:', err);
-            }
-            
-            // Final check: if we still have no user, wait one more tiny bit before letting the UI redirect
-            setTimeout(() => {
+                console.error('[Auth] Critical auth init failure:', err);
                 setLoading(false);
-                console.log('[Auth] Initialization complete.');
-            }, 500);
+            }
         };
         
         initSession();
