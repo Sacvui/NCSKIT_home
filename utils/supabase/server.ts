@@ -18,14 +18,11 @@ export async function createClient() {
                         cookiesToSet.forEach(({ name, value, options }) =>
                             cookieStore.set(name, value, {
                                 ...options,
-                                domain: host.includes('localhost') ? undefined : '.ncskit.org',
-                                path: '/',
+                                path: '/', // Ensure cookies are accessible everywhere
                             })
                         )
                     } catch (error) {
-                        // The `setAll` method was called from a Server Component.
-                        // This can be ignored if you have middleware refreshing
-                        // user sessions.
+                        // Safe to ignore in Server Components
                     }
                 },
             },
