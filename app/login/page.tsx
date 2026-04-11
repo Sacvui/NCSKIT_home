@@ -29,6 +29,29 @@ function LoginForm() {
         setLocale(getStoredLocale())
     }, [])
 
+    // Proactive Exchange Safety Net (If they land back here with a code)
+    useEffect(() => {
+        const exchangeCode = async () => {
+            const code = searchParams.get('code')
+            if (code && !loading) {
+                setLoading('resolving')
+                try {
+                    const supabase = getSupabase()
+                    const { error } = await supabase.auth.getSession()
+                    if (error) throw error
+                    
+                    // Success! Redirect to target or analyze
+                    window.location.href = next || '/analyze'
+                } catch (err) {
+                    console.error('Proactive login exchange fail:', err)
+                    setLoading(null)
+                    setErrorMsg(isVi ? 'Không thể xác thực phiên làm việc. Vui lòng thử lại.' : 'Could not establish session. Please try again.')
+                }
+            }
+        }
+        exchangeCode()
+    }, [searchParams, next, isVi])
+
     const handleHardReset = async () => {
         setLoading('reset')
         try {
@@ -203,7 +226,7 @@ function LoginForm() {
                     </div>
 
                     {/* Hard Reset Link for Persistent Errors */}
-                    {(searchParams.get('error') || searchParams.get('auth_code')) && (
+                    {(searchParams.get('error') || searchParams.get('code')) && (
                         <div className="mt-8 p-4 bg-blue-50/50 border border-blue-100 rounded-2xl animate-in fade-in slide-in-from-top-4">
                             <h4 className="text-sm font-bold text-blue-900 mb-1 flex items-center gap-2">
                                 <Info className="w-4 h-4" />
