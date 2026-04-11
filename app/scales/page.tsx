@@ -402,56 +402,78 @@ function ScaleHubContent() {
                                             <div 
                                                 key={scale.id} 
                                                 onClick={() => setExpandedScale(scale.id)}
-                                                className={`bg-white rounded-3xl border transition-all duration-300 overflow-hidden flex flex-col cursor-pointer ${
+                                                className={`group bg-white rounded-[2rem] border transition-all duration-500 overflow-hidden flex flex-col cursor-pointer relative hover:-translate-y-1 ${
                                                     expandedScale === scale.id 
-                                                    ? 'ring-2 ring-indigo-500 border-indigo-200 shadow-xl' 
-                                                    : 'border-slate-200 shadow-sm hover:shadow-xl hover:border-indigo-300'
+                                                    ? 'ring-4 ring-indigo-500/20 border-indigo-400 shadow-2xl' 
+                                                    : 'border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-indigo-100/50 hover:border-indigo-200'
                                                 }`}
                                             >
-                                                <div className="p-6">
-                                                    <div className="flex items-start justify-between mb-4">
+                                                {/* Top Accent Line */}
+                                                <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+                                                <div className="p-6 md:p-8 flex flex-col h-full">
+                                                    <div className="flex items-start justify-between mb-5">
                                                         <div className="flex flex-wrap gap-2">
                                                             {scale.category.slice(0, 1).map(cat => (
                                                                 <div 
                                                                     key={cat}
-                                                                    className="px-2 py-0.5 bg-indigo-50 rounded-lg text-[8px] font-black text-indigo-600 uppercase tracking-widest border border-indigo-100"
+                                                                    className="px-2.5 py-1 bg-indigo-50/80 rounded-lg text-[9px] font-black text-indigo-600 uppercase tracking-widest border border-indigo-100/50"
                                                                 >
                                                                     {t(locale, `scales.${cat.toLowerCase()}`, cat)}
                                                                 </div>
                                                             ))}
                                                         </div>
-                                                        <div className="text-[10px] text-slate-400 font-bold">
+                                                        <div className="text-[10px] text-slate-400 font-bold bg-slate-50 px-2 py-1 rounded-lg border border-slate-100">
                                                             {scale.scale_items?.length || 0} items
                                                         </div>
                                                     </div>
                                                     
-                                                    <h3 className="text-lg font-black text-slate-900 mb-2 leading-tight group-hover:text-indigo-600 transition-colors line-clamp-2">
+                                                    <h3 className="text-xl font-black text-slate-900 mb-3 leading-tight group-hover:text-indigo-600 transition-colors line-clamp-2">
                                                         {isVi ? scale.name_vi : scale.name_en}
                                                     </h3>
                                                     
                                                     {!expandedScale ? (
-                                                        <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col gap-2.5">
-                                                            <div className="text-xs text-slate-600">
-                                                                <span className="font-black text-slate-800 uppercase tracking-tight mr-2">{isVi ? 'Ý nghĩa:' : 'Meaning:'}</span>
-                                                                <span className="line-clamp-2 font-medium leading-relaxed">{isVi ? scale.description_vi : scale.description_en}</span>
+                                                        <div className="mt-auto pt-6 border-t border-slate-100/60 flex flex-col gap-5">
+                                                            <div className="flex items-start gap-3.5">
+                                                                <div className="mt-0.5 p-2 bg-indigo-50/80 rounded-xl text-indigo-600 shrink-0 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300 shadow-sm border border-indigo-100/50">
+                                                                    <BookOpen className="w-4 h-4" />
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">{isVi ? 'Ý nghĩa' : 'Meaning'}</p>
+                                                                    <p className="text-sm text-slate-600 line-clamp-2 font-medium leading-relaxed">{isVi ? scale.description_vi : scale.description_en}</p>
+                                                                </div>
                                                             </div>
-                                                            <div className="text-xs text-slate-600">
-                                                                <span className="font-black text-slate-800 uppercase tracking-tight mr-2">{isVi ? 'Ký hiệu biến:' : 'Variables:'}</span>
-                                                                <span className="italic text-indigo-600 font-bold">
-                                                                    {(scale.scale_items?.length || 0) > 0 
-                                                                        ? Array.from(new Set((scale.scale_items || []).map((i:any) => i.code.replace(/[0-9]/g, '')))).join(', ') 
-                                                                        : (isVi ? 'Đang cập nhật' : 'Updating')}
-                                                                </span>
+
+                                                            <div className="flex items-start gap-3.5">
+                                                                <div className="mt-0.5 p-2 bg-purple-50/80 rounded-xl text-purple-600 shrink-0 group-hover:scale-110 group-hover:bg-purple-600 group-hover:text-white transition-all duration-300 shadow-sm border border-purple-100/50">
+                                                                    <Layers className="w-4 h-4" />
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">{isVi ? 'Nhóm nhân tố / Biến' : 'Variables'}</p>
+                                                                    <p className="text-[13px] text-slate-800 font-bold bg-slate-50 inline-block px-2.5 py-1 rounded-lg border border-slate-200/60">
+                                                                        {(scale.scale_items?.length || 0) > 0 
+                                                                            ? Array.from(new Set((scale.scale_items || []).map((i:any) => i.code.replace(/[0-9]/g, '')))).join(', ') 
+                                                                            : (isVi ? 'Đấu nối dữ liệu...' : 'Fetching...')}
+                                                                    </p>
+                                                                </div>
                                                             </div>
-                                                            <div className="text-xs text-slate-500">
-                                                                <span className="font-black text-slate-800 uppercase tracking-tight mr-2">{isVi ? 'Nguồn gốc:' : 'Source:'}</span>
-                                                                <span className="italic line-clamp-1">{scale.citation || `${scale.author} (${scale.year})`}</span>
+
+                                                            <div className="flex items-start gap-3.5">
+                                                                <div className="mt-0.5 p-2 bg-slate-50/80 rounded-xl text-slate-500 shrink-0 group-hover:scale-110 group-hover:bg-slate-800 group-hover:text-white transition-all duration-300 shadow-sm border border-slate-200/50">
+                                                                    <Users className="w-4 h-4" />
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">{isVi ? 'Nguồn tham khảo' : 'Citation Reference'}</p>
+                                                                    <p className="text-xs text-slate-500 italic line-clamp-1">{scale.citation || `${scale.author} (${scale.year})`}</p>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     ) : (
-                                                        <p className="text-slate-500 text-xs leading-relaxed line-clamp-2">
-                                                            {scale.author} ({scale.year})
-                                                        </p>
+                                                        <div className="mt-auto pt-6 border-t border-slate-100/60">
+                                                            <p className="text-slate-500 text-sm font-medium leading-relaxed line-clamp-2">
+                                                                <span className="font-bold text-slate-700">{scale.author}</span> ({scale.year})
+                                                            </p>
+                                                        </div>
                                                     )}
                                                 </div>
                                             </div>
