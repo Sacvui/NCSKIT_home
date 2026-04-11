@@ -80,17 +80,47 @@ function AnalyzeContent() {
         }
     }, [userProfile?.tokens]);
 
-    // Overall loading state - follow auth context
+    // AUTHENTICATION & REDIRECT FLOW
+    // 1. Proactive Code Exchange (Fix for hangs on /analyze?code=...)
+    useEffect(() => {
+        const exchangeCode = async () => {
+            const hasAuthCode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('code');
+            if (hasAuthCode && !user && !authLoading) {
+                console.log('[Analyze] Detect auth code but no user. Verifying session...');
+                try {
+                    // Force Supabase to process the code exchange
+                    const { error } = await supabase.auth.getSession();
+                    if (error) throw error;
+                    
+                    // After successful exchange, we want to clean the URL to prevent re-activation
+                    const params = new URLSearchParams(window.location.search);
+                    if (params.has('code')) {
+                        console.log('[Analyze] Login successful. Cleaning URL parameters...');
+                        router.replace('/analyze');
+                    }
+                } catch (err) {
+                    console.error('[Analyze] Auth code exchange fail:', err);
+                    router.push('/login?error=auth_failed');
+                }
+            }
+        };
+        exchangeCode();
+    }, [user, authLoading, router, supabase]);
+
+    // 2. Main Loading & Protection Guard
     useEffect(() => {
         if (!authLoading) {
             const hasAuthCode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('code');
-            if (!user && !hasAuthCode) {
-                router.push('/login?next=/analyze');
-            } else if (user) {
+            
+            if (user) {
+                // We have a user, ready to analyze
                 setLoading(false);
+            } else if (!hasAuthCode) {
+                // No user and no code to exchange, go to login
+                router.push('/login?next=/analyze');
             }
-            // If they don't have a user but DO have a code, just wait. 
-            // The AuthContext onAuthStateChange will eventually resolve the PKCE exchange and set the user.
+            // If hasAuthCode is true but user is null, we are in the middle of exchangeCode() above.
+            // We keep loading=true to show the authenticating state.
         }
     }, [authLoading, user, router]);
 
@@ -136,6 +166,19 @@ function AnalyzeContent() {
     // Auto-Save / Persistence Hook
     const { saveWorkspace, loadWorkspace, hasSavedData, clearWorkspace } = useAnalysisPersistence();
     const [showRestoreBanner, setShowRestoreBanner] = useState(false);
+    const [authTimeout, setAuthTimeout] = useState(false);
+
+    // Safety Timeout for Auth hangs
+    useEffect(() => {
+        if (loading) {
+            const timer = setTimeout(() => {
+                setAuthTimeout(true);
+            }, 8000); // 8 seconds is plenty for exchange
+            return () => clearTimeout(timer);
+        } else {
+            setAuthTimeout(false);
+        }
+    }, [loading]);
 
     // Check availability of saved data on mount
     // Safety check: if step requires data/profile but they are missing, redirect
@@ -650,11 +693,45 @@ function AnalyzeContent() {
         const webRStatus = getWebRStatus();
         return (
             <div className="min-h-screen flex items-center justify-center bg-slate-50">
-                 <div className="flex flex-col items-center gap-4">
-                    <div className="w-12 h-12 border-4 border-blue-900 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="text-blue-950 font-black uppercase text-[10px] tracking-widest">{t(locale, 'analyze.common.authenticating')}</p>
-                    {webRStatus.isReady && (
-                        <p className="text-green-600 text-sm">✓ {t(locale, 'analyze.common.engine_ready')}</p>
+                 <div className="flex flex-col items-center gap-6 max-w-sm text-center px-6">
+                    <div className="relative">
+                        <div className="w-16 h-16 border-4 border-slate-200 border-t-blue-900 rounded-full animate-spin"></div>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <Shield className="w-6 h-6 text-blue-900 animate-pulse" />
+                        </div>
+                    </div>
+                    
+                    <div className="space-y-2">
+                        <p className="text-blue-950 font-black uppercase text-[10px] tracking-[0.3em] animate-pulse">
+                            {t(locale, 'analyze.common.authenticating')}
+                        </p>
+                        {webRStatus.isReady && (
+                            <div className="flex items-center justify-center gap-2 text-emerald-600 font-bold text-xs bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100 animate-in fade-in zoom-in duration-500">
+                                <span className="text-lg">✓</span> {t(locale, 'analyze.common.engine_ready')}
+                            </div>
+                        )}
+                    </div>
+
+                    {authTimeout && (
+                        <div className="pt-6 animate-in slide-in-from-bottom-4 duration-700">
+                            <p className="text-xs text-slate-500 font-medium mb-4">
+                                {isVi ? 'Quá trình xác thực mất nhiều thời gian hơn dự kiến...' : 'Authentication is taking longer than expected...'}
+                            </p>
+                            <div className="flex flex-col gap-2 w-full">
+                                <button 
+                                    onClick={() => window.location.reload()}
+                                    className="px-6 py-3 bg-white border border-slate-200 text-slate-900 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-50 transition-all shadow-sm"
+                                >
+                                    {isVi ? 'Tải lại trang' : 'Refresh Page'}
+                                </button>
+                                <button 
+                                    onClick={() => router.push('/login')}
+                                    className="px-6 py-3 bg-blue-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-950 transition-all shadow-lg"
+                                >
+                                    {isVi ? 'Quay lại Đăng nhập' : 'Back to Login'}
+                                </button>
+                            </div>
+                        </div>
                     )}
                 </div>
             </div>
