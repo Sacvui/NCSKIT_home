@@ -6,7 +6,7 @@ import {
     ArrowLeft, Quote, Clock, Layers, Sparkles, ExternalLink,
     CheckCircle2, Info, FileSpreadsheet, ChevronDown, 
     Target, UserCheck, Settings, Cpu, HelpCircle, X, Lock, ArrowRight,
-    Users
+    Users, Brain
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
