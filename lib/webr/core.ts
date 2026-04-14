@@ -209,7 +209,9 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 await webR.evalR(`
                     if (dir.exists("${persistentLib}")) {
                         .libPaths(c('${persistentLib}', .libPaths()))
-                               # Resilience: Use R-Universe which has 4.5 binaries
+                    }
+                    
+                    # Resilience: Use R-Universe which has 4.5 binaries
                     options(repos = c(
                         CRAN = "https://cran.r-universe.dev",
                         WASM = "https://repo.r-wasm.org"
