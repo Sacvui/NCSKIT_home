@@ -385,12 +385,38 @@ export async function executeRWithRecovery(
         if (method) await loadPackagesForMethod(method);
 
         // ============================================================================
-        // ROBUST FILE-BASED EXECUTION (FIXES POSTMESSAGE BLOB CRASH)
+        // ROBUST FILE-BASED EXECUTION + JSON EXTRACTION
         // ============================================================================
-        const executeViaFS = async (code: string, fileName: string = 'exec.R') => {
-            const path = `/tmp/${fileName}`;
-            await webR.FS.writeFile(path, new TextEncoder().encode(code));
-            return await webR.evalR(`source("${path}")`);
+        const executeAndGetJSON = async (code: string) => {
+            // Ensure jsonlite is available for serialization
+            await webR.evalR(`if (!requireNamespace("jsonlite", quietly = TRUE)) webr::install("jsonlite")`);
+            
+            const wrappedCode = `
+                (function() {
+                    try {
+                        ${code}
+                        # Last expression is the result
+                        .last_result <- .Last.value
+                        jsonlite::toJSON(.last_result, auto_unbox = TRUE, force = TRUE, null = "null", NA = "null")
+                    } catch (e) {
+                        stop(e)
+                    }
+                })()
+            `;
+            
+            const path = `/tmp/exec_${Date.now()}.R`;
+            await webR.FS.writeFile(path, new TextEncoder().encode(wrappedCode));
+            const resultProxy = await webR.evalR(`source("${path}")$value`);
+            const jsonStr = await resultProxy.toJs();
+            
+            if (resultProxy && typeof resultProxy.destroy === 'function') resultProxy.destroy();
+            
+            try {
+                return JSON.parse(jsonStr);
+            } catch (e) {
+                console.warn('[WebR] JSON Parse failed, returning raw string:', jsonStr);
+                return jsonStr;
+            }
         };
 
         if (csvData && csvData.length > 0) {
@@ -399,30 +425,27 @@ export async function executeRWithRecovery(
                 row.map(v => (v === null || v === undefined || Number.isNaN(v as number)) ? 'NA' : v).join(',')
             ).join('\n');
             
-            // Fast binary write to virtual FS
             await webR.FS.writeFile('/tmp/data_input.csv', new TextEncoder().encode(flat));
             await webR.evalR(`raw_data <- as.matrix(read.csv("/tmp/data_input.csv", header=FALSE, stringsAsFactors=FALSE))`);
         }
 
-        let rResult: any;
-        if (rCode.length > 1000) {
-            rResult = await executeViaFS(rCode, `script_${Date.now()}.R`);
-        } else {
-            rResult = await webR.evalR(rCode);
-        }
+        let output: any;
+        const executionPromise = (async () => {
+            if (rCode.length > 200 || rCode.includes('psych') || rCode.includes('fa(')) {
+                return await executeAndGetJSON(rCode);
+            } else {
+                const res = await webR.evalR(rCode);
+                const val = await res.toJs();
+                if (res && typeof (res as any).destroy === 'function') (res as any).destroy();
+                return val;
+            }
+        })();
 
         const timeoutPromise = new Promise((_, reject) =>
             setTimeout(() => reject(new Error(`Timeout after ${timeoutMs / 1000}s`)), timeoutMs)
         );
 
-        const resultProxy: any = await Promise.race([Promise.resolve(rResult), timeoutPromise]);
-        const output = await resultProxy.toJs();
-
-        // Cleanup proxies but check validity
-        if (resultProxy && typeof resultProxy.destroy === 'function') {
-            resultProxy.destroy();
-        }
-
+        output = await Promise.race([executionPromise, timeoutPromise]);
         return output;
     } catch (error: any) {
         const errorMsg = error?.message || String(error);
