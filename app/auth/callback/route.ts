@@ -10,7 +10,9 @@ export async function GET(request: Request) {
     const host = request.headers.get('host') || '';
     const protocol = (request.headers.get('x-forwarded-proto') || 'https').split(',')[0];
     const origin = `${protocol}://${host}`;
-    const siteUrl = host.includes('localhost') ? origin : origin.replace('stat.ncskit.org', 'ncsstat.ncskit.org');
+    
+    // Always use the exact origin the user accessed to ensure cookies match the domain!
+    const siteUrl = origin;
 
     console.log(`[Auth Callback] Processing code-exchange for: ${siteUrl}`);
 

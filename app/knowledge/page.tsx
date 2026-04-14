@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Search, BookOpen, Clock, ArrowRight, TrendingUp, ShieldCheck, 
-  Brain, FileSearch, LineChart, Hash, Zap, HelpCircle, Layers, Activity, Quote
+  Brain, FileSearch, LineChart, Hash, Zap, HelpCircle, Layers, Activity, Quote, BarChart3
 } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
@@ -19,8 +19,22 @@ const STATIC_ARTICLES = [
         slug: 'cronbach-alpha',
         category: 'Preliminary Analysis',
         icon_name: 'Brain',
-        title_vi: 'Kiểm định Cronbach\'s Alpha: Bản giao hưởng của Tin cậy nội tại',
-        title_en: 'Cronbach\'s Alpha Reliability Test: The Symphony of Internal Consistency'
+        title_vi: 'Cronbach\'s Alpha Masterclass: Từ Cơ bản đến Chuyên gia',
+        title_en: 'Cronbach\'s Alpha Masterclass: From Basics to Expert'
+    },
+    {
+        slug: 'descriptive-statistics-interpretation',
+        category: 'Preliminary Analysis',
+        icon_name: 'BarChart3',
+        title_vi: 'Thống kê mô tả: Nghệ thuật kể chuyện qua con số',
+        title_en: 'Descriptive Statistics: The Art of Storytelling'
+    },
+    {
+        slug: 'cfa-confirmatory-factor-analysis',
+        category: 'Advanced Statistics',
+        icon_name: 'ShieldCheck',
+        title_vi: 'CFA: Chìa khóa vàng thẩm định thang đo',
+        title_en: 'CFA: The Gold Standard for Validation'
     },
     {
         slug: 'efa-factor-analysis',
@@ -37,11 +51,11 @@ const STATIC_ARTICLES = [
         title_en: 'Multiple Regression & VIF: Predicting the Future'
     },
     {
-        slug: 'descriptive-statistics-interpretation',
-        category: 'Preliminary Analysis',
-        icon_name: 'Activity',
-        title_vi: 'Thống kê mô tả: Nghệ thuật kể chuyện qua con số',
-        title_en: 'Descriptive Statistics: The Art of Storytelling'
+        slug: 'sem-cfa-structural-modeling',
+        category: 'Structural Modeling',
+        icon_name: 'Layers',
+        title_vi: 'SEM & CFA: Đỉnh cao của Phân tích cấu trúc',
+        title_en: 'SEM & CFA: Structural Modeling Masterclass'
     },
     {
         slug: 'independent-t-test-guide',
@@ -126,6 +140,34 @@ const STATIC_ARTICLES = [
         icon_name: 'Quote',
         title_vi: 'Viết kết quả nghiên cứu chuẩn Q1: Biến con số thành câu chuyện học thuật',
         title_en: 'Writing Q1-Level Results: Turning Numbers into Academic Narratives'
+    },
+    {
+        slug: 'interaction-effects-moderation',
+        category: 'Impact Analysis',
+        icon_name: 'Zap',
+        title_vi: 'Biến tương tác & Điều tiết: Sự cộng hưởng của các nhân tố',
+        title_en: 'Interaction & Moderation Effects: Factor Synergies'
+    },
+    {
+        slug: 'manipulation-check-scenario',
+        category: 'Research Design',
+        icon_name: 'ShieldCheck',
+        title_vi: 'Manipulation Check: Đảm bảo tính hợp lệ của kịch bản thực nghiệm',
+        title_en: 'Manipulation Check: Validating Experimental Scenarios'
+    },
+    {
+        slug: 'systematic-literature-review-slr',
+        category: 'Research Design',
+        icon_name: 'FileSearch',
+        title_vi: 'SLR & Phân tích nội dung: Lược khảo tài liệu có hệ thống',
+        title_en: 'SLR & Content Analysis: Systematic Literature Review'
+    },
+    {
+        slug: 'qualitative-coding-expert-interview',
+        category: 'Qualitative Research',
+        icon_name: 'Brain',
+        title_vi: 'Mã hóa định tính & Phỏng vấn chuyên gia: Hiệu chuẩn thang đo',
+        title_en: 'Qualitative Coding & Expert Interviews: Scale Calibration'
     }
 ];
 
@@ -141,7 +183,9 @@ const iconMap: Record<string, any> = {
   Activity: Activity,
   BookOpen: BookOpen,
   TrendingUp: TrendingUp,
-  Quote: Quote
+  Quote: Quote,
+  BarChart3: BarChart3,
+  ShieldCheck: ShieldCheck
 };
 
 export default function KnowledgeBase() {

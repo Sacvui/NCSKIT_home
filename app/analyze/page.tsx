@@ -512,9 +512,12 @@ function AnalyzeContent() {
             // Deduct credits on success
             if (user) {
                 const cost = await getAnalysisCost(type);
-                await deductCredits(user.id, cost, `${type === 'correlation' ? 'Correlation Matrix' : 'Descriptive Stats'}`);
+                const { isExempt, newBalance } = await deductCredits(user.id, cost, `${type === 'correlation' ? 'Correlation Matrix' : 'Descriptive Stats'}`);
                 await logAnalysisUsage(user.id, type, cost);
-                setNcsBalance(prev => Math.max(0, prev - cost));
+                
+                if (!isExempt) {
+                    setNcsBalance(newBalance);
+                }
             }
 
             setResults({

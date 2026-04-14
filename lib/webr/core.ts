@@ -114,10 +114,9 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 // Use the standardized webr_core folder for consistent resolution
                 const webR = new WebR({
                     baseUrl: BASE_URL,
-                    // channelType 0 = Automatic: uses SharedArrayBuffer if COOP/COEP headers are set,
-                    // falls back to PostMessage otherwise. SharedArrayBuffer uses Atomics.wait()
-                    // instead of FileReaderSync/Blob, completely avoiding the Blob crash.
-                    channelType: 0,
+                    // channelType 2 = PostMessage: Essential for IDBFS support.
+                    // SharedArrayBuffer (channel 0/1) does not support IDBFS in current Emscripten builds.
+                    channelType: 2,
                     serviceWorkerUrl: '/webr-serviceworker.js'
                 });
 

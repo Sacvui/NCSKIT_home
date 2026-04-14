@@ -46,10 +46,10 @@ export async function updateSession(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
 
     const isProtectedRoute = PROTECTED_ROUTES.some(route => pathname.startsWith(route))
+    const isAdminRoute = pathname.startsWith('/admin')
 
     // CRITICAL: If the request carries an OAuth code, the user is mid-authentication.
     // We MUST let them through so the client-side Supabase can exchange the code for a session.
-    // Blocking them here causes the infamous redirect loop to /login?error=no_session.
     const hasAuthCode = request.nextUrl.searchParams.has('code')
 
     if (!user && isProtectedRoute && !hasAuthCode) {
@@ -59,6 +59,26 @@ export async function updateSession(request: NextRequest) {
         url.searchParams.set('error', 'no_session')
         url.searchParams.set('next', pathname)
         return NextResponse.redirect(url)
+    }
+
+    // ROLE-BASED ACCESS CONTROL (RBAC) FOR ADMIN
+    if (user && isAdminRoute) {
+        // Fetch user role from profile
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single()
+
+        const userRole = profile?.role || 'student'
+        const adminRoles = ['platform_admin', 'super_admin', 'institution_admin', 'admin']
+        
+        if (!adminRoles.includes(userRole)) {
+            console.warn('[Middleware] Admin access denied for role:', userRole, 'at', pathname)
+            const url = request.nextUrl.clone()
+            url.pathname = '/' // Redirect unauthorized to home
+            return NextResponse.redirect(url)
+        }
     }
 
     return response

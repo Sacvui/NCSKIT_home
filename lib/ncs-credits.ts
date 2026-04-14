@@ -104,24 +104,40 @@ export async function checkBalance(userId: string, cost: number): Promise<{
     hasEnough: boolean;
     currentBalance: number;
     required: number;
+    isExempt?: boolean;
 }> {
     const supabase = getSupabase();
-    const { data, error } = await supabase
+    const { data: profile, error } = await supabase
         .from('profiles')
-        .select('tokens')
+        .select('tokens, role')
         .eq('id', userId)
         .single();
 
-    if (error || !data) {
+    if (error || !profile) {
         console.error('Error checking balance:', error);
         return { hasEnough: false, currentBalance: 0, required: cost };
     }
 
-    const currentBalance = data.tokens || 0;
+    // Check if role is exempt (admin roles)
+    // Mapping roles level >= 7: institution_admin, platform_admin, super_admin
+    const exemptRoles = ['institution_admin', 'platform_admin', 'super_admin'];
+    const isExempt = exemptRoles.includes(profile.role) || profile.role === 'admin';
+
+    if (isExempt) {
+        return { 
+            hasEnough: true, 
+            currentBalance: profile.tokens || 0, 
+            required: cost,
+            isExempt: true 
+        };
+    }
+
+    const currentBalance = profile.tokens || 0;
     return {
         hasEnough: currentBalance >= cost,
         currentBalance,
-        required: cost
+        required: cost,
+        isExempt: false
     };
 }
 
@@ -134,18 +150,37 @@ export async function deductCredits(
     amount: number,
     reason: string,
     analysisType?: string
-): Promise<{ success: boolean; newBalance: number; error?: string }> {
+): Promise<{ success: boolean; newBalance: number; error?: string; isExempt?: boolean }> {
     const supabase = getSupabase();
 
-    // First check current balance
+    // First check current balance and role
     const { data: profile, error: fetchError } = await supabase
         .from('profiles')
-        .select('tokens, total_spent')
+        .select('tokens, total_spent, role')
         .eq('id', userId)
         .single();
 
     if (fetchError || !profile) {
         return { success: false, newBalance: 0, error: 'Không thể lấy thông tin tài khoản' };
+    }
+
+    // Admin Bypass Logic: level >= 7 (platform_admin=8, super_admin=9, institution_admin=7)
+    const exemptRoles = ['institution_admin', 'platform_admin', 'super_admin', 'admin'];
+    const isExempt = exemptRoles.includes(profile.role);
+
+    if (isExempt) {
+        // Log the transaction as zero cost for admin
+        supabase.from('token_transactions').insert({
+            user_id: userId,
+            amount: 0,
+            type: 'spend_analysis',
+            description: `[Admin Bypass] ${reason}`,
+            balance_after: profile.tokens || 0
+        }).then(({ error }: any) => {
+            if (error) console.warn('Failed to log admin transaction:', error);
+        });
+
+        return { success: true, newBalance: profile.tokens || 0, isExempt: true };
     }
 
     const currentBalance = profile.tokens || 0;
@@ -186,7 +221,7 @@ export async function deductCredits(
         if (error) console.warn('Failed to log transaction silently:', error);
     });
 
-    return { success: true, newBalance };
+    return { success: true, newBalance, isExempt: false };
 }
 
 /**

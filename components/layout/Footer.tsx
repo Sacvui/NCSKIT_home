@@ -32,7 +32,7 @@ export default function Footer({ locale = 'vi' }: FooterProps) {
                                 <Link href="/privacy" className="hover:text-indigo-600 transition-colors">{t(locale, 'footer.privacy')}</Link>
                                 <Link href="/sitemap.xml" className="hover:text-indigo-600 transition-colors uppercase text-[10px] font-black tracking-widest opacity-50">XML Sitemap</Link>
                                 <div className="h-px w-8 bg-slate-200 my-1"></div>
-                                <Link href="/docs/disclaimer" className="hover:text-orange-600 transition-colors font-medium text-orange-700/80 italic">{t(locale, 'footer.disclaimer')}</Link>
+                                <Link href="/terms" className="hover:text-orange-600 transition-colors font-medium text-orange-700/80 italic">{t(locale, 'footer.disclaimer')}</Link>
                             </div>
                         </div>
 
