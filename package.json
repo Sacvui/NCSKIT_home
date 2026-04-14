@@ -18,6 +18,7 @@
     "fresh": "npm run clean:all && npm install",
     "check-env": "node scripts/check-env.js",
     "fix-auth": "node scripts/fix-supabase-config.js",
+    "postinstall": "node scripts/copy-webr.js",
     "prebuild": "npm run check-env",
     "prepare": "node -e \"try { require('fs').mkdirSync('.husky') } catch (e) {}\""
   },

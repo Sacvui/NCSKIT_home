@@ -45,4 +45,3 @@ supabase/.temp/
 
 # WebR Binaries (Large files, generated/copied during setup)
 /public/webr_core/
-/public/webr-serviceworker.js
