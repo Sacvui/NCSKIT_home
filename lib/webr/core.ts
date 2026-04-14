@@ -114,10 +114,10 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 // Use the standardized webr_core folder for consistent resolution
                 const webR = new WebR({
                     baseUrl: BASE_URL,
-                    // channelType 1 = PostMessage: required for IDBFS (permanent package caching)
-                    // If set to 0 (Auto) with strict security headers, it will pick SharedArrayBuffer,
+                    // channelType 3 = PostMessage: required for IDBFS (permanent package caching)
+                    // If set to 0 (Auto) with strict security headers, it will pick SharedArrayBuffer (1),
                     // which completely disables IDBFS and forces re-downloading 30MB of libraries every time.
-                    channelType: 1,
+                    channelType: 3,
                     serviceWorkerUrl: '/webr-serviceworker.js'
                 });
 
