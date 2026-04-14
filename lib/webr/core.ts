@@ -217,7 +217,8 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         WASM = "https://repo.r-wasm.org/"
                     ))
                     
-                    # Force binary mode for WASM
+                    # Optimization for browser downloads
+                    options(download.file.method = "fetch")
                     options(pkgType = "binary")
                     options(mc.cores = 1)
                     
@@ -259,15 +260,17 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         
                         try {
                             updateProgress('🌐 Đang tải lại thư viện...');
+                            console.log('[WebR] Attempting re-install of psych...');
                             // Fallback logic: if we are on 4.5 but repo is missing, try forcing 4.4 path if webr::install fails
                             await webR.evalR(`
                                 tryCatch({
+                                    message("Attempting standard install...")
                                     webr::install("psych", lib="${persistentLib}")
                                 }, error = function(err) {
-                                    message("Standard install failed, trying fallback repo...")
-                                    # Attempt to fallback to 4.4 repo if 4.5 is unavailable
+                                    message("Standard install failed (likely 4.5 repo missing), trying fallback 4.4 repo...")
                                     fallback_repo <- "https://repo.r-wasm.org/bin/emscripten/contrib/4.4"
-                                    install.packages("psych", lib="${persistentLib}", repos=NULL, contriburl=fallback_repo, type="binary")
+                                    # install.packages directly with contriburl bypassed version check
+                                    install.packages("psych", lib="${persistentLib}", repos=NULL, contriburl=fallback_repo, type="binary", dependencies=TRUE)
                                 })
                             `);
                             await webR.evalR('library(psych)');
@@ -280,13 +283,14 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     }
                 } else {
                     updateProgress('🌐 Đang tải thư viện R (lần đầu)...');
+                    console.log('[WebR] Initial installation of psych...');
                     await webR.evalR(`
                         tryCatch({
                             webr::install("psych", lib="${persistentLib}")
                         }, error = function(err) {
-                            message("Standard install failed, trying fallback repo...")
+                            message("Standard install failed, trying fallback 4.4 repo...")
                             fallback_repo <- "https://repo.r-wasm.org/bin/emscripten/contrib/4.4"
-                            install.packages("psych", lib="${persistentLib}", repos=NULL, contriburl=fallback_repo, type="binary")
+                            install.packages("psych", lib="${persistentLib}", repos=NULL, contriburl=fallback_repo, type="binary", dependencies=TRUE)
                         })
                     `);
                     await webR.evalR('library(psych)');
