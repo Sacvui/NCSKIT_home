@@ -1359,7 +1359,7 @@ Việc báo cáo được HTMT cho thấy bạn là một nhà nghiên cứu am 
             }
         ]
     }
-];
+};
 
 const DEFAULT_ARTICLE = {
     slug: 'unknown', category: 'Academy Content', title_vi: 'Đang tải nội dung...', title_en: 'Loading Content...',
