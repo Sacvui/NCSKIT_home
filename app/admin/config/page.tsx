@@ -7,7 +7,7 @@ import {
     getReferralReward, updateReferralReward
 } from '@/lib/ncs-credits'
 import { toast } from 'react-hot-toast'
-import { Save, Loader2, RefreshCw, HandCoins, UserPlus } from 'lucide-react'
+import { Save, Loader2, RefreshCw, HandCoins, UserPlus, Trash2, ServerCrash } from 'lucide-react'
 
 export default function AdminConfigPage() {
     const [costs, setCosts] = useState<Record<string, number>>({})
@@ -16,6 +16,8 @@ export default function AdminConfigPage() {
     
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
+    const [purging, setPurging] = useState(false)
+    const [lastPurge, setLastPurge] = useState<string | null>(null)
     
     const [originalCosts, setOriginalCosts] = useState<Record<string, number>>({})
     const [originalDefaultBalance, setOriginalDefaultBalance] = useState<number>(100000)
@@ -81,6 +83,27 @@ export default function AdminConfigPage() {
             setSaving(false)
         }
     }
+
+    const handlePurgeCache = async () => {
+        if (!confirm('Xác nhận xóa cache toàn hệ thống?\nTất cả user sẽ tự động tải lại trang khi truy cập lần tới.')) return;
+        
+        setPurging(true);
+        try {
+            const res = await fetch('/api/admin/cache-purge', { method: 'POST' });
+            const data = await res.json();
+            
+            if (data.success) {
+                toast.success('Cache đã được xóa thành công!');
+                setLastPurge(new Date().toLocaleString('vi-VN'));
+            } else {
+                toast.error(data.error || 'Lỗi khi xóa cache');
+            }
+        } catch (e) {
+            toast.error('Lỗi kết nối server');
+        } finally {
+            setPurging(false);
+        }
+    };
 
     const hasChanges = JSON.stringify(costs) !== JSON.stringify(originalCosts) 
         || defaultBalance !== originalDefaultBalance
@@ -202,6 +225,41 @@ export default function AdminConfigPage() {
                             ))}
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            {/* Cache Management */}
+            <div className="bg-white rounded-xl shadow-sm border border-red-200 overflow-hidden">
+                <div className="p-4 border-b border-red-100 bg-red-50/50">
+                    <h2 className="font-semibold text-red-700 flex items-center gap-2">
+                        <ServerCrash className="w-5 h-5" />
+                        Quản lý Cache (Cache Management)
+                    </h2>
+                </div>
+                <div className="p-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm text-slate-600">
+                                Xóa cache toàn bộ hệ thống. Tất cả user đang online sẽ tự động tải lại trang với phiên bản mới nhất.
+                            </p>
+                            <p className="text-xs text-slate-400 mt-1">
+                                Sử dụng sau khi deploy hoặc khi user báo lỗi cache cũ.
+                                {lastPurge && <span className="ml-2 text-emerald-600">Lần cuối: {lastPurge}</span>}
+                            </p>
+                        </div>
+                        <button
+                            onClick={handlePurgeCache}
+                            disabled={purging}
+                            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all whitespace-nowrap ${
+                                purging
+                                    ? 'bg-red-100 text-red-400 cursor-not-allowed'
+                                    : 'bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-200 hover:shadow-red-300'
+                            }`}
+                        >
+                            {purging ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                            {purging ? 'Đang xóa...' : 'Xóa Cache'}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
