@@ -16,9 +16,9 @@ let lastError: Error | null = null;
 
 /**
  * Standardized path for WebR assets in production
- * Using 'webr_core' to avoid case-sensitivity issues on some hosts
+ * Using 'webr_core_v2' to bypass aggressive browser caching
  */
-const BASE_URL = '/webr_core/';
+const BASE_URL = '/webr_core_v2/';
 
 // Get current WebR loading status
 export function getWebRStatus(): {
