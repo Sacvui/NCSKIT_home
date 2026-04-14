@@ -34,6 +34,10 @@ const nextConfig = {
                         key: 'Permissions-Policy',
                         value: 'camera=(), microphone=(), geolocation=()',
                     },
+                    {
+                        key: 'Content-Security-Policy',
+                        value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' blob: https://accounts.google.com https://apis.google.com https://generativelanguage.googleapis.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://*.googleusercontent.com https://*.supabase.co; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://repo.r-wasm.org https://webr.r-wasm.org; frame-src https://accounts.google.com;",
+                    },
                 ],
             },
             {

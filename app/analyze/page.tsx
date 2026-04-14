@@ -463,17 +463,17 @@ function AnalyzeContent() {
             if (numericColumns.length < 2) {
                 showToast('Cần ít nhất 2 biến số để phân tích', 'error');
                 setIsAnalyzing(false);
-                setIsAnalyzing(false);
                 return;
             }
 
             // NCS Credit Check
+            let analysisCost = 0;
             if (user) {
-                const cost = await getAnalysisCost(type);
-                const hasEnough = await checkBalance(user.id, cost);
+                analysisCost = await getAnalysisCost(type);
+                const { hasEnough } = await checkBalance(user.id, analysisCost);
                 if (!hasEnough) {
-                    setRequiredCredits(cost);
-                    setCurrentAnalysisCost(cost);
+                    setRequiredCredits(analysisCost);
+                    setCurrentAnalysisCost(analysisCost);
                     setShowInsufficientCredits(true);
                     setIsAnalyzing(false);
                     return;
@@ -509,11 +509,10 @@ function AnalyzeContent() {
             clearInterval(progressInterval);
             setAnalysisProgress(100);
 
-            // Deduct credits on success
+            // Deduct credits on success (reuse analysisCost from check step)
             if (user) {
-                const cost = await getAnalysisCost(type);
-                const { isExempt, newBalance } = await deductCredits(user.id, cost, `${type === 'correlation' ? 'Correlation Matrix' : 'Descriptive Stats'}`);
-                await logAnalysisUsage(user.id, type, cost);
+                const { isExempt, newBalance } = await deductCredits(user.id, analysisCost, `${type === 'correlation' ? 'Correlation Matrix' : 'Descriptive Stats'}`);
+                await logAnalysisUsage(user.id, type, analysisCost);
                 
                 if (!isExempt) {
                     setNcsBalance(newBalance);

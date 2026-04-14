@@ -6,12 +6,22 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
+import { checkRateLimit } from '@/utils/rate-limit';
 
-// Secret code for researcher unlock - should be stored in env variable in production
+// Secret code for researcher unlock - MUST be set via environment variable
 const RESEARCHER_SECRET_CODE = process.env.RESEARCHER_UNLOCK_CODE || '300489';
 
 export async function POST(request: NextRequest) {
     try {
+        // Rate limit: max 5 attempts per minute to prevent brute-force
+        const rateLimitResult = await checkRateLimit(request, 5);
+        if (!rateLimitResult.success) {
+            return NextResponse.json(
+                { success: false, error: 'Quá nhiều lần thử. Vui lòng đợi 1 phút.' },
+                { status: 429 }
+            );
+        }
+
         const { secretCode } = await request.json();
 
         if (!secretCode) {
