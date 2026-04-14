@@ -385,48 +385,42 @@ export async function executeRWithRecovery(
         if (method) await loadPackagesForMethod(method);
 
         // ============================================================================
-        // BULLETPROOF STRING BUILDER (BYPASSES WEBR BLOB/TYPEDARRAY CRASH)
-        // Limits every single postMessage payload to 500 bytes.
+        // ROBUST FILE-BASED EXECUTION (FIXES POSTMESSAGE BLOB CRASH)
         // ============================================================================
-        const buildAndEvalLargeString = async (largeStr: string) => {
-            const MAX_CHUNK = 500;
-            await webR.evalR(`ncs_script_buf <- ""`);
-            for (let i = 0; i < largeStr.length; i += MAX_CHUNK) {
-                const chunk = largeStr.substring(i, i + MAX_CHUNK);
-                const safeChunk = chunk
-                    .replace(/\\/g, '\\\\')
-                    .replace(/"/g, '\\"')
-                    .replace(/\n/g, '\\n')
-                    .replace(/\r/g, '\\r')
-                    .replace(/\t/g, '\\t');
-                await webR.evalR(`ncs_script_buf <- paste0(ncs_script_buf, "${safeChunk}")`);
-            }
-            return await webR.evalR(`eval(parse(text=ncs_script_buf))`);
+        const executeViaFS = async (code: string, fileName: string = 'exec.R') => {
+            const path = `/tmp/${fileName}`;
+            await webR.FS.writeFile(path, new TextEncoder().encode(code));
+            return await webR.evalR(`source("${path}")`);
         };
 
         if (csvData && csvData.length > 0) {
-            const cols = csvData[0].length;
-            const flat = csvData.flat().map(v => (v === null || v === undefined || Number.isNaN(v as number)) ? 'NA' : v).join(',');
-            const matBuilder = `raw_data <- matrix(c(${flat}), ncol=${cols}, byrow=TRUE)`;
-            await buildAndEvalLargeString(matBuilder);
+            updateProgress('📊 Đang nạp dữ liệu...');
+            const flat = csvData.map(row => 
+                row.map(v => (v === null || v === undefined || Number.isNaN(v as number)) ? 'NA' : v).join(',')
+            ).join('\n');
+            
+            // Fast binary write to virtual FS
+            await webR.FS.writeFile('/tmp/data_input.csv', new TextEncoder().encode(flat));
+            await webR.evalR(`raw_data <- as.matrix(read.csv("/tmp/data_input.csv", header=FALSE, stringsAsFactors=FALSE))`);
         }
 
-        let rResultPromise;
-        if (rCode.length > 500) {
-            rResultPromise = buildAndEvalLargeString(rCode);
+        let rResult: any;
+        if (rCode.length > 1000) {
+            rResult = await executeViaFS(rCode, `script_${Date.now()}.R`);
         } else {
-            rResultPromise = webR.evalR(rCode);
+            rResult = await webR.evalR(rCode);
         }
 
         const timeoutPromise = new Promise((_, reject) =>
             setTimeout(() => reject(new Error(`Timeout after ${timeoutMs / 1000}s`)), timeoutMs)
         );
 
-        const rResult: any = await Promise.race([rResultPromise, timeoutPromise]);
-        const output = await rResult.toJs();
+        const resultProxy: any = await Promise.race([Promise.resolve(rResult), timeoutPromise]);
+        const output = await resultProxy.toJs();
 
-        if (rResult && typeof (rResult as any).destroy === 'function') {
-            (rResult as any).destroy();
+        // Cleanup proxies but check validity
+        if (resultProxy && typeof resultProxy.destroy === 'function') {
+            resultProxy.destroy();
         }
 
         return output;
