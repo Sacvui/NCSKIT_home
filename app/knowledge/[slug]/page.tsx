@@ -699,18 +699,19 @@ Chúng tôi sẽ tư vấn giải pháp nào phù hợp nhất dựa trên tỷ 
             h2_en: '7. Visualizing Clean Data with Boxplots',
             content_vi: `Biểu đồ hộp (Boxplot) là cách tốt nhất để khoanh vùng Outliers. ncsStat vẽ các Boxplot chuyên nghiệp, đánh dấu rõ số thứ tự (ID) của các quan sát ngoại lai, giúp bạn thực hiện thao tác làm sạch dữ liệu một cách trực quan và chính xác nhất.`,
             content_en: `Boxplots are the classic tool for identifying outliers. ncsStat marks specific case IDs in its high-resolution boxplots, making it easy for you to target and verify anomalies before finalizing your dataset.`
-            {
-                h2_vi: '7. Mahalanobis Distance: Kỹ thuật phát hiện Outliers đa biến bài bản',
-                h2_en: '7. Mahalanobis Distance: Multivariate Outlier Detection',
-                content_vi: `Khi bạn có nhiều biến quan sát, việc chỉ nhìn vào từng biến lẻ (univariate) là chưa đủ. Khoảng cách Mahalanobis trong R giúp bạn xác định các quan sát "lạc loài" trong không gian đa chiều. ncsStat tự động tính toán giá trị này và so sánh với giá trị tới hạn Chi-square. Nếu p < 0.001, đó là bằng chứng thép để loại bỏ Outliers, giúp mô hình của bạn không bị sai lệch bởi những quan sát bất thường.`,
-                content_en: `Univariate detection isn't enough for multi-item scales. Mahalanobis distance measures how far a case is from the multivariate centroid. ncsStat automates this calculation, comparing results against Chi-square critical values. A p < 0.001 flag provides a robust, academic justification for case removal, ensuring your structural paths aren't skewed by anomalies.`
-            },
-            {
-                h2_vi: '8. Kiểm định Phân phối chuẩn: Đảm bảo nền tảng cho SEM',
-                h2_en: '8. Normality Testing: The Foundation for SEM',
-                content_vi: `Hầu hết các phép thử SEM (CB-SEM) đều yêu cầu dữ liệu có phân phối chuẩn đa biến. ncsStat cung cấp các chỉ số Skewness (Độ xiên) và Kurtosis (Độ nhọn) chi tiết. Quy chuẩn hiện đại yêu cầu Skewness < 3 và Kurtosis < 10. Nếu dữ liệu vi phạm nghiêm trọng, chúng tôi sẽ gợi ý bạn chuyển sang dùng PLS-SEM - một phương pháp linh hoạt hơn với dữ liệu không chuẩn.`,
-                content_en: `CB-SEM requires multivariate normality. ncsStat reports Skewness and Kurtosis for every item. Academic standards typically accept Skewness < 3 and Kurtosis < 10. If your data fails these tests, ncsStat's decision engine will recommend switching to PLS-SEM, which is more robust to non-normal distributions.`
-            }
+        },
+        {
+            h2_vi: '8. Mahalanobis Distance: Kỹ thuật phát hiện Outliers đa biến bài bản',
+            h2_en: '8. Mahalanobis Distance: Multivariate Outlier Detection',
+            content_vi: `Khi bạn có nhiều biến quan sát, việc chỉ nhìn vào từng biến lẻ (univariate) là chưa đủ. Khoảng cách Mahalanobis trong R giúp bạn xác định các quan sát "lạc loài" trong không gian đa chiều. ncsStat tự động tính toán giá trị này và so sánh với giá trị tới hạn Chi-square. Nếu p < 0.001, đó là bằng chứng thép để loại bỏ Outliers, giúp mô hình của bạn không bị sai lệch bởi những quan sát bất thường.`,
+            content_en: `Univariate detection isn't enough for multi-item scales. Mahalanobis distance measures how far a case is from the multivariate centroid. ncsStat automates this calculation, comparing results against Chi-square critical values. A p < 0.001 flag provides a robust, academic justification for case removal, ensuring your structural paths aren't skewed by anomalies.`
+        },
+        {
+            h2_vi: '9. Kiểm định Phân phối chuẩn: Đảm bảo nền tảng cho SEM',
+            h2_en: '9. Normality Testing: The Foundation for SEM',
+            content_vi: `Hầu hết các phép thử SEM (CB-SEM) đều yêu cầu dữ liệu có phân phối chuẩn đa biến. ncsStat cung cấp các chỉ số Skewness (Độ xiên) và Kurtosis (Độ nhọn) chi tiết. Quy chuẩn hiện đại yêu cầu Skewness < 3 và Kurtosis < 10. Nếu dữ liệu vi phạm nghiêm trọng, chúng tôi sẽ gợi ý bạn chuyển sang dùng PLS-SEM - một phương pháp linh hoạt hơn với dữ liệu không chuẩn.`,
+            content_en: `CB-SEM requires multivariate normality. ncsStat reports Skewness and Kurtosis for every item. Academic standards typically accept Skewness < 3 and Kurtosis < 10. If your data fails these tests, ncsStat's decision engine will recommend switching to PLS-SEM, which is more robust to non-normal distributions.`
+        }
         ]
     },
     'sem-cfa-structural-modeling': {
