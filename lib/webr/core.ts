@@ -114,10 +114,10 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 // Use the standardized webr_core folder for consistent resolution
                 const webR = new WebR({
                     baseUrl: BASE_URL,
-                    // channelType 0 = Automatic: uses SharedArrayBuffer when COOP/COEP headers are set.
-                    // Note: IDBFS is NOT supported with SharedArrayBuffer, so packages will be
-                    // re-downloaded each session. The extended timeout (180s) accommodates this.
-                    channelType: 0,
+                    // channelType 1 = PostMessage: required for IDBFS (permanent package caching)
+                    // If set to 0 (Auto) with strict security headers, it will pick SharedArrayBuffer,
+                    // which completely disables IDBFS and forces re-downloading 30MB of libraries every time.
+                    channelType: 1,
                     serviceWorkerUrl: '/webr-serviceworker.js'
                 });
 
