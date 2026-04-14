@@ -392,18 +392,16 @@ export async function executeRWithRecovery(
             
             const outPath = `/tmp/out_${Date.now()}.json`;
             const wrappedCode = `
-                (function() {
-                    try {
+                local({
+                    tryCatch({
                         ${code}
                         .last_result <- .Last.value
                         .json_out <- jsonlite::toJSON(.last_result, auto_unbox = TRUE, force = TRUE, null = "null", NA = "null")
-                        writeLines(.json_out, "${outPath}")
-                        return(TRUE)
-                    } catch (e) {
+                        writeLines(as.character(.json_out), "${outPath}")
+                    }, error = function(e) {
                         writeLines(paste("ERROR:", e$message), "${outPath}")
-                        return(FALSE)
-                    }
-                })()
+                    })
+                })
             `;
             
             const scriptPath = `/tmp/script_${Date.now()}.R`;
