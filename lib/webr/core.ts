@@ -258,23 +258,24 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         
                         try {
                             updateProgress('🌐 Đang tải lại thư viện...');
-                            console.log('[WebR] Attempting re-install of psych...');
-                            await webR.evalR(`webr::install("psych", lib="${persistentLib}")`);
-                            await webR.evalR('library(psych)');
+                        console.log('[WebR] Attempting re-install of psych and jsonlite...');
+                            await webR.evalR(`webr::install(c("psych", "jsonlite"), lib="${persistentLib}")`);
+                            await webR.evalR('library(psych); library(jsonlite)');
                             markPackageLoaded('psych');
+                            markPackageLoaded('jsonlite');
                             await webR.FS.syncfs(false);
                         } catch(reInstallErr) {
                             console.error('[WebR] Re-install failed:', reInstallErr);
-                            throw new Error("Không thể khởi tạo thư viện R. Vui lòng bấm 'Khôi phục ngay'.");
                         }
                     }
                 } else {
                     updateProgress('🌐 Đang tải thư viện R (lần đầu)...');
-                    console.log('[WebR] Initial installation of psych...');
+                    console.log('[WebR] Initial installation of psych and jsonlite...');
                     try {
-                        await webR.evalR(`webr::install("psych", lib="${persistentLib}")`);
-                        await webR.evalR('library(psych)');
+                        await webR.evalR(`webr::install(c("psych", "jsonlite"), lib="${persistentLib}")`);
+                        await webR.evalR('library(psych); library(jsonlite)');
                         markPackageLoaded('psych');
+                        markPackageLoaded('jsonlite');
                         await webR.FS.syncfs(false);
                     } catch (installErr) {
                         console.error('[WebR] Initial install failed:', installErr);
@@ -388,8 +389,6 @@ export async function executeRWithRecovery(
         // ULTRA-ROBUST FILE-BASED TRANSFER (BYPASSES toJs() BLOB CRASH)
         // ============================================================================
         const executeAndGetViaFS = async (code: string) => {
-            await webR.evalR(`if (!requireNamespace("jsonlite", quietly = TRUE)) webr::install("jsonlite")`);
-            
             const outPath = `/tmp/out_${Date.now()}.json`;
             const wrappedCode = `
                 local({
