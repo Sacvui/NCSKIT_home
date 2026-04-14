@@ -156,8 +156,8 @@ export default function ScalesLibrary() {
             
             if (data && data.length > 0) {
                 // Merge static with DB (preventing duplicates by ID)
-                const dbIds = new Set(data.map(s => s.id));
-                const uniqueStatic = STATIC_SCALES.filter(s => !dbIds.has(s.id));
+                const dbIds = new Set(data.map((s: any) => s.id));
+                const uniqueStatic = STATIC_SCALES.filter((s: any) => !dbIds.has(s.id));
                 setScales([...data, ...uniqueStatic]);
             } else {
                 setScales(STATIC_SCALES);
