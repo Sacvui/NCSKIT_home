@@ -76,11 +76,23 @@ export async function clearWebRStorage(): Promise<void> {
     // Clear IndexedDB 'WebR' database if possible
     if (typeof window !== 'undefined' && window.indexedDB) {
         try {
-            console.log('[WebR] Deleting IDBFS database for fresh start...');
-            // Most implementations use 'IDBFS' or a specific name. 
-            // We can't easily target a specific sub-folder inside /home/web_user 
-            // without a running WebR, so we flag it to be wiped on next init.
-            localStorage.setItem('webr_fs_wipe_requested', 'true');
+            console.log('[WebR] Deleting ALL IndexedDB databases to ensure a fresh WebR file system...');
+            // In modern browsers, indexedDB.databases() returns a list of databases
+            if ('databases' in window.indexedDB) {
+                const dbs = await window.indexedDB.databases();
+                dbs.forEach(db => {
+                    if (db.name) {
+                        try {
+                            window.indexedDB.deleteDatabase(db.name);
+                            console.log(`[WebR] Deleted DB: ${db.name}`);
+                        } catch(e) {}
+                    }
+                });
+            } else {
+                // Fallback for older browsers: WebR typically uses these names
+                window.indexedDB.deleteDatabase('emscripten_fs');
+                window.indexedDB.deleteDatabase('webr_fs');
+            }
         } catch (e) {
             console.warn('[WebR] Could not flag storage for wipe:', e);
         }
@@ -227,11 +239,16 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                             console.error('[WebR] Wipe failed, using memory mode:', wipeErr);
                         }
                         
-                        updateProgress('🌐 Đang tải lại thư viện...');
-                        await webR.evalR(`webr::install("psych", lib="${persistentLib}")`);
-                        await webR.evalR('library(psych)');
-                        markPackageLoaded('psych');
-                        await webR.FS.syncfs(false);
+                        try {
+                            updateProgress('🌐 Đang tải lại thư viện...');
+                            await webR.evalR(`webr::install("psych", lib="${persistentLib}")`);
+                            await webR.evalR('library(psych)');
+                            markPackageLoaded('psych');
+                            await webR.FS.syncfs(false);
+                        } catch(reInstallErr) {
+                            console.error('[WebR] Re-install completely failed due to IDBFS lock:', reInstallErr);
+                            throw new Error("Không thể ghi đè thư viện bị hỏng. Vui lòng bấm nút 'Khôi phục ngay' để xóa triệt để bộ nhớ đệm.");
+                        }
                     }
                 } else {
                     updateProgress('🌐 Đang tải thư viện R (lần đầu)...');
