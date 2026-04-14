@@ -55,6 +55,12 @@ const nextConfig = {
                         key: 'Cross-Origin-Resource-Policy',
                         value: 'cross-origin',
                     },
+                    {
+                        // Force browser to revalidate WebR binaries on each visit
+                        // This prevents stale worker cache issues after deployments
+                        key: 'Cache-Control',
+                        value: 'public, max-age=0, must-revalidate',
+                    },
                 ],
             },
             {
@@ -71,6 +77,11 @@ const nextConfig = {
                     {
                         key: 'Cross-Origin-Opener-Policy',
                         value: 'same-origin',
+                    },
+                    {
+                        // Service workers MUST not be cached to ensure updates propagate
+                        key: 'Cache-Control',
+                        value: 'no-cache, no-store, must-revalidate',
                     },
                 ],
             },
