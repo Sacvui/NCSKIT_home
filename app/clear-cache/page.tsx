@@ -7,9 +7,15 @@ export default function ClearCachePage() {
         const wipeAll = async () => {
             try {
                 console.log('Initiating global cache wipe...');
+                const ev = localStorage.getItem('ncs_emergency_version');
+                
                 // 1. Clear LocalStorage and SessionStorage
                 localStorage.clear();
                 sessionStorage.clear();
+
+                if (ev) {
+                    localStorage.setItem('ncs_emergency_version', ev);
+                }
 
                 // 2. Unregister ALL service workers
                 if ('serviceWorker' in navigator) {

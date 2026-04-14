@@ -17,6 +17,9 @@ const CACHE_VERSION_KEY = 'ncs_cache_version';
  */
 export default function CacheVersionChecker() {
     useEffect(() => {
+        // Do not run on the clear-cache page to avoid infinite reload loop
+        if (typeof window !== 'undefined' && window.location.pathname === '/clear-cache') return;
+
         const checkVersion = async () => {
             try {
                 const supabase = getSupabase();
