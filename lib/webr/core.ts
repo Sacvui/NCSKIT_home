@@ -259,7 +259,8 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         try {
                             updateProgress('🌐 Đang tải lại thư viện...');
                         console.log('[WebR] Attempting re-install of psych and jsonlite...');
-                            await webR.evalR(`webr::install(c("psych", "jsonlite"), lib="${persistentLib}")`);
+                            await webR.evalR(`webr::install("psych", lib="${persistentLib}")`);
+                            await webR.evalR(`webr::install("jsonlite", lib="${persistentLib}")`);
                             await webR.evalR('library(psych); library(jsonlite)');
                             markPackageLoaded('psych');
                             markPackageLoaded('jsonlite');
@@ -272,7 +273,8 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     updateProgress('🌐 Đang tải thư viện R (lần đầu)...');
                     console.log('[WebR] Initial installation of psych and jsonlite...');
                     try {
-                        await webR.evalR(`webr::install(c("psych", "jsonlite"), lib="${persistentLib}")`);
+                        await webR.evalR(`webr::install("psych", lib="${persistentLib}")`);
+                        await webR.evalR(`webr::install("jsonlite", lib="${persistentLib}")`);
                         await webR.evalR('library(psych); library(jsonlite)');
                         markPackageLoaded('psych');
                         markPackageLoaded('jsonlite');
