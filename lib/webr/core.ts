@@ -385,36 +385,45 @@ export async function executeRWithRecovery(
         if (method) await loadPackagesForMethod(method);
 
         // ============================================================================
-        // ROBUST FILE-BASED EXECUTION + JSON EXTRACTION
+        // ULTRA-ROBUST FILE-BASED TRANSFER (BYPASSES toJs() BLOB CRASH)
         // ============================================================================
-        const executeAndGetJSON = async (code: string) => {
-            // Ensure jsonlite is available for serialization
+        const executeAndGetViaFS = async (code: string) => {
             await webR.evalR(`if (!requireNamespace("jsonlite", quietly = TRUE)) webr::install("jsonlite")`);
             
+            const outPath = `/tmp/out_${Date.now()}.json`;
             const wrappedCode = `
                 (function() {
                     try {
                         ${code}
-                        # Last expression is the result
                         .last_result <- .Last.value
-                        jsonlite::toJSON(.last_result, auto_unbox = TRUE, force = TRUE, null = "null", NA = "null")
+                        .json_out <- jsonlite::toJSON(.last_result, auto_unbox = TRUE, force = TRUE, null = "null", NA = "null")
+                        writeLines(.json_out, "${outPath}")
+                        return(TRUE)
                     } catch (e) {
-                        stop(e)
+                        writeLines(paste("ERROR:", e$message), "${outPath}")
+                        return(FALSE)
                     }
                 })()
             `;
             
-            const path = `/tmp/exec_${Date.now()}.R`;
-            await webR.FS.writeFile(path, new TextEncoder().encode(wrappedCode));
-            const resultProxy = await webR.evalR(`source("${path}")$value`);
-            const jsonStr = await resultProxy.toJs();
+            const scriptPath = `/tmp/script_${Date.now()}.R`;
+            await webR.FS.writeFile(scriptPath, new TextEncoder().encode(wrappedCode));
+            await webR.evalR(`source("${scriptPath}")`);
             
-            if (resultProxy && typeof resultProxy.destroy === 'function') resultProxy.destroy();
+            // Read back as binary (Uint8Array) - this is the most stable channel in PostMessage mode
+            const bytes = await webR.FS.readFile(outPath);
+            const jsonStr = new TextDecoder().decode(bytes);
+            
+            // Cleanup temp files
+            await webR.evalR(`unlink(c("${scriptPath}", "${outPath}"))`);
+            
+            if (jsonStr.startsWith("ERROR:")) {
+                throw new Error(jsonStr.replace("ERROR:", "").trim());
+            }
             
             try {
                 return JSON.parse(jsonStr);
             } catch (e) {
-                console.warn('[WebR] JSON Parse failed, returning raw string:', jsonStr);
                 return jsonStr;
             }
         };
@@ -431,8 +440,9 @@ export async function executeRWithRecovery(
 
         let output: any;
         const executionPromise = (async () => {
-            if (rCode.length > 200 || rCode.includes('psych') || rCode.includes('fa(')) {
-                return await executeAndGetJSON(rCode);
+            // Force FS extraction for anything that might be large or from 'psych'
+            if (rCode.length > 100 || rCode.includes('psych') || rCode.includes('fa(') || rCode.includes('omega(')) {
+                return await executeAndGetViaFS(rCode);
             } else {
                 const res = await webR.evalR(rCode);
                 const val = await res.toJs();
