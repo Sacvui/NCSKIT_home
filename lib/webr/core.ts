@@ -106,7 +106,7 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
         const startTime = performance.now();
 
         const initTimeout = new Promise<never>((_, reject) => 
-            setTimeout(() => reject(new Error('R-Engine initialization timed out (60s)')), 60000)
+            setTimeout(() => reject(new Error('R-Engine initialization timed out (180s)')), 180000)
         );
 
         const performInit = (async (): Promise<WebR> => {
@@ -114,9 +114,10 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 // Use the standardized webr_core folder for consistent resolution
                 const webR = new WebR({
                     baseUrl: BASE_URL,
-                    // channelType 3 = PostMessage: Essential for IDBFS support.
-                    // SharedArrayBuffer (channel 1) does not support IDBFS in current Emscripten builds.
-                    channelType: 3,
+                    // channelType 0 = Automatic: uses SharedArrayBuffer when COOP/COEP headers are set.
+                    // Note: IDBFS is NOT supported with SharedArrayBuffer, so packages will be
+                    // re-downloaded each session. The extended timeout (180s) accommodates this.
+                    channelType: 0,
                     serviceWorkerUrl: '/webr-serviceworker.js'
                 });
 
