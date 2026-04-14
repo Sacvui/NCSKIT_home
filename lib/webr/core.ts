@@ -210,10 +210,27 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     if (dir.exists("${persistentLib}")) {
                         .libPaths(c('${persistentLib}', .libPaths()))
                     }
-                    options(repos = c(WASM = "https://repo.r-wasm.org/", CRAN = "https://cran.r-universe.dev/"))
+                    
+                    # Resilience: Use multiple repos and handle 4.5 -> 4.4 fallback if needed
+                    options(repos = c(
+                        CRAN = "https://cran.r-universe.dev/",
+                        WASM = "https://repo.r-wasm.org/"
+                    ))
+                    
+                    # Force binary mode for WASM
+                    options(pkgType = "binary")
                     options(mc.cores = 1)
+                    
+                    # Pre-check psych existence
                     psych_exists <- dir.exists("${persistentLib}/psych")
+                    
+                    # Check R version for diagnostics
+                    r_version <- paste0(R.version$major, ".", R.version$minor)
                 `);
+
+                const rVersionObj = await webR.evalR('r_version');
+                const rVersion = unpackWebRObject(await rVersionObj.toJs());
+                console.log(`[WebR] R Engine Version: ${rVersion}`);
 
                 // 3. Load or Install Psych (Critical Core)
                 updateProgress('📦 Đang thiết lập công cụ...');
@@ -228,7 +245,7 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         markPackageLoaded('psych');
                     } catch (e) {
                         // Hard recovery: Delete entire corrupted library cluster
-                        console.warn('[WebR] Fatal Psych corruption! Wiping library folder...', e);
+                        console.warn('[WebR] Fatal Psych corruption or version mismatch! Wiping library folder...', e);
                         updateProgress('🧹 Đang làm sạch bộ nhớ...');
                         try {
                             await webR.evalR(`
@@ -242,18 +259,36 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         
                         try {
                             updateProgress('🌐 Đang tải lại thư viện...');
-                            await webR.evalR(`webr::install("psych", lib="${persistentLib}")`);
+                            // Fallback logic: if we are on 4.5 but repo is missing, try forcing 4.4 path if webr::install fails
+                            await webR.evalR(`
+                                tryCatch({
+                                    webr::install("psych", lib="${persistentLib}")
+                                }, error = function(err) {
+                                    message("Standard install failed, trying fallback repo...")
+                                    # Attempt to fallback to 4.4 repo if 4.5 is unavailable
+                                    fallback_repo <- "https://repo.r-wasm.org/bin/emscripten/contrib/4.4"
+                                    install.packages("psych", lib="${persistentLib}", repos=NULL, contriburl=fallback_repo, type="binary")
+                                })
+                            `);
                             await webR.evalR('library(psych)');
                             markPackageLoaded('psych');
                             await webR.FS.syncfs(false);
                         } catch(reInstallErr) {
-                            console.error('[WebR] Re-install completely failed due to IDBFS lock:', reInstallErr);
-                            throw new Error("Không thể ghi đè thư viện bị hỏng. Vui lòng bấm nút 'Khôi phục ngay' để xóa triệt để bộ nhớ đệm.");
+                            console.error('[WebR] Re-install completely failed:', reInstallErr);
+                            throw new Error("Không thể khởi tạo thư viện R. Vui lòng bấm 'Khôi phục ngay' hoặc kiểm tra kết nối internet.");
                         }
                     }
                 } else {
                     updateProgress('🌐 Đang tải thư viện R (lần đầu)...');
-                    await webR.evalR(`webr::install("psych", lib="${persistentLib}")`);
+                    await webR.evalR(`
+                        tryCatch({
+                            webr::install("psych", lib="${persistentLib}")
+                        }, error = function(err) {
+                            message("Standard install failed, trying fallback repo...")
+                            fallback_repo <- "https://repo.r-wasm.org/bin/emscripten/contrib/4.4"
+                            install.packages("psych", lib="${persistentLib}", repos=NULL, contriburl=fallback_repo, type="binary")
+                        })
+                    `);
                     await webR.evalR('library(psych)');
                     markPackageLoaded('psych');
                     await webR.FS.syncfs(false);
