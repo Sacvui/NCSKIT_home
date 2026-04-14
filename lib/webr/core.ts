@@ -77,21 +77,22 @@ export async function clearWebRStorage(): Promise<void> {
     if (typeof window !== 'undefined' && window.indexedDB) {
         try {
             console.log('[WebR] Deleting ALL IndexedDB databases to ensure a fresh WebR file system...');
-            // In modern browsers, indexedDB.databases() returns a list of databases
-            if ('databases' in window.indexedDB) {
-                const dbs = await window.indexedDB.databases();
-                dbs.forEach(db => {
+            const idb: any = window.indexedDB;
+            if (typeof idb.databases === 'function') {
+                const dbs = await idb.databases();
+                dbs.forEach((db: any) => {
                     if (db.name) {
                         try {
-                            window.indexedDB.deleteDatabase(db.name);
+                            idb.deleteDatabase(db.name);
                             console.log(`[WebR] Deleted DB: ${db.name}`);
                         } catch(e) {}
                     }
                 });
             } else {
                 // Fallback for older browsers: WebR typically uses these names
-                window.indexedDB.deleteDatabase('emscripten_fs');
-                window.indexedDB.deleteDatabase('webr_fs');
+                idb.deleteDatabase('emscripten_fs');
+                idb.deleteDatabase('webr_fs');
+                idb.deleteDatabase('IDBFS');
             }
         } catch (e) {
             console.warn('[WebR] Could not flag storage for wipe:', e);
