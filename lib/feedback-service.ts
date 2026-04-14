@@ -104,12 +104,16 @@ export const FeedbackService = {
                 content = data.openFeedback || data.manuscriptUtility;
             }
 
+            const fullContentStr = JSON.stringify({
+                type: type,
+                summary: content.substring(0, 500),
+                raw_data: data
+            });
+
             const { error } = await supabase.from('feedback').insert({
                 user_id: user.id,
-                type,
-                content: content.substring(0, 500), // Truncate if needed
-                rating,
-                details: data
+                content: fullContentStr,
+                rating
             });
 
             if (error) {
