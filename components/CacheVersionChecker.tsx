@@ -30,10 +30,18 @@ export default function CacheVersionChecker() {
 
                 const serverVersion = String(data.value);
                 const localVersion = localStorage.getItem(CACHE_VERSION_KEY);
+                
+                // Emergency hardcoded version to force cache clear for all users
+                const EMERGENCY_VERSION = '20260414_emergency_2';
+                const localEmergencyVersion = localStorage.getItem('ncs_emergency_version');
 
-                if (localVersion && localVersion !== serverVersion) {
+                const needsServerPurge = localVersion && localVersion !== serverVersion;
+                const needsEmergencyPurge = localEmergencyVersion !== EMERGENCY_VERSION;
+
+                if (needsServerPurge || needsEmergencyPurge) {
                     console.log('[CacheCheck] New version detected. Reloading...');
                     localStorage.setItem(CACHE_VERSION_KEY, serverVersion);
+                    localStorage.setItem('ncs_emergency_version', EMERGENCY_VERSION);
                     
                     // Unregister any service workers to ensure clean slate
                     if ('serviceWorker' in navigator) {
