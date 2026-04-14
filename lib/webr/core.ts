@@ -114,9 +114,9 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 // Use the standardized webr_core folder for consistent resolution
                 const webR = new WebR({
                     baseUrl: BASE_URL,
-                    // channelType 1 = PostMessage: Essential for IDBFS support.
-                    // SharedArrayBuffer (channel 0) does not support IDBFS in current Emscripten builds.
-                    channelType: 1,
+                    // channelType 3 = PostMessage: Essential for IDBFS support.
+                    // SharedArrayBuffer (channel 1) does not support IDBFS in current Emscripten builds.
+                    channelType: 3,
                     serviceWorkerUrl: '/webr-serviceworker.js'
                 });
 
