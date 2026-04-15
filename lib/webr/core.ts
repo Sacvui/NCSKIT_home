@@ -204,8 +204,8 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     console.warn('[WebR] Falling back to slow memory-only mode. Every page load will require re-downloading packages.');
                 }
 
-                const localRepo = (typeof window !== 'undefined' ? window.location.origin : '') + "/webr_packages";
-                console.log("[WebR] Using self-hosted repository:", localRepo);
+                const localRepo = (typeof window !== 'undefined' ? window.location.origin : '') + "/webr_packages?v=27";
+                console.log("[WebR] Using synchronized repository:", localRepo);
 
                 await webR.evalR(`
                     if (dir.exists("${persistentLib}")) {
@@ -217,8 +217,8 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     
                     # Core configuration for WASM
                     options(pkgType = "binary")
-                    options(mc.cores = 1)
-                    options(timeout = 300) # 5 minute timeout for slow connections
+                    options(warn = -1) # Suppress minor warnings like missing .rds files
+                    options(timeout = 300) # 5 minute timeout
                     
                     # Pre-check psych existence
                     psych_exists <- dir.exists("${persistentLib}/psych")
