@@ -416,7 +416,7 @@ export async function executeRWithRecovery(
             
             if (resObj && typeof (resObj as any).destroy === 'function') (resObj as any).destroy();
             
-            console.log('[WebR] Engine System v2.2.0 - Binary Transfer Optimized');
+            console.log('[WebR] Engine System v2.3.0 - VFS-Free Data Pipe Active');
 
             try {
                 // If the data comes as a Uint8Array (stable binary), decode it first
