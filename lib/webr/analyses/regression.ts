@@ -2,7 +2,7 @@
  * Regression Analysis Modules - Template-Driven
  */
 import { executeRWithRecovery, loadPackagesForMethod } from '../core';
-import { parseWebRResult, arrayToRMatrix } from '../utils';
+import { parseWebRResult } from '../utils';
 import { getAnalysisRTemplate } from '../templates';
 
 /**
@@ -70,6 +70,7 @@ export async function runLinearRegression(data: number[][], names: string[]): Pr
     }, error = function(e) rep(NA, nrow(cf)));
 
     sh_p <- tryCatch(shapiro.test(residuals(mod))$p.value, error = function(e) 0);
+    f_p_val <- if(!is.null(fs) && fs[2] > 0 && fs[3] > 0) pf(fs[1], fs[2], fs[3], lower.tail = FALSE) else 1;
 
     list(
         c_names = rownames(cf),
@@ -84,6 +85,7 @@ export async function runLinearRegression(data: number[][], names: string[]): Pr
         df_n = if(is.null(fs)) 0 else fs[2],
         df_d = if(is.null(fs)) 0 else fs[3],
         sigma = as.numeric(s$sigma),
+        f_p = as.numeric(f_p_val),
         fit = as.vector(fitted(mod)),
         res = as.vector(residuals(mod)),
         act = as.vector(df[, 1]),
@@ -122,7 +124,7 @@ export async function runLinearRegression(data: number[][], names: string[]): Pr
     const f = getValue('f')?.[0] ?? 0;
     const df_n = getValue('df_n')?.[0] ?? 0;
     const df_d = getValue('df_d')?.[0] ?? 0;
-    const fP = 1 - 0; // Simplified p-value for F in JS if needed or just use R value
+    const fPValue = getValue('f_p')?.[0] ?? 1;
 
     return {
         coefficients,
@@ -132,7 +134,7 @@ export async function runLinearRegression(data: number[][], names: string[]): Pr
             fStatistic: f,
             df: df_n,
             dfResid: df_d,
-            pValue: 0, // Will be updated if needed or use R-side p-value
+            pValue: fPValue,
             residualStdError: getValue('sigma')?.[0] ?? 0,
             normalityP: getValue('norm_p')?.[0] ?? 0
         },

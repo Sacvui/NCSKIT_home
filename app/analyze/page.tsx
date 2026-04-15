@@ -451,6 +451,9 @@ function AnalyzeContent() {
         setIsAnalyzing(true);
         setAnalysisType(type);
         let progressInterval: NodeJS.Timeout | undefined;
+        // Declared outside try so catch block can access them for refund logic
+        let analysisCost = 0;
+        let creditDeducted = false;
 
         try {
             const numericColumns = getNumericColumns();
@@ -464,8 +467,6 @@ function AnalyzeContent() {
             // --- NCS Credit: Check balance first, then deduct BEFORE running analysis ---
             // This prevents the race condition where analysis succeeds but deduction fails.
             // If analysis fails after deduction, we attempt a refund via a compensating credit.
-            let analysisCost = 0;
-            let creditDeducted = false;
             if (user) {
                 analysisCost = await getAnalysisCost(type);
                 const { hasEnough } = await checkBalance(user.id, analysisCost);
