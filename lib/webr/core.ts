@@ -409,17 +409,19 @@ export async function executeRWithRecovery(
             const resObj = await webR.evalR(wrappedCode);
             // Use internal unpacker to convert WebR object to standard JS object
             const rawJs = await resObj.toJs();
-            const unpacked: unknown = unpackWebRObject(rawJs);
+            const unpacked = unpackWebRObject(rawJs) as any;
             
             if (resObj && typeof (resObj as any).destroy === 'function') (resObj as any).destroy();
             
-            // Explicitly narrow type to string for safety and to satisfy TS
-            if (typeof unpacked === 'string' && unpacked.startsWith("ERROR:")) {
-                throw new Error(unpacked.replace("ERROR:", "").trim());
+            console.log('[WebR] Engine System v2.1.0 - String-based Transfer Active');
+
+            // Explicitly narrow type to string for safety
+            if (typeof unpacked === 'string' && (unpacked as string).startsWith("ERROR:")) {
+                throw new Error((unpacked as string).replace("ERROR:", "").trim());
             }
             
             try {
-                return typeof unpacked === 'string' ? JSON.parse(unpacked) : unpacked;
+                return typeof unpacked === 'string' ? JSON.parse(unpacked as string) : unpacked;
             } catch (e) {
                 return unpacked;
             }
