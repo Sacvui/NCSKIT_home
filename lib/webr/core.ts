@@ -394,10 +394,16 @@ export async function executeRWithRecovery(
                     .user_eval_res <- {
                         ${code}
                     }
-                    # If the block didn't return via .Last.value, use the assigned result
-                    .last_result <- if (exists(".Last.value")) .Last.value else .user_eval_res
+                    # Final check for result
+                    .last_result <- .user_eval_res
                     
-                    .json_out <- jsonlite::toJSON(.last_result, auto_unbox = TRUE, force = TRUE, null = "null", NA = "null")
+                    .json_out <- jsonlite::toJSON(
+                        .last_result, 
+                        auto_unbox = TRUE, 
+                        force = TRUE, 
+                        "null" = "null", 
+                        "NA" = "null"
+                    )
                     writeLines(as.character(.json_out), "${outPath}")
                 }, error = function(e) {
                     writeLines(paste("ERROR:", e$message), "${outPath}")
