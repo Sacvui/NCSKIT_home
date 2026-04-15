@@ -400,20 +400,23 @@ export async function executeRWithRecovery(
                     }
                     # Convert to JSON with high reliability settings
                     .json <- jsonlite::toJSON(.res, auto_unbox = TRUE, force = TRUE, digits = 8)
-                    as.character(.json)
+                    charToRaw(as.character(.json))
                 }, error = function(e) {
-                    paste("ERROR:", e$message)
+                    charToRaw(paste("ERROR:", e$message))
                 })
             `;
             
             const resObj = await webR.evalR(wrappedCode);
-            // Use internal unpacker to convert WebR object to standard JS object
+            // v2.2.0 - Ultra-stable Binary Transfer
+            // Use raw pointer transfer to avoid Blob-related crashes for large data
             const rawJs = await resObj.toJs();
-            const unpacked = unpackWebRObject(rawJs) as any;
+            
+            // @ts-ignore - Explicitly handling the WebR dynamic result
+            const unpacked = unpackWebRObject(rawJs);
             
             if (resObj && typeof (resObj as any).destroy === 'function') (resObj as any).destroy();
             
-            console.log('[WebR] Engine System v2.1.0 - String-based Transfer Active');
+            console.log('[WebR] Engine System v2.2.0 - Binary Transfer Optimized');
 
             // Explicitly narrow type to string for safety
             if (typeof unpacked === 'string' && (unpacked as string).startsWith("ERROR:")) {
@@ -421,7 +424,12 @@ export async function executeRWithRecovery(
             }
             
             try {
-                return typeof unpacked === 'string' ? JSON.parse(unpacked as string) : unpacked;
+                // If the data comes as a Uint8Array, decode it first
+                const finalStr = (unpacked instanceof Uint8Array) 
+                    ? new TextDecoder().decode(unpacked) 
+                    : (typeof unpacked === 'string' ? unpacked : JSON.stringify(unpacked));
+
+                return JSON.parse(finalStr);
             } catch (e) {
                 return unpacked;
             }

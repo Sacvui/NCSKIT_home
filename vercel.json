@@ -1,13 +1,17 @@
 {
-    "framework": "nextjs",
-    "buildCommand": "next build",
-    "devCommand": "next dev",
-    "installCommand": "npm install",
-    "outputDirectory": ".next",
-    "crons": [
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
         {
-            "path": "/api/keep-alive",
-            "schedule": "0 0 * * *"
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin"
+        },
+        {
+          "key": "Cross-Origin-Embedder-Policy",
+          "value": "require-corp"
         }
-    ]
+      ]
+    }
+  ]
 }
