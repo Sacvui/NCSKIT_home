@@ -204,7 +204,7 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     console.warn('[WebR] Falling back to slow memory-only mode. Every page load will require re-downloading packages.');
                 }
 
-                const localRepo = (typeof window !== 'undefined' ? window.location.origin : '') + "/webr_packages";
+                const localRepo = (typeof window !== 'undefined' ? window.location.origin : '') + "/webr_repo_v2";
                 console.log("[WebR] Using synchronized repository:", localRepo);
 
                 await webR.evalR(`
