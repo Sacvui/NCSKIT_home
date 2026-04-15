@@ -426,10 +426,13 @@ export async function executeRWithRecovery(
 
         if (csvData && csvData.length > 0) {
             updateProgress('📊 Đang nạp dữ liệu...');
-            const flat = csvData.map(row => 
+            // Ensure data is converted to plain string to avoid Blob issues
+            const flat = String(csvData.map(row => 
                 row.map(v => (v === null || v === undefined || Number.isNaN(v as number)) ? 'NA' : v).join(',')
-            ).join('\n');
+            ).join('\n'));
             
+            // Safety delay to ensure VFS is ready
+            await new Promise(resolve => setTimeout(resolve, 500));
             await webR.FS.writeFile('/tmp/data_input.csv', new TextEncoder().encode(flat));
             await webR.evalR(`raw_data <- as.matrix(read.csv("/tmp/data_input.csv", header=FALSE, stringsAsFactors=FALSE))`);
         }
@@ -475,7 +478,7 @@ export async function executeRWithRecovery(
             if (missingPkg) {
                 console.warn(`Auto-installing missing package: ${missingPkg}`);
                 updateProgress(`Setting up ${missingPkg}...`);
-                const localRepo = (typeof window !== 'undefined' ? window.location.origin : '') + "/webr_packages";
+                const localRepo = (typeof window !== 'undefined' ? window.location.origin : '') + "/webr_repo_v2";
                 // Aggressive fix: ALWAYS use webr::install for WebR 4.5.1 on self-hosted repo
                 await webR.evalR(`webr::install("${missingPkg}", repos="${localRepo}")`);
                 await webR.evalR(`library(${missingPkg})`);
