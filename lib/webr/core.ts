@@ -476,6 +476,7 @@ export async function executeRWithRecovery(
                 console.warn(`Auto-installing missing package: ${missingPkg}`);
                 updateProgress(`Setting up ${missingPkg}...`);
                 const localRepo = (typeof window !== 'undefined' ? window.location.origin : '') + "/webr_packages";
+                // Aggressive fix: ALWAYS use webr::install for WebR 4.5.1 on self-hosted repo
                 await webR.evalR(`webr::install("${missingPkg}", repos="${localRepo}")`);
                 await webR.evalR(`library(${missingPkg})`);
                 markPackageLoaded(missingPkg);
