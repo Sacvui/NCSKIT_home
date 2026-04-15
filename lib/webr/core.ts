@@ -218,6 +218,7 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     # Core configuration for WASM
                     options(pkgType = "binary")
                     options(warn = -1) # Suppress minor warnings like missing .rds files
+                    options(webr.repo_quiet = TRUE) # Silence repo download warnings
                     options(timeout = 300) # 5 minute timeout
                     
                     # Pre-check psych existence
@@ -237,12 +238,14 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 const existsVal = unpackWebRObject(await existsProxy.toJs());
                 if (existsProxy && typeof (existsProxy as any).destroy === 'function') (existsProxy as any).destroy();
 
+                const corePackages = ['psych', 'jsonlite', 'mnormt', 'GPArotation', 'lattice', 'nlme'];
+
                 if (existsVal === true) {
                     try {
                         console.log('[WebR] Loading core libraries from persistent lib...');
                         await webR.evalR('library(psych); library(jsonlite)');
-                        markPackageLoaded('psych');
-                        markPackageLoaded('jsonlite');
+                        // Success! Mark ALL as loaded to prevent redundant checks later
+                        corePackages.forEach(pkg => markPackageLoaded(pkg));
                     } catch (e) {
                         console.warn('[WebR] Core loading failed! Wiping library folder...', e);
                         updateProgress('🧹 Đang làm sạch bộ nhớ...');
@@ -253,13 +256,12 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         
                         try {
                             updateProgress('🌐 Đang tải lại thư viện...');
-                            console.log('[WebR] Attempting re-install of psych and jsonlite from local repo:', localRepo);
-                            const installCmd = (pkg: string) => `webr::install("${pkg}", repos="${localRepo}", lib="${persistentLib}")`;
-                            await webR.evalR(installCmd("jsonlite"));
-                            await webR.evalR(installCmd("psych"));
+                            console.log('[WebR] Attempting re-install of core libraries from local repo:', localRepo);
+                            // Install psych (which will pull dependencies automatically)
+                            await webR.evalR(`webr::install("psych", repos="${localRepo}", lib="${persistentLib}")`);
+                            await webR.evalR(`webr::install("jsonlite", repos="${localRepo}", lib="${persistentLib}")`);
                             await webR.evalR('library(psych); library(jsonlite)');
-                            markPackageLoaded('psych');
-                            markPackageLoaded('jsonlite');
+                            corePackages.forEach(pkg => markPackageLoaded(pkg));
                             await webR.FS.syncfs(false);
                         } catch(reInstallErr) {
                             console.error('[WebR] Re-install failed:', reInstallErr);
@@ -269,12 +271,10 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     updateProgress('🌐 Đang tải thư viện R (lần đầu)...');
                     console.log('[WebR] Initial installation of core libraries from local repo:', localRepo);
                     try {
-                        const installCmd = (pkg: string) => `webr::install("${pkg}", repos="${localRepo}", lib="${persistentLib}")`;
-                        await webR.evalR(installCmd("jsonlite"));
-                        await webR.evalR(installCmd("psych"));
+                        await webR.evalR(`webr::install("psych", repos="${localRepo}", lib="${persistentLib}")`);
+                        await webR.evalR(`webr::install("jsonlite", repos="${localRepo}", lib="${persistentLib}")`);
                         await webR.evalR('library(psych); library(jsonlite)');
-                        markPackageLoaded('psych');
-                        markPackageLoaded('jsonlite');
+                        corePackages.forEach(pkg => markPackageLoaded(pkg));
                         await webR.FS.syncfs(false);
                     } catch (installErr) {
                         console.error('[WebR] Initial install failed from local repo:', installErr);
