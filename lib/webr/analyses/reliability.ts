@@ -1,8 +1,8 @@
 /**
  * Reliability & Factor Analysis Modules
  */
-import { initWebR, executeRWithRecovery, loadPackagesForMethod } from '../core';
-import { parseWebRResult, parseMatrix, arrayToRMatrix } from '../utils';
+import { executeRWithRecovery, loadPackagesForMethod } from '../core';
+import { parseWebRResult, parseMatrix } from '../utils';
 import { getAnalysisRTemplate } from '../templates';
 import { runLavaanAnalysis } from './sem';
 
@@ -158,8 +158,6 @@ export async function runEFA(data: number[][], nFactors: number, rotation: strin
     factorMethod: string;
     rCode: string;
 }> {
-    const webR = await initWebR(); 
-
     // Lazy load required packages (needs psych and GPArotation)
     await loadPackagesForMethod('efa');
 
@@ -283,128 +281,33 @@ export async function runCFA(data: number[][], columns: string[], modelSyntax: s
         const result = await runLavaanAnalysis(data, columns, modelSyntax);
 
         if (result.error) {
-            console.warn("Lavaan failed or not ready, falling back to simulated CFA:", result.error);
-        } else {
+            console.warn("Lavaan failed:", result.error);
+            // Do NOT fall back to EFA — return a clear error instead
             return {
-                ...result,
-                warning: "Phân tích CFA thành công bằng thư viện lavaan chuyên sâu."
+                fitMeasures: { cfi: 0, tli: 0, rmsea: 0, srmr: 0, chisq: 0, df: 0, pvalue: 0 },
+                estimates: [],
+                rCode: '',
+                error: `CFA yêu cầu thư viện lavaan. Lỗi: ${result.error}. Vui lòng thử lại sau khi WebR tải xong.`,
+                warning: undefined
             };
-        }
-    } catch (e) {
-        console.warn("Lavaan not available or failed, falling back to simulated CFA:", e);
-    }
-
-    // --- FALLBACK: Simulated CFA using psych::fa ---
-    const webR = await initWebR();
-    const flatData = data.flat();
-    const factorDefs = modelSyntax.split('\n').filter(line => line.includes('=~'));
-    const nFactors = factorDefs.length || 1;
-
-    const rCode = `
-    library(psych)
-    library(GPArotation)
-    df <- data.frame(matrix(c(${flatData.join(',')}), ncol=${columns.length}, byrow=TRUE))
-    colnames(df) <- c(${columns.map(c => `"${c}"`).join(', ')})
-    
-    fa_result <- fa(df, nfactors = ${nFactors}, rotate = "oblimin", fm = "ml")
-    
-    chi_sq <- fa_result$STATISTIC
-    df_val <- fa_result$dof
-    p_val <- fa_result$PVAL
-    rmsea_val <- fa_result$RMSEA[1]
-    null_chisq <- fa_result$null.chisq
-    null_df <- fa_result$null.dof
-    
-    tli_val <- if(!is.null(null_chisq) && null_df > 0 && df_val > 0) {
-        ((null_chisq/null_df) - (chi_sq/df_val)) / ((null_chisq/null_df) - 1)
-    } else { NA }
-    
-    cfi_val <- if(!is.null(null_chisq) && null_df > 0) {
-        1 - max(chi_sq - df_val, 0) / max(null_chisq - null_df, chi_sq - df_val, 0)
-    } else { NA }
-    
-    loadings_df <- as.data.frame(unclass(fa_result$loadings))
-    factor_names <- colnames(loadings_df)
-    var_names <- rownames(loadings_df)
-    
-    estimates_list <- list()
-    idx <- 1
-    for(f in 1:ncol(loadings_df)) {
-        for(v in 1:nrow(loadings_df)) {
-            loading <- loadings_df[v, f]
-            if(abs(loading) > 0.001) { 
-                estimates_list[[idx]] <- list(
-                    lhs = factor_names[f], op = "=~", rhs = var_names[v],
-                    est = loading, std = loading, se = NA, pvalue = NA
-                )
-                idx <- idx + 1
-            }
-        }
-    }
-    
-    # Calculate SRMR from residual correlation matrix (more accurate than fa$rms)
-    srmr_val <- tryCatch({
-        resid_cor <- fa_result$residual
-        if(!is.null(resid_cor)) {
-            # SRMR = sqrt(mean of squared lower-triangle residual correlations)
-            lt <- resid_cor[lower.tri(resid_cor)]
-            sqrt(mean(lt^2, na.rm = TRUE))
-        } else if(!is.null(fa_result$rms)) {
-            as.numeric(fa_result$rms)  # Fallback to RMS if residual matrix unavailable
-        } else { 0 }
-    }, error = function(e) 0)
-    
-    list(
-        fit = list(
-            cfi = if(is.na(cfi_val)) 0 else as.numeric(cfi_val),
-            tli = if(is.na(tli_val)) 0 else as.numeric(tli_val),
-            rmsea = if(is.na(rmsea_val)) 0 else as.numeric(rmsea_val),
-            srmr = as.numeric(srmr_val),
-            chisq = if(is.na(chi_sq)) 0 else as.numeric(chi_sq),
-            df = if(is.na(df_val)) 0 else as.numeric(df_val),
-            pvalue = if(is.na(p_val)) 0 else as.numeric(p_val)
-        ),
-        estimates = estimates_list
-    )
-    `;
-
-    try {
-        const jsResult = await executeRWithRecovery(rCode);
-        const getValue = parseWebRResult(jsResult);
-        const fit = getValue('fit');
-        const estimatesRaw = getValue('estimates');
-
-        const fitMeasures = {
-            cfi: fit?.cfi?.[0] || 0, tli: fit?.tli?.[0] || 0,
-            rmsea: fit?.rmsea?.[0] || 0, srmr: fit?.srmr?.[0] || 0,
-            chisq: fit?.chisq?.[0] || 0, df: fit?.df?.[0] || 0,
-            pvalue: fit?.pvalue?.[0] || 0,
-        };
-
-        const estimates: any[] = [];
-        if (Array.isArray(estimatesRaw)) {
-            for (const est of estimatesRaw) {
-                const estValues = parseWebRResult(est);
-                estimates.push({
-                    lhs: estValues('lhs')?.[0] || '',
-                    op: estValues('op')?.[0] || '=~',
-                    rhs: estValues('rhs')?.[0] || '',
-                    est: estValues('est')?.[0] || 0,
-                    std: estValues('std')?.[0] || 0,
-                    se: estValues('se')?.[0] || 0,
-                    pvalue: estValues('pvalue')?.[0] || 0
-                });
-            }
         }
 
         return {
-            fitMeasures,
-            estimates,
-            rCode,
-            warning: "Lưu ý: Đây là mô phỏng CFA (dạng EFA). Kết quả chỉ mang tính chất tham khảo do lavaan không khả dụng."
+            ...result,
+            warning: "Phân tích CFA thành công bằng thư viện lavaan chuyên sâu."
         };
     } catch (e: any) {
-        console.error('CFA Fallback Error:', e);
-        throw e;
+        console.warn("Lavaan not available or failed:", e);
+        // Return a clear error — do NOT simulate CFA with EFA (statistically invalid)
+        return {
+            fitMeasures: { cfi: 0, tli: 0, rmsea: 0, srmr: 0, chisq: 0, df: 0, pvalue: 0 },
+            estimates: [],
+            rCode: '',
+            error: `CFA yêu cầu thư viện lavaan chưa được tải. Vui lòng đợi WebR khởi động hoàn tất và thử lại. Chi tiết: ${e?.message || String(e)}`,
+            warning: undefined
+        };
     }
+    // NOTE: The previous EFA-as-CFA fallback was removed because it produced
+    // statistically invalid results (EFA ≠ CFA — no fixed measurement model,
+    // fit indices are not comparable). Better to show a clear error than wrong results.
 }

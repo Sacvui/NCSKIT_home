@@ -13,7 +13,7 @@ export const PACKAGE_REGISTRY = {
     'cfa': ['lavaan', 'quadprog'],
 
     // Hypothesis Testing (most use built-in stats)
-    'ttest': [], // Uses built-in stats package
+    'ttest': [],           // Uses built-in stats package
     'paired-ttest': [],
     'anova': [],
     'mann-whitney': ['psych'], // Uses psych::skew for distribution shape check
@@ -21,12 +21,12 @@ export const PACKAGE_REGISTRY = {
     'kruskal': [],
     'chi-square': [],
 
-    // Correlation
-    'correlation': ['psych', 'corrplot'],
+    // Correlation — corrplot not used in code, removed to avoid install timeout
+    'correlation': ['psych'],
 
-    // Regression
-    'linear-regression': ['car'], // For VIF
-    'logistic-regression': ['car'],
+    // Regression — VIF calculated manually, car package not needed
+    'linear-regression': [],
+    'logistic-regression': [],
 
     // SEM
     'sem': ['lavaan', 'quadprog'],
@@ -38,10 +38,12 @@ export const PACKAGE_REGISTRY = {
     // Multivariate
     'cluster': ['cluster'],
     'two-way-anova': [],
+    'anova2way': [],
 
-    // Mediation & Moderation
-    'mediation': ['psych', 'boot'],
-    'moderation': ['psych', 'car'],
+    // Mediation & Moderation — bootstrap implemented manually, boot package not needed
+    // car package not used in moderation code
+    'mediation': ['psych'],
+    'moderation': ['psych'],
 } as const;
 
 export type AnalysisMethod = keyof typeof PACKAGE_REGISTRY;

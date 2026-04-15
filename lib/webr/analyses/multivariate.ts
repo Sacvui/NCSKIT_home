@@ -1,7 +1,7 @@
 /**
  * Multivariate Analysis Modules - Template-Driven
  */
-import { initWebR, executeRWithRecovery, loadPackagesForMethod } from '../core';
+import { executeRWithRecovery, loadPackagesForMethod } from '../core';
 import { parseWebRResult } from '../utils';
 import { getAnalysisRTemplate } from '../templates';
 
@@ -122,7 +122,7 @@ export async function runTwoWayANOVA(
         .replace(/\{\{f1\}\}/g, f1Str)
         .replace(/\{\{f2\}\}/g, f2Str);
 
-    const result = await executeRWithRecovery(rCode);
+    const result = await executeRWithRecovery(rCode, 'anova2way', 0, 2, 120000);
     const getValue = parseWebRResult(result);
 
     const sources = getValue('sources') || [];

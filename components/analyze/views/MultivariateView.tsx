@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import { AnalysisStep } from '@/types/analysis';
 import { Locale, t } from '@/lib/i18n';
-import { getAnalysisCost, checkBalance, deductCredits } from '@/lib/ncs-credits';
-import { logAnalysisUsage } from '@/lib/activity-logger';
+import { getAnalysisCost, checkBalance } from '@/lib/ncs-credits';
+import { runWithCredits } from '@/lib/analysis-credit-wrapper';
 import { runClusterAnalysis, runTwoWayANOVA } from '@/lib/webr-wrapper';
 import { ChevronLeft, Play, CircleDot, Grid3x3, Layers, Target } from 'lucide-react';
 
@@ -59,26 +59,21 @@ export const MultivariateView: React.FC<MultivariateViewProps> = ({
         setIsAnalyzing(true);
         if (setAnalysisType) setAnalysisType(analysisKey);
 
-        if (user) {
-            const cost = await getAnalysisCost(costKey);
-            const { hasEnough } = await checkBalance(user.id, cost);
-            if (!hasEnough) {
-                setRequiredCredits(cost);
-                setCurrentAnalysisCost(cost);
-                setShowInsufficientCredits(true);
-                setIsAnalyzing(false);
-                return;
-            }
-        }
-
         try {
-            const result = await action();
-            if (user) {
-                const cost = await getAnalysisCost(costKey);
-                await deductCredits(user.id, cost, logDesc);
-                await logAnalysisUsage(user.id, analysisKey, cost);
-                setNcsBalance(prev => Math.max(0, prev - cost));
-            }
+            const result = await runWithCredits(action, {
+                user,
+                analysisKey,
+                costKey,
+                logDesc,
+                onInsufficientCredits: (cost) => {
+                    setRequiredCredits(cost);
+                    setCurrentAnalysisCost(cost);
+                    setShowInsufficientCredits(true);
+                },
+                onBalanceUpdate: setNcsBalance,
+                onToast: showToast,
+            });
+            if (result === null) return; // Insufficient credits or deduction failed
             setResults({ type: analysisKey, data: result, columns: colsToSave });
             setStep('results');
             showToast(successMsg, 'success');

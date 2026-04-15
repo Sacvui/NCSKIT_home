@@ -1,6 +1,9 @@
 /**
  * PLS-SEM Analysis Functions for WebR
  * New advanced methods for Analyze2 workflow
+ *
+ * All functions use the csvData param of executeRWithRecovery to inject data
+ * via webR.objs.globalEnv.bind() — avoids FileReaderSync/Blob crash in PostMessage channel.
  */
 
 import { executeRWithRecovery } from './core';
@@ -16,27 +19,18 @@ export async function runMcDonaldOmega(data: number[][], itemNames?: string[]): 
     # McDonald's Omega Calculation
     library(psych)
     
-    # Create data frame
-    data_matrix <- matrix(c(${data.flat().join(',')}), 
-                          nrow=${data.length}, 
-                          ncol=${nItems}, 
-                          byrow=TRUE)
-    colnames(data_matrix) <- c(${itemLabels.map(name => `"${name}"`).join(',')})
-    df <- as.data.frame(data_matrix)
+    df <- as.data.frame(raw_data)
+    colnames(df) <- c(${itemLabels.map(name => `"${name}"`).join(',')})
     
     # Auto-detect optimal number of factors using parallel analysis
-    # Suppress warnings and use tryCatch for robustness
     nfactors_detected <- tryCatch({
       fa_parallel <- fa.parallel(df, fm="minres", fa="fa", plot=FALSE, n.iter=20)
-      max(1, fa_parallel$nfact)  # Use suggested factors, minimum 1
-    }, error = function(e) {
-      1  # Fallback to 1 factor if detection fails
-    })
+      max(1, fa_parallel$nfact)
+    }, error = function(e) { 1 })
     
     # Calculate Omega with detected number of factors
     omega_result <- omega(df, nfactors=nfactors_detected, plot=FALSE)
     
-    # Extract results
     list(
       omega_total = omega_result$omega.tot,
       omega_hierarchical = omega_result$omega_h,
@@ -47,7 +41,7 @@ export async function runMcDonaldOmega(data: number[][], itemNames?: string[]): 
     )
   `;
 
-  const result = await executeRWithRecovery(rCode);
+  const result = await executeRWithRecovery(rCode, undefined, 0, 2, 120000, data);
   return result;
 }
 
@@ -58,24 +52,17 @@ export async function runOutlierDetection(data: number[][]): Promise<any> {
   const rCode = `
     library(psych)
     
-    # Create data matrix
-    data_matrix <- matrix(c(${data.flat().join(',')}), 
-                          nrow=${data.length}, 
-                          ncol=${data[0].length}, 
-                          byrow=TRUE)
-    df <- as.data.frame(data_matrix)
+    df <- as.data.frame(raw_data)
     
     # Calculate Mahalanobis Distance
     center <- colMeans(df, na.rm=TRUE)
     cov_matrix <- cov(df, use="complete.obs")
     
-    # Mahalanobis distance for each observation
     mahal_dist <- mahalanobis(df, center, cov_matrix)
     
     # Chi-square critical value (p < 0.001)
     cutoff <- qchisq(0.999, df=ncol(df))
     
-    # Identify outliers
     outliers <- which(mahal_dist > cutoff)
     
     list(
@@ -87,7 +74,7 @@ export async function runOutlierDetection(data: number[][]): Promise<any> {
     )
   `;
 
-  const result = await executeRWithRecovery(rCode);
+  const result = await executeRWithRecovery(rCode, undefined, 0, 2, 120000, data);
   return result;
 }
 
@@ -95,7 +82,6 @@ export async function runOutlierDetection(data: number[][]): Promise<any> {
  * HTMT Matrix - Heterotrait-Monotrait Ratio (Gold standard for discriminant validity)
  */
 export async function runHTMTMatrix(data: number[][], factorStructure: { name: string; items: number[] }[]): Promise<any> {
-  // Build factor assignment
   const factorAssignment = factorStructure.map(f =>
     `${f.name} = c(${f.items.join(',')})`
   ).join(', ');
@@ -103,17 +89,10 @@ export async function runHTMTMatrix(data: number[][], factorStructure: { name: s
   const rCode = `
     library(psych)
     
-    # Create data matrix
-    data_matrix <- matrix(c(${data.flat().join(',')}), 
-                          nrow=${data.length}, 
-                          ncol=${data[0].length}, 
-                          byrow=TRUE)
-    df <- as.data.frame(data_matrix)
+    df <- as.data.frame(raw_data)
     
-    # Define factor structure
     factors <- list(${factorAssignment})
     
-    # Calculate correlations for each factor
     htmt_matrix <- matrix(NA, nrow=length(factors), ncol=length(factors))
     rownames(htmt_matrix) <- names(factors)
     colnames(htmt_matrix) <- names(factors)
@@ -121,14 +100,9 @@ export async function runHTMTMatrix(data: number[][], factorStructure: { name: s
     for(i in 1:length(factors)) {
       for(j in 1:length(factors)) {
         if(i != j) {
-          # Heterotrait correlations
           hetero_corr <- cor(df[, factors[[i]]], df[, factors[[j]]], use="complete.obs")
-          
-          # Monotrait correlations
           mono_i <- cor(df[, factors[[i]]], use="complete.obs")
           mono_j <- cor(df[, factors[[j]]], use="complete.obs")
-          
-          # HTMT = mean(hetero) / sqrt(mean(mono_i) * mean(mono_j))
           htmt_matrix[i, j] <- mean(abs(hetero_corr)) / 
                                sqrt(mean(abs(mono_i[lower.tri(mono_i)])) * 
                                     mean(abs(mono_j[lower.tri(mono_j)])))
@@ -136,7 +110,6 @@ export async function runHTMTMatrix(data: number[][], factorStructure: { name: s
       }
     }
     
-    # Check discriminant validity (HTMT < 0.85 or 0.90)
     max_htmt <- max(htmt_matrix, na.rm=TRUE)
     
     list(
@@ -149,7 +122,7 @@ export async function runHTMTMatrix(data: number[][], factorStructure: { name: s
     )
   `;
 
-  const result = await executeRWithRecovery(rCode);
+  const result = await executeRWithRecovery(rCode, undefined, 0, 2, 120000, data);
   return result;
 }
 
@@ -158,65 +131,51 @@ export async function runHTMTMatrix(data: number[][], factorStructure: { name: s
  */
 export async function runVIFCheck(data: number[][], dependentVarIndex: number = 0): Promise<any> {
   const rCode = `
-    library(car)
+    df <- as.data.frame(raw_data)
     
-    # Create data matrix
-    data_matrix <- matrix(c(${data.flat().join(',')}), 
-                          nrow=${data.length}, 
-                          ncol=${data[0].length}, 
-                          byrow=TRUE)
-    df <- as.data.frame(data_matrix)
-    
-    # Build regression model
     formula_str <- paste("V", ${dependentVarIndex + 1}, " ~ .", sep="")
+    colnames(df) <- paste0("V", 1:ncol(df))
     model <- lm(as.formula(formula_str), data=df)
     
-    # Calculate VIF
-    vif_values <- vif(model)
+    # VIF without car package (manual calculation)
+    vif_values <- tryCatch({
+      x_data <- df[, -${dependentVarIndex + 1}, drop=FALSE]
+      v <- numeric(ncol(x_data))
+      for (i in 1:ncol(x_data)) {
+        r2 <- summary(lm(x_data[, i] ~ ., data=x_data[, -i, drop=FALSE]))$r.squared
+        v[i] <- if (r2 >= 0.9999) 999.99 else 1 / (1 - r2)
+      }
+      v
+    }, error = function(e) rep(NA, ncol(df) - 1))
     
-    # Interpretation
-    max_vif <- max(vif_values)
+    max_vif <- max(vif_values, na.rm=TRUE)
     
     list(
       vif_values = vif_values,
       max_vif = max_vif,
       multicollinearity = ifelse(max_vif < 5, "None", 
                           ifelse(max_vif < 10, "Moderate", "Severe")),
-      all_below_5 = all(vif_values < 5),
-      all_below_10 = all(vif_values < 10)
+      all_below_5 = all(vif_values < 5, na.rm=TRUE),
+      all_below_10 = all(vif_values < 10, na.rm=TRUE)
     )
   `;
 
-  const result = await executeRWithRecovery(rCode);
+  const result = await executeRWithRecovery(rCode, undefined, 0, 2, 120000, data);
   return result;
 }
 
 /**
  * PLS-SEM Algorithm (Partial Least Squares Structural Equation Modeling)
- * Using seminr package for WebR
  */
 export async function runPLSSEM(
   data: number[][],
   measurementModel: { construct: string; items: number[] }[],
   structuralModel: { from: string; to: string }[]
 ): Promise<any> {
-  // Note: This is a placeholder. Full PLS-SEM requires seminr package
-  // which may need to be added to WebR core initialization
-
   const rCode = `
-    # PLS-SEM using basic implementation
-    # For production, use seminr package
     library(psych)
     
-    # Create data matrix
-    data_matrix <- matrix(c(${data.flat().join(',')}), 
-                          nrow=${data.length}, 
-                          ncol=${data[0].length}, 
-                          byrow=TRUE)
-    df <- as.data.frame(data_matrix)
-    
-    # Simplified PLS algorithm
-    # This is a basic implementation - full seminr integration coming soon
+    df <- as.data.frame(raw_data)
     
     list(
       status = "Basic PLS implementation",
@@ -226,7 +185,7 @@ export async function runPLSSEM(
     )
   `;
 
-  const result = await executeRWithRecovery(rCode);
+  const result = await executeRWithRecovery(rCode, undefined, 0, 2, 120000, data);
   return result;
 }
 
@@ -235,21 +194,15 @@ export async function runPLSSEM(
  */
 export async function runBootstrapping(data: number[][], nBootstrap: number = 5000): Promise<any> {
   const rCode = `
-    # Bootstrap resampling
     set.seed(123)
     
-    data_matrix <- matrix(c(${data.flat().join(',')}), 
-                          nrow=${data.length}, 
-                          ncol=${data[0].length}, 
-                          byrow=TRUE)
+    data_matrix <- raw_data
     
-    # Simple bootstrap example
     bootstrap_means <- replicate(${nBootstrap}, {
       sample_indices <- sample(1:nrow(data_matrix), replace=TRUE)
       colMeans(data_matrix[sample_indices, ])
     })
     
-    # Calculate confidence intervals
     ci_lower <- apply(bootstrap_means, 1, quantile, probs=0.025)
     ci_upper <- apply(bootstrap_means, 1, quantile, probs=0.975)
     
@@ -261,7 +214,7 @@ export async function runBootstrapping(data: number[][], nBootstrap: number = 50
     )
   `;
 
-  const result = await executeRWithRecovery(rCode);
+  const result = await executeRWithRecovery(rCode, undefined, 0, 2, 180000, data);
   return result;
 }
 
@@ -278,13 +231,9 @@ export async function runMediationModeration(
   const rCode = `
     library(psych)
     
-    data_matrix <- matrix(c(${data.flat().join(',')}), 
-                          nrow=${data.length}, 
-                          ncol=${data[0].length}, 
-                          byrow=TRUE)
-    df <- as.data.frame(data_matrix)
+    df <- as.data.frame(raw_data)
+    colnames(df) <- paste0("V", 1:ncol(df))
     
-    # Mediation analysis (Baron & Kenny approach)
     # Path c: X -> Y
     model_c <- lm(V${dvIndex + 1} ~ V${ivIndex + 1}, data=df)
     path_c <- coef(model_c)[2]
@@ -298,10 +247,8 @@ export async function runMediationModeration(
     path_b <- coef(model_b)[3]
     path_c_prime <- coef(model_b)[2]
     
-    # Indirect effect
     indirect_effect <- path_a * path_b
     
-    # Mediation type
     mediation_type <- if(abs(path_c_prime) < abs(path_c) && path_c_prime * path_c > 0) {
       "Partial Mediation"
     } else if(abs(path_c_prime) < 0.01) {
@@ -320,7 +267,7 @@ export async function runMediationModeration(
     )
   `;
 
-  const result = await executeRWithRecovery(rCode);
+  const result = await executeRWithRecovery(rCode, undefined, 0, 2, 120000, data);
   return result;
 }
 
@@ -329,17 +276,14 @@ export async function runMediationModeration(
  */
 export async function runIPMA(data: number[][], targetIndex: number): Promise<any> {
   const rCode = `
-    data_matrix <- matrix(c(${data.flat().join(',')}), 
-                          nrow=${data.length}, 
-                          ncol=${data[0].length}, 
-                          byrow=TRUE)
-    df <- as.data.frame(data_matrix)
+    df <- as.data.frame(raw_data)
+    colnames(df) <- paste0("V", 1:ncol(df))
     
-    # Performance: Mean of each predictor
-    performance <- colMeans(df[, -${targetIndex + 1}], na.rm=TRUE)
+    target_col <- "V${targetIndex + 1}"
+    predictor_cols <- setdiff(colnames(df), target_col)
     
-    # Importance: Correlation with target
-    importance <- cor(df[, -${targetIndex + 1}], df[, ${targetIndex + 1}], use="complete.obs")
+    performance <- colMeans(df[, predictor_cols, drop=FALSE], na.rm=TRUE)
+    importance <- cor(df[, predictor_cols, drop=FALSE], df[, target_col], use="complete.obs")
     
     list(
       performance = performance,
@@ -348,7 +292,7 @@ export async function runIPMA(data: number[][], targetIndex: number): Promise<an
     )
   `;
 
-  const result = await executeRWithRecovery(rCode);
+  const result = await executeRWithRecovery(rCode, undefined, 0, 2, 120000, data);
   return result;
 }
 
@@ -361,20 +305,14 @@ export async function runMGA(
   dependentVarIndex: number
 ): Promise<any> {
   const rCode = `
-    data_matrix <- matrix(c(${data.flat().join(',')}), 
-                          nrow=${data.length}, 
-                          ncol=${data[0].length}, 
-                          byrow=TRUE)
-    df <- as.data.frame(data_matrix)
+    df <- as.data.frame(raw_data)
+    colnames(df) <- paste0("V", 1:ncol(df))
     df$group <- c(${groupVariable.join(',')})
     
-    # Split by group
     groups <- unique(df$group)
     
-    # Compare means across groups
     group_means <- tapply(df[, ${dependentVarIndex + 1}], df$group, mean, na.rm=TRUE)
     
-    # ANOVA test
     anova_result <- aov(df[, ${dependentVarIndex + 1}] ~ df$group)
     p_value <- summary(anova_result)[[1]][["Pr(>F)"]][1]
     
@@ -385,7 +323,7 @@ export async function runMGA(
     )
   `;
 
-  const result = await executeRWithRecovery(rCode);
+  const result = await executeRWithRecovery(rCode, undefined, 0, 2, 120000, data);
   return result;
 }
 
@@ -394,18 +332,10 @@ export async function runMGA(
  */
 export async function runBlindfolding(data: number[][], omissionDistance: number = 7): Promise<any> {
   const rCode = `
-    # Blindfolding procedure for Q² calculation
-    data_matrix <- matrix(c(${data.flat().join(',')}), 
-                          nrow=${data.length}, 
-                          ncol=${data[0].length}, 
-                          byrow=TRUE)
+    data_matrix <- raw_data
     
-    # Cross-validation with omission distance
     n <- nrow(data_matrix)
     omit_indices <- seq(1, n, by=${omissionDistance})
-    
-    # Simplified Q² calculation
-    # Full implementation requires iterative PLS algorithm
     
     list(
       omission_distance = ${omissionDistance},
@@ -415,6 +345,6 @@ export async function runBlindfolding(data: number[][], omissionDistance: number
     )
   `;
 
-  const result = await executeRWithRecovery(rCode);
+  const result = await executeRWithRecovery(rCode, undefined, 0, 2, 120000, data);
   return result;
 }

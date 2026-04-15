@@ -1,4 +1,4 @@
-import { initWebR, executeRWithRecovery } from '../core';
+import { executeRWithRecovery } from '../core';
 
 export interface SEMResult {
   fitIndices: Record<string, number>;
@@ -11,6 +11,9 @@ export interface SEMResult {
 /**
  * Execute a lavaan model (CB-SEM)
  * Powered by lavaan (R package)
+ *
+ * Uses csvData param to inject data via webR.objs.globalEnv.bind()
+ * — avoids FileReaderSync/Blob crash in PostMessage channel.
  */
 export async function runCBSEM(
   data: number[][],
@@ -18,19 +21,18 @@ export async function runCBSEM(
   modelString: string,
   analysisType: 'cfa' | 'sem' = 'sem'
 ): Promise<SEMResult> {
-  // Use core recovery executor for stability
+  const colNamesR = columns.map(c => `'${c}'`).join(',');
+  const escapedModel = modelString.replace(/\n/g, '\\n').replace(/'/g, "\\'");
+
   const rCommand = `
     library(lavaan)
-    colnames_r <- c(${columns.map(c => `'${c}'`).join(',')})
-    # Safe data frame creation from WebR bound matrix
+    colnames_r <- c(${colNamesR})
     df <- as.data.frame(raw_data)
     colnames(df) <- colnames_r
     
-    # Handle multi-line model syntax safely
-    model_syntax <- '${modelString.replace(/\n/g, "\\n")}'
+    model_syntax <- '${escapedModel}'
     fit <- ${analysisType}(model_syntax, data=df, std.lv=TRUE, missing="fiml")
     
-    # Extract Standard Academic Fit Indices
     fit_measures <- fitMeasures(fit, c("chisq", "df", "pvalue", "gfi", "cfi", "tli", "rmsea", "srmr", "aic", "bic"))
     estimates <- parameterEstimates(fit, standardized=TRUE)
     
@@ -40,21 +42,17 @@ export async function runCBSEM(
     )
   `;
 
-  // Bind data using the core method via WebR instance
-  const webR = await initWebR();
-  await webR.objs.globalEnv.set('raw_data', data);
-
-  const output = await executeRWithRecovery(rCommand);
+  const output = await executeRWithRecovery(rCommand, 'sem', 0, 2, 180000, data);
 
   // Parse result from list structure
   const fitIndices: Record<string, number> = {};
-  if (output.fit && output.fit.names) {
+  if (output?.fit && output.fit.names) {
     output.fit.names.forEach((name: string, index: number) => {
       fitIndices[name] = output.fit.values[index];
     });
   }
 
-  const estimates = output.estimates?.values || [];
+  const estimates = output?.estimates?.values || [];
 
   return {
     fitIndices,

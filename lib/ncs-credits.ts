@@ -348,3 +348,106 @@ export async function updateReferralReward(amount: number): Promise<boolean> {
 
     return !error;
 }
+
+/**
+ * Atomic credit deduction via Supabase RPC.
+ *
+ * Calls a DB stored procedure that checks balance AND deducts in a single
+ * transaction — eliminates the race condition where analysis succeeds but
+ * deduction fails (or vice versa).
+ *
+ * Falls back to the non-atomic deductCredits() if the RPC is not available.
+ *
+ * SQL to create the RPC (run once in Supabase SQL Editor):
+ *
+ * CREATE OR REPLACE FUNCTION public.deduct_credits_atomic(
+ *   p_user_id uuid,
+ *   p_amount   integer,
+ *   p_reason   text
+ * )
+ * RETURNS jsonb
+ * LANGUAGE plpgsql
+ * SECURITY DEFINER
+ * AS $$
+ * DECLARE
+ *   v_tokens      integer;
+ *   v_role        text;
+ *   v_new_balance integer;
+ *   v_exempt      boolean := false;
+ *   v_exempt_roles text[] := ARRAY['admin','institution_admin','platform_admin','super_admin'];
+ * BEGIN
+ *   SELECT tokens, role INTO v_tokens, v_role
+ *   FROM public.profiles
+ *   WHERE id = p_user_id
+ *   FOR UPDATE;                          -- row-level lock
+ *
+ *   IF NOT FOUND THEN
+ *     RETURN jsonb_build_object('success', false, 'error', 'User not found');
+ *   END IF;
+ *
+ *   v_exempt := v_role = ANY(v_exempt_roles);
+ *
+ *   IF v_exempt THEN
+ *     RETURN jsonb_build_object('success', true, 'new_balance', v_tokens, 'exempt', true);
+ *   END IF;
+ *
+ *   IF v_tokens < p_amount THEN
+ *     RETURN jsonb_build_object('success', false, 'error', 'Insufficient credits',
+ *                               'current_balance', v_tokens);
+ *   END IF;
+ *
+ *   v_new_balance := v_tokens - p_amount;
+ *
+ *   UPDATE public.profiles
+ *   SET tokens = v_new_balance,
+ *       total_spent = COALESCE(total_spent, 0) + p_amount,
+ *       updated_at = now()
+ *   WHERE id = p_user_id;
+ *
+ *   INSERT INTO public.token_transactions(user_id, amount, type, description, balance_after)
+ *   VALUES (p_user_id, -p_amount, 'spend_analysis', p_reason, v_new_balance);
+ *
+ *   RETURN jsonb_build_object('success', true, 'new_balance', v_new_balance, 'exempt', false);
+ * END;
+ * $$;
+ */
+export async function deductCreditsAtomic(
+    userId: string,
+    amount: number,
+    reason: string
+): Promise<{ success: boolean; newBalance: number; isExempt?: boolean; error?: string }> {
+    if (amount === 0) {
+        // Free analysis — no deduction needed
+        return { success: true, newBalance: 0, isExempt: false };
+    }
+
+    const supabase = getSupabase();
+
+    const { data, error } = await supabase.rpc('deduct_credits_atomic', {
+        p_user_id: userId,
+        p_amount: amount,
+        p_reason: reason,
+    });
+
+    if (error) {
+        // RPC not available yet — fall back to non-atomic version
+        console.warn('[Credits] RPC deduct_credits_atomic not available, falling back:', error.message);
+        return deductCredits(userId, amount, reason);
+    }
+
+    const result = data as { success: boolean; new_balance?: number; exempt?: boolean; error?: string; current_balance?: number };
+
+    if (!result.success) {
+        return {
+            success: false,
+            newBalance: result.current_balance ?? 0,
+            error: result.error ?? 'Deduction failed',
+        };
+    }
+
+    return {
+        success: true,
+        newBalance: result.new_balance ?? 0,
+        isExempt: result.exempt ?? false,
+    };
+}

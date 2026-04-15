@@ -1,7 +1,7 @@
 /**
  * Regression Analysis Modules - Template-Driven
  */
-import { initWebR, executeRWithRecovery, loadPackagesForMethod } from '../core';
+import { executeRWithRecovery, loadPackagesForMethod } from '../core';
 import { parseWebRResult, arrayToRMatrix } from '../utils';
 import { getAnalysisRTemplate } from '../templates';
 
@@ -149,30 +149,145 @@ export async function runLinearRegression(data: number[][], names: string[]): Pr
 /**
  * Run Logistic Regression (Binary)
  */
-export async function runLogisticRegression(data: number[][], names: string[]): Promise<any> {
+export async function runLogisticRegression(data: number[][], names: string[]): Promise<{
+    coefficients: {
+        term: string;
+        estimate: number;
+        oddsRatio: number;
+        stdError: number;
+        zValue: number;
+        pValue: number;
+        orCI95Lower: number;
+        orCI95Upper: number;
+    }[];
+    modelFit: {
+        aic: number;
+        nullDeviance: number;
+        residualDeviance: number;
+        mcfaddenR2: number;
+        nagelkerkeR2: number;
+        accuracy: number;
+        sensitivity: number;
+        specificity: number;
+    };
+    confusionMatrix: {
+        tp: number; fp: number;
+        fn: number; tn: number;
+    };
+    rCode: string;
+}> {
     await loadPackagesForMethod('logistic-regression');
     const defaultRCode = `
     df <- as.data.frame({{data}});
     colnames(df) <- c({{names}});
     y_name <- colnames(df)[1];
+    
+    # Validate binary outcome
+    y_vals <- unique(df[[y_name]]);
+    if (length(y_vals) > 2) {
+        stop("Biến phụ thuộc phải là nhị phân (2 giá trị). Hiện có: ", length(y_vals), " giá trị.")
+    }
+    
     f_str <- paste0("\`", y_name, "\` ~ .");
     mod <- glm(as.formula(f_str), data = df, family = binomial);
     s <- summary(mod);
     cf <- coef(s);
+    
+    # Odds Ratios with 95% CI
+    or <- exp(cf[, 1]);
+    ci <- tryCatch(exp(confint(mod)), error = function(e) {
+        # Fallback: Wald CI
+        cbind(exp(cf[, 1] - 1.96 * cf[, 2]), exp(cf[, 1] + 1.96 * cf[, 2]))
+    });
+    
+    # Pseudo R-squared
+    null_dev <- s$null.deviance;
+    resid_dev <- s$deviance;
+    n <- nrow(df);
+    mcfadden_r2 <- 1 - (resid_dev / null_dev);
+    # Nagelkerke R²
+    cox_snell <- 1 - exp((resid_dev - null_dev) / n);
+    nagelkerke_r2 <- cox_snell / (1 - exp(-null_dev / n));
+    
+    # Confusion Matrix (threshold = 0.5)
+    pred_prob <- fitted(mod);
+    pred_class <- as.integer(pred_prob >= 0.5);
+    actual <- as.integer(df[[y_name]]);
+    # Normalize actual to 0/1 if needed
+    if (!all(actual %in% c(0, 1))) {
+        actual <- as.integer(actual == max(actual))
+    }
+    tp <- sum(pred_class == 1 & actual == 1);
+    fp <- sum(pred_class == 1 & actual == 0);
+    fn <- sum(pred_class == 0 & actual == 1);
+    tn <- sum(pred_class == 0 & actual == 0);
+    accuracy <- (tp + tn) / n;
+    sensitivity <- if ((tp + fn) > 0) tp / (tp + fn) else 0;
+    specificity <- if ((tn + fp) > 0) tn / (tn + fp) else 0;
+    
     list(
         c_names = rownames(cf),
         estimates = as.vector(cf[, 1]),
+        odds_ratios = as.vector(or),
         errors = as.vector(cf[, 2]),
         z_vals = as.vector(cf[, 3]),
         p_vals = as.vector(cf[, 4]),
+        or_ci_lower = as.vector(ci[, 1]),
+        or_ci_upper = as.vector(ci[, 2]),
         aic = s$aic,
-        null_dev = s$null.deviance,
-        resid_dev = s$deviance
+        null_dev = null_dev,
+        resid_dev = resid_dev,
+        mcfadden_r2 = as.numeric(mcfadden_r2),
+        nagelkerke_r2 = as.numeric(nagelkerke_r2),
+        accuracy = as.numeric(accuracy),
+        sensitivity = as.numeric(sensitivity),
+        specificity = as.numeric(specificity),
+        tp = as.integer(tp), fp = as.integer(fp),
+        fn = as.integer(fn), tn = as.integer(tn)
     );
     `;
     const namesStr = names.map(n => `"${n}"`).join(',');
     const template = await getAnalysisRTemplate('logistic', defaultRCode);
     const rCode = template.replace(/\{\{data\}\}/g, 'raw_data').replace(/\{\{names\}\}/g, namesStr);
     const result = await executeRWithRecovery(rCode, 'logistic-regression', 0, 2, 120000, data);
-    return { result, rCode };
+    const getValue = parseWebRResult(result);
+
+    const cNames = getValue('c_names') || [];
+    const estimates = getValue('estimates') || [];
+    const oddsRatios = getValue('odds_ratios') || [];
+    const errors = getValue('errors') || [];
+    const zVals = getValue('z_vals') || [];
+    const pVals = getValue('p_vals') || [];
+    const orCiLower = getValue('or_ci_lower') || [];
+    const orCiUpper = getValue('or_ci_upper') || [];
+
+    return {
+        coefficients: cNames.map((name: string, i: number) => ({
+            term: name,
+            estimate: estimates[i] ?? 0,
+            oddsRatio: oddsRatios[i] ?? 1,
+            stdError: errors[i] ?? 0,
+            zValue: zVals[i] ?? 0,
+            pValue: pVals[i] ?? 1,
+            orCI95Lower: orCiLower[i] ?? 0,
+            orCI95Upper: orCiUpper[i] ?? 0,
+        })),
+        modelFit: {
+            aic: getValue('aic')?.[0] ?? 0,
+            nullDeviance: getValue('null_dev')?.[0] ?? 0,
+            residualDeviance: getValue('resid_dev')?.[0] ?? 0,
+            mcfaddenR2: getValue('mcfadden_r2')?.[0] ?? 0,
+            nagelkerkeR2: getValue('nagelkerke_r2')?.[0] ?? 0,
+            accuracy: getValue('accuracy')?.[0] ?? 0,
+            sensitivity: getValue('sensitivity')?.[0] ?? 0,
+            specificity: getValue('specificity')?.[0] ?? 0,
+        },
+        confusionMatrix: {
+            tp: getValue('tp')?.[0] ?? 0,
+            fp: getValue('fp')?.[0] ?? 0,
+            fn: getValue('fn')?.[0] ?? 0,
+            tn: getValue('tn')?.[0] ?? 0,
+        },
+        rCode
+    };
 }

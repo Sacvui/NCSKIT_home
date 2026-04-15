@@ -2,7 +2,7 @@
  * Mediation and Moderation Analysis Modules
  * Uses 'psych' package for robust mediation/moderation modeling.
  */
-import { initWebR, executeRWithRecovery, loadPackagesForMethod } from '../core';
+import { executeRWithRecovery, loadPackagesForMethod } from '../core';
 import { parseWebRResult } from '../utils';
 
 /**
@@ -39,17 +39,16 @@ export async function runMediationAnalysis(
     };
     rCode: string;
 }> {
-    const webR = await initWebR();
-
-    // Lazy load required packages (needs boot for bootstrapping)
+    // Lazy load required packages
     await loadPackagesForMethod('mediation');
 
+    const colNamesR = columns.map(c => `"${c}"`).join(',');
     const rCode = `
     library(psych)
     
     data_mat <- raw_data
     df <- as.data.frame(data_mat)
-    colnames(df) <- c(${columns.map(c => `"${c}"`).join(',')})
+    colnames(df) <- c(${colNamesR})
     
     # Ensure variables exist
     if(!all(c("${xVar}", "${mVar}", "${yVar}") %in% colnames(df))) {
@@ -57,67 +56,64 @@ export async function runMediationAnalysis(
     }
     
     # === Step 1: Path a (X -> M) ===
-    model_a <- lm(${mVar} ~ ${xVar}, data = df)
+    model_a <- lm(df[["${mVar}"]] ~ df[["${xVar}"]])
     sa <- summary(model_a)$coefficients
-    a_est <- sa["${xVar}", "Estimate"]
-    a_p <- sa["${xVar}", "Pr(>|t|)"]
+    a_est <- sa[2, "Estimate"]
+    a_p   <- sa[2, "Pr(>|t|)"]
+    a_se  <- sa[2, "Std. Error"]
     
     # === Step 2: Path c (X -> Y, Total Effect) ===
-    model_c <- lm(${yVar} ~ ${xVar}, data = df)
+    model_c <- lm(df[["${yVar}"]] ~ df[["${xVar}"]])
     sc <- summary(model_c)$coefficients
-    c_est <- sc["${xVar}", "Estimate"]
-    c_p <- sc["${xVar}", "Pr(>|t|)"]
+    c_est <- sc[2, "Estimate"]
+    c_p   <- sc[2, "Pr(>|t|)"]
     
     # === Step 3: Path b and c' (M -> Y controlling for X, Direct Effect) ===
-    model_bc <- lm(${yVar} ~ ${xVar} + ${mVar}, data = df)
+    model_bc <- lm(df[["${yVar}"]] ~ df[["${xVar}"]] + df[["${mVar}"]])
     sbc <- summary(model_bc)$coefficients
-    b_est <- sbc["${mVar}", "Estimate"]
-    b_p <- sbc["${mVar}", "Pr(>|t|)"]
-    c_prime_est <- sbc["${xVar}", "Estimate"]
-    c_prime_p <- sbc["${xVar}", "Pr(>|t|)"]
+    b_est      <- sbc[3, "Estimate"]
+    b_p        <- sbc[3, "Pr(>|t|)"]
+    b_se       <- sbc[3, "Std. Error"]
+    c_prime_est <- sbc[2, "Estimate"]
+    c_prime_p   <- sbc[2, "Pr(>|t|)"]
     
     # === Indirect effect ===
     indirect <- a_est * b_est
-    total <- c_est
-    direct <- c_prime_est
+    total    <- c_est
+    direct   <- c_prime_est
     
     # === Sobel Test ===
-    se_a <- sa["${xVar}", "Std. Error"]
-    se_b <- sbc["${mVar}", "Std. Error"]
-    sobel_se <- sqrt(b_est^2 * se_a^2 + a_est^2 * se_b^2)
-    sobel_z <- indirect / sobel_se
-    sobel_p <- 2 * (1 - pnorm(abs(sobel_z)))
+    sobel_se <- sqrt(b_est^2 * a_se^2 + a_est^2 * b_se^2)
+    sobel_z  <- indirect / sobel_se
+    sobel_p  <- 2 * (1 - pnorm(abs(sobel_z)))
     
-    # === Bootstrap CI for indirect effect ===
+    # === Bootstrap CI for indirect effect (percentile method) ===
     set.seed(123)
     n_boot <- ${nBoot}
     boot_indirect <- numeric(n_boot)
     for(i in 1:n_boot) {
-        idx <- sample(1:nrow(df), replace = TRUE)
+        idx     <- sample(1:nrow(df), replace = TRUE)
         boot_df <- df[idx, ]
-        boot_a <- coef(lm(${mVar} ~ ${xVar}, data = boot_df))["${xVar}"]
-        boot_b <- coef(lm(${yVar} ~ ${xVar} + ${mVar}, data = boot_df))["${mVar}"]
+        boot_a  <- coef(lm(boot_df[["${mVar}"]] ~ boot_df[["${xVar}"]]))[2]
+        boot_b  <- coef(lm(boot_df[["${yVar}"]] ~ boot_df[["${xVar}"]] + boot_df[["${mVar}"]]))[3]
         boot_indirect[i] <- boot_a * boot_b
     }
     boot_ci <- quantile(boot_indirect, c(0.025, 0.975))
     
     list(
-        total = as.numeric(total),
-        direct = as.numeric(direct),
+        total    = as.numeric(total),
+        direct   = as.numeric(direct),
         indirect = as.numeric(indirect),
-        
-        a_est = as.numeric(a_est),
-        a_p = as.numeric(a_p),
-        b_est = as.numeric(b_est),
-        b_p = as.numeric(b_p),
-        c_est = as.numeric(c_est),
-        c_p = as.numeric(c_p),
-        c_p_est = as.numeric(c_prime_est),
-        c_p_p = as.numeric(c_prime_p),
-        
-        sobel_z = as.numeric(sobel_z),
-        sobel_p = as.numeric(sobel_p),
-        
+        a_est    = as.numeric(a_est),
+        a_p      = as.numeric(a_p),
+        b_est    = as.numeric(b_est),
+        b_p      = as.numeric(b_p),
+        c_est    = as.numeric(c_est),
+        c_p      = as.numeric(c_p),
+        c_p_est  = as.numeric(c_prime_est),
+        c_p_p    = as.numeric(c_prime_p),
+        sobel_z  = as.numeric(sobel_z),
+        sobel_p  = as.numeric(sobel_p),
         boot_lower = as.numeric(boot_ci[1]),
         boot_upper = as.numeric(boot_ci[2])
     )
@@ -128,14 +124,14 @@ export async function runMediationAnalysis(
 
     return {
         effects: {
-            total: getValue('total')?.[0] ?? 0,
-            direct: getValue('direct')?.[0] ?? 0,
+            total:    getValue('total')?.[0]    ?? 0,
+            direct:   getValue('direct')?.[0]   ?? 0,
             indirect: getValue('indirect')?.[0] ?? 0,
         },
         paths: {
-            a: { est: getValue('a_est')?.[0] ?? 0, p: getValue('a_p')?.[0] ?? 1 },
-            b: { est: getValue('b_est')?.[0] ?? 0, p: getValue('b_p')?.[0] ?? 1 },
-            c: { est: getValue('c_est')?.[0] ?? 0, p: getValue('c_p')?.[0] ?? 1 },
+            a:       { est: getValue('a_est')?.[0]   ?? 0, p: getValue('a_p')?.[0]   ?? 1 },
+            b:       { est: getValue('b_est')?.[0]   ?? 0, p: getValue('b_p')?.[0]   ?? 1 },
+            c:       { est: getValue('c_est')?.[0]   ?? 0, p: getValue('c_p')?.[0]   ?? 1 },
             c_prime: { est: getValue('c_p_est')?.[0] ?? 0, p: getValue('c_p_p')?.[0] ?? 1 }
         },
         sobelTest: {
@@ -152,13 +148,18 @@ export async function runMediationAnalysis(
 
 /**
  * Run Moderation Analysis
- * Model: Y ~ X + M + X*M
+ * Model: Y ~ X_c * W_c  (centered variables to reduce multicollinearity)
+ *
+ * FIX: Previous version used invalid R syntax `df$varName_c` for column assignment.
+ * Now uses `df[["varName_c"]]` which is correct R.
+ * Centering is now actually applied to the model (not just computed and ignored).
+ * Simple slopes use the re-centering approach (Aiken & West, 1991).
  */
 export async function runModerationAnalysis(
     data: number[][],
     columns: string[],
     xVar: string,
-    mVar: string, // Moderator
+    mVar: string, // Moderator (W)
     yVar: string
 ): Promise<{
     coefficients: {
@@ -174,109 +175,97 @@ export async function runModerationAnalysis(
     }[];
     rCode: string;
 }> {
-    const webR = await initWebR();
-
-    // Lazy load required packages (needs boot for simple slopes)
+    // Lazy load required packages
     await loadPackagesForMethod('moderation');
 
+    const colNamesR = columns.map(c => `"${c}"`).join(',');
     const rCode = `
     library(psych)
     
     data_mat <- raw_data
     df <- as.data.frame(data_mat)
-    colnames(df) <- c(${columns.map(c => `"${c}"`).join(',')})
+    colnames(df) <- c(${colNamesR})
     
-    # Center variables (Good practice for moderation)
-    df$${xVar}_c <- scale(df$${xVar}, scale = FALSE)
-    df$${mVar}_c <- scale(df$${mVar}, scale = FALSE)
+    # Center X and W (moderator) to reduce multicollinearity in interaction term
+    # Use df[["col"]] <- ... syntax (correct R column assignment)
+    x_c <- as.numeric(scale(df[["${xVar}"]], scale = FALSE))
+    w_c <- as.numeric(scale(df[["${mVar}"]], scale = FALSE))
+    df[["x_c"]] <- x_c
+    df[["w_c"]] <- w_c
     
-    # Manual Interaction Model (lm is robust enough and clearer than mediate(mod=...))
-    f_str <- paste("${yVar} ~ ${xVar} * ${mVar}") # Auto includes main effects and interaction
-    model <- lm(as.formula(f_str), data = df)
-    
-    s <- summary(model)
+    # Interaction model using centered variables
+    model <- lm(df[["${yVar}"]] ~ x_c * w_c, data = df)
+    s     <- summary(model)
     coefs <- coef(s)
     
-    # Interaction Term Name usually "${xVar}:${mVar}" or "${mVar}:${xVar}"
-    # We find the one with ':'
+    # Find interaction term (contains ':')
     int_row_idx <- grep(":", rownames(coefs))[1]
-    int_p_val <- if(is.na(int_row_idx)) 1 else coefs[int_row_idx, 4]
+    int_p_val   <- if(is.na(int_row_idx)) 1 else coefs[int_row_idx, 4]
     
-    # Simple Slopes Analysis (Spotlight at -1SD, Mean, +1SD of Moderator)
-    m_mean <- mean(df$${mVar}, na.rm=TRUE)
-    m_sd <- sd(df$${mVar}, na.rm=TRUE)
+    # Simple Slopes Analysis — Aiken & West (1991) spotlight approach
+    # With centered W: mean(w_c) = 0, so spotlight values are:
+    w_sd   <- sd(w_c, na.rm = TRUE)
+    w_low  <- -w_sd   # -1 SD
+    w_mean <-  0      # Mean (= 0 after centering)
+    w_high <-  w_sd   # +1 SD
     
-    m_low <- m_mean - m_sd
-    m_high <- m_mean + m_sd
+    # Simple slope of X at each level of W:
+    # slope(X | W=w) = b_X + b_XW * w
+    b_x  <- coef(model)["x_c"]
+    b_xw <- if(!is.na(int_row_idx)) coefs[int_row_idx, 1] else 0
     
-    # Calculate simple slopes using centered equation logic
-    # Slope of X = b1 + b3 * M
-    b1 <- coef(model)["${xVar}"]
-    b3 <- coefs[int_row_idx, 1]
+    slope_low  <- b_x + b_xw * w_low
+    slope_mean <- b_x + b_xw * w_mean
+    slope_high <- b_x + b_xw * w_high
     
-    slope_mean <- b1 + b3 * m_mean
-    slope_low <- b1 + b3 * m_low
-    slope_high <- b1 + b3 * m_high
+    # P-values for simple slopes via re-centering W at each spotlight value
+    # (shift W so that the new mean = spotlight value, then X coefficient = simple slope)
+    df[["w_at_low"]]  <- w_c - w_low
+    df[["w_at_mean"]] <- w_c              # already centered at mean
+    df[["w_at_high"]] <- w_c - w_high
     
-    # Can also re-run LM with shifted moderator to get significance
-    # Low
-    df$adj_low <- df$${mVar} - m_low
-    m_low_model <- lm(as.formula(paste("${yVar} ~ ${xVar} * adj_low")), data = df)
-    p_low <- summary(m_low_model)$coefficients["${xVar}", 4]
+    m_low  <- lm(df[["${yVar}"]] ~ x_c * w_at_low,  data = df)
+    m_mean <- lm(df[["${yVar}"]] ~ x_c * w_at_mean, data = df)
+    m_high <- lm(df[["${yVar}"]] ~ x_c * w_at_high, data = df)
     
-    # High
-    df$adj_high <- df$${mVar} - m_high
-    m_high_model <- lm(as.formula(paste("${yVar} ~ ${xVar} * adj_high")), data = df)
-    p_high <- summary(m_high_model)$coefficients["${xVar}", 4]
-    
-    # Mean
-    p_mean <- coefs["${xVar}", 4] # Assuming centered? No, original model isn't centered on variables, wait.
-    # To get p at mean, we should use centered M in original model regression
-    # Actually let's use the centered calculation for cleaner P at mean
-    
-    # Correct approach for P at mean:
-    df$adj_mean <- df$${mVar} - m_mean
-    m_mean_model <- lm(as.formula(paste("${yVar} ~ ${xVar} * adj_mean")), data = df)
-    p_mean_calc <- summary(m_mean_model)$coefficients["${xVar}", 4]
+    p_low  <- tryCatch(summary(m_low)$coefficients["x_c",  4], error = function(e) NA)
+    p_mean <- tryCatch(summary(m_mean)$coefficients["x_c", 4], error = function(e) NA)
+    p_high <- tryCatch(summary(m_high)$coefficients["x_c", 4], error = function(e) NA)
     
     list(
-        terms = rownames(coefs),
-        estimates = coefs[, 1],
-        p_values = coefs[, 4],
+        terms           = rownames(coefs),
+        estimates       = coefs[, 1],
+        p_values        = coefs[, 4],
         int_significant = int_p_val < 0.05,
-        
-        slope_low = slope_low,
-        p_low = p_low,
-        slope_mean = slope_mean,
-        p_mean = (p_mean_calc), 
-        slope_high = slope_high,
-        p_high = p_high
+        slope_low       = as.numeric(slope_low),
+        p_low           = as.numeric(p_low),
+        slope_mean      = as.numeric(slope_mean),
+        p_mean          = as.numeric(p_mean),
+        slope_high      = as.numeric(slope_high),
+        p_high          = as.numeric(p_high)
     )
     `;
 
     const result = await executeRWithRecovery(rCode, 'moderation', 0, 2, 120000, data);
     const getValue = parseWebRResult(result);
 
-    const terms = getValue('terms') || [];
+    const terms    = getValue('terms')    || [];
     const estimates = getValue('estimates') || [];
-    const pValues = getValue('p_values') || [];
+    const pValues  = getValue('p_values') || [];
 
-    const coefficients = [];
-    for (let i = 0; i < terms.length; i++) {
-        coefficients.push({
-            term: terms[i],
-            estimate: estimates[i],
-            pValue: pValues[i]
-        });
-    }
+    const coefficients = terms.map((term: string, i: number) => ({
+        term,
+        estimate: estimates[i] ?? 0,
+        pValue:   pValues[i]   ?? 1,
+    }));
 
     return {
         coefficients,
         interactionSignificant: getValue('int_significant')?.[0] || false,
         slopes: [
-            { level: 'Low (-1 SD)', slope: getValue('slope_low')?.[0] || 0, pValue: getValue('p_low')?.[0] || 0 },
-            { level: 'Mean', slope: getValue('slope_mean')?.[0] || 0, pValue: getValue('p_mean')?.[0] || 0 },
-            { level: 'High (+1 SD)', slope: getValue('slope_high')?.[0] || 0, pValue: getValue('p_high')?.[0] || 0 }
+            { level: 'Low (-1 SD)',  slope: getValue('slope_low')?.[0]  ?? 0, pValue: getValue('p_low')?.[0]  ?? 1 },
+            { level: 'Mean',         slope: getValue('slope_mean')?.[0] ?? 0, pValue: getValue('p_mean')?.[0] ?? 1 },
+            { level: 'High (+1 SD)', slope: getValue('slope_high')?.[0] ?? 0, pValue: getValue('p_high')?.[0] ?? 1 },
         ],
         rCode
     };

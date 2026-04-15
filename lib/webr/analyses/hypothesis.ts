@@ -1,8 +1,8 @@
 /**
  * Hypothesis Testing Modules - Fully Template-Driven
  */
-import { initWebR, executeRWithRecovery, loadPackagesForMethod } from '../core';
-import { parseWebRResult, parseMatrix, arrayToRMatrix, useRawDataInCode } from '../utils';
+import { executeRWithRecovery, loadPackagesForMethod } from '../core';
+import { parseWebRResult, parseMatrix } from '../utils';
 import { getAnalysisRTemplate } from '../templates';
 
 /**
@@ -338,8 +338,19 @@ export async function runMannWhitneyU(group1: number[], group2: number[]): Promi
     library(psych);
     g1 <- c({{g1}}); g2 <- c({{g2}});
     tt <- wilcox.test(g1, g2, conf.int = TRUE);
-    z <- qnorm(tt$p.value / 2, lower.tail = FALSE);
-    r <- z / sqrt(length(g1) + length(g2));
+    
+    # Effect size r — correct formula using U statistic directly
+    # r = Z / sqrt(N), where Z is derived from the exact U statistic
+    # NOT back-calculated from p-value (which can give r > 1 for very small p)
+    n1 <- length(g1); n2 <- length(g2); n_total <- n1 + n2;
+    U <- tt$statistic;
+    # Expected U and SD under H0
+    mu_U <- n1 * n2 / 2;
+    sigma_U <- sqrt(n1 * n2 * (n_total + 1) / 12);
+    z_score <- (U - mu_U) / sigma_U;
+    r <- abs(z_score) / sqrt(n_total);
+    r <- min(r, 1.0);  # cap at 1 for safety
+    
     sk1 <- skew(g1); sk2 <- skew(g2);
     sim <- (sign(sk1) == sign(sk2)) && (abs(sk1 - sk2) < 1.0);
     msg <- if(sim) "Trung vị" else "Mean Rank";

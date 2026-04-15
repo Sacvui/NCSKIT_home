@@ -1,7 +1,7 @@
 /**
  * Descriptive Statistics & Validation - Template-Driven
  */
-import { initWebR, executeRWithRecovery, loadPackagesForMethod } from '../core';
+import { executeRWithRecovery, loadPackagesForMethod } from '../core';
 import { parseWebRResult } from '../utils';
 import { getAnalysisRTemplate } from '../templates';
 

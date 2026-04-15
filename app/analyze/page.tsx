@@ -3,7 +3,7 @@
 // Prevent prerendering - this page requires client-side Supabase
 export const dynamic = 'force-dynamic';
 
-import React, { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { FileUpload } from '@/components/FileUpload';
 import { DataProfiler } from '@/components/DataProfiler';
@@ -11,6 +11,15 @@ import { ResultsDisplay } from '@/components/ResultsDisplay';
 import { SmartGroupSelector, VariableSelector, AISettings } from '@/components/VariableSelector';
 import { profileData, DataProfile } from '@/lib/data-profiler';
 import { runCorrelation, runDescriptiveStats, initWebR, getWebRStatus, setProgressCallback } from '@/lib/webr-wrapper';
+import {
+    runTTestIndependent,
+    runTTestPaired,
+    runOneWayANOVA,
+    runMannWhitneyU,
+    runKruskalWallis,
+    runWilcoxonSignedRank,
+    runChiSquare,
+} from '@/lib/webr-wrapper';
 import { BarChart3, FileText, Shield, Trash2, Eye, EyeOff, Wifi, WifiOff, RotateCcw, XCircle } from 'lucide-react';
 import { Toast } from '@/components/ui/Toast';
 import { WebRStatus } from '@/components/WebRStatus';
@@ -34,7 +43,7 @@ import Header from '@/components/layout/Header'
 import AnalysisToolbar from '@/components/analyze/AnalysisToolbar';
 import SaveProjectModal from '@/components/analyze/SaveProjectModal';
 import Footer from '@/components/layout/Footer';
-import { getAnalysisCost, checkBalance, deductCredits, getUserBalance } from '@/lib/ncs-credits';
+import { getAnalysisCost, checkBalance, deductCredits, deductCreditsAtomic, getUserBalance } from '@/lib/ncs-credits';
 import { logAnalysisUsage, logExport } from '@/lib/activity-logger';
 import { InsufficientCreditsModal } from '@/components/InsufficientCreditsModal';
 import { NcsBalanceBadge } from '@/components/NcsBalanceBadge';
@@ -42,6 +51,7 @@ import { MobileWebRFallback, useSharedArrayBufferSupport } from '@/components/Mo
 import { getORCIDUser } from '@/utils/cookie-helper';
 import { useAuth } from '@/context/AuthContext';
 import { useAnalysisPersistence } from '@/hooks/useAnalysisPersistence';
+import { useAutoSave } from '@/hooks/useAutoSave';
 import { Locale, t, getStoredLocale } from '@/lib/i18n';
 
 export default function AnalyzePage() {
@@ -188,23 +198,25 @@ function AnalyzeContent() {
         }
     }, [hasSavedData, data.length]);
 
-    // Auto-Save Effect (Debounced 1 minute for optimal performance)
-    useEffect(() => {
-        if (data.length > 0) {
-            const timer = setTimeout(() => {
-                saveWorkspace({
-                    data,
-                    columns: getNumericColumns(),
-                    fileName: filename,
-                    currentStep: step,
-                    results,
-                    analysisType,
-                });
+    // Auto-Save Effect — true debounce: fires 60s after the LAST change, not reset on every keystroke
+    useAutoSave(
+        () => {
+            if (data.length === 0) return;
+            saveWorkspace({
+                data,
+                columns: getNumericColumns(),
+                fileName: filename,
+                currentStep: step,
+                results,
+                analysisType,
+            });
+            if (process.env.NODE_ENV !== 'production') {
                 console.log('✅ Auto-saved workspace at', new Date().toLocaleTimeString());
-            }, 60000); // 60 seconds (1 minute) - optimal balance between safety and performance
-            return () => clearTimeout(timer);
-        }
-    }, [data, step, results, analysisType, filename, saveWorkspace]);
+            }
+        },
+        [data, step, results, analysisType, filename],
+        { delay: 60000, enabled: data.length > 0 && !isPrivateMode }
+    );
 
     // Save before page unload (critical data protection)
     useEffect(() => {
@@ -250,24 +262,7 @@ function AnalyzeContent() {
         showToast(t(locale, 'analyze.common.data_cleared'), 'info');
     };
 
-    // Persist workflow state to sessionStorage (Legacy - Keeping for now)
-    useEffect(() => {
-        if (previousAnalysis) {
-            sessionStorage.setItem('workflow_state', JSON.stringify(previousAnalysis));
-        }
-    }, [previousAnalysis]);
-
-    // Load workflow state on mount
-    useEffect(() => {
-        const saved = sessionStorage.getItem('workflow_state');
-        if (saved) {
-            try {
-                setPreviousAnalysis(JSON.parse(saved));
-            } catch (e) {
-                console.error('Failed to parse workflow state:', e);
-            }
-        }
-    }, []);
+    // NOTE: previousAnalysis is React state only — sessionStorage removed to eliminate stale data from two sources of truth.
 
     // Handle online/offline events
     useEffect(() => {
@@ -466,8 +461,11 @@ function AnalyzeContent() {
                 return;
             }
 
-            // NCS Credit Check
+            // --- NCS Credit: Check balance first, then deduct BEFORE running analysis ---
+            // This prevents the race condition where analysis succeeds but deduction fails.
+            // If analysis fails after deduction, we attempt a refund via a compensating credit.
             let analysisCost = 0;
+            let creditDeducted = false;
             if (user) {
                 analysisCost = await getAnalysisCost(type);
                 const { hasEnough } = await checkBalance(user.id, analysisCost);
@@ -477,6 +475,18 @@ function AnalyzeContent() {
                     setShowInsufficientCredits(true);
                     setIsAnalyzing(false);
                     return;
+                }
+                // Deduct BEFORE running — atomic via RPC (falls back to non-atomic if RPC unavailable)
+                if (analysisCost > 0) {
+                    const description = type === 'correlation' ? 'Correlation Matrix' : 'Descriptive Statistics';
+                    const { success, isExempt, newBalance, error: deductError } = await deductCreditsAtomic(user.id, analysisCost, description);
+                    if (!success) {
+                        showToast(deductError || 'Không đủ NCS để thực hiện phân tích', 'error');
+                        setIsAnalyzing(false);
+                        return;
+                    }
+                    creditDeducted = true;
+                    if (!isExempt) setNcsBalance(newBalance);
                 }
             }
 
@@ -491,32 +501,122 @@ function AnalyzeContent() {
                 numericColumns.map(col => Number(row[col]) || 0)
             );
 
-            let analysisResults;
+            let analysisResults: any;
             setAnalysisProgress(30);
 
+            // Analysis types that run directly (no variable-selection UI needed)
+            // Other types (ttest, anova, efa, etc.) are handled by their dedicated View components
             switch (type) {
                 case 'correlation':
                     analysisResults = await runCorrelation(numericData);
                     break;
+
                 case 'descriptive':
                     analysisResults = await runDescriptiveStats(numericData);
                     break;
 
+                // --- Types that need variable selection — redirect to their step ---
+                // These should normally be triggered via AnalysisSelector's action:'select',
+                // but handle gracefully here in case of direct calls.
+                case 'ttest':
+                case 'ttest-indep':
+                    clearInterval(progressInterval);
+                    setIsAnalyzing(false);
+                    setStep('ttest-select' as any);
+                    return;
+                case 'ttest-paired':
+                    clearInterval(progressInterval);
+                    setIsAnalyzing(false);
+                    setStep('ttest-paired-select' as any);
+                    return;
+                case 'anova':
+                    clearInterval(progressInterval);
+                    setIsAnalyzing(false);
+                    setStep('anova-select' as any);
+                    return;
+                case 'efa':
+                    clearInterval(progressInterval);
+                    setIsAnalyzing(false);
+                    setStep('efa-select' as any);
+                    return;
+                case 'cfa':
+                    clearInterval(progressInterval);
+                    setIsAnalyzing(false);
+                    setStep('cfa-select' as any);
+                    return;
+                case 'sem':
+                    clearInterval(progressInterval);
+                    setIsAnalyzing(false);
+                    setStep('sem-select' as any);
+                    return;
+                case 'cronbach':
+                    clearInterval(progressInterval);
+                    setIsAnalyzing(false);
+                    setStep('cronbach-select' as any);
+                    return;
+                case 'regression':
+                    clearInterval(progressInterval);
+                    setIsAnalyzing(false);
+                    setStep('regression-select' as any);
+                    return;
+                case 'logistic':
+                    clearInterval(progressInterval);
+                    setIsAnalyzing(false);
+                    setStep('logistic-select' as any);
+                    return;
+                case 'mediation':
+                    clearInterval(progressInterval);
+                    setIsAnalyzing(false);
+                    setStep('mediation-select' as any);
+                    return;
+                case 'moderation':
+                    clearInterval(progressInterval);
+                    setIsAnalyzing(false);
+                    setStep('moderation-select' as any);
+                    return;
+                case 'chisquare':
+                case 'chisq':
+                    clearInterval(progressInterval);
+                    setIsAnalyzing(false);
+                    setStep('chisq-select' as any);
+                    return;
+                case 'mann-whitney':
+                    clearInterval(progressInterval);
+                    setIsAnalyzing(false);
+                    setStep('mannwhitney-select' as any);
+                    return;
+                case 'kruskal-wallis':
+                    clearInterval(progressInterval);
+                    setIsAnalyzing(false);
+                    setStep('kruskalwallis-select' as any);
+                    return;
+                case 'wilcoxon':
+                    clearInterval(progressInterval);
+                    setIsAnalyzing(false);
+                    setStep('wilcoxon-select' as any);
+                    return;
+                case 'cluster':
+                    clearInterval(progressInterval);
+                    setIsAnalyzing(false);
+                    setStep('cluster-select' as any);
+                    return;
+
                 default:
-                    throw new Error('Unknown analysis type');
+                    // Unknown type — log and show user-friendly message instead of crashing
+                    console.warn(`[runAnalysis] Unknown analysis type: "${type}". Redirecting to selector.`);
+                    clearInterval(progressInterval);
+                    setIsAnalyzing(false);
+                    showToast(`Phương pháp "${type}" chưa được hỗ trợ trực tiếp. Vui lòng chọn lại.`, 'info');
+                    setStep('analyze');
+                    return;
             }
 
             clearInterval(progressInterval);
             setAnalysisProgress(100);
 
-            // Deduct credits on success (reuse analysisCost from check step)
-            if (user) {
-                const { isExempt, newBalance } = await deductCredits(user.id, analysisCost, `${type === 'correlation' ? 'Correlation Matrix' : 'Descriptive Stats'}`);
+            // Credits already deducted before analysis — just log usage
+            if (user && analysisCost > 0) {
                 await logAnalysisUsage(user.id, type, analysisCost);
-                
-                if (!isExempt) {
-                    setNcsBalance(newBalance);
-                }
             }
 
             setResults({
@@ -527,6 +627,26 @@ function AnalyzeContent() {
             setStep('results');
             showToast(t(locale, 'analyze.common.analysis_complete'), 'success');
         } catch (error) {
+            if (progressInterval) clearInterval(progressInterval);
+            // Refund credits if analysis failed after deduction
+            if (user && analysisCost > 0 && creditDeducted) {
+                try {
+                    const supabase = (await import('@/utils/supabase/client')).getSupabase();
+                    const { data: profile } = await supabase.from('profiles').select('tokens').eq('id', user.id).single();
+                    if (profile) {
+                        const refundedBalance = (profile.tokens || 0) + analysisCost;
+                        await supabase.from('profiles').update({ tokens: refundedBalance, updated_at: new Date().toISOString() }).eq('id', user.id);
+                        await supabase.from('token_transactions').insert({
+                            user_id: user.id, amount: analysisCost, type: 'refund_analysis',
+                            description: `Hoàn tiền: ${type} thất bại`, balance_after: refundedBalance
+                        });
+                        setNcsBalance(refundedBalance);
+                        console.log(`[Credits] Refunded ${analysisCost} NCS after failed analysis`);
+                    }
+                } catch (refundErr) {
+                    console.error('[Credits] Refund failed:', refundErr);
+                }
+            }
             handleAnalysisError(error);
         } finally {
             setIsAnalyzing(false);

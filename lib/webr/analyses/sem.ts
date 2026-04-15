@@ -1,8 +1,8 @@
 /**
  * SEM Analysis Modules - Template-Driven
  */
-import { initWebR, executeRWithRecovery, loadPackagesForMethod } from '../core';
-import { parseWebRResult, arrayToRMatrix } from '../utils';
+import { executeRWithRecovery, loadPackagesForMethod } from '../core';
+import { parseWebRResult } from '../utils';
 import { getAnalysisRTemplate } from '../templates';
 
 export interface SEMResult {
@@ -56,12 +56,12 @@ export async function runLavaanAnalysis(data: number[][], columns: string[], mod
 
     const template = await getAnalysisRTemplate('sem', defaultRCode);
     const rCode = template
-        .replace(/\{\{data\}\}/g, arrayToRMatrix(data))
+        .replace(/\{\{data\}\}/g, 'raw_data')
         .replace(/\{\{columns\}\}/g, colNames)
         .replace(/\{\{model\}\}/g, escapeModel);
 
     try {
-        const result = await executeRWithRecovery(rCode);
+        const result = await executeRWithRecovery(rCode, 'sem', 0, 2, 180000, data);
         const getValue = parseWebRResult(result);
 
         const estimatesRaw = getValue('est_list') || [];
