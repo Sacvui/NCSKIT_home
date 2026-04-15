@@ -253,9 +253,10 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         
                         try {
                             updateProgress('🌐 Đang tải lại thư viện...');
-                            console.log('[WebR] Attempting re-install of psych and jsonlite...');
-                            await webR.evalR(`webr::install("psych", lib="${persistentLib}")`);
-                            await webR.evalR(`webr::install("jsonlite", lib="${persistentLib}")`);
+                            console.log('[WebR] Attempting re-install of psych and jsonlite from local repo...');
+                            const installCmd = (pkg: string) => `install.packages("${pkg}", lib="${persistentLib}", repos="${localRepo}", type="wasm-binary")`;
+                            await webR.evalR(installCmd("jsonlite"));
+                            await webR.evalR(installCmd("psych"));
                             await webR.evalR('library(psych); library(jsonlite)');
                             markPackageLoaded('psych');
                             markPackageLoaded('jsonlite');
@@ -266,26 +267,17 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     }
                 } else {
                     updateProgress('🌐 Đang tải thư viện R (lần đầu)...');
-                    console.log('[WebR] Initial installation of core libraries...');
+                    console.log('[WebR] Initial installation of core libraries from local repo...');
                     try {
-                        await webR.evalR(`webr::install("jsonlite", lib="${persistentLib}")`);
-                        await webR.evalR(`webr::install("psych", lib="${persistentLib}")`);
+                        const installCmd = (pkg: string) => `install.packages("${pkg}", lib="${persistentLib}", repos="${localRepo}", type="wasm-binary")`;
+                        await webR.evalR(installCmd("jsonlite"));
+                        await webR.evalR(installCmd("psych"));
                         await webR.evalR('library(psych); library(jsonlite)');
                         markPackageLoaded('psych');
                         markPackageLoaded('jsonlite');
                         await webR.FS.syncfs(false);
                     } catch (installErr) {
-                        console.error('[WebR] Initial install failed, trying emergency repo fallback...', installErr);
-                        try {
-                            // High-resilience fallback: try official WASM repo if R-Universe fails
-                            await webR.evalR(`webr::install("psych", repos="https://repo.r-wasm.org")`);
-                            await webR.evalR(`webr::install("jsonlite", repos="https://repo.r-wasm.org")`);
-                            await webR.evalR('library(psych); library(jsonlite)');
-                            markPackageLoaded('psych');
-                            markPackageLoaded('jsonlite');
-                        } catch (emergencyErr) {
-                            console.error('[WebR] Emergency fallback also failed:', emergencyErr);
-                        }
+                        console.error('[WebR] Initial install failed from local repo:', installErr);
                     }
                 }
 
@@ -483,7 +475,9 @@ export async function executeRWithRecovery(
             if (missingPkg) {
                 console.warn(`Auto-installing missing package: ${missingPkg}`);
                 updateProgress(`Setting up ${missingPkg}...`);
-                await webR.installPackages([missingPkg]);
+                const localRepo = (typeof window !== 'undefined' ? window.location.origin : '') + "/webr_packages";
+                await webR.evalR(`install.packages("${missingPkg}", repos="${localRepo}", type="wasm-binary")`);
+                await webR.evalR(`library(${missingPkg})`);
                 markPackageLoaded(missingPkg);
                 return executeRWithRecovery(rCode, method, retryCount + 1, maxRetries, timeoutMs, csvData);
             }
