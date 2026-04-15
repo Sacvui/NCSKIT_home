@@ -253,8 +253,8 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         
                         try {
                             updateProgress('🌐 Đang tải lại thư viện...');
-                            console.log('[WebR] Attempting re-install of psych and jsonlite from local repo...');
-                            const installCmd = (pkg: string) => `install.packages("${pkg}", lib="${persistentLib}", repos="${localRepo}", type="wasm-binary")`;
+                            console.log('[WebR] Attempting re-install of psych and jsonlite from local repo:', localRepo);
+                            const installCmd = (pkg: string) => `webr::install("${pkg}", repos="${localRepo}", lib="${persistentLib}")`;
                             await webR.evalR(installCmd("jsonlite"));
                             await webR.evalR(installCmd("psych"));
                             await webR.evalR('library(psych); library(jsonlite)');
@@ -267,9 +267,9 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     }
                 } else {
                     updateProgress('🌐 Đang tải thư viện R (lần đầu)...');
-                    console.log('[WebR] Initial installation of core libraries from local repo...');
+                    console.log('[WebR] Initial installation of core libraries from local repo:', localRepo);
                     try {
-                        const installCmd = (pkg: string) => `install.packages("${pkg}", lib="${persistentLib}", repos="${localRepo}", type="wasm-binary")`;
+                        const installCmd = (pkg: string) => `webr::install("${pkg}", repos="${localRepo}", lib="${persistentLib}")`;
                         await webR.evalR(installCmd("jsonlite"));
                         await webR.evalR(installCmd("psych"));
                         await webR.evalR('library(psych); library(jsonlite)');
@@ -476,7 +476,7 @@ export async function executeRWithRecovery(
                 console.warn(`Auto-installing missing package: ${missingPkg}`);
                 updateProgress(`Setting up ${missingPkg}...`);
                 const localRepo = (typeof window !== 'undefined' ? window.location.origin : '') + "/webr_packages";
-                await webR.evalR(`install.packages("${missingPkg}", repos="${localRepo}", type="wasm-binary")`);
+                await webR.evalR(`webr::install("${missingPkg}", repos="${localRepo}")`);
                 await webR.evalR(`library(${missingPkg})`);
                 markPackageLoaded(missingPkg);
                 return executeRWithRecovery(rCode, method, retryCount + 1, maxRetries, timeoutMs, csvData);
