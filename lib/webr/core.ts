@@ -407,20 +407,21 @@ export async function executeRWithRecovery(
             `;
             
             const resObj = await webR.evalR(wrappedCode);
-            // Use internal unpacker to convert WebR object to standard JS JS object
+            // Use internal unpacker to convert WebR object to standard JS object
             const rawJs = await resObj.toJs();
-            const jsonStr = unpackWebRObject(rawJs);
+            const unpacked: unknown = unpackWebRObject(rawJs);
             
             if (resObj && typeof (resObj as any).destroy === 'function') (resObj as any).destroy();
             
-            if (typeof jsonStr === 'string' && jsonStr.startsWith("ERROR:")) {
-                throw new Error(jsonStr.replace("ERROR:", "").trim());
+            // Explicitly narrow type to string for safety and to satisfy TS
+            if (typeof unpacked === 'string' && unpacked.startsWith("ERROR:")) {
+                throw new Error(unpacked.replace("ERROR:", "").trim());
             }
             
             try {
-                return typeof jsonStr === 'string' ? JSON.parse(jsonStr) : jsonStr;
+                return typeof unpacked === 'string' ? JSON.parse(unpacked) : unpacked;
             } catch (e) {
-                return jsonStr;
+                return unpacked;
             }
         })();
 
