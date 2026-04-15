@@ -418,19 +418,21 @@ export async function executeRWithRecovery(
             
             console.log('[WebR] Engine System v2.2.0 - Binary Transfer Optimized');
 
-            // Explicitly narrow type to string for safety
-            if (typeof unpacked === 'string' && (unpacked as string).startsWith("ERROR:")) {
-                throw new Error((unpacked as string).replace("ERROR:", "").trim());
-            }
-            
             try {
-                // If the data comes as a Uint8Array, decode it first
+                // If the data comes as a Uint8Array (stable binary), decode it first
                 const finalStr = (unpacked instanceof Uint8Array) 
                     ? new TextDecoder().decode(unpacked) 
-                    : (typeof unpacked === 'string' ? unpacked : JSON.stringify(unpacked));
+                    : (typeof unpacked === 'string' ? (unpacked as string) : JSON.stringify(unpacked));
+
+                // Check for R-side errors encoded in the binary/string stream
+                if (finalStr.startsWith("ERROR:")) {
+                    throw new Error(finalStr.replace("ERROR:", "").trim());
+                }
 
                 return JSON.parse(finalStr);
-            } catch (e) {
+            } catch (e: any) {
+                // If it's already an error we threw, re-throw it
+                if (e.message && e.message.includes('ERROR:')) throw e;
                 return unpacked;
             }
         })();
