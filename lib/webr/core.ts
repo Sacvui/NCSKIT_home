@@ -407,7 +407,10 @@ export async function executeRWithRecovery(
             `;
             
             const resObj = await webR.evalR(wrappedCode);
-            const jsonStr = await resObj.toJs();
+            // Use internal unpacker to convert WebR object to standard JS JS object
+            const rawJs = await resObj.toJs();
+            const jsonStr = unpackWebRObject(rawJs);
+            
             if (resObj && typeof (resObj as any).destroy === 'function') (resObj as any).destroy();
             
             if (typeof jsonStr === 'string' && jsonStr.startsWith("ERROR:")) {
