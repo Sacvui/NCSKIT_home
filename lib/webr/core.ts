@@ -204,15 +204,16 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     console.warn('[WebR] Falling back to slow memory-only mode. Every page load will require re-downloading packages.');
                 }
 
-                // 2. Configure Environment
-                updateProgress('🛠️ Cấu hình hệ thống...');
+                const localRepo = (typeof window !== 'undefined' ? window.location.origin : '') + "/webr_packages";
+                console.log("[WebR] Using self-hosted repository:", localRepo);
+
                 await webR.evalR(`
                     if (dir.exists("${persistentLib}")) {
                         .libPaths(c('${persistentLib}', .libPaths()))
                     }
                     
-                    # Force R-Universe as the ONLY repository for maximum reliability
-                    options(repos = c(CRAN = "https://cran.r-universe.dev"))
+                    # Set local self-hosted repository as the primary source
+                    options(repos = c(CRAN = "${localRepo}"))
                     
                     # Core configuration for WASM
                     options(pkgType = "binary")
