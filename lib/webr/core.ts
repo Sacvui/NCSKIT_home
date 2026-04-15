@@ -211,15 +211,13 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         .libPaths(c('${persistentLib}', .libPaths()))
                     }
                     
-                    # Resilience: Use R-Universe which has 4.5 binaries
-                    options(repos = c(
-                        CRAN = "https://cran.r-universe.dev",
-                        WASM = "https://repo.r-wasm.org"
-                    ))
+                    # Force R-Universe as the ONLY repository for maximum reliability
+                    options(repos = c(CRAN = "https://cran.r-universe.dev"))
                     
                     # Core configuration for WASM
                     options(pkgType = "binary")
                     options(mc.cores = 1)
+                    options(timeout = 300) # 5 minute timeout for slow connections
                     
                     # Pre-check psych existence
                     psych_exists <- dir.exists("${persistentLib}/psych")
@@ -232,7 +230,7 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 const rVersion = unpackWebRObject(await rVersionObj.toJs());
                 console.log(`[WebR] R Engine Version: ${rVersion}`);
 
-                // 3. Load or Install Psych (Critical Core)
+                // 3. Load or Install Core Packages
                 updateProgress('📦 Đang thiết lập công cụ...');
                 const existsProxy = await webR.evalR('psych_exists');
                 const existsVal = unpackWebRObject(await existsProxy.toJs());
@@ -240,25 +238,21 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
 
                 if (existsVal === true) {
                     try {
-                        console.log('[WebR] Loading psych from persistent lib...');
-                        await webR.evalR('library(psych)');
+                        console.log('[WebR] Loading core libraries from persistent lib...');
+                        await webR.evalR('library(psych); library(jsonlite)');
                         markPackageLoaded('psych');
+                        markPackageLoaded('jsonlite');
                     } catch (e) {
-                        console.warn('[WebR] Psych loading failed! Wiping library folder...', e);
+                        console.warn('[WebR] Core loading failed! Wiping library folder...', e);
                         updateProgress('🧹 Đang làm sạch bộ nhớ...');
                         try {
-                            await webR.evalR(`
-                                unlink("${persistentLib}", recursive = TRUE)
-                                dir.create("${persistentLib}", recursive = TRUE)
-                            `);
+                            await webR.evalR(`unlink("${persistentLib}", recursive = TRUE); dir.create("${persistentLib}", recursive = TRUE)`);
                             await webR.FS.syncfs(false); 
-                        } catch (wipeErr) {
-                            console.error('[WebR] Wipe failed:', wipeErr);
-                        }
+                        } catch (wipeErr) {}
                         
                         try {
                             updateProgress('🌐 Đang tải lại thư viện...');
-                        console.log('[WebR] Attempting re-install of psych and jsonlite...');
+                            console.log('[WebR] Attempting re-install of psych and jsonlite...');
                             await webR.evalR(`webr::install("psych", lib="${persistentLib}")`);
                             await webR.evalR(`webr::install("jsonlite", lib="${persistentLib}")`);
                             await webR.evalR('library(psych); library(jsonlite)');
@@ -271,26 +265,26 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     }
                 } else {
                     updateProgress('🌐 Đang tải thư viện R (lần đầu)...');
-                    console.log('[WebR] Initial installation of psych and jsonlite...');
+                    console.log('[WebR] Initial installation of core libraries...');
                     try {
-                        await webR.evalR(`webr::install("psych", lib="${persistentLib}")`);
                         await webR.evalR(`webr::install("jsonlite", lib="${persistentLib}")`);
+                        await webR.evalR(`webr::install("psych", lib="${persistentLib}")`);
                         await webR.evalR('library(psych); library(jsonlite)');
                         markPackageLoaded('psych');
                         markPackageLoaded('jsonlite');
                         await webR.FS.syncfs(false);
                     } catch (installErr) {
-                        console.error('[WebR] Initial install failed:', installErr);
-                        // Emergency fallback to 4.4 if R-Universe 4.5 also fails (unlikely now)
-                        await webR.evalR(`
-                            message("Standard install failed, trying emergency 4.4 fallback...")
-                            install.packages("psych", lib="${persistentLib}", repos=NULL, 
-                                             contriburl="https://repo.r-wasm.org/bin/emscripten/contrib/4.4", 
-                                             type="binary", dependencies=TRUE)
-                        `);
-                        await webR.evalR('library(psych)');
-                        markPackageLoaded('psych');
-                        await webR.FS.syncfs(false);
+                        console.error('[WebR] Initial install failed, trying emergency repo fallback...', installErr);
+                        try {
+                            // High-resilience fallback: try official WASM repo if R-Universe fails
+                            await webR.evalR(`webr::install("psych", repos="https://repo.r-wasm.org")`);
+                            await webR.evalR(`webr::install("jsonlite", repos="https://repo.r-wasm.org")`);
+                            await webR.evalR('library(psych); library(jsonlite)');
+                            markPackageLoaded('psych');
+                            markPackageLoaded('jsonlite');
+                        } catch (emergencyErr) {
+                            console.error('[WebR] Emergency fallback also failed:', emergencyErr);
+                        }
                     }
                 }
 
