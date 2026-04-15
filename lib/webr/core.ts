@@ -392,16 +392,20 @@ export async function executeRWithRecovery(
         // ============================================================================
         const executeAndGetViaFS = async (code: string) => {
             const outPath = `/tmp/out_${Date.now()}.json`;
+            // Add extra newlines and braces to prevent syntax bleeding
             const wrappedCode = `
-                local({
-                    tryCatch({
+                tryCatch({
+                    # Wrap user code in a block to ensure .Last.value captures it
+                    .user_eval_res <- {
                         ${code}
-                        .last_result <- .Last.value
-                        .json_out <- jsonlite::toJSON(.last_result, auto_unbox = TRUE, force = TRUE, null = "null", NA = "null")
-                        writeLines(as.character(.json_out), "${outPath}")
-                    }, error = function(e) {
-                        writeLines(paste("ERROR:", e$message), "${outPath}")
-                    })
+                    }
+                    # If the block didn't return via .Last.value, use the assigned result
+                    .last_result <- if (exists(".Last.value")) .Last.value else .user_eval_res
+                    
+                    .json_out <- jsonlite::toJSON(.last_result, auto_unbox = TRUE, force = TRUE, null = "null", NA = "null")
+                    writeLines(as.character(.json_out), "${outPath}")
+                }, error = function(e) {
+                    writeLines(paste("ERROR:", e$message), "${outPath}")
                 })
             `;
             
