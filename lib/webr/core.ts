@@ -376,15 +376,15 @@ export async function executeRWithRecovery(
 
         if (csvData && csvData.length > 0) {
             updateProgress('📊 Đang nạp dữ liệu...');
-            // Ensure data is converted to plain string to avoid Blob issues
-            const flat = String(csvData.map(row => 
+            // Convert data to a CSV formatted string
+            const csvText = csvData.map(row => 
                 row.map(v => (v === null || v === undefined || Number.isNaN(v as number)) ? 'NA' : v).join(',')
-            ).join('\n'));
+            ).join('\n');
             
-            // Safety delay to ensure VFS is ready
-            await new Promise(resolve => setTimeout(resolve, 500));
-            await webR.FS.writeFile('/tmp/data_input.csv', new TextEncoder().encode(flat));
-            await webR.evalR(`raw_data <- as.matrix(read.csv("/tmp/data_input.csv", header=FALSE, stringsAsFactors=FALSE))`);
+            // Inject data directly as a string variable in R to bypass VFS/Blob errors
+            await webR.objs.globalEnv.bind('raw_csv_text', csvText);
+            await webR.evalR(`raw_data <- as.matrix(read.csv(text = raw_csv_text, header = FALSE, stringsAsFactors = FALSE))`);
+            await webR.evalR(`rm(raw_csv_text)`); // Clean up memory
         }
 
         let output: any;
