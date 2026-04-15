@@ -2,7 +2,7 @@
  * Multivariate Analysis Modules - Template-Driven
  */
 import { initWebR, executeRWithRecovery, loadPackagesForMethod } from '../core';
-import { parseWebRResult, arrayToRMatrix } from '../utils';
+import { parseWebRResult } from '../utils';
 import { getAnalysisRTemplate } from '../templates';
 
 /**
@@ -48,11 +48,11 @@ export async function runClusterAnalysis(
     const colNames = columns.map(c => `"${c}"`).join(',');
     const template = await getAnalysisRTemplate('cluster', defaultRCode);
     const rCode = template
-        .replace(/\{\{data\}\}/g, arrayToRMatrix(data))
+        .replace(/\{\{data\}\}/g, 'raw_data')
         .replace(/\{\{columns\}\}/g, colNames)
         .replace(/\{\{k\}\}/g, String(k));
 
-    const result = await executeRWithRecovery(rCode);
+    const result = await executeRWithRecovery(rCode, 'cluster', 0, 2, 120000, data);
     const getValue = parseWebRResult(result);
 
     const centersFlat = getValue('centers') || [];

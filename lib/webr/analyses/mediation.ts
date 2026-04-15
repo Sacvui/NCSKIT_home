@@ -3,7 +3,7 @@
  * Uses 'psych' package for robust mediation/moderation modeling.
  */
 import { initWebR, executeRWithRecovery, loadPackagesForMethod } from '../core';
-import { parseWebRResult, arrayToRMatrix } from '../utils';
+import { parseWebRResult } from '../utils';
 
 /**
  * Run Mediation Analysis
@@ -47,7 +47,7 @@ export async function runMediationAnalysis(
     const rCode = `
     library(psych)
     
-    data_mat <- ${arrayToRMatrix(data)}
+    data_mat <- raw_data
     df <- as.data.frame(data_mat)
     colnames(df) <- c(${columns.map(c => `"${c}"`).join(',')})
     
@@ -123,7 +123,7 @@ export async function runMediationAnalysis(
     )
     `;
 
-    const result = await executeRWithRecovery(rCode);
+    const result = await executeRWithRecovery(rCode, 'mediation', 0, 2, 120000, data);
     const getValue = parseWebRResult(result);
 
     return {
@@ -182,7 +182,7 @@ export async function runModerationAnalysis(
     const rCode = `
     library(psych)
     
-    data_mat <- ${arrayToRMatrix(data)}
+    data_mat <- raw_data
     df <- as.data.frame(data_mat)
     colnames(df) <- c(${columns.map(c => `"${c}"`).join(',')})
     
@@ -254,7 +254,7 @@ export async function runModerationAnalysis(
     )
     `;
 
-    const result = await executeRWithRecovery(rCode);
+    const result = await executeRWithRecovery(rCode, 'moderation', 0, 2, 120000, data);
     const getValue = parseWebRResult(result);
 
     const terms = getValue('terms') || [];

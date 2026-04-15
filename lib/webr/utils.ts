@@ -81,9 +81,26 @@ export function parseMatrix(val: any, dim: number): number[][] {
 }
 
 /**
- * Convert JS array to R matrix string
+ * Convert JS array to R matrix string (inline embedding).
+ * WARNING: Only use for small datasets (< 500 rows).
+ * For larger data, use executeRWithRecovery's csvData param + RAW_DATA_PLACEHOLDER.
  */
 export function arrayToRMatrix(data: (number | null | undefined)[][]): string {
     const flat = data.flat().map(v => (v === null || v === undefined || isNaN(v as number)) ? 'NA' : v);
     return `matrix(c(${flat.join(',')}), nrow=${data.length}, byrow=TRUE)`;
+}
+
+/**
+ * Placeholder used in R code templates when data is passed via csvData param.
+ * executeRWithRecovery pre-loads data as `raw_data` matrix before running the code.
+ */
+export const RAW_DATA_PLACEHOLDER = 'raw_data';
+
+/**
+ * Build R code that uses pre-loaded raw_data matrix (injected via csvData param).
+ * Replaces {{data}} placeholder with `raw_data` reference.
+ * This avoids the FileReaderSync/Blob crash in WebR PostMessage channel.
+ */
+export function useRawDataInCode(rCode: string): string {
+    return rCode.replace(/\{\{data\}\}/g, RAW_DATA_PLACEHOLDER);
 }

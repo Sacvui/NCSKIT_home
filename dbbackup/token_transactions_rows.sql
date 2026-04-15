@@ -1,1 +1,0 @@
-INSERT INTO "public"."token_transactions" ("id", "user_id", "amount", "type", "description", "related_id", "balance_after", "created_at") VALUES ('1f7f81c7-c1de-42f3-bf6b-94e703c5d509', '35d3c64d-54a9-4e9d-bbb0-d3829caeed11', 10000, 'admin_adjust', 'Admin adjustment: ddepj gao', null, 10100, '2026-01-25 08:42:58.631706+00');

@@ -105,7 +105,7 @@ npm install
 
 # 3. Setup environment
 cp .env.example .env.local
-# Edit .env.local with your API keys
+# Edit .env.local with your Supabase URL, anon key, and optional Gemini API key
 
 # 4. Run dev server
 npm run dev
@@ -141,7 +141,55 @@ ncsStat/
 ├── hooks/                  # Custom React hooks
 ├── context/                # Auth & Language providers
 ├── types/                  # TypeScript type definitions
-└── utils/supabase/         # Supabase client & migrations
+├── utils/supabase/         # Supabase client & migrations
+├── scripts/                # Dev utilities (copy-webr, check-env, etc.)
+└── supabase/migrations/    # Database migration files
+```
+
+---
+
+## 🗄️ Database Setup
+
+Dự án dùng Supabase PostgreSQL. Migrations nằm trong `supabase/migrations/` và được áp dụng theo thứ tự:
+
+```bash
+# Áp dụng migrations qua Supabase CLI
+supabase db push
+
+# Hoặc chạy thủ công từng file trong Supabase SQL Editor:
+# supabase/migrations/20260124_performance_indexes.sql
+# supabase/migrations/20260128000000_add_feedback_table.sql
+# supabase/migrations/20260329000000_update_profile_and_rls.sql
+# supabase/migrations/20260331035048_create_knowledge_base_table.sql
+```
+
+Sau khi setup, promote user lên admin:
+```sql
+UPDATE public.profiles SET role = 'admin' WHERE email = 'your-email@example.com';
+```
+
+---
+
+## 🚀 Deployment (Vercel)
+
+1. Push code lên GitHub
+2. Import project vào [Vercel](https://vercel.com)
+3. Thêm Environment Variables:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+4. Cấu hình Supabase Auth → URL Configuration → thêm Vercel domain vào Redirect URLs
+5. Deploy
+
+---
+
+## 🛠️ Scripts hữu ích
+
+```bash
+npm run dev          # Dev server
+npm run build        # Production build
+npm run type-check   # TypeScript check
+npm run verify-build # Full check (type + lint + build)
+npm run clean        # Xóa .next cache
 ```
 
 ---

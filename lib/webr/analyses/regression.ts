@@ -95,10 +95,10 @@ export async function runLinearRegression(data: number[][], names: string[]): Pr
     const namesStr = names.map(n => `"${n}"`).join(',');
     const template = await getAnalysisRTemplate('regression', defaultRCode);
     const rCode = template
-        .replace(/\{\{data\}\}/g, arrayToRMatrix(data))
+        .replace(/\{\{data\}\}/g, 'raw_data')
         .replace(/\{\{names\}\}/g, namesStr);
 
-    const result = await executeRWithRecovery(rCode);
+    const result = await executeRWithRecovery(rCode, 'linear-regression', 0, 2, 120000, data);
     const getValue = parseWebRResult(result);
 
     const cNames = getValue('c_names') || [];
@@ -172,7 +172,7 @@ export async function runLogisticRegression(data: number[][], names: string[]): 
     `;
     const namesStr = names.map(n => `"${n}"`).join(',');
     const template = await getAnalysisRTemplate('logistic', defaultRCode);
-    const rCode = template.replace(/\{\{data\}\}/g, arrayToRMatrix(data)).replace(/\{\{names\}\}/g, namesStr);
-    const result = await executeRWithRecovery(rCode);
+    const rCode = template.replace(/\{\{data\}\}/g, 'raw_data').replace(/\{\{names\}\}/g, namesStr);
+    const result = await executeRWithRecovery(rCode, 'logistic-regression', 0, 2, 120000, data);
     return { result, rCode };
 }

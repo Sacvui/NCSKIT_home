@@ -2,7 +2,7 @@
  * Descriptive Statistics & Validation - Template-Driven
  */
 import { initWebR, executeRWithRecovery, loadPackagesForMethod } from '../core';
-import { parseWebRResult, arrayToRMatrix } from '../utils';
+import { parseWebRResult } from '../utils';
 import { getAnalysisRTemplate } from '../templates';
 
 /**
@@ -56,8 +56,8 @@ export async function runDescriptiveStats(data: number[][]): Promise<{
     );
     `;
     const template = await getAnalysisRTemplate('descriptive', defaultRCode);
-    const rCode = template.replace(/\{\{data\}\}/g, arrayToRMatrix(data));
-    const result = await executeRWithRecovery(rCode);
+    const rCode = template.replace(/\{\{data\}\}/g, 'raw_data');
+    const result = await executeRWithRecovery(rCode, 'descriptive', 0, 2, 120000, data);
     const getValue = parseWebRResult(result);
     return {
         mean: getValue('mean') || [],

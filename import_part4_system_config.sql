@@ -1,8 +1,0 @@
--- NCSKIT Import: system_config
--- Run this in Supabase SQL Editor
-
-INSERT INTO "public"."system_config" ("key", "value", "description", "updated_at", "updated_by") 
-VALUES 
-  ('analysis_costs', '{"cfa":2000,"efa":1000,"sem":3000,"anova":600,"ttest":400,"cronbach":500,"chisquare":400,"ai_explain":1500,"export_pdf":200,"regression":800,"correlation":300,"descriptive":100,"ttest-indep":400,"mann-whitney":400,"ttest-paired":400}', 'Cost per analysis type in NCS credits', '2026-01-24 18:22:01.997124+00', null),
-  ('default_ncs_balance', '10000', 'Default NCS credits for new users', '2026-01-24 18:22:01.997124+00', null)
-ON CONFLICT (key) DO NOTHING;

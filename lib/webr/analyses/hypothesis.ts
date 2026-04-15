@@ -2,7 +2,7 @@
  * Hypothesis Testing Modules - Fully Template-Driven
  */
 import { initWebR, executeRWithRecovery, loadPackagesForMethod } from '../core';
-import { parseWebRResult, parseMatrix, arrayToRMatrix } from '../utils';
+import { parseWebRResult, parseMatrix, arrayToRMatrix, useRawDataInCode } from '../utils';
 import { getAnalysisRTemplate } from '../templates';
 
 /**
@@ -38,10 +38,10 @@ export async function runCorrelation(
 
     const template = await getAnalysisRTemplate('correlation', defaultRCode);
     const rCode = template
-        .replace(/\{\{data\}\}/g, arrayToRMatrix(data))
+        .replace(/\{\{data\}\}/g, 'raw_data')
         .replace(/\{\{method\}\}/g, method);
 
-    const jsResult = await executeRWithRecovery(rCode);
+    const jsResult = await executeRWithRecovery(rCode, 'correlation', 0, 2, 120000, data);
     const getValue = parseWebRResult(jsResult);
     const numCols = getValue('n_cols')?.[0] || data[0]?.length || 0;
 
