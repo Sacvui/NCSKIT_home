@@ -374,56 +374,6 @@ export async function executeRWithRecovery(
     try {
         if (method) await loadPackagesForMethod(method);
 
-        // ============================================================================
-        // ULTRA-ROBUST FILE-BASED TRANSFER (BYPASSES toJs() BLOB CRASH)
-        // ============================================================================
-        const executeAndGetViaFS = async (code: string) => {
-            const outPath = `/tmp/out_${Date.now()}.json`;
-            // Add extra newlines and braces to prevent syntax bleeding
-            const wrappedCode = `
-                tryCatch({
-                    # Wrap user code in a block to ensure .Last.value captures it
-                    .user_eval_res <- {
-                        ${code}
-                    }
-                    # Final check for result
-                    .last_result <- .user_eval_res
-                    
-                    .json_out <- jsonlite::toJSON(
-                        .last_result, 
-                        auto_unbox = TRUE, 
-                        force = TRUE, 
-                        "null" = "null", 
-                        "NA" = "null"
-                    )
-                    writeLines(as.character(.json_out), "${outPath}")
-                }, error = function(e) {
-                    writeLines(paste("ERROR:", e$message), "${outPath}")
-                })
-            `;
-            
-            const scriptPath = `/tmp/script_${Date.now()}.R`;
-            await webR.FS.writeFile(scriptPath, new TextEncoder().encode(wrappedCode));
-            await webR.evalR(`source("${scriptPath}")`);
-            
-            // Read back as binary (Uint8Array) - this is the most stable channel in PostMessage mode
-            const bytes = await webR.FS.readFile(outPath);
-            const jsonStr = new TextDecoder().decode(bytes);
-            
-            // Cleanup temp files
-            await webR.evalR(`unlink(c("${scriptPath}", "${outPath}"))`);
-            
-            if (jsonStr.startsWith("ERROR:")) {
-                throw new Error(jsonStr.replace("ERROR:", "").trim());
-            }
-            
-            try {
-                return JSON.parse(jsonStr);
-            } catch (e) {
-                return jsonStr;
-            }
-        };
-
         if (csvData && csvData.length > 0) {
             updateProgress('📊 Đang nạp dữ liệu...');
             // Ensure data is converted to plain string to avoid Blob issues
@@ -439,14 +389,35 @@ export async function executeRWithRecovery(
 
         let output: any;
         const executionPromise = (async () => {
-            // Force FS extraction for anything that might be large or from 'psych'
-            if (rCode.length > 100 || rCode.includes('psych') || rCode.includes('fa(') || rCode.includes('omega(')) {
-                return await executeAndGetViaFS(rCode);
-            } else {
-                const res = await webR.evalR(rCode);
-                const val = await res.toJs();
-                if (res && typeof (res as any).destroy === 'function') (res as any).destroy();
-                return val;
+            // Enhanced wrap with automated cleanup and result stripping to keep size small
+            const wrappedCode = `
+                tryCatch({
+                    .res <- { ${rCode} }
+                    # Strip heavy attributes that crash toJs (like environments, calls, large models)
+                    if (is.list(.res)) {
+                        attributes(.res)$call <- NULL
+                        attributes(.res)$model <- NULL
+                    }
+                    # Convert to JSON with high reliability settings
+                    .json <- jsonlite::toJSON(.res, auto_unbox = TRUE, force = TRUE, digits = 8)
+                    as.character(.json)
+                }, error = function(e) {
+                    paste("ERROR:", e$message)
+                })
+            `;
+            
+            const resObj = await webR.evalR(wrappedCode);
+            const jsonStr = await resObj.toJs();
+            if (resObj && typeof (resObj as any).destroy === 'function') (resObj as any).destroy();
+            
+            if (typeof jsonStr === 'string' && jsonStr.startsWith("ERROR:")) {
+                throw new Error(jsonStr.replace("ERROR:", "").trim());
+            }
+            
+            try {
+                return typeof jsonStr === 'string' ? JSON.parse(jsonStr) : jsonStr;
+            } catch (e) {
+                return jsonStr;
             }
         })();
 
