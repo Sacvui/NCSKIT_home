@@ -1,13 +1,21 @@
 ﻿/**
  * Hypothesis Testing Modules - Fully Template-Driven
+ *
+ * Data passing strategy:
+ * - All functions use executeRWithRecovery's csvData param to avoid
+ *   FileReaderSync/Blob crash when data strings are too large.
+ * - Data is passed as a number[][] matrix; R reads it from `raw_data`.
+ * - Column layout per function is documented in each R code block.
  */
-import { WEBR_TIMEOUTS, getTimeoutForMethod } from '../constants';
+import { WEBR_TIMEOUTS } from '../constants';
+import { validateAndCleanData } from '../input-validator';
 import { executeRWithRecovery, loadPackagesForMethod } from '../core';
 import { parseWebRResult, parseMatrix } from '../utils';
 import { getAnalysisRTemplate } from '../templates';
 
 /**
  * Run correlation analysis
+ * csvData layout: columns = variables
  */
 export async function runCorrelation(
     data: number[][],
@@ -23,7 +31,7 @@ export async function runCorrelation(
 
     const defaultRCode = `
     library(psych);
-    data_mat <- {{data}};
+    data_mat <- raw_data;
     df <- as.data.frame(data_mat);
     colnames(df) <- paste0("V", 1:ncol(df));
     method_name <- "{{method}}";
@@ -38,11 +46,9 @@ export async function runCorrelation(
     `;
 
     const template = await getAnalysisRTemplate('correlation', defaultRCode);
-    const rCode = template
-        .replace(/\{\{data\}\}/g, 'raw_data')
-        .replace(/\{\{method\}\}/g, method);
+    const rCode = template.replace(/\{\{method\}\}/g, method);
 
-    const jsResult = await executeRWithRecovery(rCode, 'correlation', 0, 2, WEBR_TIMEOUTS.COMPLEX, data);
+    const jsResult = await executeRWithRecovery(rCode, 'correlation', 0, 2, WEBR_TIMEOUTS.STANDARD, data);
     const getValue = parseWebRResult(jsResult);
     const numCols = getValue('n_cols')?.[0] || data[0]?.length || 0;
 
@@ -50,13 +56,14 @@ export async function runCorrelation(
         correlationMatrix: parseMatrix(getValue('correlation'), numCols),
         pValues: parseMatrix(getValue('p_values'), numCols),
         method: method,
-        N: getValue('n_obs'), 
+        N: getValue('n_obs'),
         rCode: rCode
     };
 }
 
 /**
  * Run Independent Samples T-test
+ * csvData layout: col0 = group1 values, col1 = group2 values (padded with NA if unequal length)
  */
 export async function runTTestIndependent(group1: number[], group2: number[]): Promise<{
     t: number;
@@ -77,10 +84,17 @@ export async function runTTestIndependent(group1: number[], group2: number[]): P
     rCode: string;
 }> {
     await loadPackagesForMethod('ttest');
-    
+
+    // Pack both groups into a 2-column matrix (pad shorter with NA)
+    const maxLen = Math.max(group1.length, group2.length);
+    const csvData: number[][] = Array.from({ length: maxLen }, (_, i) => [
+        i < group1.length ? group1[i] : NaN,
+        i < group2.length ? group2[i] : NaN,
+    ]);
+
     const defaultRCode = `
-    g1 <- c({{group1}});
-    g2 <- c({{group2}});
+    g1 <- raw_data[!is.na(raw_data[,1]), 1];
+    g2 <- raw_data[!is.na(raw_data[,2]), 2];
     shapiro_p1 <- tryCatch({ if (length(g1) >= 3) shapiro.test(g1)$p.value else NA }, error = function(e) { NA });
     shapiro_p2 <- tryCatch({ if (length(g2) >= 3) shapiro.test(g2)$p.value else NA }, error = function(e) { NA });
     med1 <- median(g1); med2 <- median(g2);
@@ -100,28 +114,18 @@ export async function runTTestIndependent(group1: number[], group2: number[]): P
     pooled_sd <- sqrt(((n1-1)*s1^2 + (n2-1)*s2^2)/(n1+n2-2));
     d <- if(pooled_sd > 0) (m1 - m2) / pooled_sd else 0;
     list(
-        t = tt$statistic,
-        df = tt$parameter,
-        p_value = tt$p.value,
-        mean1 = m1,
-        mean2 = m2,
-        mean_diff = m1 - m2,
-        ci_lower = tt$conf.int[1],
-        ci_upper = tt$conf.int[2],
-        effect_size = d,
-        levene_p = lev_p,
-        levene_f = lev_f,
-        shapiro_p1 = shapiro_p1,
-        shapiro_p2 = shapiro_p2
+        t = tt$statistic, df = tt$parameter, p_value = tt$p.value,
+        mean1 = m1, mean2 = m2, mean_diff = m1 - m2,
+        ci_lower = tt$conf.int[1], ci_upper = tt$conf.int[2],
+        effect_size = d, levene_p = lev_p, levene_f = lev_f,
+        shapiro_p1 = shapiro_p1, shapiro_p2 = shapiro_p2
     );
     `;
 
     const template = await getAnalysisRTemplate('ttest-indep', defaultRCode);
-    const rCode = template
-        .replace(/\{\{group1\}\}/g, group1.join(','))
-        .replace(/\{\{group2\}\}/g, group2.join(','));
+    const rCode = template;
 
-    const result = await executeRWithRecovery(rCode);
+    const result = await executeRWithRecovery(rCode, 'ttest', 0, 2, WEBR_TIMEOUTS.STANDARD, csvData);
     const getValue = parseWebRResult(result);
 
     return {
@@ -146,6 +150,7 @@ export async function runTTestIndependent(group1: number[], group2: number[]): P
 
 /**
  * Run Paired Samples T-test
+ * csvData layout: col0 = before, col1 = after
  */
 export async function runTTestPaired(before: number[], after: number[]): Promise<{
     t: number;
@@ -161,10 +166,12 @@ export async function runTTestPaired(before: number[], after: number[]): Promise
     rCode: string;
 }> {
     await loadPackagesForMethod('paired-ttest');
-    
+
+    const csvData: number[][] = before.map((b, i) => [b, after[i] ?? NaN]);
+
     const defaultRCode = `
-    b <- c({{before}});
-    a <- c({{after}});
+    b <- raw_data[,1];
+    a <- raw_data[,2];
     diffs <- b - a;
     sh_p <- tryCatch({ if (length(diffs) >= 3) shapiro.test(diffs)$p.value else NA }, error = function(e) { NA });
     tt <- t.test(b, a, paired = TRUE);
@@ -172,25 +179,17 @@ export async function runTTestPaired(before: number[], after: number[]): Promise
     sd_diff <- sd(diffs);
     d <- if(!is.na(sd_diff) && sd_diff > 0) m_diff / sd_diff else 0;
     list(
-        t = tt$statistic,
-        df = tt$parameter,
-        pValue = tt$p.value,
-        meanBefore = mean(b),
-        meanAfter = mean(a),
-        meanDiff = m_diff,
-        ci_lower = tt$conf.int[1],
-        ci_upper = tt$conf.int[2],
-        effect_size = d,
-        norm_p = sh_p
+        t = tt$statistic, df = tt$parameter, pValue = tt$p.value,
+        meanBefore = mean(b), meanAfter = mean(a), meanDiff = m_diff,
+        ci_lower = tt$conf.int[1], ci_upper = tt$conf.int[2],
+        effect_size = d, norm_p = sh_p
     );
     `;
 
     const template = await getAnalysisRTemplate('ttest-paired', defaultRCode);
-    const rCode = template
-        .replace(/\{\{before\}\}/g, before.join(','))
-        .replace(/\{\{after\}\}/g, after.join(','));
+    const rCode = template;
 
-    const result = await executeRWithRecovery(rCode);
+    const result = await executeRWithRecovery(rCode, 'paired-ttest', 0, 2, WEBR_TIMEOUTS.STANDARD, csvData);
     const getValue = parseWebRResult(result);
 
     return {
@@ -210,6 +209,7 @@ export async function runTTestPaired(before: number[], after: number[]): Promise
 
 /**
  * Run One-Way ANOVA
+ * csvData layout: col0 = values, col1 = group index (1-based integer)
  */
 export async function runOneWayANOVA(groups: number[][]): Promise<{
     F: number;
@@ -232,26 +232,24 @@ export async function runOneWayANOVA(groups: number[][]): Promise<{
     rCode: string;
 }> {
     await loadPackagesForMethod('anova');
-    
+
+    // Pack: col0 = value, col1 = group index
+    const csvData: number[][] = groups.flatMap((g, i) => g.map(v => [v, i + 1]));
+
     const defaultRCode = `
-    vals <- c({{values}});
-    grps <- factor(c({{groups}}));
+    vals <- raw_data[,1];
+    grps <- factor(raw_data[,2]);
     mod <- aov(vals ~ grps);
     res <- summary(mod)[[1]];
     ssb <- res[1, "Sum Sq"]; ssw <- res[2, "Sum Sq"];
     msb <- res[1, "Mean Sq"]; msw <- res[2, "Mean Sq"];
-    
-    # Levene's Test
     m_meds <- tapply(vals, grps, median);
     devs <- vals - m_meds[as.numeric(grps)];
     lev_p <- summary(aov(abs(devs) ~ grps))[[1]][1, "Pr(>F)"];
-    
     if (lev_p < 0.05) {
         w_res <- oneway.test(vals ~ grps, var.equal = FALSE);
         f_val <- w_res$statistic; df_b <- w_res$parameter[1]; df_w <- w_res$parameter[2]; p_val <- w_res$p.value;
         method <- "Welch ANOVA";
-        
-        # Games-Howell manually (approx)
         means <- tapply(vals, grps, mean); vars <- tapply(vals, grps, var); ns <- tapply(vals, grps, length);
         k <- length(levels(grps)); comb <- combn(k, 2);
         c_names <- c(); c_diffs <- c(); c_p <- c();
@@ -263,17 +261,15 @@ export async function runOneWayANOVA(groups: number[][]): Promise<{
             c_names <- c(c_names, paste0(levels(grps)[idx1], "-", levels(grps)[idx2]));
             c_diffs <- c(c_diffs, md); c_p <- c(c_p, ptukey(q, k, df_gh, lower.tail=FALSE));
         }
-        warn <- "PhÆ°Æ¡ng sai khÃ´ng Ä‘á»“ng nháº¥t (Welch/GH).";
+        warn <- "Phuong sai khong dong nhat (Welch/GH).";
     } else {
         f_val <- res[1, "F value"]; df_b <- res[1, "Df"]; df_w <- res[2, "Df"]; p_val <- res[1, "Pr(>F)"];
         method <- "Classic ANOVA";
         tk <- TukeyHSD(mod)$grps;
         c_names <- rownames(tk); c_diffs <- tk[,"diff"]; c_p <- tk[,"p adj"];
-        warn <- "PhÆ°Æ¡ng sai Ä‘á»“ng nháº¥t (Tukey).";
+        warn <- "Phuong sai dong nhat (Tukey).";
     }
-    
     sh_res_p <- tryCatch({ if(nrow(mod$model) >= 3) shapiro.test(residuals(mod))$p.value else NA }, error = function(e) NA);
-    
     list(
         f = f_val, df_b = df_b, df_w = df_w, p = p_val, ssb = ssb, ssw = ssw, msb = msb, msw = msw,
         means = as.numeric(tapply(vals, grps, mean)), grand = mean(vals), eta = ssb/(ssb+ssw),
@@ -282,15 +278,10 @@ export async function runOneWayANOVA(groups: number[][]): Promise<{
     );
     `;
 
-    const values = groups.flat().join(',');
-    const groupTags = groups.map((g, i) => g.map(() => `"G${i+1}"`).join(',')).join(',');
-
     const template = await getAnalysisRTemplate('anova', defaultRCode);
-    const rCode = template
-        .replace(/\{\{values\}\}/g, values)
-        .replace(/\{\{groups\}\}/g, groupTags);
+    const rCode = template;
 
-    const result = await executeRWithRecovery(rCode);
+    const result = await executeRWithRecovery(rCode, 'anova', 0, 2, WEBR_TIMEOUTS.STANDARD, csvData);
     const getValue = parseWebRResult(result);
 
     const ph_names = getValue('comp_names') || [];
@@ -322,6 +313,7 @@ export async function runOneWayANOVA(groups: number[][]): Promise<{
 
 /**
  * Run Mann-Whitney U Test
+ * csvData layout: col0 = group1 values, col1 = group2 values (padded with NA)
  */
 export async function runMannWhitneyU(group1: number[], group2: number[]): Promise<{
     statistic: number;
@@ -335,35 +327,34 @@ export async function runMannWhitneyU(group1: number[], group2: number[]): Promi
     rCode: string;
 }> {
     await loadPackagesForMethod('mann-whitney');
+
+    const maxLen = Math.max(group1.length, group2.length);
+    const csvData: number[][] = Array.from({ length: maxLen }, (_, i) => [
+        i < group1.length ? group1[i] : NaN,
+        i < group2.length ? group2[i] : NaN,
+    ]);
+
     const defaultRCode = `
     library(psych);
-    g1 <- c({{g1}}); g2 <- c({{g2}});
+    g1 <- raw_data[!is.na(raw_data[,1]), 1];
+    g2 <- raw_data[!is.na(raw_data[,2]), 2];
     tt <- wilcox.test(g1, g2, conf.int = TRUE);
-    
-    # Effect size r â€” correct formula using U statistic directly
-    # r = Z / sqrt(N), where Z is derived from the exact U statistic
-    # NOT back-calculated from p-value (which can give r > 1 for very small p)
     n1 <- length(g1); n2 <- length(g2); n_total <- n1 + n2;
     U <- tt$statistic;
-    # Expected U and SD under H0
     mu_U <- n1 * n2 / 2;
     sigma_U <- sqrt(n1 * n2 * (n_total + 1) / 12);
     z_score <- (U - mu_U) / sigma_U;
-    r <- abs(z_score) / sqrt(n_total);
-    r <- min(r, 1.0);  # cap at 1 for safety
-    
+    r <- min(abs(z_score) / sqrt(n_total), 1.0);
     sk1 <- skew(g1); sk2 <- skew(g2);
     sim <- (sign(sk1) == sign(sk2)) && (abs(sk1 - sk2) < 1.0);
-    msg <- if(sim) "Trung vá»‹" else "Mean Rank";
+    msg <- if(sim) "Trung vi" else "Mean Rank";
     list(stat = tt$statistic, p = tt$p.value, m1 = median(g1), m2 = median(g2), r = r, sk1 = sk1, sk2 = sk2, msg = msg);
     `;
 
     const template = await getAnalysisRTemplate('mann-whitney', defaultRCode);
-    const rCode = template
-        .replace(/\{\{g1\}\}/g, group1.join(','))
-        .replace(/\{\{g2\}\}/g, group2.join(','));
+    const rCode = template;
 
-    const result = await executeRWithRecovery(rCode);
+    const result = await executeRWithRecovery(rCode, 'mann-whitney', 0, 2, WEBR_TIMEOUTS.STANDARD, csvData);
     const getValue = parseWebRResult(result);
 
     return {
@@ -381,8 +372,9 @@ export async function runMannWhitneyU(group1: number[], group2: number[]): Promi
 
 /**
  * Run Chi-Square Test
+ * Chi-square uses string data — keep inline (small contingency table, not large dataset)
  */
-export async function runChiSquare(data: any[][]): Promise<{
+export async function runChiSquare(data: unknown[][]): Promise<{
     statistic: number;
     df: number;
     pValue: number;
@@ -397,7 +389,7 @@ export async function runChiSquare(data: any[][]): Promise<{
 }> {
     await loadPackagesForMethod('chi-square');
     const flatStr = data.flat().map(v => `"${String(v).replace(/"/g, '\\"')}"`).join(',');
-    
+
     const defaultRCode = `
     v <- c(${flatStr});
     m <- matrix(v, nrow = ${data.length}, byrow = TRUE);
@@ -413,7 +405,6 @@ export async function runChiSquare(data: any[][]): Promise<{
     }
     list(
         stat = tt$statistic, df = tt$parameter[1], p = tt$p.value,
-        obs = as.matrix(tt$observed), exp = as.matrix(tt$expected),
         cv = cv, phi = phi, fisher = fisher_p, or = or,
         rows = rownames(tbl), cols = colnames(tbl),
         nr = nrow(tbl), nc = ncol(tbl),
@@ -422,14 +413,15 @@ export async function runChiSquare(data: any[][]): Promise<{
     `;
 
     const rCode = await getAnalysisRTemplate('chi-square', defaultRCode);
-    const result = await executeRWithRecovery(rCode);
+    // Chi-square uses inline data (categorical strings, not large numeric matrix)
+    const result = await executeRWithRecovery(rCode, 'chi-square', 0, 2, WEBR_TIMEOUTS.STANDARD);
     const getValue = parseWebRResult(result);
 
     const nr = getValue('nr')?.[0] || 0;
     const nc = getValue('nc')?.[0] || 0;
     const ovs = getValue('ovs') || [];
     const evs = getValue('evs') || [];
-    
+
     const reconstruct = (vals: number[]) => {
         const res = [];
         for (let r = 0; r < nr; r++) {
@@ -457,6 +449,7 @@ export async function runChiSquare(data: any[][]): Promise<{
 
 /**
  * Run Kruskal-Wallis Test
+ * csvData layout: col0 = values, col1 = group index (1-based)
  */
 export async function runKruskalWallis(groups: number[][]): Promise<{
     statistic: number;
@@ -468,8 +461,11 @@ export async function runKruskalWallis(groups: number[][]): Promise<{
     rCode: string;
 }> {
     await loadPackagesForMethod('kruskal');
+
+    const csvData: number[][] = groups.flatMap((g, i) => g.map(v => [v, i + 1]));
+
     const defaultRCode = `
-    vals <- c({{v}}); grps <- factor(c({{g}}));
+    vals <- raw_data[,1]; grps <- factor(raw_data[,2]);
     tt <- kruskal.test(vals ~ grps);
     meds <- as.numeric(tapply(vals, grps, median));
     pw <- tryCatch({
@@ -484,13 +480,10 @@ export async function runKruskalWallis(groups: number[][]): Promise<{
     list(stat = tt$statistic, df = tt$parameter, p = tt$p.value, meds = meds, m = tt$method, ph_c = pw$c, ph_p = pw$p);
     `;
 
-    const vStr = groups.flat().join(',');
-    const gStr = groups.map((g, i) => g.map(() => `"G${i+1}"`).join(',')).join(',');
-
     const template = await getAnalysisRTemplate('kruskal', defaultRCode);
-    const rCode = template.replace(/\{\{v\}\}/g, vStr).replace(/\{\{g\}\}/g, gStr);
+    const rCode = template;
 
-    const result = await executeRWithRecovery(rCode);
+    const result = await executeRWithRecovery(rCode, 'kruskal', 0, 2, WEBR_TIMEOUTS.STANDARD, csvData);
     const getValue = parseWebRResult(result);
 
     const ph_c = getValue('ph_c') || [];
@@ -510,6 +503,7 @@ export async function runKruskalWallis(groups: number[][]): Promise<{
 
 /**
  * Run Wilcoxon Signed Rank Test
+ * csvData layout: col0 = before, col1 = after
  */
 export async function runWilcoxonSignedRank(before: number[], after: number[]): Promise<{
     statistic: number;
@@ -519,18 +513,19 @@ export async function runWilcoxonSignedRank(before: number[], after: number[]): 
     rCode: string;
 }> {
     await loadPackagesForMethod('wilcoxon');
+
+    const csvData: number[][] = before.map((b, i) => [b, after[i] ?? NaN]);
+
     const defaultRCode = `
-    b <- c({{b}}); a <- c({{a}});
+    b <- raw_data[,1]; a <- raw_data[,2];
     tt <- wilcox.test(b, a, paired = TRUE, conf.int = TRUE);
     list(stat = tt$statistic, p = tt$p.value, md = if(!is.null(tt$estimate)) tt$estimate else median(b-a), m = tt$method);
     `;
 
     const template = await getAnalysisRTemplate('wilcoxon', defaultRCode);
-    const rCode = template
-        .replace(/\{\{b\}\}/g, before.join(','))
-        .replace(/\{\{a\}\}/g, after.join(','));
+    const rCode = template;
 
-    const result = await executeRWithRecovery(rCode);
+    const result = await executeRWithRecovery(rCode, 'wilcoxon', 0, 2, WEBR_TIMEOUTS.STANDARD, csvData);
     const getValue = parseWebRResult(result);
 
     return {
@@ -541,4 +536,3 @@ export async function runWilcoxonSignedRank(before: number[], after: number[]): 
         rCode
     };
 }
-
