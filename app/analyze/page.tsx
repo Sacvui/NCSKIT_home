@@ -158,14 +158,14 @@ function AnalyzeContent() {
                         allColumns={getAllColumns()}
                         profile={state.profile}
                         user={user}
-                        setResults={actions.setResults}
-                        setStep={actions.setStep}
-                        setNcsBalance={actions.setNcsBalance}
-                        showToast={actions.showToast}
-                        setAnalysisType={actions.setAnalysisType}
-                        setRequiredCredits={actions.setRequiredCredits}
-                        setCurrentAnalysisCost={actions.setCurrentAnalysisCost}
-                        setShowInsufficientCredits={actions.setShowInsufficientCredits}
+                        setResults={actions.setResults as any}
+                        setStep={actions.setStep as any}
+                        setNcsBalance={actions.setNcsBalance as any}
+                        showToast={actions.showToast as any}
+                        setAnalysisType={actions.setAnalysisType as any}
+                        setRequiredCredits={actions.setRequiredCredits as any}
+                        setCurrentAnalysisCost={actions.setCurrentAnalysisCost as any}
+                        setShowInsufficientCredits={actions.setShowInsufficientCredits as any}
                         locale={state.locale}
                     />
                 );
@@ -181,14 +181,14 @@ function AnalyzeContent() {
                         allColumns={getAllColumns()}
                         profile={state.profile}
                         user={user}
-                        setResults={actions.setResults}
-                        setStep={actions.setStep}
-                        setNcsBalance={actions.setNcsBalance}
-                        showToast={actions.showToast}
-                        setAnalysisType={actions.setAnalysisType}
-                        setRequiredCredits={actions.setRequiredCredits}
-                        setCurrentAnalysisCost={actions.setCurrentAnalysisCost}
-                        setShowInsufficientCredits={actions.setShowInsufficientCredits}
+                        setResults={actions.setResults as any}
+                        setStep={actions.setStep as any}
+                        setNcsBalance={actions.setNcsBalance as any}
+                        showToast={actions.showToast as any}
+                        setAnalysisType={actions.setAnalysisType as any}
+                        setRequiredCredits={actions.setRequiredCredits as any}
+                        setCurrentAnalysisCost={actions.setCurrentAnalysisCost as any}
+                        setShowInsufficientCredits={actions.setShowInsufficientCredits as any}
                         locale={state.locale}
                     />
                 );
@@ -202,14 +202,14 @@ function AnalyzeContent() {
                         data={state.data}
                         columns={getNumericColumns()}
                         user={user}
-                        setResults={actions.setResults}
-                        setStep={actions.setStep}
-                        setNcsBalance={actions.setNcsBalance}
-                        showToast={actions.showToast}
-                        setAnalysisType={actions.setAnalysisType}
-                        setRequiredCredits={actions.setRequiredCredits}
-                        setCurrentAnalysisCost={actions.setCurrentAnalysisCost}
-                        setShowInsufficientCredits={actions.setShowInsufficientCredits}
+                        setResults={actions.setResults as any}
+                        setStep={actions.setStep as any}
+                        setNcsBalance={actions.setNcsBalance as any}
+                        showToast={actions.showToast as any}
+                        setAnalysisType={actions.setAnalysisType as any}
+                        setRequiredCredits={actions.setRequiredCredits as any}
+                        setCurrentAnalysisCost={actions.setCurrentAnalysisCost as any}
+                        setShowInsufficientCredits={actions.setShowInsufficientCredits as any}
                         locale={state.locale}
                     />
                 );
@@ -227,16 +227,16 @@ function AnalyzeContent() {
                         data={state.data}
                         columns={getNumericColumns()}
                         user={user}
-                        setResults={actions.setResults}
-                        setStep={actions.setStep}
-                        setNcsBalance={actions.setNcsBalance}
-                        showToast={actions.showToast}
-                        setScaleName={actions.setScaleName}
-                        setMultipleResults={actions.setMultipleResults}
-                        setAnalysisType={actions.setAnalysisType}
-                        setRequiredCredits={actions.setRequiredCredits}
-                        setCurrentAnalysisCost={actions.setCurrentAnalysisCost}
-                        setShowInsufficientCredits={actions.setShowInsufficientCredits}
+                        setResults={actions.setResults as any}
+                        setStep={actions.setStep as any}
+                        setNcsBalance={actions.setNcsBalance as any}
+                        showToast={actions.showToast as any}
+                        setScaleName={actions.setScaleName as any}
+                        setMultipleResults={actions.setMultipleResults as any}
+                        setAnalysisType={actions.setAnalysisType as any}
+                        setRequiredCredits={actions.setRequiredCredits as any}
+                        setCurrentAnalysisCost={actions.setCurrentAnalysisCost as any}
+                        setShowInsufficientCredits={actions.setShowInsufficientCredits as any}
                         locale={state.locale}
                     />
                 );
@@ -250,14 +250,14 @@ function AnalyzeContent() {
                         data={state.data}
                         columns={getNumericColumns()}
                         user={user}
-                        setResults={actions.setResults}
-                        setStep={actions.setStep}
-                        setNcsBalance={actions.setNcsBalance}
-                        showToast={actions.showToast}
-                        setAnalysisType={actions.setAnalysisType}
-                        setRequiredCredits={actions.setRequiredCredits}
-                        setCurrentAnalysisCost={actions.setCurrentAnalysisCost}
-                        setShowInsufficientCredits={actions.setShowInsufficientCredits}
+                        setResults={actions.setResults as any}
+                        setStep={actions.setStep as any}
+                        setNcsBalance={actions.setNcsBalance as any}
+                        showToast={actions.showToast as any}
+                        setAnalysisType={actions.setAnalysisType as any}
+                        setRequiredCredits={actions.setRequiredCredits as any}
+                        setCurrentAnalysisCost={actions.setCurrentAnalysisCost as any}
+                        setShowInsufficientCredits={actions.setShowInsufficientCredits as any}
                         locale={state.locale}
                     />
                 );
