@@ -57,7 +57,7 @@ export async function captureWebRError(
         scope.setTag('webr_phase', context.phase || 'unknown');
         if (context.method) scope.setTag('webr_method', context.method);
         if (context.browser) scope.setTag('browser', context.browser);
-        scope.setContext('webr', context);
+        scope.setContext('webr', context as Record<string, unknown>);
         sentry.captureException(error instanceof Error ? error : new Error(String(error)));
     });
 }
