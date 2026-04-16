@@ -49,7 +49,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const fetchProfile = useCallback(async (userId: string) => {
         try {
-            const { data } = await supabase.from('profiles').select('*').eq('id', userId).single();
+            const { data } = await supabase
+                .from('profiles')
+                .select('id, full_name, avatar_url, role, tokens, total_earned, total_spent, organization, academic_level, research_field, orcid_id, last_active')
+                .eq('id', userId)
+                .single();
             if (data) setProfile(data as Profile);
         } catch (err) {
             console.error('[Auth] Profile fetch fail', err);

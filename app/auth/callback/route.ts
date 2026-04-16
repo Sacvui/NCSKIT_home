@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
+import { logger } from '@/utils/logger';
 
 export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
@@ -14,7 +15,7 @@ export async function GET(request: Request) {
     // Always use the exact origin the user accessed to ensure cookies match the domain!
     const siteUrl = origin;
 
-    console.log(`[Auth Callback] Processing code-exchange for: ${siteUrl}`);
+    logger.debug(`[Auth Callback] Processing code-exchange for: ${siteUrl}`);
 
     if (code) {
         const cookieStore = await cookies();
@@ -47,7 +48,7 @@ export async function GET(request: Request) {
                 return NextResponse.redirect(new URL(`/login?error=exchange_failed&err_msg=${encodeURIComponent(error.message)}&next=${next}`, siteUrl));
             }
             
-            console.log('[Auth Callback] SUCCESS. Session cookies saved to store.');
+            logger.debug('[Auth Callback] SUCCESS. Session cookies saved to store.');
             return NextResponse.redirect(new URL(next, siteUrl));
         } catch (err) {
             console.error('[Auth Callback] Fatal error during exchange:', err);

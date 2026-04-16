@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { Check, ChevronDown, Plus, X, Sparkles, Key, Edit2, Trash2, Layers, Info, Target, Settings, Play } from 'lucide-react';
+import { storeApiKey, retrieveApiKey, clearApiKey, hasStoredApiKey } from '@/utils/key-encryption';
 
 interface VariableGroup {
     name: string;
@@ -207,19 +208,21 @@ export function AISettings() {
     const [isSaved, setIsSaved] = useState(false);
 
     useEffect(() => {
-        const savedKey = localStorage.getItem('gemini_api_key');
-        if (savedKey) setApiKey(savedKey);
+        // Load the decrypted key for display (masked) — retrieve from encrypted storage
+        const decrypted = retrieveApiKey();
+        if (decrypted) setApiKey(decrypted);
     }, []);
 
     const handleSave = () => {
-        localStorage.setItem('gemini_api_key', apiKey);
+        // Store encrypted — raw key never persisted in plaintext
+        storeApiKey(apiKey);
         setIsSaved(true);
         window.dispatchEvent(new Event('gemini-key-updated'));
         setTimeout(() => setIsSaved(false), 2000);
     };
 
     const handleClear = () => {
-        localStorage.removeItem('gemini_api_key');
+        clearApiKey();
         setApiKey('');
         window.dispatchEvent(new Event('gemini-key-updated'));
     };

@@ -26,7 +26,7 @@ jobs:
         
     - name: Push to target repo
       run: |
-        git push target main --force
+        git push target main --force-with-lease
         
     - name: Create release notes
       run: |
@@ -39,3 +39,11 @@ jobs:
       run: |
         echo "✅ Successfully synced to ncsstat_kiro repository"
         echo "🔗 Target: https://github.com/hailp1/ncsstat_kiro"
+      if: success()
+        
+    - name: Notify failure
+      if: failure()
+      run: |
+        echo "❌ Sync failed — check if target repo has diverged history"
+        echo "💡 If needed, manually force push: git push target main --force"
+        exit 1

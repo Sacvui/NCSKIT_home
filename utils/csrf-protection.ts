@@ -5,6 +5,57 @@
 
 import { NextRequest } from 'next/server';
 
+// ─── Origin Validation ────────────────────────────────────────────────────────
+
+/**
+ * Validate that a request originates from a trusted domain.
+ *
+ * This is the primary CSRF defense for Next.js API routes.
+ * SameSite=Lax cookies (set by Supabase SSR) already block most CSRF,
+ * but origin validation adds a second layer for mutation endpoints.
+ *
+ * Returns true if:
+ *  - The Origin header matches a known production/staging domain, OR
+ *  - The request has no Origin header (server-to-server, curl, etc.) — allowed
+ *    because Supabase auth already validates the session cookie.
+ *
+ * Returns false if:
+ *  - The Origin header is present but does NOT match any allowed domain.
+ */
+export function validateOrigin(request: NextRequest): boolean {
+    const origin = request.headers.get('origin');
+
+    // No Origin header → server-to-server or same-origin form POST → allow
+    if (!origin) return true;
+
+    const host = request.headers.get('host') || '';
+
+    const allowedOrigins = new Set([
+        // Production domains
+        'https://stat.ncskit.org',
+        'https://ncsstat.ncskit.org',
+        // Dynamic: match the current host (handles Vercel preview URLs)
+        `https://${host}`,
+        `http://${host}`,
+    ]);
+
+    // Development
+    if (process.env.NODE_ENV === 'development') {
+        allowedOrigins.add('http://localhost:3000');
+        allowedOrigins.add('http://localhost:3001');
+        allowedOrigins.add('http://127.0.0.1:3000');
+    }
+
+    // Check exact match or prefix match (handles ports)
+    for (const allowed of allowedOrigins) {
+        if (origin === allowed || origin.startsWith(allowed)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 /**
  * Generate a cryptographically secure CSRF token
  */

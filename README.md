@@ -177,8 +177,12 @@ UPDATE public.profiles SET role = 'admin' WHERE email = 'your-email@example.com'
 3. Thêm Environment Variables:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `GEMINI_API_KEY` *(tùy chọn — nếu set, tất cả users dùng chung key này, không cần nhập key cá nhân)*
+   - `NEXT_PUBLIC_KEY_SALT` *(tùy chọn — salt để mã hóa personal key trong localStorage)*
 4. Cấu hình Supabase Auth → URL Configuration → thêm Vercel domain vào Redirect URLs
 5. Deploy
+
+> **Bảo mật AI Key:** Nếu `GEMINI_API_KEY` được set trên server, key không bao giờ xuất hiện trong browser. Nếu user dùng personal key, key được mã hóa AES-256 trước khi lưu localStorage và truyền qua network.
 
 ---
 

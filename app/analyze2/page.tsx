@@ -11,6 +11,7 @@ import { profileData, DataProfile } from '@/lib/data-profiler';
 import { BarChart3, FileText, Shield, Trash2, Eye, EyeOff, Wifi, WifiOff, RotateCcw, XCircle, Sparkles, TrendingUp, Target, Users, Upload, Search, Eraser, Ruler, Building2, Zap, CheckCircle2, Network, RefreshCw } from 'lucide-react';
 import { Toast } from '@/components/ui/Toast';
 import { WebRStatus } from '@/components/WebRStatus';
+import { WebRLoadingProgress } from '@/components/WebRLoadingProgress';
 import { useAnalysisSession } from '@/hooks/useAnalysisSession';
 import { useOnlineStatus } from '@/hooks/useOnlineStatus';
 import { AnalysisStep } from '@/types/analysis';
@@ -502,6 +503,10 @@ function Analyze2Content() {
 
                     {phase === 'phase1' && (
                         <div className="max-w-6xl mx-auto">
+                            {/* WebR Loading Progress — shown while R engine is initializing */}
+                            <div className="mb-4">
+                                <WebRLoadingProgress compact={true} hideWhenReady={true} />
+                            </div>
                             <div className="bg-white rounded-xl shadow-lg p-8 border border-purple-100">
                                 <div className="flex items-center gap-3 mb-6">
                                     <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">

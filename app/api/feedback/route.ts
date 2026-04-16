@@ -1,10 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { recordTokenTransaction } from '@/lib/token-service';
+import { recordTokenTransaction, recordTokenTransactionAdmin } from '@/lib/token-service';
 import { POINTS_CONFIG } from '@/lib/points-config';
+import { validateOrigin } from '@/utils/csrf-protection';
+import { checkRateLimit } from '@/utils/rate-limit';
 
 export async function POST(req: NextRequest) {
     try {
+        // 1. Origin validation (CSRF protection)
+        if (!validateOrigin(req)) {
+            return NextResponse.json({ error: 'Invalid origin' }, { status: 403 });
+        }
+
+        // 2. Rate limiting (5 requests/minute/IP)
+        const rateLimitResult = await checkRateLimit(req, 5);
+        if (!rateLimitResult.success) {
+            return NextResponse.json(
+                { error: 'Quá nhiều yêu cầu. Vui lòng thử lại sau 1 phút.' },
+                { status: 429 }
+            );
+        }
+
         const supabase = await createClient();
         const { data: { user } } = await supabase.auth.getUser();
 
@@ -15,6 +31,14 @@ export async function POST(req: NextRequest) {
             return NextResponse.json(
                 { error: 'Missing required fields' },
                 { status: 400 }
+            );
+        }
+
+        // Require authentication — anonymous feedback is disabled (RLS enforced)
+        if (!user) {
+            return NextResponse.json(
+                { error: 'Bạn cần đăng nhập để gửi phản hồi.' },
+                { status: 401 }
             );
         }
 
@@ -48,8 +72,6 @@ export async function POST(req: NextRequest) {
             // Use Admin version to bypass RLS potentially blocking self-update of tokens
             // if the user doesn't have explicit update rights on their own profile columns
             try {
-                const { recordTokenTransactionAdmin } = await import('@/lib/token-service');
-
                 rewardResult = await recordTokenTransactionAdmin(
                     user.id,
                     POINTS_CONFIG.FEEDBACK,
@@ -72,10 +94,11 @@ export async function POST(req: NextRequest) {
             points: POINTS_CONFIG.FEEDBACK
         });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Feedback API error:', error);
+        const msg = error instanceof Error ? error.message : 'Internal Server Error';
         return NextResponse.json(
-            { error: error?.message || 'Internal Server Error' },
+            { error: msg },
             { status: 500 }
         );
     }

@@ -1,6 +1,7 @@
-/**
+﻿/**
  * Multivariate Analysis Modules - Template-Driven
  */
+import { WEBR_TIMEOUTS, getTimeoutForMethod } from '../constants';
 import { executeRWithRecovery, loadPackagesForMethod } from '../core';
 import { parseWebRResult } from '../utils';
 import { getAnalysisRTemplate } from '../templates';
@@ -52,7 +53,7 @@ export async function runClusterAnalysis(
         .replace(/\{\{columns\}\}/g, colNames)
         .replace(/\{\{k\}\}/g, String(k));
 
-    const result = await executeRWithRecovery(rCode, 'cluster', 0, 2, 120000, data);
+    const result = await executeRWithRecovery(rCode, 'cluster', 0, 2, WEBR_TIMEOUTS.COMPLEX, data);
     const getValue = parseWebRResult(result);
 
     const centersFlat = getValue('centers') || [];
@@ -122,7 +123,7 @@ export async function runTwoWayANOVA(
         .replace(/\{\{f1\}\}/g, f1Str)
         .replace(/\{\{f2\}\}/g, f2Str);
 
-    const result = await executeRWithRecovery(rCode, 'anova2way', 0, 2, 120000);
+    const result = await executeRWithRecovery(rCode, 'anova2way', 0, 2, WEBR_TIMEOUTS.COMPLEX);
     const getValue = parseWebRResult(result);
 
     const sources = getValue('sources') || [];
@@ -143,3 +144,4 @@ export async function runTwoWayANOVA(
 
     return { table, rCode };
 }
+

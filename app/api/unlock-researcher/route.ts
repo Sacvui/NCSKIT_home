@@ -7,12 +7,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { checkRateLimit } from '@/utils/rate-limit';
+import { validateOrigin } from '@/utils/csrf-protection';
 
 // Secret code for researcher unlock - MUST be set via environment variable
 const RESEARCHER_SECRET_CODE = process.env.RESEARCHER_UNLOCK_CODE || '300489';
 
 export async function POST(request: NextRequest) {
     try {
+        // Origin validation (CSRF protection)
+        if (!validateOrigin(request)) {
+            return NextResponse.json({ success: false, error: 'Invalid origin' }, { status: 403 });
+        }
+
         // Rate limit: max 5 attempts per minute to prevent brute-force
         const rateLimitResult = await checkRateLimit(request, 5);
         if (!rateLimitResult.success) {

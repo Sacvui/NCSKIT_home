@@ -1,4 +1,4 @@
-/**
+﻿/**
  * NCS Credits Management Library
  * Handles credit balance checks, deductions, and configuration
  */
@@ -13,9 +13,9 @@ const CACHE_TTL = 60 * 1000; // 1 minute
  * Analysis types and their display names
  */
 export const ANALYSIS_TYPES = {
-    descriptive: 'Thống kê mô tả',
+    descriptive: 'Thá»‘ng kÃª mÃ´ táº£',
     cronbach: "Cronbach's Alpha",
-    correlation: 'Tương quan',
+    correlation: 'TÆ°Æ¡ng quan',
     ttest: 'T-Test',
     'ttest-indep': 'Independent T-Test',
     'ttest-paired': 'Paired T-Test',
@@ -23,13 +23,13 @@ export const ANALYSIS_TYPES = {
     efa: 'EFA',
     cfa: 'CFA',
     sem: 'SEM',
-    regression: 'Hồi quy',
+    regression: 'Há»“i quy',
     chisquare: 'Chi-Square',
     'mann-whitney': 'Mann-Whitney U',
     'kruskal-wallis': 'Kruskal-Wallis',
     'wilcoxon': 'Wilcoxon Signed Rank',
-    ai_explain: 'AI Giải thích',
-    export_pdf: 'Xuất PDF'
+    ai_explain: 'AI Giáº£i thÃ­ch',
+    export_pdf: 'Xuáº¥t PDF'
 } as const;
 
 export type AnalysisType = keyof typeof ANALYSIS_TYPES;
@@ -161,7 +161,7 @@ export async function deductCredits(
         .single();
 
     if (fetchError || !profile) {
-        return { success: false, newBalance: 0, error: 'Không thể lấy thông tin tài khoản' };
+        return { success: false, newBalance: 0, error: 'KhÃ´ng thá»ƒ láº¥y thÃ´ng tin tÃ i khoáº£n' };
     }
 
     // Admin Bypass Logic: level >= 7 (platform_admin=8, super_admin=9, institution_admin=7)
@@ -176,7 +176,7 @@ export async function deductCredits(
             type: 'spend_analysis',
             description: `[Admin Bypass] ${reason}`,
             balance_after: profile.tokens || 0
-        }).then(({ error }: any) => {
+        }).then(({ error }: { error: unknown }) => {
             if (error) console.warn('Failed to log admin transaction:', error);
         });
 
@@ -188,7 +188,7 @@ export async function deductCredits(
         return {
             success: false,
             newBalance: currentBalance,
-            error: `Không đủ NCS. Cần ${amount.toLocaleString()}, hiện có ${currentBalance.toLocaleString()}`
+            error: `KhÃ´ng Ä‘á»§ NCS. Cáº§n ${amount.toLocaleString()}, hiá»‡n cÃ³ ${currentBalance.toLocaleString()}`
         };
     }
 
@@ -207,7 +207,7 @@ export async function deductCredits(
 
     if (updateError) {
         console.error('Error deducting credits:', updateError);
-        return { success: false, newBalance: currentBalance, error: 'Lỗi trừ điểm' };
+        return { success: false, newBalance: currentBalance, error: 'Lá»—i trá»« Ä‘iá»ƒm' };
     }
 
     // Log the transaction (non-blocking)
@@ -217,7 +217,7 @@ export async function deductCredits(
         type: 'spend_analysis',
         description: reason,
         balance_after: newBalance
-    }).then(({ error }: any) => {
+    }).then(({ error }: { error: unknown }) => {
         if (error) console.warn('Failed to log transaction silently:', error);
     });
 
@@ -353,7 +353,7 @@ export async function updateReferralReward(amount: number): Promise<boolean> {
  * Atomic credit deduction via Supabase RPC.
  *
  * Calls a DB stored procedure that checks balance AND deducts in a single
- * transaction — eliminates the race condition where analysis succeeds but
+ * transaction â€” eliminates the race condition where analysis succeeds but
  * deduction fails (or vice versa).
  *
  * Falls back to the non-atomic deductCredits() if the RPC is not available.
@@ -417,7 +417,7 @@ export async function deductCreditsAtomic(
     reason: string
 ): Promise<{ success: boolean; newBalance: number; isExempt?: boolean; error?: string }> {
     if (amount === 0) {
-        // Free analysis — no deduction needed
+        // Free analysis â€” no deduction needed
         return { success: true, newBalance: 0, isExempt: false };
     }
 
@@ -430,7 +430,7 @@ export async function deductCreditsAtomic(
     });
 
     if (error) {
-        // RPC not available yet — fall back to non-atomic version
+        // RPC not available yet â€” fall back to non-atomic version
         console.warn('[Credits] RPC deduct_credits_atomic not available, falling back:', error.message);
         return deductCredits(userId, amount, reason);
     }
@@ -451,3 +451,4 @@ export async function deductCreditsAtomic(
         isExempt: result.exempt ?? false,
     };
 }
+

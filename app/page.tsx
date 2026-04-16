@@ -12,7 +12,7 @@ export default async function LandingPage() {
   if (user) {
     const { data: profileData } = await supabase
       .from('profiles')
-      .select('*')
+      .select('id, full_name, avatar_url, role, tokens, orcid_id')
       .eq('id', user.id)
       .single();
     profile = profileData;

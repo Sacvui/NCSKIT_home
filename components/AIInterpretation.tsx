@@ -3,6 +3,7 @@ import { Sparkles, Bot, AlertCircle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { AIInterpretationFeedback } from './feedback/AIInterpretationFeedback';
 import { explainResults } from '@/lib/ai-explainer';
+import { hasStoredApiKey, retrieveApiKey } from '@/utils/key-encryption';
 
 interface AIInterpretationProps {
     analysisType: string;
@@ -18,7 +19,23 @@ export function AIInterpretation({ analysisType, results, userProfile }: AIInter
     const [cache, setCache] = useState<Map<string, string>>(new Map());
     const [lastCallTime, setLastCallTime] = useState(0);
 
-    // ... (useEffect for key loading remains same)
+    // Load key state from encrypted storage (we only need to know if a key exists,
+    // not the raw value — the actual key is read by ai-explainer.ts via getEncryptedKeyForHeader)
+    useEffect(() => {
+        const loadKeyState = () => {
+            // Check if server has a shared key configured (no personal key needed)
+            // or if user has stored a personal key
+            const hasPersonalKey = hasStoredApiKey();
+            // Use a placeholder to indicate key is available — actual value not needed here
+            setApiKey(hasPersonalKey ? '***stored***' : '');
+        };
+
+        loadKeyState();
+
+        // Re-check when user saves/clears key in AISettings
+        window.addEventListener('gemini-key-updated', loadKeyState);
+        return () => window.removeEventListener('gemini-key-updated', loadKeyState);
+    }, []);
 
     const generateExplanation = async () => {
         if (!apiKey) {
@@ -54,8 +71,8 @@ export function AIInterpretation({ analysisType, results, userProfile }: AIInter
                 if (userProfile.organization) context += `, đơn vị: ${userProfile.organization}`;
             }
 
-            // Use centralized Explainer Service (Proxied via Server for security/formatting)
-            const response = await explainResults(analysisType, results, context, apiKey);
+            // Use centralized Explainer Service (key sent via encrypted header automatically)
+            const response = await explainResults(analysisType, results, context);
             const text = response.explanation;
 
             setExplanation(text);

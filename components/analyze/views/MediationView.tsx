@@ -7,6 +7,7 @@ import { getAnalysisCost, checkBalance } from '@/lib/ncs-credits';
 import { runWithCredits } from '@/lib/analysis-credit-wrapper';
 import { runMediationAnalysis, runModerationAnalysis } from '@/lib/webr-wrapper';
 import { ChevronLeft, Play, Target, Shuffle, ArrowRight } from 'lucide-react';
+import { useAnalysisError } from '@/hooks/useAnalysisError';
 
 interface MediationViewProps {
     step: AnalysisStep;
@@ -45,6 +46,7 @@ export const MediationView: React.FC<MediationViewProps> = ({
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [mediationVars, setMediationVars] = useState<{ x: string; m: string; y: string }>({ x: '', m: '', y: '' });
     const [moderationVars, setModerationVars] = useState<{ x: string; w: string; y: string }>({ x: '', w: '', y: '' });
+    const handleAnalysisError = useAnalysisError(showToast);
 
     const handleAnalysisWrapper = async (
         analysisKey: string,
@@ -76,7 +78,7 @@ export const MediationView: React.FC<MediationViewProps> = ({
             setStep('results');
             showToast(successMsg, 'success');
         } catch (err: any) {
-            showToast(`${t(locale, 'error')}: ` + (err.message || err), 'error');
+            handleAnalysisError(err);
         } finally {
             setIsAnalyzing(false);
         }

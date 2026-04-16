@@ -1,7 +1,8 @@
-/**
+﻿/**
  * Mediation and Moderation Analysis Modules
  * Uses 'psych' package for robust mediation/moderation modeling.
  */
+import { WEBR_TIMEOUTS, getTimeoutForMethod } from '../constants';
 import { executeRWithRecovery, loadPackagesForMethod } from '../core';
 import { parseWebRResult } from '../utils';
 
@@ -52,7 +53,7 @@ export async function runMediationAnalysis(
     
     # Ensure variables exist
     if(!all(c("${xVar}", "${mVar}", "${yVar}") %in% colnames(df))) {
-        stop("Biến không tồn tại trong dữ liệu")
+        stop("Biáº¿n khÃ´ng tá»“n táº¡i trong dá»¯ liá»‡u")
     }
     
     # === Step 1: Path a (X -> M) ===
@@ -119,7 +120,7 @@ export async function runMediationAnalysis(
     )
     `;
 
-    const result = await executeRWithRecovery(rCode, 'mediation', 0, 2, 120000, data);
+    const result = await executeRWithRecovery(rCode, 'mediation', 0, 2, WEBR_TIMEOUTS.COMPLEX, data);
     const getValue = parseWebRResult(result);
 
     return {
@@ -202,7 +203,7 @@ export async function runModerationAnalysis(
     int_row_idx <- grep(":", rownames(coefs))[1]
     int_p_val   <- if(is.na(int_row_idx)) 1 else coefs[int_row_idx, 4]
     
-    # Simple Slopes Analysis — Aiken & West (1991) spotlight approach
+    # Simple Slopes Analysis â€” Aiken & West (1991) spotlight approach
     # With centered W: mean(w_c) = 0, so spotlight values are:
     w_sd   <- sd(w_c, na.rm = TRUE)
     w_low  <- -w_sd   # -1 SD
@@ -246,7 +247,7 @@ export async function runModerationAnalysis(
     )
     `;
 
-    const result = await executeRWithRecovery(rCode, 'moderation', 0, 2, 120000, data);
+    const result = await executeRWithRecovery(rCode, 'moderation', 0, 2, WEBR_TIMEOUTS.COMPLEX, data);
     const getValue = parseWebRResult(result);
 
     const terms    = getValue('terms')    || [];
@@ -270,3 +271,4 @@ export async function runModerationAnalysis(
         rCode
     };
 }
+

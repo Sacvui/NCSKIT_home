@@ -123,7 +123,7 @@ function HeaderContent({ centerContent, rightActions, hideNav = false, user: pro
                     </div>
 
                     {/* Global Language Switcher */}
-                    <div className="flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200">
+                    <div className="flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200" role="group" aria-label="Chọn ngôn ngữ">
                         <button
                             onClick={() => {
                                 setLocale('vi');
@@ -131,6 +131,8 @@ function HeaderContent({ centerContent, rightActions, hideNav = false, user: pro
                                 window.location.reload();
                             }}
                             className={`px-3 py-1 text-[10px] font-black rounded-md transition-all ${locale === 'vi' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
+                            aria-label="Tiếng Việt"
+                            aria-pressed={locale === 'vi'}
                         >
                             VI
                         </button>
@@ -141,6 +143,8 @@ function HeaderContent({ centerContent, rightActions, hideNav = false, user: pro
                                 window.location.reload();
                             }}
                             className={`px-3 py-1 text-[10px] font-black rounded-md transition-all ${locale === 'en' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-900'}`}
+                            aria-label="English"
+                            aria-pressed={locale === 'en'}
                         >
                             EN
                         </button>
@@ -160,6 +164,9 @@ function HeaderContent({ centerContent, rightActions, hideNav = false, user: pro
                     <button 
                         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                         className="p-2 text-slate-600 hover:text-slate-900 md:hidden bg-slate-50 rounded-lg"
+                        aria-label={isMobileMenuOpen ? 'Đóng menu' : 'Mở menu'}
+                        aria-expanded={isMobileMenuOpen}
+                        aria-controls="mobile-nav"
                     >
                         {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                     </button>
@@ -168,7 +175,7 @@ function HeaderContent({ centerContent, rightActions, hideNav = false, user: pro
 
             {/* Mobile Navigation Drawer */}
             {isMobileMenuOpen && (
-                <div className="md:hidden border-t border-slate-100 bg-white p-4 space-y-2 animate-in slide-in-from-top duration-300">
+                <div id="mobile-nav" className="md:hidden border-t border-slate-100 bg-white p-4 space-y-2 animate-in slide-in-from-top duration-300" role="navigation" aria-label="Menu di động">
                     <div className="flex flex-col gap-1 pb-4 border-b border-slate-50">
                         <Link 
                             href="/analyze" 

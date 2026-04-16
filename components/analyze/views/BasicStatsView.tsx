@@ -10,6 +10,7 @@ import { getAnalysisCost, checkBalance, deductCreditsAtomic } from '@/lib/ncs-cr
 import { logAnalysisUsage } from '@/lib/activity-logger';
 import type { DataProfile } from '@/lib/data-profiler';
 import { Check, ChevronLeft, Play, BarChart2, Users, Database } from 'lucide-react';
+import { useAnalysisError } from '@/hooks/useAnalysisError';
 
 interface BasicStatsViewProps {
     step: string;
@@ -47,6 +48,7 @@ export function BasicStatsView({
     locale
 }: BasicStatsViewProps) {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const handleAnalysisError = useAnalysisError(showToast);
 
     const handleAnalysisWrapper = async (
         analysisKey: string,
@@ -116,7 +118,8 @@ export function BasicStatsView({
                     console.error('[Credits] Refund failed:', refundErr);
                 }
             }
-            showToast(`${t(locale, 'error')}: ` + (err.message || err), 'error');
+            showToast(`${t(locale, 'error')}: ` + (err instanceof Error ? err.message : String(err)), 'error');
+            handleAnalysisError(err);
         } finally {
             setIsAnalyzing(false);
         }

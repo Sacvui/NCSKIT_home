@@ -7,6 +7,7 @@ import { getAnalysisCost, checkBalance } from '@/lib/ncs-credits';
 import { runWithCredits } from '@/lib/analysis-credit-wrapper';
 import { runLinearRegression, runLogisticRegression } from '@/lib/webr-wrapper';
 import { ChevronLeft, Play, TrendingUp, Binary, Target, Activity } from 'lucide-react';
+import { useAnalysisError } from '@/hooks/useAnalysisError';
 
 interface RegressionViewProps {
     step: AnalysisStep;
@@ -42,6 +43,7 @@ export const RegressionView: React.FC<RegressionViewProps> = ({
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [regressionVars, setRegressionVars] = useState<{ y: string; xs: string[] }>({ y: '', xs: [] });
     const [logisticVars, setLogisticVars] = useState<{ y: string; xs: string[] }>({ y: '', xs: [] });
+    const handleAnalysisError = useAnalysisError(showToast);
 
     const handleAnalysisWrapper = async (
         analysisKey: string,
@@ -73,7 +75,7 @@ export const RegressionView: React.FC<RegressionViewProps> = ({
             setStep('results');
             showToast(successMsg, 'success');
         } catch (err: any) {
-            showToast(`${t(locale, 'error')}: ` + (err.message || err), 'error');
+            handleAnalysisError(err);
         } finally {
             setIsAnalyzing(false);
         }

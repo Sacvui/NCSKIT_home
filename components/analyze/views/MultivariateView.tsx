@@ -7,6 +7,7 @@ import { getAnalysisCost, checkBalance } from '@/lib/ncs-credits';
 import { runWithCredits } from '@/lib/analysis-credit-wrapper';
 import { runClusterAnalysis, runTwoWayANOVA } from '@/lib/webr-wrapper';
 import { ChevronLeft, Play, CircleDot, Grid3x3, Layers, Target } from 'lucide-react';
+import { useAnalysisError } from '@/hooks/useAnalysisError';
 
 interface MultivariateViewProps {
     step: AnalysisStep;
@@ -47,6 +48,7 @@ export const MultivariateView: React.FC<MultivariateViewProps> = ({
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [clusterVars, setClusterVars] = useState<{ k: number; variables: string[] }>({ k: 3, variables: [] });
     const [twoWayAnovaVars, setTwoWayAnovaVars] = useState<{ y: string; factor1: string; factor2: string }>({ y: '', factor1: '', factor2: '' });
+    const handleAnalysisError = useAnalysisError(showToast);
 
     const handleAnalysisWrapper = async (
         analysisKey: string,
@@ -78,7 +80,7 @@ export const MultivariateView: React.FC<MultivariateViewProps> = ({
             setStep('results');
             showToast(successMsg, 'success');
         } catch (err: any) {
-            showToast(`${t(locale, 'error')}: ` + (err.message || err), 'error');
+            handleAnalysisError(err);
         } finally {
             setIsAnalyzing(false);
         }

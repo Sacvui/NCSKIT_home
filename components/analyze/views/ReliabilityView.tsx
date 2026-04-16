@@ -3,13 +3,14 @@
 import React, { useState } from 'react';
 import { AnalysisStep } from '@/types/analysis';
 import { Locale, t } from '@/lib/i18n';
-import { getAnalysisCost, checkBalance, deductCredits } from '@/lib/ncs-credits';
+import { getAnalysisCost, checkBalance, deductCreditsAtomic } from '@/lib/ncs-credits';
 import { logAnalysisUsage } from '@/lib/activity-logger';
 import { runCronbachAlpha, runEFA, runCFA, runSEM } from '@/lib/webr-wrapper';
 import { SmartGroupSelector } from '@/components/VariableSelector';
 import CFASelection from '@/components/CFASelection';
 import SEMSelection from '@/components/SEMSelection';
 import { ChevronLeft, Play, Shield, Grid3x3, Network, Layers } from 'lucide-react';
+import { useAnalysisError } from '@/hooks/useAnalysisError';
 
 interface ReliabilityViewProps {
     step: AnalysisStep;
@@ -47,12 +48,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
     locale
 }) => {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
-
-    const handleAnalysisError = (err: any) => {
-        const msg = err.message || String(err);
-        console.error("Analysis Error:", err);
-        showToast(`Lỗi: ${msg.substring(0, 100)}...`, 'error');
-    };
+    const handleAnalysisError = useAnalysisError(showToast);
 
     const ViewHeader = ({ title, subtitle, icon: Icon }: any) => (
         <div className="flex flex-col items-center text-center mb-8">
@@ -101,13 +97,24 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
 
         try {
             const selectedData = data.map(row => selectedColumns.map(col => Number(row[col]) || 0));
+
+            // Deduct BEFORE running — atomic via RPC (prevents race conditions)
+            if (user) {
+                const cost = await getAnalysisCost('cronbach');
+                const { success, isExempt, newBalance, error: deductError } = await deductCreditsAtomic(user.id, cost, `Cronbach Alpha: ${name}`);
+                if (!success) {
+                    showToast(deductError || 'Không đủ NCS để thực hiện phân tích', 'error');
+                    setIsAnalyzing(false);
+                    return;
+                }
+                if (!isExempt) setNcsBalance(newBalance);
+            }
+
             const analysisResults = await runCronbachAlpha(selectedData);
 
             if (user) {
                 const cost = await getAnalysisCost('cronbach');
-                await deductCredits(user.id, cost, `Cronbach Alpha: ${name}`);
                 await logAnalysisUsage(user.id, 'cronbach', cost);
-                setNcsBalance(prev => Math.max(0, prev - cost));
             }
 
             setResults({ type: 'cronbach', data: analysisResults, columns: selectedColumns, scaleName: name });
@@ -139,6 +146,19 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
         setMultipleResults([]);
 
         try {
+            // Deduct BEFORE running batch — atomic via RPC
+            if (user) {
+                const singleCost = await getAnalysisCost('cronbach');
+                const totalCost = singleCost * groups.length;
+                const { success, isExempt, newBalance, error: deductError } = await deductCreditsAtomic(user.id, totalCost, `Batch Cronbach: ${groups.length} scales`);
+                if (!success) {
+                    showToast(deductError || 'Không đủ NCS để thực hiện phân tích', 'error');
+                    setIsAnalyzing(false);
+                    return;
+                }
+                if (!isExempt) setNcsBalance(newBalance);
+            }
+
             const allResults = [];
             for (const group of groups) {
                 const groupData = data.map(row => group.columns.map(col => Number(row[col]) || 0));
@@ -149,9 +169,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
             if (user) {
                 const singleCost = await getAnalysisCost('cronbach');
                 const totalCost = singleCost * groups.length;
-                await deductCredits(user.id, totalCost, `Batch Cronbach: ${groups.length} scales`);
                 await logAnalysisUsage(user.id, 'cronbach-batch', totalCost);
-                setNcsBalance(prev => Math.max(0, prev - totalCost));
             }
 
             setMultipleResults(allResults);
@@ -188,13 +206,24 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
 
         try {
             const selectedData = data.map(row => selectedColumns.map(col => Number(row[col]) || 0));
+
+            // Deduct BEFORE running — atomic via RPC
+            if (user) {
+                const cost = await getAnalysisCost('omega');
+                const { success, isExempt, newBalance, error: deductError } = await deductCreditsAtomic(user.id, cost, `McDonald's Omega: ${name}`);
+                if (!success) {
+                    showToast(deductError || 'Không đủ NCS để thực hiện phân tích', 'error');
+                    setIsAnalyzing(false);
+                    return;
+                }
+                if (!isExempt) setNcsBalance(newBalance);
+            }
+
             const analysisResults = await runCronbachAlpha(selectedData); // Note: Should be runOmega in future, matching current behavior for now
 
             if (user) {
                 const cost = await getAnalysisCost('omega');
-                await deductCredits(user.id, cost, `McDonald's Omega: ${name}`);
                 await logAnalysisUsage(user.id, 'omega', cost);
-                setNcsBalance(prev => Math.max(0, prev - cost));
             }
 
             setResults({ type: 'omega', data: analysisResults, columns: selectedColumns, scaleName: name });

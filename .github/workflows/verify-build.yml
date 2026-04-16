@@ -32,6 +32,12 @@ jobs:
     
     - name: 🧹 ESLint check
       run: npm run lint
+
+    - name: 🧪 Run unit tests
+      run: npm test -- --passWithNoTests --testPathPattern="__tests__/(lib|utils|webr)/.*\\.test\\.(ts|tsx)$"
+      env:
+        NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
     
     - name: 🏗️ Build production
       run: npm run build

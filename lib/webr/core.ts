@@ -1,7 +1,9 @@
-import { WebR } from 'webr';
+﻿import { WebR } from 'webr';
 import { translateRError } from './utils';
 import { getCachedWebRState, setCachedWebRState } from './cache';
 import { getRequiredPackages, isPackageLoaded, markPackageLoaded } from './package-registry';
+import { logger } from '@/utils/logger';
+import { captureWebRError } from '@/lib/monitoring';
 
 let webRInstance: WebR | null = null;
 let isInitializing = false;
@@ -76,7 +78,7 @@ export async function clearWebRStorage(): Promise<void> {
     // Clear IndexedDB 'WebR' database if possible
     if (typeof window !== 'undefined' && window.indexedDB) {
         try {
-            console.log('[WebR] Deleting ALL IndexedDB databases to ensure a fresh WebR file system...');
+            logger.debug('[WebR] Deleting ALL IndexedDB databases to ensure a fresh WebR file system...');
             const idb: any = window.indexedDB;
             if (typeof idb.databases === 'function') {
                 const dbs = await idb.databases();
@@ -84,7 +86,7 @@ export async function clearWebRStorage(): Promise<void> {
                     if (db.name) {
                         try {
                             idb.deleteDatabase(db.name);
-                            console.log(`[WebR] Deleted DB: ${db.name}`);
+                            logger.debug(`[WebR] Deleted DB: ${db.name}`);
                         } catch(e) {}
                     }
                 });
@@ -95,7 +97,7 @@ export async function clearWebRStorage(): Promise<void> {
                 idb.deleteDatabase('IDBFS');
             }
         } catch (e) {
-            console.warn('[WebR] Could not flag storage for wipe:', e);
+            logger.warn('[WebR] Could not flag storage for wipe:', e);
         }
     }
     
@@ -115,7 +117,7 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
 
     initPromise = (async () => {
         isInitializing = true;
-        updateProgress('⚙️ Đang khởi động R-Engine...');
+        updateProgress('âš™ï¸ Äang khá»Ÿi Ä‘á»™ng R-Engine...');
         const startTime = performance.now();
 
         const initTimeout = new Promise<never>((_, reject) => 
@@ -139,21 +141,21 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     try {
                         await navigator.serviceWorker.register('/webr-serviceworker.js');
                     } catch (e) {
-                        console.warn('[WebR] SW Register failed:', e);
+                        logger.warn('[WebR] SW Register failed:', e);
                     }
                 }
 
-                console.log('[WebR] Calling webR.init()...');
+                logger.debug('[WebR] Calling webR.init()...');
                 await webR.init();
                 const persistentLib = '/home/web_user/library';
 
                 // Prepare Storage with Sanity Check
-                updateProgress('📂 Đang kết nối bộ nhớ...');
+                updateProgress('ðŸ“‚ Äang káº¿t ná»‘i bá»™ nhá»›...');
                 let storageSane = false;
 
                 // Handle manual wipe request
                 if (typeof localStorage !== 'undefined' && localStorage.getItem('webr_fs_wipe_requested') === 'true') {
-                    console.warn('[WebR] Force wipe requested. Resetting persistent storage...');
+                    logger.warn('[WebR] Force wipe requested. Resetting persistent storage...');
                     localStorage.removeItem('webr_fs_wipe_requested');
                     localStorage.removeItem('webr_fs_broken');
                 }
@@ -170,7 +172,7 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     try { await webR.FS.mkdir(persistentLib); } catch (e) {}
                     
                     if (!isFsBroken) {
-                        console.log('[WebR] Attempting to mount IDBFS storage...');
+                        logger.debug('[WebR] Attempting to mount IDBFS storage...');
                         await webR.FS.mount('IDBFS', {}, persistentLib);
                         await webR.FS.syncfs(true);
                         
@@ -181,18 +183,18 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         
                         if (sanityVal === "sane") {
                             storageSane = true;
-                            console.log('[WebR] IDBFS Sanity check passed! Storage is healthy.');
+                            logger.debug('[WebR] IDBFS Sanity check passed! Storage is healthy.');
                             // SELF-HEALING: If it's working now, remove the broken flag if it existed
                             if (typeof localStorage !== 'undefined' && localStorage.getItem('webr_fs_broken')) {
-                                console.log('[WebR] Clearing previous corruption flag. High-speed caching restored.');
+                                logger.debug('[WebR] Clearing previous corruption flag. High-speed caching restored.');
                                 localStorage.removeItem('webr_fs_broken');
                             }
                         }
                     } else {
-                        console.warn('[WebR] Skipping IDBFS due to previous corruption flag. Performance will be degraded.');
+                        logger.warn('[WebR] Skipping IDBFS due to previous corruption flag. Performance will be degraded.');
                     }
                 } catch (fsErr) {
-                    console.warn('[WebR] IDBFS mount or sanity check failed:', fsErr);
+                    logger.warn('[WebR] IDBFS mount or sanity check failed:', fsErr);
                     try { await webR.FS.unmount(persistentLib); } catch(u) {}
                     // If we tried to use IDBFS and it failed, flag it (unless already flagged)
                     if (!isFsBroken && typeof localStorage !== 'undefined') {
@@ -201,11 +203,11 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 }
                 
                 if (!storageSane) {
-                    console.warn('[WebR] Falling back to slow memory-only mode. Every page load will require re-downloading packages.');
+                    logger.warn('[WebR] Falling back to slow memory-only mode. Every page load will require re-downloading packages.');
                 }
 
                 const localRepo = (typeof window !== 'undefined' ? window.location.origin : '') + "/webr_repo_v2";
-                console.log("[WebR] Using synchronized repository:", localRepo);
+                logger.debug("[WebR] Using synchronized repository:", localRepo);
 
                 await webR.evalR(`
                     if (dir.exists("${persistentLib}")) {
@@ -230,10 +232,10 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
 
                 const rVersionObj = await webR.evalR('r_version');
                 const rVersion = unpackWebRObject(await rVersionObj.toJs());
-                console.log(`[WebR] R Engine Version: ${rVersion}`);
+                logger.debug(`[WebR] R Engine Version: ${rVersion}`);
 
                 // 3. Load or Install Core Packages
-                updateProgress('📦 Đang thiết lập công cụ...');
+                updateProgress('ðŸ“¦ Äang thiáº¿t láº­p cÃ´ng cá»¥...');
                 const existsProxy = await webR.evalR('psych_exists');
                 const existsVal = unpackWebRObject(await existsProxy.toJs());
                 if (existsProxy && typeof (existsProxy as any).destroy === 'function') (existsProxy as any).destroy();
@@ -242,21 +244,21 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
 
                 if (existsVal === true) {
                     try {
-                        console.log('[WebR] Loading core libraries from persistent lib...');
+                        logger.debug('[WebR] Loading core libraries from persistent lib...');
                         await webR.evalR('library(psych); library(jsonlite)');
                         // Success! Mark ALL as loaded to prevent redundant checks later
                         corePackages.forEach(pkg => markPackageLoaded(pkg));
                     } catch (e) {
-                        console.warn('[WebR] Core loading failed! Wiping library folder...', e);
-                        updateProgress('🧹 Đang làm sạch bộ nhớ...');
+                        logger.warn('[WebR] Core loading failed! Wiping library folder...', e);
+                        updateProgress('ðŸ§¹ Äang lÃ m sáº¡ch bá»™ nhá»›...');
                         try {
                             await webR.evalR(`unlink("${persistentLib}", recursive = TRUE); dir.create("${persistentLib}", recursive = TRUE)`);
                             await webR.FS.syncfs(false); 
                         } catch (wipeErr) {}
                         
                         try {
-                            updateProgress('🌐 Đang tải lại thư viện...');
-                            console.log('[WebR] Attempting re-install of core libraries from local repo:', localRepo);
+                            updateProgress('ðŸŒ Äang táº£i láº¡i thÆ° viá»‡n...');
+                            logger.debug('[WebR] Attempting re-install of core libraries from local repo:', localRepo);
                             // Install psych (which will pull dependencies automatically)
                             await webR.evalR(`webr::install("psych", repos="${localRepo}", lib="${persistentLib}")`);
                             await webR.evalR(`webr::install("jsonlite", repos="${localRepo}", lib="${persistentLib}")`);
@@ -264,12 +266,12 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                             corePackages.forEach(pkg => markPackageLoaded(pkg));
                             await webR.FS.syncfs(false);
                         } catch(reInstallErr) {
-                            console.error('[WebR] Re-install failed:', reInstallErr);
+                            logger.error('[WebR] Re-install failed:', reInstallErr);
                         }
                     }
                 } else {
-                    updateProgress('🌐 Đang tải thư viện R (lần đầu)...');
-                    console.log('[WebR] Initial installation of core libraries from local repo:', localRepo);
+                    updateProgress('ðŸŒ Äang táº£i thÆ° viá»‡n R (láº§n Ä‘áº§u)...');
+                    logger.debug('[WebR] Initial installation of core libraries from local repo:', localRepo);
                     try {
                         await webR.evalR(`webr::install("psych", repos="${localRepo}", lib="${persistentLib}")`);
                         await webR.evalR(`webr::install("jsonlite", repos="${localRepo}", lib="${persistentLib}")`);
@@ -277,13 +279,13 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         corePackages.forEach(pkg => markPackageLoaded(pkg));
                         await webR.FS.syncfs(false);
                     } catch (installErr) {
-                        console.error('[WebR] Initial install failed from local repo:', installErr);
+                        logger.error('[WebR] Initial install failed from local repo:', installErr);
                     }
                 }
 
                 const elapsed = ((performance.now() - startTime) / 1000).toFixed(1);
-                console.log(`[WebR] Engine Loaded in ${elapsed}s`);
-                updateProgress('✅ R-Engine sẵn sàng');
+                logger.debug(`[WebR] Engine Loaded in ${elapsed}s`);
+                updateProgress('âœ… R-Engine sáºµn sÃ ng');
                 
                 webRInstance = webR;
                 isInitializing = false;
@@ -291,12 +293,17 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 return webRInstance;
 
             } catch (error: any) {
-                console.error('[WebR] Init Failure:', error);
+                logger.error('[WebR] Init Failure:', error);
+                // Report to Sentry with WebR context
+                captureWebRError(error, {
+                    phase: 'init',
+                    browser: typeof navigator !== 'undefined' ? navigator.userAgent.substring(0, 100) : undefined,
+                });
                 isInitializing = false;
                 initPromise = null;
                 lastError = error;
                 initAttempts++;
-                updateProgress('❌ Lỗi khởi tạo R-Engine');
+                updateProgress('âŒ Lá»—i khá»Ÿi táº¡o R-Engine');
                 throw error;
             }
         });
@@ -323,7 +330,7 @@ export async function loadPackagesForMethod(method: string): Promise<void> {
             await webR.evalR(`library(${pkg})`);
             markPackageLoaded(pkg);
         } catch (error) {
-            console.error(`Failed to load ${pkg}:`, error);
+            logger.error(`Failed to load ${pkg}:`, error);
         }
     }
 }
@@ -375,7 +382,7 @@ export async function executeRWithRecovery(
         if (method) await loadPackagesForMethod(method);
 
         if (csvData && csvData.length > 0) {
-            updateProgress('📊 Đang nạp dữ liệu...');
+            updateProgress('ðŸ“Š Äang náº¡p dá»¯ liá»‡u...');
             // Convert data to a CSV formatted string
             const csvText = csvData.map(row => 
                 row.map(v => (v === null || v === undefined || Number.isNaN(v as number)) ? 'NA' : v).join(',')
@@ -416,7 +423,7 @@ export async function executeRWithRecovery(
             
             if (resObj && typeof (resObj as any).destroy === 'function') (resObj as any).destroy();
             
-            console.log('[WebR] Engine System v2.3.0 - VFS-Free Data Pipe Active');
+            logger.debug('[WebR] Engine System v2.3.0 - VFS-Free Data Pipe Active');
 
             try {
                 // If the data comes as a Uint8Array (stable binary), decode it first
@@ -446,15 +453,15 @@ export async function executeRWithRecovery(
     } catch (error: any) {
         const errorMsg = error?.message || String(error);
 
-        console.warn('[WebR] Execution Error:', errorMsg);
+        logger.warn('[WebR] Execution Error:', errorMsg);
 
         // Recursive evaluation error is fatal to the current worker state -> Force Restart
         if (errorMsg.includes('promise already under evaluation') || 
             errorMsg.includes('FileReaderSync') || 
             errorMsg.includes('Blob')) {
-             console.error('[WebR] Fatal R state. Resetting engine...');
+             logger.error('[WebR] Fatal R state. Resetting engine...');
              resetWebR(); // Clear the hung instance
-             throw new Error("Hệ thống R đang bận. Tôi đã tự động khởi động lại, vui lòng thực hiện lại phân tích sau vài giây.");
+             throw new Error("Há»‡ thá»‘ng R Ä‘ang báº­n. TÃ´i Ä‘Ã£ tá»± Ä‘á»™ng khá»Ÿi Ä‘á»™ng láº¡i, vui lÃ²ng thá»±c hiá»‡n láº¡i phÃ¢n tÃ­ch sau vÃ i giÃ¢y.");
         }
 
         // SELF-HEALING for missing packages
@@ -463,7 +470,7 @@ export async function executeRWithRecovery(
             const missingPkg = match ? match[1] : null;
 
             if (missingPkg) {
-                console.warn(`Auto-installing missing package: ${missingPkg}`);
+                logger.warn(`Auto-installing missing package: ${missingPkg}`);
                 updateProgress(`Setting up ${missingPkg}...`);
                 const localRepo = (typeof window !== 'undefined' ? window.location.origin : '') + "/webr_repo_v2";
                 // Aggressive fix: ALWAYS use webr::install for WebR 4.5.1 on self-hosted repo
@@ -482,3 +489,4 @@ export async function executeRWithRecovery(
         throw error;
     }
 }
+

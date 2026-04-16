@@ -99,6 +99,7 @@ export function FileUpload({ onDataLoaded, locale }: FileUploadProps) {
                     className="hidden"
                     id="file-upload"
                     disabled={isProcessing}
+                    aria-label="Tải lên file dữ liệu CSV hoặc Excel"
                 />
 
                 <label htmlFor="file-upload" className="cursor-pointer block">

@@ -1,6 +1,8 @@
-/**
+﻿/**
  * Reliability & Factor Analysis Modules
  */
+import { WEBR_TIMEOUTS, getTimeoutForMethod } from '../constants';
+import { validateAndCleanData } from '../input-validator';
 import { executeRWithRecovery, loadPackagesForMethod } from '../core';
 import { parseWebRResult, parseMatrix } from '../utils';
 import { getAnalysisRTemplate } from '../templates';
@@ -32,6 +34,17 @@ export async function runCronbachAlpha(
 }> {
     // Lazy load required packages
     await loadPackagesForMethod('cronbach');
+
+    // Validate and clean input data
+    const validation = validateAndCleanData(data, {
+        minRows: 10,
+        minCols: 2,
+        analysisName: "Cronbach's Alpha",
+    });
+    if (!validation.valid) {
+        throw new Error(validation.warnings[validation.warnings.length - 1]);
+    }
+    const cleanData = validation.cleanData;
 
     const defaultRCode = `
     options(mc.cores = 1);
@@ -103,7 +116,7 @@ export async function runCronbachAlpha(
         .replace(/\{\{likertMin\}\}/g, String(likertMin))
         .replace(/\{\{likertMax\}\}/g, String(likertMax));
 
-    const result = await executeRWithRecovery(rCode, 'cronbach', 0, 2, 120000, data);
+    const result = await executeRWithRecovery(rCode, 'cronbach', 0, 2, WEBR_TIMEOUTS.COMPLEX, cleanData);
     const getValue = parseWebRResult(result);
 
     const rawAlpha = getValue('raw_alpha')?.[0] ?? 0;
@@ -176,7 +189,7 @@ export async function runEFA(data: number[][], nFactors: number, rotation: strin
     n_complete <- nrow(df_clean)
     
     if (n_complete < 3) { 
-        stop("Quá ít dữ liệu hoàn chỉnh (< 3 mẫu). Vui lòng kiểm tra dữ liệu khuyết.") 
+        stop("QuÃ¡ Ã­t dá»¯ liá»‡u hoÃ n chá»‰nh (< 3 máº«u). Vui lÃ²ng kiá»ƒm tra dá»¯ liá»‡u khuyáº¿t.") 
     }
     
     # Use pairwise correlation for eigenvalues (more robust)
@@ -190,7 +203,7 @@ export async function runEFA(data: number[][], nFactors: number, rotation: strin
     
     # Basic validation
     if (any(is.na(cor_mat))) { 
-        stop("Lỗi: Dữ liệu có quá nhiều giá trị khuyết (NA) dẫn đến ma trận tương quan không hợp lệ.") 
+        stop("Lá»—i: Dá»¯ liá»‡u cÃ³ quÃ¡ nhiá»u giÃ¡ trá»‹ khuyáº¿t (NA) dáº«n Ä‘áº¿n ma tráº­n tÆ°Æ¡ng quan khÃ´ng há»£p lá»‡.") 
     }
     
     eigenvalues <- eigen(cor_mat)$values
@@ -246,7 +259,7 @@ export async function runEFA(data: number[][], nFactors: number, rotation: strin
         .replace(/\{\{nFactors\}\}/g, String(nFactors))
         .replace(/\{\{rotation\}\}/g, rotation);
 
-    const jsResult = await executeRWithRecovery(rCode, 'efa', 0, 2, 120000, data);
+    const jsResult = await executeRWithRecovery(rCode, 'efa', 0, 2, WEBR_TIMEOUTS.COMPLEX, data);
 
     const getValue = parseWebRResult(jsResult);
     const nFactorsUsed = getValue('n_factors_used')?.[0] || nFactors || 1;
@@ -282,32 +295,33 @@ export async function runCFA(data: number[][], columns: string[], modelSyntax: s
 
         if (result.error) {
             console.warn("Lavaan failed:", result.error);
-            // Do NOT fall back to EFA — return a clear error instead
+            // Do NOT fall back to EFA â€” return a clear error instead
             return {
                 fitMeasures: { cfi: 0, tli: 0, rmsea: 0, srmr: 0, chisq: 0, df: 0, pvalue: 0 },
                 estimates: [],
                 rCode: '',
-                error: `CFA yêu cầu thư viện lavaan. Lỗi: ${result.error}. Vui lòng thử lại sau khi WebR tải xong.`,
+                error: `CFA yÃªu cáº§u thÆ° viá»‡n lavaan. Lá»—i: ${result.error}. Vui lÃ²ng thá»­ láº¡i sau khi WebR táº£i xong.`,
                 warning: undefined
             };
         }
 
         return {
             ...result,
-            warning: "Phân tích CFA thành công bằng thư viện lavaan chuyên sâu."
+            warning: "PhÃ¢n tÃ­ch CFA thÃ nh cÃ´ng báº±ng thÆ° viá»‡n lavaan chuyÃªn sÃ¢u."
         };
     } catch (e: any) {
         console.warn("Lavaan not available or failed:", e);
-        // Return a clear error — do NOT simulate CFA with EFA (statistically invalid)
+        // Return a clear error â€” do NOT simulate CFA with EFA (statistically invalid)
         return {
             fitMeasures: { cfi: 0, tli: 0, rmsea: 0, srmr: 0, chisq: 0, df: 0, pvalue: 0 },
             estimates: [],
             rCode: '',
-            error: `CFA yêu cầu thư viện lavaan chưa được tải. Vui lòng đợi WebR khởi động hoàn tất và thử lại. Chi tiết: ${e?.message || String(e)}`,
+            error: `CFA yÃªu cáº§u thÆ° viá»‡n lavaan chÆ°a Ä‘Æ°á»£c táº£i. Vui lÃ²ng Ä‘á»£i WebR khá»Ÿi Ä‘á»™ng hoÃ n táº¥t vÃ  thá»­ láº¡i. Chi tiáº¿t: ${e?.message || String(e)}`,
             warning: undefined
         };
     }
     // NOTE: The previous EFA-as-CFA fallback was removed because it produced
-    // statistically invalid results (EFA ≠ CFA — no fixed measurement model,
+    // statistically invalid results (EFA â‰  CFA â€” no fixed measurement model,
     // fit indices are not comparable). Better to show a clear error than wrong results.
 }
+

@@ -13,6 +13,8 @@ import {
     interpretMediation,
     InterpretationResult
 } from '@/lib/interpretation-templates';
+import { validateOrigin } from '@/utils/csrf-protection';
+import { checkRateLimit } from '@/utils/rate-limit';
 
 /**
  * Template-based interpretation endpoint (NO AI COST!)
@@ -22,6 +24,20 @@ import {
  */
 export async function POST(req: NextRequest) {
     try {
+        // Origin validation (CSRF protection)
+        if (!validateOrigin(req)) {
+            return NextResponse.json({ error: 'Invalid origin' }, { status: 403 });
+        }
+
+        // Rate limiting (10 requests/minute/IP — template interpretation is cheap)
+        const rateLimitResult = await checkRateLimit(req, 10);
+        if (!rateLimitResult.success) {
+            return NextResponse.json(
+                { error: 'Quá nhiều yêu cầu. Vui lòng thử lại sau 1 phút.' },
+                { status: 429 }
+            );
+        }
+
         const { analysisType, results, scaleName, variableNames } = await req.json();
 
         if (!analysisType || !results) {

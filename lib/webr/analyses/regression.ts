@@ -1,6 +1,8 @@
-/**
+﻿/**
  * Regression Analysis Modules - Template-Driven
  */
+import { WEBR_TIMEOUTS, getTimeoutForMethod } from '../constants';
+import { validateAndCleanData } from '../input-validator';
 import { executeRWithRecovery, loadPackagesForMethod } from '../core';
 import { parseWebRResult } from '../utils';
 import { getAnalysisRTemplate } from '../templates';
@@ -37,6 +39,15 @@ export async function runLinearRegression(data: number[][], names: string[]): Pr
     rCode: string;
 }> {
     await loadPackagesForMethod('linear-regression');
+
+    // Validate and clean input data
+    const validation = validateAndCleanData(data, {
+        minRows: 10,
+        minCols: 2,
+        analysisName: 'Linear Regression',
+    });
+    if (!validation.valid) throw new Error(validation.warnings[validation.warnings.length - 1]);
+    const cleanData = validation.cleanData;
 
     const defaultRCode = `
     df <- as.data.frame({{data}});
@@ -100,7 +111,7 @@ export async function runLinearRegression(data: number[][], names: string[]): Pr
         .replace(/\{\{data\}\}/g, 'raw_data')
         .replace(/\{\{names\}\}/g, namesStr);
 
-    const result = await executeRWithRecovery(rCode, 'linear-regression', 0, 2, 120000, data);
+    const result = await executeRWithRecovery(rCode, 'linear-regression', 0, 2, WEBR_TIMEOUTS.COMPLEX, cleanData);
     const getValue = parseWebRResult(result);
 
     const cNames = getValue('c_names') || [];
@@ -187,7 +198,7 @@ export async function runLogisticRegression(data: number[][], names: string[]): 
     # Validate binary outcome
     y_vals <- unique(df[[y_name]]);
     if (length(y_vals) > 2) {
-        stop("Biến phụ thuộc phải là nhị phân (2 giá trị). Hiện có: ", length(y_vals), " giá trị.")
+        stop("Biáº¿n phá»¥ thuá»™c pháº£i lÃ  nhá»‹ phÃ¢n (2 giÃ¡ trá»‹). Hiá»‡n cÃ³: ", length(y_vals), " giÃ¡ trá»‹.")
     }
     
     f_str <- paste0("\`", y_name, "\` ~ .");
@@ -207,7 +218,7 @@ export async function runLogisticRegression(data: number[][], names: string[]): 
     resid_dev <- s$deviance;
     n <- nrow(df);
     mcfadden_r2 <- 1 - (resid_dev / null_dev);
-    # Nagelkerke R²
+    # Nagelkerke RÂ²
     cox_snell <- 1 - exp((resid_dev - null_dev) / n);
     nagelkerke_r2 <- cox_snell / (1 - exp(-null_dev / n));
     
@@ -251,7 +262,7 @@ export async function runLogisticRegression(data: number[][], names: string[]): 
     const namesStr = names.map(n => `"${n}"`).join(',');
     const template = await getAnalysisRTemplate('logistic', defaultRCode);
     const rCode = template.replace(/\{\{data\}\}/g, 'raw_data').replace(/\{\{names\}\}/g, namesStr);
-    const result = await executeRWithRecovery(rCode, 'logistic-regression', 0, 2, 120000, data);
+    const result = await executeRWithRecovery(rCode, 'logistic-regression', 0, 2, WEBR_TIMEOUTS.COMPLEX, data);
     const getValue = parseWebRResult(result);
 
     const cNames = getValue('c_names') || [];
@@ -293,3 +304,4 @@ export async function runLogisticRegression(data: number[][], names: string[]): 
         rCode
     };
 }
+

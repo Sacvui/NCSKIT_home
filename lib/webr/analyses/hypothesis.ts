@@ -1,6 +1,7 @@
-/**
+﻿/**
  * Hypothesis Testing Modules - Fully Template-Driven
  */
+import { WEBR_TIMEOUTS, getTimeoutForMethod } from '../constants';
 import { executeRWithRecovery, loadPackagesForMethod } from '../core';
 import { parseWebRResult, parseMatrix } from '../utils';
 import { getAnalysisRTemplate } from '../templates';
@@ -41,7 +42,7 @@ export async function runCorrelation(
         .replace(/\{\{data\}\}/g, 'raw_data')
         .replace(/\{\{method\}\}/g, method);
 
-    const jsResult = await executeRWithRecovery(rCode, 'correlation', 0, 2, 120000, data);
+    const jsResult = await executeRWithRecovery(rCode, 'correlation', 0, 2, WEBR_TIMEOUTS.COMPLEX, data);
     const getValue = parseWebRResult(jsResult);
     const numCols = getValue('n_cols')?.[0] || data[0]?.length || 0;
 
@@ -262,13 +263,13 @@ export async function runOneWayANOVA(groups: number[][]): Promise<{
             c_names <- c(c_names, paste0(levels(grps)[idx1], "-", levels(grps)[idx2]));
             c_diffs <- c(c_diffs, md); c_p <- c(c_p, ptukey(q, k, df_gh, lower.tail=FALSE));
         }
-        warn <- "Phương sai không đồng nhất (Welch/GH).";
+        warn <- "PhÆ°Æ¡ng sai khÃ´ng Ä‘á»“ng nháº¥t (Welch/GH).";
     } else {
         f_val <- res[1, "F value"]; df_b <- res[1, "Df"]; df_w <- res[2, "Df"]; p_val <- res[1, "Pr(>F)"];
         method <- "Classic ANOVA";
         tk <- TukeyHSD(mod)$grps;
         c_names <- rownames(tk); c_diffs <- tk[,"diff"]; c_p <- tk[,"p adj"];
-        warn <- "Phương sai đồng nhất (Tukey).";
+        warn <- "PhÆ°Æ¡ng sai Ä‘á»“ng nháº¥t (Tukey).";
     }
     
     sh_res_p <- tryCatch({ if(nrow(mod$model) >= 3) shapiro.test(residuals(mod))$p.value else NA }, error = function(e) NA);
@@ -339,7 +340,7 @@ export async function runMannWhitneyU(group1: number[], group2: number[]): Promi
     g1 <- c({{g1}}); g2 <- c({{g2}});
     tt <- wilcox.test(g1, g2, conf.int = TRUE);
     
-    # Effect size r — correct formula using U statistic directly
+    # Effect size r â€” correct formula using U statistic directly
     # r = Z / sqrt(N), where Z is derived from the exact U statistic
     # NOT back-calculated from p-value (which can give r > 1 for very small p)
     n1 <- length(g1); n2 <- length(g2); n_total <- n1 + n2;
@@ -353,7 +354,7 @@ export async function runMannWhitneyU(group1: number[], group2: number[]): Promi
     
     sk1 <- skew(g1); sk2 <- skew(g2);
     sim <- (sign(sk1) == sign(sk2)) && (abs(sk1 - sk2) < 1.0);
-    msg <- if(sim) "Trung vị" else "Mean Rank";
+    msg <- if(sim) "Trung vá»‹" else "Mean Rank";
     list(stat = tt$statistic, p = tt$p.value, m1 = median(g1), m2 = median(g2), r = r, sk1 = sk1, sk2 = sk2, msg = msg);
     `;
 
@@ -540,3 +541,4 @@ export async function runWilcoxonSignedRank(before: number[], after: number[]): 
         rCode
     };
 }
+

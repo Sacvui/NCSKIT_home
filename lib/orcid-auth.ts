@@ -124,8 +124,9 @@ export async function getOrcidProfile(
         const fullName = `${givenNames} ${familyName}`.trim();
 
         // Extract primary email if available
-        const emails = data?.emails?.email || [];
-        const primaryEmail = emails.find((e: any) => e.primary)?.email || emails[0]?.email;
+        interface OrcidEmail { email: string; primary: boolean; }
+        const emails: OrcidEmail[] = data?.emails?.email || [];
+        const primaryEmail = emails.find(e => e.primary)?.email || emails[0]?.email;
 
         return {
             orcid: orcidId,

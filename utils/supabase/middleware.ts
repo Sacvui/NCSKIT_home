@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { logger } from '@/utils/logger'
 
 const PROTECTED_ROUTES = ['/profile', '/admin']
 const PUBLIC_ROUTES = ['/', '/login', '/terms', '/privacy', '/docs', '/methods', '/auth', '/analyze', '/scales', '/knowledge']
@@ -19,7 +20,6 @@ export async function updateSession(request: NextRequest) {
     }
 
     const pathname = request.nextUrl.pathname
-    const isPublicRoute = PUBLIC_ROUTES.some(route => pathname === route || pathname.startsWith(route + '/'))
 
     const supabase = createServerClient(
         supabaseUrl,
@@ -53,7 +53,7 @@ export async function updateSession(request: NextRequest) {
     const hasAuthCode = request.nextUrl.searchParams.has('code')
 
     if (!user && isProtectedRoute && !hasAuthCode) {
-        console.log('[Middleware] Protected access denied:', pathname)
+        logger.debug('[Middleware] Protected access denied:', pathname)
         const url = request.nextUrl.clone()
         url.pathname = '/login'
         url.searchParams.set('error', 'no_session')
@@ -74,7 +74,7 @@ export async function updateSession(request: NextRequest) {
         const adminRoles = ['platform_admin', 'super_admin', 'institution_admin', 'admin']
         
         if (!adminRoles.includes(userRole)) {
-            console.warn('[Middleware] Admin access denied for role:', userRole, 'at', pathname)
+            logger.warn('[Middleware] Admin access denied for role:', userRole)
             const url = request.nextUrl.clone()
             url.pathname = '/' // Redirect unauthorized to home
             return NextResponse.redirect(url)

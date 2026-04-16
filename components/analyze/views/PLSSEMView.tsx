@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { getAnalysisCost, checkBalance, deductCredits } from '@/lib/ncs-credits';
+import { getAnalysisCost, checkBalance, deductCreditsAtomic } from '@/lib/ncs-credits';
 import { logAnalysisUsage } from '@/lib/activity-logger';
 import {
     runMcDonaldOmega,
@@ -21,6 +21,7 @@ import { SmartGroupSelector } from '@/components/VariableSelector';
 import HTMTSelection from '@/components/HTMTSelection';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Sparkles, AlertTriangle, CheckCircle, Info } from 'lucide-react';
+import { useAnalysisError } from '@/hooks/useAnalysisError';
 
 type PLSSEMMethod =
     | 'omega'
@@ -64,12 +65,7 @@ export const PLSSEMView: React.FC<PLSSEMViewProps> = ({
 }) => {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
-
-    const handleAnalysisError = (err: any) => {
-        const msg = err.message || String(err);
-        console.error("PLS-SEM Analysis Error:", err);
-        showToast(`Lỗi: ${msg.substring(0, 100)}...`, 'error');
-    };
+    const handleAnalysisError = useAnalysisError(showToast);
 
     // McDonald's Omega
     const runOmegaAnalysis = async (cols: string[], name: string) => {
@@ -96,13 +92,19 @@ export const PLSSEMView: React.FC<PLSSEMViewProps> = ({
                 cols.map(col => Number(row[col]) || 0)
             );
 
+            // Deduct BEFORE running — atomic via RPC
+            if (user) {
+                const cost = await getAnalysisCost('omega');
+                const { success, isExempt, newBalance, error: deductError } = await deductCreditsAtomic(user.id, cost, `McDonald's Omega: ${name}`);
+                if (!success) { showToast(deductError || 'Không đủ NCS', 'error'); setIsAnalyzing(false); return; }
+                if (!isExempt) setNcsBalance(newBalance);
+            }
+
             const result = await runMcDonaldOmega(selectedData, cols);
 
             if (user) {
                 const cost = await getAnalysisCost('omega');
-                await deductCredits(user.id, cost, `McDonald's Omega: ${name}`);
                 await logAnalysisUsage(user.id, 'omega', cost);
-                setNcsBalance(prev => Math.max(0, prev - cost));
             }
 
             setResults({
@@ -145,13 +147,19 @@ export const PLSSEMView: React.FC<PLSSEMViewProps> = ({
                 columns.map(col => Number(row[col]) || 0)
             );
 
+            // Deduct BEFORE running — atomic via RPC
+            if (user) {
+                const cost = await getAnalysisCost('outlier');
+                const { success, isExempt, newBalance, error: deductError } = await deductCreditsAtomic(user.id, cost, 'Outlier Detection');
+                if (!success) { showToast(deductError || 'Không đủ NCS', 'error'); setIsAnalyzing(false); return; }
+                if (!isExempt) setNcsBalance(newBalance);
+            }
+
             const result = await runOutlierDetection(numericData);
 
             if (user) {
                 const cost = await getAnalysisCost('outlier');
-                await deductCredits(user.id, cost, 'Outlier Detection');
                 await logAnalysisUsage(user.id, 'outlier', cost);
-                setNcsBalance(prev => Math.max(0, prev - cost));
             }
 
             setResults({
@@ -195,11 +203,13 @@ export const PLSSEMView: React.FC<PLSSEMViewProps> = ({
 
             const result = await runHTMTMatrix(numericData, factorStructure);
 
+            // Deduct AFTER running (HTMT is read-only, low risk — kept post for UX)
             if (user) {
                 const cost = await getAnalysisCost('htmt');
-                await deductCredits(user.id, cost, 'HTMT Matrix');
+                const { success, isExempt, newBalance, error: deductError } = await deductCreditsAtomic(user.id, cost, 'HTMT Matrix');
+                if (!success) { showToast(deductError || 'Không đủ NCS', 'error'); setIsAnalyzing(false); return; }
+                if (!isExempt) setNcsBalance(newBalance);
                 await logAnalysisUsage(user.id, 'htmt', cost);
-                setNcsBalance(prev => Math.max(0, prev - cost));
             }
 
             setResults({
@@ -241,13 +251,19 @@ export const PLSSEMView: React.FC<PLSSEMViewProps> = ({
                 columns.map(col => Number(row[col]) || 0)
             );
 
+            // Deduct BEFORE running — atomic via RPC
+            if (user) {
+                const cost = await getAnalysisCost('vif');
+                const { success, isExempt, newBalance, error: deductError } = await deductCreditsAtomic(user.id, cost, 'VIF Check');
+                if (!success) { showToast(deductError || 'Không đủ NCS', 'error'); setIsAnalyzing(false); return; }
+                if (!isExempt) setNcsBalance(newBalance);
+            }
+
             const result = await runVIFCheck(numericData, dependentVarIndex);
 
             if (user) {
                 const cost = await getAnalysisCost('vif');
-                await deductCredits(user.id, cost, 'VIF Check');
                 await logAnalysisUsage(user.id, 'vif', cost);
-                setNcsBalance(prev => Math.max(0, prev - cost));
             }
 
             setResults({
@@ -289,13 +305,19 @@ export const PLSSEMView: React.FC<PLSSEMViewProps> = ({
                 columns.map(col => Number(row[col]) || 0)
             );
 
+            // Deduct BEFORE running — atomic via RPC
+            if (user) {
+                const cost = await getAnalysisCost('bootstrap');
+                const { success, isExempt, newBalance, error: deductError } = await deductCreditsAtomic(user.id, cost, `Bootstrapping (${nBootstrap} samples)`);
+                if (!success) { showToast(deductError || 'Không đủ NCS', 'error'); setIsAnalyzing(false); return; }
+                if (!isExempt) setNcsBalance(newBalance);
+            }
+
             const result = await runBootstrapping(numericData, nBootstrap);
 
             if (user) {
                 const cost = await getAnalysisCost('bootstrap');
-                await deductCredits(user.id, cost, `Bootstrapping (${nBootstrap} samples)`);
                 await logAnalysisUsage(user.id, 'bootstrap', cost);
-                setNcsBalance(prev => Math.max(0, prev - cost));
             }
 
             setResults({

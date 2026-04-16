@@ -1,9 +1,52 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { checkRateLimit } from '@/utils/rate-limit';
 import { sanitizeInput } from '@/utils/security';
+import CryptoJS from 'crypto-js';
+import { validateOrigin } from '@/utils/csrf-protection';
+
+/**
+ * Resolve the Gemini API key to use for this request.
+ *
+ * Priority:
+ *  1. GEMINI_API_KEY server env var (shared key — preferred)
+ *  2. x-encrypted-key header (user's personal key, AES-encrypted client-side)
+ *  3. x-gemini-api-key header (legacy plaintext — deprecated)
+ */
+function resolveGeminiKey(req: NextRequest): string | null {
+    // 1. Server-side shared key
+    const serverKey = process.env.GEMINI_API_KEY;
+    if (serverKey) return serverKey;
+
+    // 2. Encrypted personal key
+    const encryptedKey = req.headers.get('x-encrypted-key');
+    if (encryptedKey) {
+        try {
+            const baseSalt = process.env.NEXT_PUBLIC_KEY_SALT || 'ncsstat-gemini-v2';
+            const bytes = CryptoJS.AES.decrypt(encryptedKey, baseSalt);
+            const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+            if (decrypted && decrypted.length > 10) return decrypted;
+        } catch {
+            // Fall through to legacy header
+        }
+    }
+
+    // 3. Legacy plaintext header (deprecated)
+    const legacyKey = req.headers.get('x-gemini-api-key');
+    if (legacyKey) {
+        console.warn('[ai-suggest] Received deprecated x-gemini-api-key header. Please upgrade client to use x-encrypted-key.');
+        return legacyKey;
+    }
+
+    return null;
+}
 
 export async function POST(req: NextRequest) {
     try {
+        // 0. Origin validation (CSRF protection)
+        if (!validateOrigin(req)) {
+            return NextResponse.json({ error: 'Invalid origin' }, { status: 403 });
+        }
+
         // 1. Rate Limiting Protection
         const rateLimitResult = await checkRateLimit(req, 20);
         if (!rateLimitResult.success) {
@@ -13,18 +56,22 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const apiKey = req.headers.get('x-gemini-api-key');
-
+        // 2. Resolve API key
+        const apiKey = resolveGeminiKey(req);
         if (!apiKey) {
             return NextResponse.json(
-                { error: 'Yêu cầu nhập API Key cá nhân trong phần Cài đặt AI (Sidebar).' },
+                {
+                    error: process.env.GEMINI_API_KEY
+                        ? 'Lỗi cấu hình server AI.'
+                        : 'Yêu cầu nhập API Key cá nhân trong phần Cài đặt AI (Sidebar).'
+                },
                 { status: 401 }
             );
         }
 
         const { researchDescription, dataDescription } = await req.json();
 
-        // 2. Input Sanitization
+        // 3. Input Sanitization
         const safeResearch = sanitizeInput(researchDescription);
         const safeData = sanitizeInput(dataDescription);
 

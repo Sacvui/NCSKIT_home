@@ -2,30 +2,187 @@
  * WebR Utility Functions
  */
 
-/**
- * Translate R errors to user-friendly Vietnamese messages
- */
-export function translateRError(error: string): string {
-    const errorMap: Record<string, string> = {
-        'subscript out of bounds': 'Không tìm thấy biến được chọn. Kiểm tra lại tên cột.',
-        'not enough observations': 'Không đủ dữ liệu để phân tích. Cần ít nhất 30 quan sát.',
-        'singular matrix': 'Ma trận đặc dị - có đa cộng tuyến hoàn hảo hoặc biến hằng số.',
-        'computational singular': 'Lỗi tính toán - dữ liệu có vấn đề về đa cộng tuyến.',
-        'missing value': 'Dữ liệu chứa giá trị trống (NA). Hãy làm sạch dữ liệu trước.',
-        'model is not identified': 'Mô hình SEM/CFA không xác định. Cần >= 3 biến/nhân tố.',
-        'could not find function': 'Gói R chưa tải xong. Vui lòng thử lại sau 5 giây.',
-        'covariance matrix is not positive definite': 'Ma trận hiệp phương sai không xác định dương. Kiểm tra đa cộng tuyến.',
-        'object not found': 'Không tìm thấy đối tượng R. Có thể do lỗi khởi tạo.',
-        'package not available': 'Gói R không khả dụng. Đang thử cài đặt lại...'
-    };
+// ─── User-Friendly Error Types ────────────────────────────────────────────────
 
-    for (const [key, translation] of Object.entries(errorMap)) {
-        if (error.toLowerCase().includes(key.toLowerCase())) {
-            return translation;
+/**
+ * Structured error object shown to end users.
+ * All R errors should be translated to this format before display.
+ */
+export interface UserFriendlyError {
+    /** Short title shown in error heading (e.g. "Không đủ dữ liệu") */
+    title: string;
+    /** Detailed explanation in plain Vietnamese */
+    message: string;
+    /** Actionable suggestion for the user */
+    suggestion: string;
+    /** Whether the user can retry the same analysis */
+    canRetry: boolean;
+    /** Whether to show a "Báo cáo lỗi" button */
+    canReport: boolean;
+}
+
+// ─── Error mapping table ──────────────────────────────────────────────────────
+
+interface ErrorMapping {
+    pattern: RegExp;
+    result: UserFriendlyError;
+}
+
+const ERROR_MAPPINGS: ErrorMapping[] = [
+    {
+        pattern: /not enough observations|too few observations|need at least/i,
+        result: {
+            title: 'Không đủ dữ liệu',
+            message: 'Cần ít nhất 30 quan sát để phân tích đáng tin cậy.',
+            suggestion: 'Thu thập thêm dữ liệu hoặc giảm số biến phân tích.',
+            canRetry: false,
+            canReport: false,
+        },
+    },
+    {
+        pattern: /singular matrix|computational singular|system is computationally singular/i,
+        result: {
+            title: 'Đa cộng tuyến hoàn hảo',
+            message: 'Hai hoặc nhiều biến có tương quan hoàn hảo (r = 1.0) hoặc một biến là hằng số.',
+            suggestion: 'Kiểm tra và loại bỏ các biến trùng lặp, biến hằng số, hoặc biến có phương sai = 0.',
+            canRetry: false,
+            canReport: false,
+        },
+    },
+    {
+        pattern: /missing value|na values|na\/nan|contains na/i,
+        result: {
+            title: 'Dữ liệu có giá trị trống',
+            message: 'Dữ liệu chứa giá trị NA, NaN hoặc ô trống không thể phân tích.',
+            suggestion: 'Làm sạch dữ liệu: xóa các hàng có giá trị trống hoặc thay thế bằng giá trị trung bình.',
+            canRetry: true,
+            canReport: false,
+        },
+    },
+    {
+        pattern: /model is not identified|not identified|underidentified/i,
+        result: {
+            title: 'Mô hình không xác định',
+            message: 'Mô hình SEM/CFA không đủ điều kiện để ước lượng (underidentified).',
+            suggestion: 'Mỗi nhân tố cần ít nhất 3 biến quan sát. Kiểm tra lại cấu trúc mô hình.',
+            canRetry: false,
+            canReport: false,
+        },
+    },
+    {
+        pattern: /could not find function|no package called|there is no package/i,
+        result: {
+            title: 'Thư viện R chưa sẵn sàng',
+            message: 'Gói R cần thiết chưa được tải xong.',
+            suggestion: 'Đợi R Engine khởi động hoàn tất (thanh tiến trình màu xanh) rồi thử lại.',
+            canRetry: true,
+            canReport: false,
+        },
+    },
+    {
+        pattern: /covariance matrix is not positive definite|not positive definite/i,
+        result: {
+            title: 'Ma trận hiệp phương sai không hợp lệ',
+            message: 'Ma trận hiệp phương sai không xác định dương — thường do đa cộng tuyến hoặc cỡ mẫu quá nhỏ.',
+            suggestion: 'Tăng cỡ mẫu, loại bỏ biến có tương quan cao (r > 0.9), hoặc giảm số nhân tố.',
+            canRetry: false,
+            canReport: false,
+        },
+    },
+    {
+        pattern: /subscript out of bounds|index out of bounds/i,
+        result: {
+            title: 'Lỗi chỉ số dữ liệu',
+            message: 'Không tìm thấy biến hoặc cột được chọn trong dữ liệu.',
+            suggestion: 'Kiểm tra lại tên cột và đảm bảo dữ liệu đã được tải đúng.',
+            canRetry: true,
+            canReport: false,
+        },
+    },
+    {
+        pattern: /object.*not found|undefined variable/i,
+        result: {
+            title: 'Biến R không tồn tại',
+            message: 'R không tìm thấy đối tượng cần thiết — có thể do lỗi khởi tạo engine.',
+            suggestion: 'Thử làm mới trang và chạy lại phân tích.',
+            canRetry: true,
+            canReport: true,
+        },
+    },
+    {
+        pattern: /timeout|timed out/i,
+        result: {
+            title: 'Phân tích quá thời gian',
+            message: 'Phân tích mất quá nhiều thời gian và bị dừng tự động.',
+            suggestion: 'Giảm số biến, giảm số lần bootstrap, hoặc dùng dataset nhỏ hơn.',
+            canRetry: true,
+            canReport: false,
+        },
+    },
+    {
+        pattern: /promise already under evaluation|filereadersync|blob/i,
+        result: {
+            title: 'R Engine bị treo',
+            message: 'Hệ thống R gặp lỗi nội bộ và đã được khởi động lại tự động.',
+            suggestion: 'Vui lòng thử lại phân tích sau vài giây.',
+            canRetry: true,
+            canReport: false,
+        },
+    },
+    {
+        pattern: /binary.*outcome|biến phụ thuộc.*nhị phân|must be binary/i,
+        result: {
+            title: 'Biến phụ thuộc không hợp lệ',
+            message: 'Logistic Regression yêu cầu biến phụ thuộc là nhị phân (chỉ có 2 giá trị: 0/1).',
+            suggestion: 'Chọn biến phụ thuộc chỉ có 2 giá trị phân biệt.',
+            canRetry: false,
+            canReport: false,
+        },
+    },
+    {
+        pattern: /lavaan.*error|lavaan.*warning|cfa.*failed|sem.*failed/i,
+        result: {
+            title: 'Lỗi mô hình CFA/SEM',
+            message: 'Lavaan không thể ước lượng mô hình với dữ liệu hiện tại.',
+            suggestion: 'Kiểm tra: (1) Mỗi nhân tố có ≥ 3 items, (2) Cỡ mẫu ≥ 200, (3) Không có biến hằng số.',
+            canRetry: false,
+            canReport: true,
+        },
+    },
+];
+
+// ─── Public API ───────────────────────────────────────────────────────────────
+
+/**
+ * Translate an R error string to a structured UserFriendlyError.
+ * Returns a generic error if no specific mapping is found.
+ */
+export function translateRErrorDetailed(error: string): UserFriendlyError {
+    const normalized = error.toLowerCase();
+
+    for (const mapping of ERROR_MAPPINGS) {
+        if (mapping.pattern.test(normalized)) {
+            return mapping.result;
         }
     }
 
-    return `Lỗi R: ${error.substring(0, 100)}...`;
+    // Generic fallback
+    return {
+        title: 'Lỗi phân tích',
+        message: `Đã xảy ra lỗi không xác định trong quá trình phân tích.`,
+        suggestion: 'Vui lòng thử lại. Nếu lỗi tiếp tục, hãy báo cáo để chúng tôi hỗ trợ.',
+        canRetry: true,
+        canReport: true,
+    };
+}
+
+/**
+ * Translate R errors to user-friendly Vietnamese messages (legacy — single string).
+ * Prefer translateRErrorDetailed() for new code.
+ */
+export function translateRError(error: string): string {
+    const detailed = translateRErrorDetailed(error);
+    return `${detailed.title}: ${detailed.message}`;
 }
 
 /**

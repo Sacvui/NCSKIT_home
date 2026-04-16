@@ -1,6 +1,7 @@
-/**
+﻿/**
  * Descriptive Statistics & Validation - Template-Driven
  */
+import { WEBR_TIMEOUTS, getTimeoutForMethod } from '../constants';
 import { executeRWithRecovery, loadPackagesForMethod } from '../core';
 import { parseWebRResult } from '../utils';
 import { getAnalysisRTemplate } from '../templates';
@@ -9,15 +10,15 @@ import { getAnalysisRTemplate } from '../templates';
  * Data Validation Helper
  */
 export function validateData(data: number[][], minVars: number = 1, functionName: string = 'Analysis'): void {
-    if (!data || data.length === 0) throw new Error(`${functionName}: Dữ liệu trống`);
-    if (data[0].length < minVars) throw new Error(`${functionName}: Cần ít nhất ${minVars} biến`);
+    if (!data || data.length === 0) throw new Error(`${functionName}: Dá»¯ liá»‡u trá»‘ng`);
+    if (data[0].length < minVars) throw new Error(`${functionName}: Cáº§n Ã­t nháº¥t ${minVars} biáº¿n`);
     if (data.some(row => row.some(val => val === Infinity || val === -Infinity))) {
-        throw new Error(`${functionName}: Dữ liệu chứa giá trị vô cực (Infinity)`);
+        throw new Error(`${functionName}: Dá»¯ liá»‡u chá»©a giÃ¡ trá»‹ vÃ´ cá»±c (Infinity)`);
     }
     for (let col = 0; col < data[0].length; col++) {
         const values = data.map(row => row[col]);
         if (values.every(v => v === values[0])) {
-            throw new Error(`${functionName}: Biến thứ ${col + 1} có giá trị không đổi(variance = 0)`);
+            throw new Error(`${functionName}: Biáº¿n thá»© ${col + 1} cÃ³ giÃ¡ trá»‹ khÃ´ng Ä‘á»•i(variance = 0)`);
         }
     }
 }
@@ -57,7 +58,7 @@ export async function runDescriptiveStats(data: number[][]): Promise<{
     `;
     const template = await getAnalysisRTemplate('descriptive', defaultRCode);
     const rCode = template.replace(/\{\{data\}\}/g, 'raw_data');
-    const result = await executeRWithRecovery(rCode, 'descriptive', 0, 2, 120000, data);
+    const result = await executeRWithRecovery(rCode, 'descriptive', 0, 2, WEBR_TIMEOUTS.COMPLEX, data);
     const getValue = parseWebRResult(result);
     return {
         mean: getValue('mean') || [],
@@ -72,3 +73,4 @@ export async function runDescriptiveStats(data: number[][]): Promise<{
         rCode
     };
 }
+
