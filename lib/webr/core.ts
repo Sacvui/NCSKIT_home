@@ -429,16 +429,18 @@ export async function executeRWithRecovery(
         if (method) await loadPackagesForMethod(method);
 
         if (csvData && csvData.length > 0) {
-            updateProgress('ðŸ“Š Äang náº¡p dá»¯ liá»‡u...');
+            updateProgress('📊 Đang nạp dữ liệu...');
             // Convert data to a CSV formatted string
             const csvText = csvData.map(row => 
                 row.map(v => (v === null || v === undefined || Number.isNaN(v as number)) ? 'NA' : v).join(',')
             ).join('\n');
             
-            // Inject data directly as a string variable in R to bypass VFS/Blob errors
-            await webR.objs.globalEnv.bind('raw_csv_text', csvText);
-            await webR.evalR(`raw_data <- as.matrix(read.csv(text = raw_csv_text, header = FALSE, stringsAsFactors = FALSE))`);
-            await webR.evalR(`rm(raw_csv_text)`); // Clean up memory
+            // v2.5.0 - Bi-directional VFS Pipe
+            // Inject data via standard filesystem to bypass Blob serialization issues in webR.bind()
+            await webR.FS.writeFile('/home/web_user/data.csv', csvText);
+            await runLocked(async () => {
+                await webR.evalR(`raw_data <- as.matrix(read.csv('/home/web_user/data.csv', header = FALSE, stringsAsFactors = FALSE))`);
+            });
         }
 
         let output: any;
@@ -515,8 +517,10 @@ export async function executeRWithRecovery(
                 updateProgress(`Setting up ${missingPkg}...`);
                 const localRepo = (typeof window !== 'undefined' ? window.location.origin : '') + "/webr_repo_v2";
                 // Aggressive fix: ALWAYS use webr::install for WebR 4.5.1 on self-hosted repo
-                await webR.evalR(`webr::install("${missingPkg}", repos="${localRepo}")`);
-                await webR.evalR(`library(${missingPkg})`);
+                await runLocked(async () => {
+                    await webR.evalR(`webr::install("${missingPkg}", repos="${localRepo}")`);
+                    await webR.evalR(`library(${missingPkg})`);
+                });
                 markPackageLoaded(missingPkg);
                 return executeRWithRecovery(rCode, method, retryCount + 1, maxRetries, timeoutMs, csvData);
             }
