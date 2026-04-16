@@ -28,6 +28,7 @@ export async function submitFeedback(prevState: any, formData: FormData) {
     // Insert feedback
     // Note: RLS ensures users can only insert their own feedback
     // Unique constraint ensures one per user
+    // @ts-ignore - Supabase type mismatch in production build
     const { error } = await supabase
         .from('user_feedback')
         .insert({

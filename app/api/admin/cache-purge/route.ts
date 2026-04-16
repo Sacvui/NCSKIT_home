@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
+        // @ts-ignore
         const { data: profile } = await supabase
             .from('profiles')
             .select('role')
@@ -35,6 +36,7 @@ export async function POST(request: NextRequest) {
 
         // Set new cache version in database
         const newVersion = Date.now().toString();
+        // @ts-ignore
         const { error: configError } = await supabase
             .from('system_config')
             .upsert({

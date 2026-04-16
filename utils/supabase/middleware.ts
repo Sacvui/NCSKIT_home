@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { logger } from '@/utils/logger'
+import type { Database } from '@/types/database.types'
 
 const PROTECTED_ROUTES = ['/profile', '/admin']
 const PUBLIC_ROUTES = ['/', '/login', '/terms', '/privacy', '/docs', '/methods', '/auth', '/analyze', '/scales', '/knowledge']
@@ -21,7 +22,7 @@ export async function updateSession(request: NextRequest) {
 
     const pathname = request.nextUrl.pathname
 
-    const supabase = createServerClient(
+    const supabase = createServerClient<Database>(
         supabaseUrl,
         supabaseAnonKey,
         {
@@ -68,7 +69,7 @@ export async function updateSession(request: NextRequest) {
             .from('profiles')
             .select('role')
             .eq('id', user.id)
-            .single()
+            .single() as any
 
         const userRole = profile?.role || 'student'
         const adminRoles = ['platform_admin', 'super_admin', 'institution_admin', 'admin']
