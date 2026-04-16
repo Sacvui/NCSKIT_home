@@ -28,7 +28,7 @@ DECLARE
   v_exempt_roles text[] := ARRAY['admin','institution_admin','platform_admin','super_admin'];
 BEGIN
   -- Lock the row to prevent concurrent deductions (eliminates race condition)
-  SELECT tokens, role
+  SELECT tokens, role::text
   INTO v_tokens, v_role
   FROM public.profiles
   WHERE id = p_user_id

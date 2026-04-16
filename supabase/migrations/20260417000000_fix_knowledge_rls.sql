@@ -5,27 +5,30 @@
 --          This is a security risk (exposes admin identity) and makes
 --          admin management require a new migration every time.
 -- Fix: Replace email-based check with role-based check using profiles.role
+--
+-- NOTE: role column uses a user_role enum type.
+--       We cast to TEXT for comparison to avoid enum value errors.
 -- ==========================================
 
 -- Drop the old policy with hardcoded email
 DROP POLICY IF EXISTS "Admins can manage articles" ON public.knowledge_articles;
 
 -- Create new role-based policy
--- Admins with role IN ('admin', 'platform_admin', 'super_admin') can INSERT/UPDATE/DELETE
+-- Cast role::text to safely compare regardless of enum definition
 CREATE POLICY "Admins can manage articles"
 ON public.knowledge_articles FOR ALL
 USING (
   EXISTS (
     SELECT 1 FROM public.profiles
     WHERE id = auth.uid()
-      AND role IN ('admin', 'platform_admin', 'super_admin')
+      AND role::text IN ('admin', 'platform_admin', 'super_admin', 'institution_admin')
   )
 )
 WITH CHECK (
   EXISTS (
     SELECT 1 FROM public.profiles
     WHERE id = auth.uid()
-      AND role IN ('admin', 'platform_admin', 'super_admin')
+      AND role::text IN ('admin', 'platform_admin', 'super_admin', 'institution_admin')
   )
 );
 

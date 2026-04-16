@@ -202,7 +202,7 @@ export function WebRLoadingProgress({
             </div>
 
             {/* Progress bar */}
-            {phase !== 'idle' && (
+            {(
                 <div className="w-full bg-white/60 rounded-full h-2 overflow-hidden border border-white/80">
                     <div
                         className={`h-full rounded-full transition-all duration-700 ease-out ${config.color} ${

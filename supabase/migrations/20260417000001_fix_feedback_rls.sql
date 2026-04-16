@@ -5,23 +5,51 @@
 --          because user_id is nullable and there is no auth check.
 -- Fix: Require authenticated user (auth.uid() IS NOT NULL) for INSERT.
 --      Anonymous feedback is disabled — users must be logged in.
+--
+-- NOTE: Handles both possible table names (feedback and user_feedback)
+--       using IF EXISTS to avoid errors if one doesn't exist.
 -- ==========================================
 
--- Drop the overly permissive anonymous insert policy
-DROP POLICY IF EXISTS "Anyone can insert feedback" ON public.user_feedback;
+-- Fix for table named "feedback" (existing on DB)
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'feedback'
+  ) THEN
+    -- Drop the overly permissive anonymous insert policy
+    DROP POLICY IF EXISTS "Anyone can insert feedback" ON public.feedback;
+    DROP POLICY IF EXISTS "Authenticated users can insert feedback" ON public.feedback;
 
--- New policy: only authenticated users can insert their own feedback
--- auth.uid() = user_id ensures users cannot submit feedback as someone else
-CREATE POLICY "Authenticated users can insert own feedback"
-ON public.user_feedback FOR INSERT
-WITH CHECK (
-    auth.uid() IS NOT NULL
-    AND auth.uid() = user_id
-);
+    -- New policy: only authenticated users can insert their own feedback
+    EXECUTE $policy$
+      CREATE POLICY "Authenticated users can insert own feedback"
+      ON public.feedback FOR INSERT
+      WITH CHECK (
+          auth.uid() IS NOT NULL
+          AND auth.uid() = user_id
+      )
+    $policy$;
+  END IF;
+END $$;
 
--- Keep the existing SELECT policy (users see their own feedback)
--- "Users can see their own feedback" ON SELECT USING (auth.uid() = user_id)
--- No changes needed.
+-- Fix for table named "user_feedback" (from migration 20260128)
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'user_feedback'
+  ) THEN
+    DROP POLICY IF EXISTS "Anyone can insert feedback" ON public.user_feedback;
+    DROP POLICY IF EXISTS "Authenticated users can insert feedback" ON public.user_feedback;
 
--- Note: The feedback API route (/api/feedback) already checks for user session
--- before inserting. This RLS policy adds a database-level enforcement layer.
+    EXECUTE $policy$
+      CREATE POLICY "Authenticated users can insert own feedback"
+      ON public.user_feedback FOR INSERT
+      WITH CHECK (
+          auth.uid() IS NOT NULL
+          AND auth.uid() = user_id
+      )
+    $policy$;
+  END IF;
+END $$;
