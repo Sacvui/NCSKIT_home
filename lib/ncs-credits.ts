@@ -1,4 +1,4 @@
-﻿/**
+/**
  * NCS Credits Management Library
  * Handles credit balance checks, deductions, and configuration
  */
@@ -48,7 +48,7 @@ export async function getAnalysisCosts(): Promise<Record<string, number>> {
         .from('system_config')
         .select('value')
         .eq('key', 'analysis_costs')
-        .maybeSingle();
+        .maybeSingle() as any;
 
     if (error || !data) {
         console.warn('Failed to fetch analysis costs, using defaults');
@@ -85,7 +85,7 @@ export async function getDefaultBalance(): Promise<number> {
         .from('system_config')
         .select('value')
         .eq('key', 'default_ncs_balance')
-        .maybeSingle();
+        .maybeSingle() as any;
 
     if (error || !data) {
         console.warn('Failed to fetch default balance, using 100000');
@@ -111,7 +111,7 @@ export async function checkBalance(userId: string, cost: number): Promise<{
         .from('profiles')
         .select('tokens, role')
         .eq('id', userId)
-        .single();
+        .single() as any;
 
     if (error || !profile) {
         console.error('Error checking balance:', error);
@@ -158,7 +158,7 @@ export async function deductCredits(
         .from('profiles')
         .select('tokens, total_spent, role')
         .eq('id', userId)
-        .single();
+        .single() as any;
 
     if (fetchError || !profile) {
         return { success: false, newBalance: 0, error: 'KhÃ´ng thá»ƒ láº¥y thÃ´ng tin tÃ i khoáº£n' };
@@ -233,7 +233,7 @@ export async function getUserBalance(userId: string): Promise<number> {
         .from('profiles')
         .select('tokens')
         .eq('id', userId)
-        .single();
+        .single() as any;
 
     if (error || !data) {
         return 0;
@@ -321,7 +321,7 @@ export async function getReferralReward(): Promise<number> {
         .from('system_config')
         .select('value')
         .eq('key', 'referral_reward')
-        .maybeSingle();
+        .maybeSingle() as any;
 
     if (error || !data) {
         console.warn('Failed to fetch referral reward, using 5000');

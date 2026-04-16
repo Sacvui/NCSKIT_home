@@ -67,7 +67,7 @@ export function useRBAC(): UseRBACReturn {
                 .from('profiles')
                 .select('role')
                 .eq('id', user.id)
-                .single();
+                .single() as any;
 
             // Map legacy roles or use new role
             let userRole: UserRole = 'student';
@@ -157,8 +157,8 @@ export async function updateUserRole(
     const supabase = getSupabase();
 
     try {
-        const { error } = await supabase
-            .from('profiles')
+        const { error } = await (supabase
+            .from('profiles') as any)
             .update({ role: newRole })
             .eq('id', userId);
 

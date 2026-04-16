@@ -157,7 +157,7 @@ export async function getTokenBalance(userId: string) {
         .from('profiles')
         .select('tokens, total_earned, total_spent')
         .eq('id', userId)
-        .single();
+        .single() as any;
 
     if (error) {
         return { tokens: 0, total_earned: 0, total_spent: 0 };
@@ -214,8 +214,8 @@ export async function logActivity(
     }
 
     // Update last_active
-    await supabase
-        .from('profiles')
+    await (supabase
+        .from('profiles') as any)
         .update({ last_active: new Date().toISOString() })
         .eq('id', userId);
 }
@@ -228,15 +228,15 @@ export async function recordLoginSession(
 ) {
     const supabase = await createClient();
 
-    const { data, error } = await supabase
-        .from('user_sessions')
+    const { data, error } = await (supabase
+        .from('user_sessions') as any)
         .insert({
             user_id: userId,
             ip_address: ipAddress,
             user_agent: userAgent,
         })
         .select()
-        .single();
+        .single() as any;
 
     if (error) {
         console.error('Error recording session:', error);

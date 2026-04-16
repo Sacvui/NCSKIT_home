@@ -10,12 +10,9 @@
  *   3. Add SENTRY_AUTH_TOKEN to Vercel env vars (for source maps)
  */
 
-// Only initialize if @sentry/nextjs is installed
-try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const Sentry = require('@sentry/nextjs');
+import * as Sentry from '@sentry/nextjs';
 
-    Sentry.init({
+Sentry.init({
         dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 
         // Capture 10% of transactions for performance monitoring
@@ -44,7 +41,7 @@ try {
             'FileReaderSync',
         ],
 
-        beforeSend(event) {
+        beforeSend(event: any) {
             // Strip any accidentally captured PII
             if (event.user) {
                 delete event.user.email;
@@ -54,6 +51,4 @@ try {
             return event;
         },
     });
-} catch {
-    // @sentry/nextjs not installed — skip initialization
-}
+

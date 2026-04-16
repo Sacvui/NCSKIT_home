@@ -29,10 +29,11 @@ export async function submitFeedback(prevState: any, formData: FormData) {
     // Note: RLS ensures users can only insert their own feedback
     // Unique constraint ensures one per user
     const { error } = await supabase
-        .from('feedback')
+        .from('user_feedback')
         .insert({
             user_id: user.id,
-            content,
+            type: 'other',
+            message: content,
             rating: parseInt(rating),
         })
 

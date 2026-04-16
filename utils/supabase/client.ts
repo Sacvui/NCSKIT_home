@@ -1,7 +1,9 @@
 import { createBrowserClient } from '@supabase/ssr'
 import type { Database } from '@/types/database.types'
 
-let supabaseInstance: ReturnType<typeof createBrowserClient<Database>> | null = null;
+export type TypedSupabaseClient = ReturnType<typeof createBrowserClient<Database>>
+
+let supabaseInstance: TypedSupabaseClient | null = null;
 
 export const getSupabase = () => {
   if (supabaseInstance) return supabaseInstance;

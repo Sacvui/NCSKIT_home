@@ -16,7 +16,7 @@ export type Json =
     | { [key: string]: Json | undefined }
     | Json[];
 
-export interface Database {
+export type Database = {
     public: {
         Tables: {
             profiles: {
@@ -111,6 +111,7 @@ export interface Database {
                     user_id: string | null;
                     type: 'bug' | 'idea' | 'other';
                     message: string;
+                    rating: number | null;
                     page_url: string | null;
                     status: string | null;
                     created_at: string;
@@ -120,6 +121,7 @@ export interface Database {
                     user_id?: string | null;
                     type: 'bug' | 'idea' | 'other';
                     message: string;
+                    rating?: number | null;
                     page_url?: string | null;
                     status?: string | null;
                     created_at?: string;
@@ -129,6 +131,7 @@ export interface Database {
                     user_id?: string | null;
                     type?: 'bug' | 'idea' | 'other';
                     message?: string;
+                    rating?: number | null;
                     page_url?: string | null;
                     status?: string | null;
                 };
