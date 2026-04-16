@@ -17,6 +17,29 @@ const MAX_INIT_ATTEMPTS = 3;
 let lastError: Error | null = null;
 
 /**
+ * Mutex for R evaluations to prevent concurrency issues
+ * (Critical for PostMessage channel)
+ */
+let evaluationLock: Promise<void> = Promise.resolve();
+
+/**
+ * Optimized helper to run a task with the evaluation lock
+ */
+async function runLocked<T>(task: () => Promise<T>): Promise<T> {
+    const previousLock = evaluationLock;
+    let resolveLock: () => void;
+    evaluationLock = new Promise(resolve => { resolveLock = resolve; });
+    
+    try {
+        await previousLock;
+        return await task();
+    } finally {
+        // @ts-ignore
+        resolveLock!();
+    }
+}
+
+/**
  * Standardized path for WebR assets in production
  * Using 'webr_core_v2' to bypass aggressive browser caching
  */
@@ -64,6 +87,8 @@ export function resetWebR(): void {
     initProgress = '';
     lastError = null;
     initAttempts = 0;
+    // Flush the lock
+    evaluationLock = Promise.resolve();
     updateProgress('WebR reset - ready for reinitialization');
 }
 
@@ -209,38 +234,40 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 const localRepo = (typeof window !== 'undefined' ? window.location.origin : '') + "/webr_repo_v2";
                 logger.debug("[WebR] Using synchronized repository:", localRepo);
 
-                await webR.evalR(`
-                    if (dir.exists("${persistentLib}")) {
-                        .libPaths(c('${persistentLib}', .libPaths()))
-                    }
-                    
-                    # Set local self-hosted repository as the primary source
-                    options(repos = c(CRAN = "${localRepo}"))
-                    
-                    # Core configuration for WASM
-                    options(pkgType = "binary")
-                    options(warn = -1) # Suppress minor warnings like missing .rds files
-                    options(webr.repo_quiet = TRUE) # Silence repo download warnings
-                    options(timeout = 300) # 5 minute timeout
-                    
-                    # Prevent R from trying to download .rds if it fails once
-                    # This helps avoid the "Download failed" flood in console
-                    options(download.file.extra = "--no-cache") 
-                    
-                    # Pre-check psych existence
-                    psych_exists <- dir.exists("${persistentLib}/psych")
-                    
-                    # Check R version for diagnostics
-                    r_version <- paste0(R.version$major, ".", R.version$minor)
-                `);
+                await runLocked(async () => {
+                    await webR.evalR(`
+                        if (dir.exists("${persistentLib}")) {
+                            .libPaths(c('${persistentLib}', .libPaths()))
+                        }
+                        
+                        # Set local self-hosted repository as the primary source
+                        options(repos = c(CRAN = "${localRepo}"))
+                        
+                        # Core configuration for WASM
+                        options(pkgType = "binary")
+                        options(warn = -1) # Suppress minor warnings like missing .rds files
+                        options(webr.repo_quiet = TRUE) # Silence repo download warnings
+                        options(timeout = 300) # 5 minute timeout
+                        
+                        # Prevent R from trying to download .rds if it fails once
+                        # This helps avoid the "Download failed" flood in console
+                        options(download.file.extra = "--no-cache") 
+                        
+                        # Pre-check psych existence
+                        psych_exists <- dir.exists("${persistentLib}/psych")
+                        
+                        # Check R version for diagnostics
+                        r_version <- paste0(R.version$major, ".", R.version$minor)
+                    `);
+                });
 
-                const rVersionObj = await webR.evalR('r_version');
+                const rVersionObj = await runLocked(() => webR.evalR('r_version'));
                 const rVersion = unpackWebRObject(await rVersionObj.toJs());
                 logger.debug(`[WebR] R Engine Version: ${rVersion}`);
 
                 // 3. Load or Install Core Packages
-                updateProgress('ðŸ“¦ Äang thiáº¿t láº­p cÃ´ng cá»¥...');
-                const existsProxy = await webR.evalR('psych_exists');
+                updateProgress('📦 Đang thiết lập công cụ...');
+                const existsProxy = await runLocked(() => webR.evalR('psych_exists'));
                 const existsVal = unpackWebRObject(await existsProxy.toJs());
                 if (existsProxy && typeof (existsProxy as any).destroy === 'function') (existsProxy as any).destroy();
 
@@ -249,24 +276,26 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 if (existsVal === true) {
                     try {
                         logger.debug('[WebR] Loading core libraries from persistent lib...');
-                        await webR.evalR('library(psych); library(jsonlite)');
+                        await runLocked(() => webR.evalR('library(psych); library(jsonlite)'));
                         // Success! Mark ALL as loaded to prevent redundant checks later
                         corePackages.forEach(pkg => markPackageLoaded(pkg));
                     } catch (e) {
                         logger.warn('[WebR] Core loading failed! Wiping library folder...', e);
-                        updateProgress('ðŸ§¹ Äang lÃ m sáº¡ch bá»™ nhá»›...');
+                        updateProgress('🧹 Đang làm sạch bộ nhớ...');
                         try {
-                            await webR.evalR(`unlink("${persistentLib}", recursive = TRUE); dir.create("${persistentLib}", recursive = TRUE)`);
+                            await runLocked(() => webR.evalR(`unlink("${persistentLib}", recursive = TRUE); dir.create("${persistentLib}", recursive = TRUE)`));
                             await webR.FS.syncfs(false); 
                         } catch (wipeErr) {}
                         
                         try {
-                            updateProgress('ðŸŒ Äang táº£i láº¡i thÆ° viá»‡n...');
+                            updateProgress('🌐 Đang tải lại thư viện...');
                             logger.debug('[WebR] Attempting re-install of core libraries from local repo:', localRepo);
                             // Install psych (which will pull dependencies automatically)
-                            await webR.evalR(`webr::install("psych", repos="${localRepo}", lib="${persistentLib}")`);
-                            await webR.evalR(`webr::install("jsonlite", repos="${localRepo}", lib="${persistentLib}")`);
-                            await webR.evalR('library(psych); library(jsonlite)');
+                            await runLocked(async () => {
+                                await webR.evalR(`webr::install("psych", repos="${localRepo}", lib="${persistentLib}")`);
+                                await webR.evalR(`webr::install("jsonlite", repos="${localRepo}", lib="${persistentLib}")`);
+                                await webR.evalR('library(psych); library(jsonlite)');
+                            });
                             corePackages.forEach(pkg => markPackageLoaded(pkg));
                             await webR.FS.syncfs(false);
                         } catch(reInstallErr) {
@@ -274,12 +303,14 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         }
                     }
                 } else {
-                    updateProgress('ðŸŒ Äang táº£i thÆ° viá»‡n R (láº§n Ä‘áº§u)...');
+                    updateProgress('🌐 Đang tải thư viện R (lần đầu)...');
                     logger.debug('[WebR] Initial installation of core libraries from local repo:', localRepo);
                     try {
-                        await webR.evalR(`webr::install("psych", repos="${localRepo}", lib="${persistentLib}")`);
-                        await webR.evalR(`webr::install("jsonlite", repos="${localRepo}", lib="${persistentLib}")`);
-                        await webR.evalR('library(psych); library(jsonlite)');
+                        await runLocked(async () => {
+                            await webR.evalR(`webr::install("psych", repos="${localRepo}", lib="${persistentLib}")`);
+                            await webR.evalR(`webr::install("jsonlite", repos="${localRepo}", lib="${persistentLib}")`);
+                            await webR.evalR('library(psych); library(jsonlite)');
+                        });
                         corePackages.forEach(pkg => markPackageLoaded(pkg));
                         await webR.FS.syncfs(false);
                     } catch (installErr) {
@@ -289,7 +320,7 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
 
                 const elapsed = ((performance.now() - startTime) / 1000).toFixed(1);
                 logger.debug(`[WebR] Engine Loaded in ${elapsed}s`);
-                updateProgress('âœ… R-Engine sáºµn sÃ ng');
+                updateProgress('✅ R-Engine sẵn sàng');
                 
                 webRInstance = webR;
                 isInitializing = false;
@@ -324,14 +355,18 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
 export async function loadPackagesForMethod(method: string): Promise<void> {
     const webR = await initWebR();
     const required = getRequiredPackages(method);
+    const localRepo = (typeof window !== 'undefined' ? window.location.origin : '') + "/webr_repo_v2";
 
     for (const pkg of required) {
         if (isPackageLoaded(pkg)) continue;
 
         try {
             updateProgress(`Installing ${pkg}...`);
-            await webR.installPackages([pkg]);
-            await webR.evalR(`library(${pkg})`);
+            await runLocked(async () => {
+                // Use the localized installer which is more stable for WASM
+                await webR.evalR(`webr::install("${pkg}", repos="${localRepo}")`);
+                await webR.evalR(`library(${pkg})`);
+            });
             markPackageLoaded(pkg);
         } catch (error) {
             logger.error(`Failed to load ${pkg}:`, error);
@@ -407,7 +442,7 @@ export async function executeRWithRecovery(
         }
 
         let output: any;
-        const executionPromise = (async () => {
+        const executionPromise = runLocked(async () => {
             // Enhanced wrap with automated cleanup and result stripping to keep size small
             const wrappedCode = `
                 tryCatch({
@@ -454,7 +489,7 @@ export async function executeRWithRecovery(
                 if (e.message && e.message.includes('ERROR:')) throw e;
                 return unpacked;
             }
-        })();
+        });
 
         const timeoutPromise = new Promise((_, reject) =>
             setTimeout(() => reject(new Error(`Timeout after ${timeoutMs / 1000}s`)), timeoutMs)
