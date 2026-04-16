@@ -33,6 +33,8 @@ export interface AnalyzeState {
     // User/Balance State
     ncsBalance: number;
     showInsufficientCredits: boolean;
+    requiredCredits: number;
+    currentAnalysisCost: number;
 
     // Modal State
     isSaveModalOpen: boolean;
@@ -69,6 +71,8 @@ export interface AnalyzeActions {
     // Balance Actions
     setNcsBalance: (balance: number) => void;
     setShowInsufficientCredits: (show: boolean) => void;
+    setRequiredCredits: (credits: number) => void;
+    setCurrentAnalysisCost: (cost: number) => void;
 
     // Modal Actions
     setIsSaveModalOpen: (open: boolean) => void;
@@ -101,6 +105,8 @@ const initialState: AnalyzeState = {
     toast: null,
     ncsBalance: 0,
     showInsufficientCredits: false,
+    requiredCredits: 0,
+    currentAnalysisCost: 0,
     isSaveModalOpen: false,
     showDemographics: false,
     showApplicability: false,
@@ -179,6 +185,12 @@ export function AnalyzeProvider({ children }: { children: ReactNode }) {
 
         setShowInsufficientCredits: useCallback((showInsufficientCredits: boolean) => {
             setState(prev => ({ ...prev, showInsufficientCredits }));
+        }, []),
+        setRequiredCredits: useCallback((requiredCredits: number) => {
+            setState(prev => ({ ...prev, requiredCredits }));
+        }, []),
+        setCurrentAnalysisCost: useCallback((currentAnalysisCost: number) => {
+            setState(prev => ({ ...prev, currentAnalysisCost }));
         }, []),
 
         setIsSaveModalOpen: useCallback((isSaveModalOpen: boolean) => {
