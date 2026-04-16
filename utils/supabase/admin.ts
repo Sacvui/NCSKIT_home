@@ -14,5 +14,5 @@ export function createAdminClient() {
             autoRefreshToken: false,
             persistSession: false
         }
-    })
+    }) as any
 }
