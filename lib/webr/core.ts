@@ -452,32 +452,26 @@ export async function executeRWithRecovery(
                         attributes(.res)$call <- NULL
                         attributes(.res)$model <- NULL
                     }
-                    # Convert to JSON with high reliability settings
+                    # Convert to JSON and save to VFS for ultra-stable transfer
                     .json <- jsonlite::toJSON(.res, auto_unbox = TRUE, force = TRUE, digits = 8)
-                    charToRaw(as.character(.json))
+                    writeLines(as.character(.json), "/home/web_user/output.json")
+                    TRUE # Return success flag
                 }, error = function(e) {
-                    charToRaw(paste("ERROR:", e$message))
+                    writeLines(paste("ERROR:", e$message), "/home/web_user/output.json")
+                    FALSE # Return failure flag
                 })
             `;
             
-            const resObj = await webR.evalR(wrappedCode);
-            // v2.2.0 - Ultra-stable Binary Transfer
-            // Use raw pointer transfer to avoid Blob-related crashes for large data
-            const rawJs = await resObj.toJs();
+            await webR.evalR(wrappedCode);
             
-            // @ts-ignore - Explicitly handling the WebR dynamic result
-            const unpacked = unpackWebRObject(rawJs);
+            // v2.4.0 - VFS-based Ultra-stable Pipeline
+            // Bypasses R-JS object serialization entirely for the payload
+            const rawBinary = await webR.FS.readFile("/home/web_user/output.json");
+            const finalStr = new TextDecoder().decode(rawBinary);
             
-            if (resObj && typeof (resObj as any).destroy === 'function') (resObj as any).destroy();
-            
-            logger.debug('[WebR] Engine System v2.3.0 - VFS-Free Data Pipe Active');
+            logger.debug('[WebR] Engine System v2.4.0 - VFS-File Data Pipe Active');
 
             try {
-                // If the data comes as a Uint8Array (stable binary), decode it first
-                const finalStr = (unpacked instanceof Uint8Array) 
-                    ? new TextDecoder().decode(unpacked) 
-                    : (typeof unpacked === 'string' ? (unpacked as string) : JSON.stringify(unpacked));
-
                 // Check for R-side errors encoded in the binary/string stream
                 if (finalStr.startsWith("ERROR:")) {
                     throw new Error(finalStr.replace("ERROR:", "").trim());
@@ -487,7 +481,7 @@ export async function executeRWithRecovery(
             } catch (e: any) {
                 // If it's already an error we threw, re-throw it
                 if (e.message && e.message.includes('ERROR:')) throw e;
-                return unpacked;
+                return finalStr;
             }
         });
 
