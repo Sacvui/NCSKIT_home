@@ -39,10 +39,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   try {
     const supabase = await createClient();
-    const { data } = await supabase.from('articles').select('slug').eq('is_published', true);
+    const { data } = await supabase.from('knowledge_articles').select('slug').eq('is_published', true);
     if (data && data.length > 0) {
       // Merge unique slugs
-      const dbSlugs = data.map(row => row.slug).filter(Boolean);
+      const dbSlugs = data.map((row: any) => row.slug).filter(Boolean);
       knowledgeSlugs = Array.from(new Set([...knowledgeSlugs, ...dbSlugs]));
     }
   } catch (error) {
