@@ -437,7 +437,8 @@ export async function executeRWithRecovery(
             
             // v2.5.0 - Bi-directional VFS Pipe
             // Inject data via standard filesystem to bypass Blob serialization issues in webR.bind()
-            await webR.FS.writeFile('/home/web_user/data.csv', csvText);
+            const encodedData = new TextEncoder().encode(csvText);
+            await webR.FS.writeFile('/home/web_user/data.csv', encodedData);
             await runLocked(async () => {
                 await webR.evalR(`raw_data <- as.matrix(read.csv('/home/web_user/data.csv', header = FALSE, stringsAsFactors = FALSE))`);
             });
