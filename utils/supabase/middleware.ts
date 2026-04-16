@@ -41,7 +41,7 @@ export async function updateSession(request: NextRequest) {
                 },
             },
         }
-    )
+    ) as any
 
     // IMPORTANT: Use getUser() instead of getSession() for better security and reliability in middleware
     const { data: { user } } = await supabase.auth.getUser()
@@ -65,11 +65,11 @@ export async function updateSession(request: NextRequest) {
     // ROLE-BASED ACCESS CONTROL (RBAC) FOR ADMIN
     if (user && isAdminRoute) {
         // Fetch user role from profile
-        const { data: profile } = await supabase
+        const { data: profile } = await (supabase as any)
             .from('profiles')
             .select('role')
             .eq('id', user.id)
-            .single() as any
+            .single()
 
         const userRole = profile?.role || 'student'
         const adminRoles = ['platform_admin', 'super_admin', 'institution_admin', 'admin']

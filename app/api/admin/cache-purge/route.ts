@@ -15,14 +15,13 @@ import { revalidatePath } from 'next/cache';
 export async function POST(request: NextRequest) {
     try {
         // Verify admin role
-        const supabase = await createClient();
+        const supabase = (await createClient()) as any;
         const { data: { user }, error: authError } = await supabase.auth.getUser();
 
         if (authError || !user) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        // @ts-ignore
         const { data: profile } = await supabase
             .from('profiles')
             .select('role')
@@ -36,7 +35,6 @@ export async function POST(request: NextRequest) {
 
         // Set new cache version in database
         const newVersion = Date.now().toString();
-        // @ts-ignore
         const { error: configError } = await supabase
             .from('system_config')
             .upsert({
