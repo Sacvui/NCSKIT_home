@@ -6,23 +6,24 @@
 //  1. WebR WASM requires 'wasm-unsafe-eval' in script-src
 //  2. WebR service worker requires 'blob:' in worker-src
 //  3. Tailwind CSS 4 injects inline styles → 'unsafe-inline' in style-src
-//  4. Next.js dev mode injects inline scripts → 'unsafe-inline' in script-src (dev only)
+//  4. Next.js injects inline scripts for hydration → 'unsafe-inline' in script-src
 //  5. Supabase Realtime uses WSS → wss://*.supabase.co in connect-src
 //  6. Google Fonts → fonts.googleapis.com / fonts.gstatic.com
 //  7. Vercel Analytics → va.vercel-scripts.com
+//  8. Cloudflare Insights → static.cloudflareinsights.com
 //
-// NOTE: 'unsafe-inline' for scripts is only active in development.
-//       In production, Next.js uses nonces for inline scripts (future improvement).
+// NOTE: 'unsafe-inline' for scripts is required because Next.js injects inline
+//       hydration scripts that cannot be hashed/nonced without a custom server.
+//       This is a known limitation of Next.js static/edge deployments on Vercel.
+//       The main XSS protection comes from other headers (X-Frame-Options, etc.)
 //
-const isDev = process.env.NODE_ENV === 'development';
-
 const CSP_DIRECTIVES = [
     // Default: only same-origin
     "default-src 'self'",
 
-    // Scripts: self + WebR WASM eval + blob workers + Vercel live (preview)
-    // 'unsafe-inline' only in dev (Next.js hot reload requires it)
-    `script-src 'self' 'wasm-unsafe-eval' blob:${isDev ? " 'unsafe-inline'" : ''} https://va.vercel-scripts.com https://vercel.live`,
+    // Scripts: self + WebR WASM eval + blob workers + inline (Next.js hydration)
+    // + Vercel Analytics + Vercel Live + Cloudflare Insights
+    "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://va.vercel-scripts.com https://vercel.live https://static.cloudflareinsights.com",
 
     // Styles: self + inline (Tailwind CSS 4 requires unsafe-inline)
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
@@ -34,7 +35,8 @@ const CSP_DIRECTIVES = [
     "img-src 'self' data: blob: https:",
 
     // Connections: self + Supabase (REST + Realtime WSS) + Gemini AI + ORCID
-    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://pub.orcid.org https://orcid.org https://va.vercel-scripts.com",
+    // + Cloudflare beacon
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://pub.orcid.org https://orcid.org https://va.vercel-scripts.com https://cloudflareinsights.com",
 
     // Workers: self + blob (WebR service worker)
     "worker-src 'self' blob:",
