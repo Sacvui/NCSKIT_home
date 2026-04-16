@@ -91,7 +91,8 @@ function LoginForm() {
             const redirectTo = `${siteUrl}${targetPath}`
 
             // Provider-specific options
-            const providerOptions: Record<string, unknown> = { redirectTo }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const providerOptions: any = { redirectTo }
             
             if (provider === 'google') {
                 providerOptions.queryParams = {
@@ -104,7 +105,7 @@ function LoginForm() {
 
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: provider,
-                options: providerOptions as Parameters<typeof supabase.auth.signInWithOAuth>[0]['options'],
+                options: providerOptions,
             })
 
             if (error) {
