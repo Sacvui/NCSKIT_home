@@ -118,100 +118,100 @@ const AnalyzeContext = createContext<AnalyzeContextType | undefined>(undefined);
 export function AnalyzeProvider({ children }: { children: ReactNode }) {
     const [state, setState] = useState<AnalyzeState>(initialState);
 
-    const actions: AnalyzeActions = {
-        setData: useCallback((data: any[]) => {
+    const actions: AnalyzeActions = React.useMemo(() => ({
+        setData: (data: any[]) => {
             setState(prev => ({ ...prev, data }));
-        }, []),
+        },
 
-        setFilename: useCallback((filename: string) => {
+        setFilename: (filename: string) => {
             setState(prev => ({ ...prev, filename }));
-        }, []),
+        },
 
-        setProfile: useCallback((profile: DataProfile | null) => {
+        setProfile: (profile: DataProfile | null) => {
             setState(prev => ({ ...prev, profile }));
-        }, []),
+        },
 
-        setAnalysisType: useCallback((analysisType: string) => {
+        setAnalysisType: (analysisType: string) => {
             setState(prev => ({ ...prev, analysisType }));
-        }, []),
+        },
 
-        setResults: useCallback((results: any) => {
+        setResults: (results: any) => {
             setState(prev => ({ ...prev, results }));
-        }, []),
+        },
 
-        setMultipleResults: useCallback((multipleResults: any[]) => {
+        setMultipleResults: (multipleResults: any[]) => {
             setState(prev => ({ ...prev, multipleResults }));
-        }, []),
+        },
 
-        setScaleName: useCallback((scaleName: string) => {
+        setScaleName: (scaleName: string) => {
             setState(prev => ({ ...prev, scaleName }));
-        }, []),
+        },
 
-        setStep: useCallback((step: AnalysisStep) => {
+        setStep: (step: AnalysisStep) => {
             setState(prev => ({ ...prev, step }));
-        }, []),
+        },
 
-        setIsAnalyzing: useCallback((isAnalyzing: boolean) => {
+        setIsAnalyzing: (isAnalyzing: boolean) => {
             setState(prev => ({ ...prev, isAnalyzing }));
-        }, []),
+        },
 
-        setAnalysisProgress: useCallback((analysisProgress: number) => {
+        setAnalysisProgress: (analysisProgress: number) => {
             setState(prev => ({ ...prev, analysisProgress }));
-        }, []),
+        },
 
-        setIsPrivateMode: useCallback((isPrivateMode: boolean) => {
+        setIsPrivateMode: (isPrivateMode: boolean) => {
             setState(prev => ({ ...prev, isPrivateMode }));
-        }, []),
+        },
 
-        setPreviousAnalysis: useCallback((previousAnalysis: PreviousAnalysisData | null) => {
+        setPreviousAnalysis: (previousAnalysis: PreviousAnalysisData | null) => {
             setState(prev => ({ ...prev, previousAnalysis }));
-        }, []),
+        },
 
-        showToast: useCallback((message: string, type: 'success' | 'error' | 'info') => {
+        showToast: (message: string, type: 'success' | 'error' | 'info') => {
             setState(prev => ({ ...prev, toast: { message, type } }));
             // Auto-hide after 3 seconds
             setTimeout(() => {
                 setState(prev => ({ ...prev, toast: null }));
             }, 3000);
-        }, []),
+        },
 
-        hideToast: useCallback(() => {
+        hideToast: () => {
             setState(prev => ({ ...prev, toast: null }));
-        }, []),
+        },
 
-        setNcsBalance: useCallback((ncsBalance: number) => {
+        setNcsBalance: (ncsBalance: number) => {
             setState(prev => ({ ...prev, ncsBalance }));
-        }, []),
+        },
 
-        setShowInsufficientCredits: useCallback((showInsufficientCredits: boolean) => {
+        setShowInsufficientCredits: (showInsufficientCredits: boolean) => {
             setState(prev => ({ ...prev, showInsufficientCredits }));
-        }, []),
-        setRequiredCredits: useCallback((requiredCredits: number) => {
+        },
+        setRequiredCredits: (requiredCredits: number) => {
             setState(prev => ({ ...prev, requiredCredits }));
-        }, []),
-        setCurrentAnalysisCost: useCallback((currentAnalysisCost: number) => {
+        },
+        setCurrentAnalysisCost: (currentAnalysisCost: number) => {
             setState(prev => ({ ...prev, currentAnalysisCost }));
-        }, []),
+        },
 
-        setIsSaveModalOpen: useCallback((isSaveModalOpen: boolean) => {
+        setIsSaveModalOpen: (isSaveModalOpen: boolean) => {
             setState(prev => ({ ...prev, isSaveModalOpen }));
-        }, []),
+        },
 
-        setShowDemographics: useCallback((showDemographics: boolean) => {
+        setShowDemographics: (showDemographics: boolean) => {
             setState(prev => ({ ...prev, showDemographics }));
-        }, []),
+        },
 
-        setShowApplicability: useCallback((showApplicability: boolean) => {
+        setShowApplicability: (showApplicability: boolean) => {
             setState(prev => ({ ...prev, showApplicability }));
-        }, []),
-        setLocale: useCallback((locale: any) => {
+        },
+        setLocale: (locale: any) => {
             setState(prev => ({ ...prev, locale }));
-        }, []),
+        },
 
-        resetSession: useCallback(() => {
+        resetSession: () => {
             setState(initialState);
-        }, []),
-    };
+        },
+    }), []);
 
     return (
         <AnalyzeContext.Provider value={{ state, actions }}>

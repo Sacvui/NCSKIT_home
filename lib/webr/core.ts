@@ -1,4 +1,4 @@
-﻿import { WebR } from 'webr';
+import { WebR } from 'webr';
 import { translateRError } from './utils';
 import { getCachedWebRState, setCachedWebRState } from './cache';
 import { getRequiredPackages, isPackageLoaded, markPackageLoaded } from './package-registry';
@@ -223,6 +223,10 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     options(webr.repo_quiet = TRUE) # Silence repo download warnings
                     options(timeout = 300) # 5 minute timeout
                     
+                    # Prevent R from trying to download .rds if it fails once
+                    # This helps avoid the "Download failed" flood in console
+                    options(download.file.extra = "--no-cache") 
+                    
                     # Pre-check psych existence
                     psych_exists <- dir.exists("${persistentLib}/psych")
                     
@@ -340,6 +344,14 @@ export async function loadPackagesForMethod(method: string): Promise<void> {
  */
 function unpackWebRObject(obj: any): any {
     if (obj === null || obj === undefined || typeof obj !== 'object') return obj;
+    
+    // Prevent recursion on binary buffers/typed arrays (which are objects but should be treated as values)
+    if (obj instanceof Uint8Array || obj instanceof Uint16Array || obj instanceof Uint32Array || 
+        obj instanceof Int8Array || obj instanceof Int16Array || obj instanceof Int32Array || 
+        obj instanceof Float32Array || obj instanceof Float64Array) {
+        return obj;
+    }
+
     if (Array.isArray(obj)) return obj.map(unpackWebRObject);
 
     if (obj.type && obj.values !== undefined) {
