@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Check, ChevronDown, Plus, X, Sparkles, Key, Edit2, Trash2, Layers, Info, Target, Settings, Play } from 'lucide-react';
+import { Check, ChevronDown, X, Sparkles, Edit2, Trash2, Layers, Info, Target, Settings, Play } from 'lucide-react';
 import { storeApiKey, retrieveApiKey, clearApiKey, hasStoredApiKey } from '@/utils/key-encryption';
 
 interface VariableGroup {

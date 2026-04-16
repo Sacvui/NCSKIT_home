@@ -42,7 +42,6 @@ export default function CacheVersionChecker() {
                 const needsEmergencyPurge = localEmergencyVersion !== EMERGENCY_VERSION;
 
                 if (needsServerPurge || needsEmergencyPurge) {
-                    console.log('[CacheCheck] New version detected. Reloading...');
                     localStorage.setItem(CACHE_VERSION_KEY, serverVersion);
                     localStorage.setItem('ncs_emergency_version', EMERGENCY_VERSION);
                     

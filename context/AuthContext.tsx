@@ -1,9 +1,10 @@
-'use client';
+﻿'use client';
 
 import React, { createContext, useContext, useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { getSupabase } from '@/utils/supabase/client';
 import { getORCIDUser, clearORCIDUser } from '@/utils/cookie-helper';
 import { User, AuthChangeEvent, Session } from '@supabase/supabase-js';
+import { logger } from '@/utils/logger';
 
 export interface Profile {
     id: string;
@@ -56,7 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 .single();
             if (data) setProfile(data as Profile);
         } catch (err) {
-            console.error('[Auth] Profile fetch fail', err);
+            logger.error('[Auth] Profile fetch fail', err);
         }
     }, [supabase]);
 
@@ -88,11 +89,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         const initSession = async () => {
             try {
-                console.log('[Auth] Initiating session restoration...');
+                logger.debug('[Auth] Initiating session restoration...');
                 const { data: { session } } = await supabase.auth.getSession();
                 
                 if (session?.user) {
-                    console.log('[Auth] Session successfully recovered for:', session.user.email);
+                    logger.debug('[Auth] Session successfully recovered for:', session.user.email);
                     handleUser(session.user);
                     setLoading(false);
                 } else {
@@ -101,36 +102,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     
                     if (code && !isExchangingCode.current) {
                         isExchangingCode.current = true;
-                        console.log('[Auth] OAuth code found, exchanging...');
+                        logger.debug('[Auth] OAuth code found, exchanging...');
                         try {
                             const { data: exchangeData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
                             if (!exchangeError && exchangeData.session?.user) {
-                                console.log('[Auth] Exchange successful!');
+                                logger.debug('[Auth] Exchange successful!');
                                 handleUser(exchangeData.session.user);
                                 window.history.replaceState({}, '', window.location.pathname);
                             } else {
-                                console.error('[Auth] Exchange failed:', exchangeError);
+                                logger.error('[Auth] Exchange failed:', exchangeError);
                             }
                         } catch (e) {
-                            console.error('[Auth] Exchange exception:', e);
+                            logger.error('[Auth] Exchange exception:', e);
                         }
                         isExchangingCode.current = false;
                         setLoading(false);
                     } else {
                         // Truly no session and no code
-                        console.log('[Auth] No session and no code to exchange.');
+                        logger.debug('[Auth] No session and no code to exchange.');
                         setLoading(false);
                     }
                 }
             } catch (err) {
-                console.error('[Auth] Critical auth init failure:', err);
+                logger.error('[Auth] Critical auth init failure:', err);
                 setLoading(false);
             }
         };
         
         initSession();
 
-        // Auth state listener — NEVER touch loading while code exchange is in progress
+        // Auth state listener â€” NEVER touch loading while code exchange is in progress
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
             if (isExchangingCode.current) {
                 return; // Code exchange owns the loading state
@@ -164,3 +165,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         </AuthContext.Provider>
     );
 }
+

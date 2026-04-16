@@ -18,8 +18,6 @@ export default function FeedbackWidget() {
 
         setIsSubmitting(true);
         try {
-            console.log('[FeedbackWidget] Submitting:', { type, message, page_url: pathname });
-
             const res = await fetch('/api/feedback', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -31,7 +29,6 @@ export default function FeedbackWidget() {
             });
 
             const data = await res.json();
-            console.log('[FeedbackWidget] Response:', res.status, data);
 
             if (res.ok) {
                 setMessage('');

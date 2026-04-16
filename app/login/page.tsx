@@ -40,7 +40,6 @@ function LoginForm() {
                     const { data, error } = await supabase.auth.exchangeCodeForSession(code)
                     if (error) throw error
                     
-                    console.log('[Login] Code exchange successful, redirecting...')
                     window.location.href = next || '/analyze'
                 } catch (err: any) {
                     console.error('[Login] Code exchange failed:', err)
@@ -72,7 +71,6 @@ function LoginForm() {
             localStorage.clear()
             sessionStorage.clear()
 
-            console.log('Session hard reset complete')
             // 3. Reload
             window.location.href = window.location.origin + window.location.pathname
         } catch (err) {
@@ -81,31 +79,19 @@ function LoginForm() {
         }
     }
 
-    // Real OAuth flow with Supabase
     const handleLogin = async (provider: 'google' | 'linkedin_oidc') => {
-        console.log('Login initiated for provider:', provider)
         setLoading(provider)
         setErrorMsg(null)
         try {
             const supabase = getSupabase()
             const origin = window.location.origin
             const isLocalhost = origin.includes('localhost')
-            // Only force the primary production domain if we are clearly on a production sub-environment
             const siteUrl = isLocalhost ? origin : origin.replace('stat.ncskit.org', 'ncsstat.ncskit.org')
-            // Bypass server-side route handler and let the browser client handle the PKCE code exchange directly.
-            // This avoids Next.js Server Action / Redirect cookie dropping bugs.
             const targetPath = next && next !== '/' ? next : '/analyze'
             const redirectTo = `${siteUrl}${targetPath}`
-            console.log('[Login Debug] Initiating Auth Flow:', {
-                provider,
-                origin,
-                siteUrl,
-                redirectTo,
-                isHttps: window.location.protocol === 'https:',
-            })
 
             // Provider-specific options
-            const providerOptions: any = { redirectTo }
+            const providerOptions: Record<string, unknown> = { redirectTo }
             
             if (provider === 'google') {
                 providerOptions.queryParams = {
@@ -113,30 +99,27 @@ function LoginForm() {
                     prompt: 'consent',
                 }
             } else if (provider === 'linkedin_oidc') {
-                // LinkedIn OIDC requires specific scopes to return the user email.
-                // We omit Google-specific offline/consent params as they cause issues.
                 providerOptions.scopes = 'openid profile email'
             }
 
             const { data, error } = await supabase.auth.signInWithOAuth({
                 provider: provider,
-                options: providerOptions,
+                options: providerOptions as Parameters<typeof supabase.auth.signInWithOAuth>[0]['options'],
             })
 
             if (error) {
-                console.error('[Login Debug] OAuth error caught:', error)
+                console.error('[Login] OAuth error:', error)
                 setErrorMsg(`Auth Error: ${error.message} (${error.name})`)
                 setLoading(null)
             } else {
-                console.log('[Login Debug] OAuth redirect data:', data)
                 if (data.url) {
-                    console.log('[Login Debug] Manual redirecting to Supabase flow:', data.url)
                     window.location.href = data.url
                 }
             }
-        } catch (err: any) {
-            console.error('Login error:', err)
-            setErrorMsg(err.message || 'Đã xảy ra lỗi khi đăng nhập')
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : 'Đã xảy ra lỗi khi đăng nhập'
+            console.error('[Login] Error:', err)
+            setErrorMsg(msg)
             setLoading(null)
         }
     }

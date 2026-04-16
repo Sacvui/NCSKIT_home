@@ -31,10 +31,7 @@ export default function AuthRedirectHandler() {
                           pathname?.includes('/analyze');
 
         if ((hasCode || hasTokenHash || hasError) && !isAuthPage) {
-            console.log('[AuthRedirectHandler] Auth parameters detected on root or non-auth page. Redirecting to /auth/callback...');
-            
-            // Limit this redirect strictly to the root page. 
-            // If they are on a random page, just let Supabase handle it.
+            // Auth parameters detected on non-auth page — redirect to callback
             if (pathname === '/') {
                 window.location.href = `/auth/callback${window.location.search}`;
             }

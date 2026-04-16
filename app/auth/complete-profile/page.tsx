@@ -1,11 +1,11 @@
-'use client'
+﻿'use client'
 
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useState, useEffect, Suspense } from 'react'
 
 export default function CompleteProfilePage() {
     return (
-        <Suspense fallback={<div className="flex items-center justify-center h-screen">Đang tải...</div>}>
+        <Suspense fallback={<div className="flex items-center justify-center h-screen">Äang táº£i...</div>}>
             <CompleteProfileForm />
         </Suspense>
     )
@@ -41,7 +41,7 @@ function CompleteProfileForm() {
 
         try {
             if (!email || !orcid) {
-                throw new Error('Vui lòng nhập email')
+                throw new Error('Vui lÃ²ng nháº­p email')
             }
 
             console.log('[Complete Profile] Submitting profile:', { orcid, name, email });
@@ -62,7 +62,7 @@ function CompleteProfileForm() {
             const result = await response.json()
 
             if (!response.ok) {
-                throw new Error(result.error || 'Không thể tạo profile')
+                throw new Error(result.error || 'KhÃ´ng thá»ƒ táº¡o profile')
             }
 
             console.log('[Complete Profile] Profile created/updated successfully:', result);
@@ -75,23 +75,20 @@ function CompleteProfileForm() {
                 const maxAge = 60 * 60 * 24 * 7; // 1 week
                 const secure = window.location.protocol === 'https:' ? '; secure' : '';
                 document.cookie = `orcid_user=${result.profileId}; path=/; max-age=${maxAge}; samesite=lax${secure}`;
-                console.log('[Complete Profile] Session cookie set');
-            }
+                }
 
             // Show success message briefly before redirect
             if (!result.isExisting) {
                 // New user - show welcome message
-                console.log('[Complete Profile] New user created, redirecting to analyze');
-            } else {
+                } else {
                 // Existing user - show update message
-                console.log('[Complete Profile] Existing user updated, redirecting to analyze');
-            }
+                }
 
             // Redirect to analyze page
             router.push('/analyze')
         } catch (err: any) {
             console.error('[Complete Profile] Error:', err);
-            setError(err.message || 'Đã xảy ra lỗi')
+            setError(err.message || 'ÄÃ£ xáº£y ra lá»—i')
             setIsSubmitting(false)
         }
     }
@@ -106,13 +103,13 @@ function CompleteProfileForm() {
                             <path d="M12 0C5.372 0 0 5.372 0 12s5.372 12 12 12 12-5.372 12-12S18.628 0 12 0zM7.369 4.378c.525 0 .947.431.947.947s-.422.947-.947.947a.948.948 0 0 1-.947-.947c0-.516.422-.947.947-.947zm-.722 3.038h1.444v10.041H6.647V7.416zm3.562 0h3.9c3.712 0 5.344 2.653 5.344 5.025 0 2.578-2.016 5.025-5.325 5.025h-3.919V7.416zm1.444 1.306v7.444h2.297c3.272 0 4.022-2.484 4.022-3.722 0-2.016-1.212-3.722-4.097-3.722h-2.222z" />
                         </svg>
                     </div>
-                    <h1 className="text-2xl font-bold text-slate-800">Hoàn tất hồ sơ ORCID</h1>
-                    <p className="text-slate-500 mt-2">Chào mừng {name || 'Người dùng mới'}!</p>
+                    <h1 className="text-2xl font-bold text-slate-800">HoÃ n táº¥t há»“ sÆ¡ ORCID</h1>
+                    <p className="text-slate-500 mt-2">ChÃ o má»«ng {name || 'NgÆ°á»i dÃ¹ng má»›i'}!</p>
                 </div>
 
                 {/* ORCID Info */}
                 <div className="bg-slate-50 rounded-lg p-4 mb-6">
-                    <p className="text-sm text-slate-500">ORCID của bạn</p>
+                    <p className="text-sm text-slate-500">ORCID cá»§a báº¡n</p>
                     <p className="font-mono text-lg text-[#A6CE39] font-semibold">{orcid}</p>
                 </div>
 
@@ -120,7 +117,7 @@ function CompleteProfileForm() {
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-2">
-                            Email (bắt buộc)
+                            Email (báº¯t buá»™c)
                         </label>
                         <input
                             type="email"
@@ -143,7 +140,7 @@ function CompleteProfileForm() {
                         disabled={isSubmitting}
                         className="w-full py-3 bg-[#A6CE39] text-white font-medium rounded-lg hover:bg-[#8FB62F] transition disabled:opacity-50"
                     >
-                        {isSubmitting ? 'Đang xử lý...' : 'Hoàn tất & Bắt đầu phân tích'}
+                        {isSubmitting ? 'Äang xá»­ lÃ½...' : 'HoÃ n táº¥t & Báº¯t Ä‘áº§u phÃ¢n tÃ­ch'}
                     </button>
                 </form>
 
@@ -153,10 +150,11 @@ function CompleteProfileForm() {
                         onClick={() => router.push('/analyze')}
                         className="text-sm text-slate-500 hover:text-slate-700 underline"
                     >
-                        Bỏ qua và đăng nhập bằng cách khác
+                        Bá» qua vÃ  Ä‘Äƒng nháº­p báº±ng cÃ¡ch khÃ¡c
                     </button>
                 </div>
             </div>
         </div>
     )
 }
+

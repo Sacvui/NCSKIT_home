@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { initWebR, getWebRStatus, setProgressCallback } from '@/lib/webr-wrapper';
+import { logger } from '@/utils/logger';
 
 /**
  * WebR Preloader - Silently preload R libraries in background
@@ -16,24 +17,24 @@ export function WebRPreloader() {
 
             // Only start preloading if not already ready or loading
             if (!webRStatus.isReady && !webRStatus.isLoading) {
-                console.log('[WebR Preloader] Starting delayed background initialization...');
+                logger.debug('[WebR Preloader] Starting delayed background initialization...');
 
                 // Set progress callback for logging
                 setProgressCallback((msg) => {
-                    console.log('[WebR Preloader]', msg);
+                    logger.debug('[WebR Preloader]', msg);
                     setStatus(msg);
                 });
 
                 // Start preloading silently - don't block UI
                 try {
                     await initWebR();
-                    console.log('[WebR Preloader] ✅ R Engine ready!');
+                    logger.debug('[WebR Preloader] ✅ R Engine ready!');
                     setStatus('Sẵn sàng');
                 } catch (err) {
-                    console.warn('[WebR Preloader] Failed to preload:', err);
+                    logger.warn('[WebR Preloader] Failed to preload:', err);
                 }
             } else if (webRStatus.isReady) {
-                console.log('[WebR Preloader] R Engine already loaded');
+                logger.debug('[WebR Preloader] R Engine already loaded');
                 setStatus('Sẵn sàng');
             }
         };
@@ -43,8 +44,6 @@ export function WebRPreloader() {
         return () => clearTimeout(timer);
     }, []);
 
-    // This component renders nothing visible
-    // But we can optionally show a tiny status indicator
     return null;
 }
 

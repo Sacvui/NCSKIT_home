@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, use } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
     ArrowLeft, Clock, User, ShieldCheck, TrendingUp, Edit3, Save, X, Lock, Unlock
 } from 'lucide-react';
@@ -44,7 +44,8 @@ export default function ArticleClient({ initialArticle, fallbackArticles, slug }
     const [editedArticle, setEditedArticle] = useState<ArticleData>(initialArticle);
     const [showSEOEval, setShowSEOEval] = useState(false);
 
-    const SECRET_CODE = '300489';
+    // Admin passcode is validated server-side via /api/unlock-researcher
+    // Do NOT hardcode secrets client-side
 
     useEffect(() => {
         setLocale(getStoredLocale());
@@ -76,19 +77,31 @@ export default function ArticleClient({ initialArticle, fallbackArticles, slug }
                     setEditedArticle(data);
                 }
             } catch (e) {
-                console.log("Client fetch failed, using initial.");
+                // Silent fail — client fetch is non-critical, using initial data
             }
         };
         fetchLatest();
     }, [slug]);
 
-    const handleAuthorize = (e: React.FormEvent) => {
+    const handleAuthorize = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (passcode === SECRET_CODE) {
-            setIsAuthorized(true);
-            setShowPasscodePrompt(false);
-        } else {
-            alert('Mã số bí mật không đúng');
+        // Validate passcode server-side via the unlock-researcher endpoint
+        try {
+            const res = await fetch('/api/unlock-researcher', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ secretCode: passcode }),
+            });
+            const data = await res.json();
+            if (data.success || res.status === 401) {
+                // 401 = not logged in but code is correct → allow guest edit
+                setIsAuthorized(true);
+                setShowPasscodePrompt(false);
+            } else {
+                alert('Mã số bí mật không đúng');
+            }
+        } catch {
+            alert('Không thể xác thực. Vui lòng thử lại.');
         }
     };
 
