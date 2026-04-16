@@ -232,6 +232,8 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 }
 
                 const localRepo = (typeof window !== 'undefined' ? window.location.origin : '') + "/webr_repo_v2";
+                // Fallback to official WebR CRAN mirror if local repo is unavailable
+                const fallbackRepo = "https://repo.r-wasm.org/";
                 logger.debug("[WebR] Using synchronized repository:", localRepo);
 
                 await runLocked(async () => {
@@ -240,8 +242,8 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                             .libPaths(c('${persistentLib}', .libPaths()))
                         }
                         
-                        # Set local self-hosted repository as the primary source
-                        options(repos = c(CRAN = "${localRepo}"))
+                        # Set repos: local self-hosted first, official CRAN mirror as fallback
+                        options(repos = c(LOCAL = "${localRepo}", CRAN = "https://repo.r-wasm.org/"))
                         
                         # Core configuration for WASM
                         options(pkgType = "binary")
@@ -290,10 +292,17 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         try {
                             updateProgress('🌐 Đang tải lại thư viện...');
                             logger.debug('[WebR] Attempting re-install of core libraries from local repo:', localRepo);
-                            // Install psych (which will pull dependencies automatically)
+                            // Try local repo first, fallback to official CRAN mirror
                             await runLocked(async () => {
-                                await webR.evalR(`webr::install("psych", repos="${localRepo}", lib="${persistentLib}")`);
-                                await webR.evalR(`webr::install("jsonlite", repos="${localRepo}", lib="${persistentLib}")`);
+                                const installCmd = `
+                                    tryCatch({
+                                        webr::install("psych", repos="${localRepo}", lib="${persistentLib}")
+                                    }, error = function(e) {
+                                        webr::install("psych", repos="${fallbackRepo}", lib="${persistentLib}")
+                                    })
+                                `;
+                                await webR.evalR(installCmd);
+                                await webR.evalR(`webr::install("jsonlite", repos=c("${localRepo}", "${fallbackRepo}"), lib="${persistentLib}")`);
                                 await webR.evalR('library(psych); library(jsonlite)');
                             });
                             corePackages.forEach(pkg => markPackageLoaded(pkg));
@@ -307,8 +316,16 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     logger.debug('[WebR] Initial installation of core libraries from local repo:', localRepo);
                     try {
                         await runLocked(async () => {
-                            await webR.evalR(`webr::install("psych", repos="${localRepo}", lib="${persistentLib}")`);
-                            await webR.evalR(`webr::install("jsonlite", repos="${localRepo}", lib="${persistentLib}")`);
+                            // Try local repo first, fallback to official CRAN mirror
+                            const installCmd = `
+                                tryCatch({
+                                    webr::install("psych", repos="${localRepo}", lib="${persistentLib}")
+                                }, error = function(e) {
+                                    webr::install("psych", repos="${fallbackRepo}", lib="${persistentLib}")
+                                })
+                            `;
+                            await webR.evalR(installCmd);
+                            await webR.evalR(`webr::install("jsonlite", repos=c("${localRepo}", "${fallbackRepo}"), lib="${persistentLib}")`);
                             await webR.evalR('library(psych); library(jsonlite)');
                         });
                         corePackages.forEach(pkg => markPackageLoaded(pkg));
@@ -356,6 +373,7 @@ export async function loadPackagesForMethod(method: string): Promise<void> {
     const webR = await initWebR();
     const required = getRequiredPackages(method);
     const localRepo = (typeof window !== 'undefined' ? window.location.origin : '') + "/webr_repo_v2";
+    const fallbackRepo = "https://repo.r-wasm.org/";
 
     for (const pkg of required) {
         if (isPackageLoaded(pkg)) continue;
@@ -363,8 +381,14 @@ export async function loadPackagesForMethod(method: string): Promise<void> {
         try {
             updateProgress(`Installing ${pkg}...`);
             await runLocked(async () => {
-                // Use the localized installer which is more stable for WASM
-                await webR.evalR(`webr::install("${pkg}", repos="${localRepo}")`);
+                // Try local repo first, fallback to official CRAN mirror
+                await webR.evalR(`
+                    tryCatch({
+                        webr::install("${pkg}", repos="${localRepo}")
+                    }, error = function(e) {
+                        webr::install("${pkg}", repos="${fallbackRepo}")
+                    })
+                `);
                 await webR.evalR(`library(${pkg})`);
             });
             markPackageLoaded(pkg);
@@ -517,9 +541,16 @@ export async function executeRWithRecovery(
                 logger.warn(`Auto-installing missing package: ${missingPkg}`);
                 updateProgress(`Setting up ${missingPkg}...`);
                 const localRepo = (typeof window !== 'undefined' ? window.location.origin : '') + "/webr_repo_v2";
-                // Aggressive fix: ALWAYS use webr::install for WebR 4.5.1 on self-hosted repo
+                const fallbackRepo = "https://repo.r-wasm.org/";
+                // Try local repo first, fallback to official CRAN mirror
                 await runLocked(async () => {
-                    await webR.evalR(`webr::install("${missingPkg}", repos="${localRepo}")`);
+                    await webR.evalR(`
+                        tryCatch({
+                            webr::install("${missingPkg}", repos="${localRepo}")
+                        }, error = function(e) {
+                            webr::install("${missingPkg}", repos="${fallbackRepo}")
+                        })
+                    `);
                     await webR.evalR(`library(${missingPkg})`);
                 });
                 markPackageLoaded(missingPkg);
