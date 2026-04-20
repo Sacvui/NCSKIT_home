@@ -539,18 +539,15 @@ export async function executeRWithRecovery(
             if (missingPkg) {
                 logger.warn(`Auto-installing missing package: ${missingPkg}`);
                 updateProgress(`Setting up ${missingPkg}...`);
-                const localRepo = (typeof window !== 'undefined' ? window.location.origin : '') + "/webr_repo_v2";
-                const fallbackRepo = "https://repo.r-wasm.org/";
-                // Try local repo first, fallback to official CRAN mirror
+                const officialRepo = "https://repo.r-wasm.org/";
+                // Use official CRAN mirror only
                 await runLocked(async () => {
                     await webR.evalR(`
-                        tryCatch({
-                            webr::install("${missingPkg}", repos="${localRepo}")
-                        }, error = function(e) {
-                            webr::install("${missingPkg}", repos="${fallbackRepo}")
-                        })
+                        if (!require("${missingPkg}", character.only = TRUE, quietly = TRUE)) {
+                            webr::install("${missingPkg}", repos="${officialRepo}")
+                            library("${missingPkg}", character.only = TRUE)
+                        }
                     `);
-                    await webR.evalR(`library(${missingPkg})`);
                 });
                 markPackageLoaded(missingPkg);
                 return executeRWithRecovery(rCode, method, retryCount + 1, maxRetries, timeoutMs, csvData);
