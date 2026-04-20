@@ -41,9 +41,9 @@ async function runLocked<T>(task: () => Promise<T>): Promise<T> {
 
 /**
  * Standardized path for WebR assets in production
- * Using 'webr_core_v2' to bypass aggressive browser caching
+ * Using 'webr_core_v3' to bypass aggressive browser caching
  */
-const BASE_URL = '/webr_core_v2/';
+const BASE_URL = '/webr_core_v3/';
 
 // Get current WebR loading status
 export function getWebRStatus(): {
@@ -154,18 +154,22 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 // Use the standardized webr_core folder for consistent resolution
                 const webR = new WebR({
                     baseUrl: BASE_URL,
-                    // Channel 3 (PostMessage) is the most stable for Next.js Dev/HMR
-                    // SAB (0/1) causes memory crashes and 'target closed' on local Turbopack
-                    channelType: 3,
-                    serviceWorkerUrl: '/webr-serviceworker.js'
+                    // Channel 0 (Automatic). Safest for production.
+                    channelType: 0,
                 });
 
-                // SW registration
+                // UNREGISTER old broken service workers that intercept WebR requests
                 if (typeof window !== 'undefined' && navigator.serviceWorker) {
                     try {
-                        await navigator.serviceWorker.register('/webr-serviceworker.js');
+                        const regs = await navigator.serviceWorker.getRegistrations();
+                        for (let reg of regs) {
+                            if (reg.active?.scriptURL.includes('webr')) {
+                                await reg.unregister();
+                                logger.info('[WebR] Unregistered broken ServiceWorker cache.');
+                            }
+                        }
                     } catch (e) {
-                        logger.warn('[WebR] SW Register failed:', e);
+                        logger.warn('[WebR] Error unregistering SW:', e);
                     }
                 }
 
