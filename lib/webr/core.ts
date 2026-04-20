@@ -236,7 +236,8 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 }
 
                 const fallbackRepo = "https://repo.r-wasm.org/";
-                logger.debug("[WebR] Using official WebR repository:", fallbackRepo);
+                const localRepo = (typeof window !== 'undefined' && window.location.origin) ? window.location.origin + "/webr_repo_v2" : "https://ncskit.org/webr_repo_v2";
+                logger.debug("[WebR] Using repositories. Local:", localRepo, "Official:", fallbackRepo);
 
                 await runLocked(async () => {
                     await webR.evalR(`
@@ -294,11 +295,23 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         try {
                             updateProgress('🌐 Đang tải lại thư viện...');
                             logger.debug('[WebR] Attempting re-install of core libraries from official repo:', fallbackRepo);
-                            // Use official CRAN mirror only
+                            // Try local repo first, fallback to official CRAN mirror
                             await runLocked(async () => {
-                                const installCmd = `webr::install("psych", repos="${fallbackRepo}", lib="${persistentLib}")`;
+                                const installCmd = `
+                                    tryCatch({
+                                        webr::install("psych", repos="${localRepo}", lib="${persistentLib}")
+                                    }, error = function(e) {
+                                        webr::install("psych", repos="${fallbackRepo}", lib="${persistentLib}")
+                                    })
+                                `;
                                 await webR.evalR(installCmd);
-                                await webR.evalR(`webr::install("jsonlite", repos="${fallbackRepo}", lib="${persistentLib}")`);
+                                await webR.evalR(`
+                                    tryCatch({
+                                        webr::install("jsonlite", repos="${localRepo}", lib="${persistentLib}")
+                                    }, error = function(e) {
+                                        webr::install("jsonlite", repos="${fallbackRepo}", lib="${persistentLib}")
+                                    })
+                                `);
                                 await webR.evalR('library(psych); library(jsonlite)');
                             });
                             corePackages.forEach(pkg => markPackageLoaded(pkg));
@@ -312,10 +325,22 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     logger.debug('[WebR] Initial installation of core libraries from official CRAN mirror:', fallbackRepo);
                     try {
                         await runLocked(async () => {
-                            // Use official CRAN mirror only
-                            const installCmd = `webr::install("psych", repos="${fallbackRepo}", lib="${persistentLib}")`;
+                            // Try local repo first, fallback to official CRAN mirror
+                            const installCmd = `
+                                    tryCatch({
+                                        webr::install("psych", repos="${localRepo}", lib="${persistentLib}")
+                                    }, error = function(e) {
+                                        webr::install("psych", repos="${fallbackRepo}", lib="${persistentLib}")
+                                    })
+                                `;
                             await webR.evalR(installCmd);
-                            await webR.evalR(`webr::install("jsonlite", repos="${fallbackRepo}", lib="${persistentLib}")`);
+                            await webR.evalR(`
+                                    tryCatch({
+                                        webr::install("jsonlite", repos="${localRepo}", lib="${persistentLib}")
+                                    }, error = function(e) {
+                                        webr::install("jsonlite", repos="${fallbackRepo}", lib="${persistentLib}")
+                                    })
+                                `);
                             await webR.evalR('library(psych); library(jsonlite)');
                         });
                         corePackages.forEach(pkg => markPackageLoaded(pkg));
@@ -528,11 +553,17 @@ export async function executeRWithRecovery(
                 logger.warn(`Auto-installing missing package: ${missingPkg}`);
                 updateProgress(`Setting up ${missingPkg}...`);
                 const officialRepo = "https://repo.r-wasm.org/";
-                // Use official CRAN mirror only
+                const localRepo = (typeof window !== 'undefined' && window.location.origin) ? window.location.origin + "/webr_repo_v2" : "https://ncskit.org/webr_repo_v2";
+                
+                // Try local repo first, fallback to official CRAN mirror
                 await runLocked(async () => {
                     await webR.evalR(`
                         if (!require("${missingPkg}", character.only = TRUE, quietly = TRUE)) {
-                            webr::install("${missingPkg}", repos="${officialRepo}")
+                            tryCatch({
+                                webr::install("${missingPkg}", repos="${localRepo}")
+                            }, error = function(e) {
+                                webr::install("${missingPkg}", repos="${officialRepo}")
+                            })
                             library("${missingPkg}", character.only = TRUE)
                         }
                     `);
