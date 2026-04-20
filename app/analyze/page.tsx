@@ -94,6 +94,13 @@ function AnalyzeContent() {
 
     // Auth guard: Wait for AuthContext to finish loading
     useEffect(() => {
+        // [DEV ONLY] Bypass login to allow local testing
+        if (process.env.NODE_ENV === 'development') {
+            console.log('[Analyze] [DEV MODE] Bypassing auth requirement for local testing.');
+            setLoading(false);
+            return;
+        }
+
         const hasCode = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('code');
         
         if (hasCode) {

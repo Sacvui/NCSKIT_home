@@ -154,9 +154,9 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 // Use the standardized webr_core folder for consistent resolution
                 const webR = new WebR({
                     baseUrl: BASE_URL,
-                    // channelType 0 = Automatic. Picks the best available channel (SAB > ServiceWorker > PostMessage)
-                    // This fixes local development startup hangs while maintaining security headers
-                    channelType: 0,
+                    // Channel 3 (PostMessage) is the most stable for Next.js Dev/HMR
+                    // SAB (0/1) causes memory crashes and 'target closed' on local Turbopack
+                    channelType: 3,
                     serviceWorkerUrl: '/webr-serviceworker.js'
                 });
 
