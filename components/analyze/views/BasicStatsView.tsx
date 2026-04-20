@@ -11,6 +11,7 @@ import { logAnalysisUsage } from '@/lib/activity-logger';
 import type { DataProfile } from '@/lib/data-profiler';
 import { Check, ChevronLeft, Play, BarChart2, Users, Database } from 'lucide-react';
 import { useAnalysisError } from '@/hooks/useAnalysisError';
+import { useWebRGuard } from '@/hooks/useWebRGuard';
 
 interface BasicStatsViewProps {
     step: string;
@@ -49,15 +50,19 @@ export function BasicStatsView({
 }: BasicStatsViewProps) {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const handleAnalysisError = useAnalysisError(showToast);
+    const checkWebRReady = useWebRGuard(showToast);
 
     const handleAnalysisWrapper = async (
         analysisKey: string,
         costKey: string,
-        action: () => Promise<any>,
+        action: () => Promise<unknown>,
         colsToSave: string[],
         successMsg: string,
         logDesc: string
     ) => {
+        // Block if WebR is still loading packages
+        if (!checkWebRReady()) return;
+
         setIsAnalyzing(true);
         setAnalysisType(analysisKey);
 

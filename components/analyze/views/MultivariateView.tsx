@@ -8,6 +8,7 @@ import { runWithCredits } from '@/lib/analysis-credit-wrapper';
 import { runClusterAnalysis, runTwoWayANOVA } from '@/lib/webr-wrapper';
 import { ChevronLeft, Play, CircleDot, Grid3x3, Layers, Target } from 'lucide-react';
 import { useAnalysisError } from '@/hooks/useAnalysisError';
+import { useWebRGuard } from '@/hooks/useWebRGuard';
 
 interface MultivariateViewProps {
     step: AnalysisStep;

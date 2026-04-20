@@ -8,6 +8,7 @@ import { runWithCredits } from '@/lib/analysis-credit-wrapper';
 import { runMediationAnalysis, runModerationAnalysis } from '@/lib/webr-wrapper';
 import { ChevronLeft, Play, Target, Shuffle, ArrowRight } from 'lucide-react';
 import { useAnalysisError } from '@/hooks/useAnalysisError';
+import { useWebRGuard } from '@/hooks/useWebRGuard';
 
 interface MediationViewProps {
     step: AnalysisStep;
@@ -47,6 +48,7 @@ export const MediationView: React.FC<MediationViewProps> = ({
     const [mediationVars, setMediationVars] = useState<{ x: string; m: string; y: string }>({ x: '', m: '', y: '' });
     const [moderationVars, setModerationVars] = useState<{ x: string; w: string; y: string }>({ x: '', w: '', y: '' });
     const handleAnalysisError = useAnalysisError(showToast);
+    const checkWebRReady = useWebRGuard(showToast);
 
     const handleAnalysisWrapper = async (
         analysisKey: string,
@@ -56,6 +58,7 @@ export const MediationView: React.FC<MediationViewProps> = ({
         successMsg: string,
         logDesc: string
     ) => {
+        if (!checkWebRReady()) return;
         setIsAnalyzing(true);
         if (setAnalysisType) setAnalysisType(analysisKey);
 

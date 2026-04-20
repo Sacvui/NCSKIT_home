@@ -449,6 +449,18 @@ function AnalyzeContent() {
 
 
     const runAnalysis = async (type: string) => {
+        // CRITICAL: Block analysis if WebR is still initializing or installing packages
+        // Running analysis during package installation causes FileReaderSync crash
+        const webRStatus = getWebRStatus();
+        if (!webRStatus.isReady) {
+            if (webRStatus.isLoading) {
+                showToast('R Engine đang khởi động, vui lòng đợi vài giây rồi thử lại.', 'info');
+            } else {
+                showToast('R Engine chưa sẵn sàng. Vui lòng đợi và thử lại.', 'info');
+            }
+            return;
+        }
+
         setIsAnalyzing(true);
         setAnalysisType(type);
         let progressInterval: NodeJS.Timeout | undefined;

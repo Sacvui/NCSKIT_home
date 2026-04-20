@@ -8,6 +8,7 @@ import { runWithCredits } from '@/lib/analysis-credit-wrapper';
 import { runLinearRegression, runLogisticRegression } from '@/lib/webr-wrapper';
 import { ChevronLeft, Play, TrendingUp, Binary, Target, Activity } from 'lucide-react';
 import { useAnalysisError } from '@/hooks/useAnalysisError';
+import { useWebRGuard } from '@/hooks/useWebRGuard';
 
 interface RegressionViewProps {
     step: AnalysisStep;
@@ -44,6 +45,7 @@ export const RegressionView: React.FC<RegressionViewProps> = ({
     const [regressionVars, setRegressionVars] = useState<{ y: string; xs: string[] }>({ y: '', xs: [] });
     const [logisticVars, setLogisticVars] = useState<{ y: string; xs: string[] }>({ y: '', xs: [] });
     const handleAnalysisError = useAnalysisError(showToast);
+    const checkWebRReady = useWebRGuard(showToast);
 
     const handleAnalysisWrapper = async (
         analysisKey: string,
@@ -53,6 +55,7 @@ export const RegressionView: React.FC<RegressionViewProps> = ({
         successMsg: string,
         logDesc: string
     ) => {
+        if (!checkWebRReady()) return;
         setIsAnalyzing(true);
         if (setAnalysisType) setAnalysisType(analysisKey);
 

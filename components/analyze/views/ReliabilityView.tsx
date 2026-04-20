@@ -11,6 +11,7 @@ import CFASelection from '@/components/CFASelection';
 import SEMSelection from '@/components/SEMSelection';
 import { ChevronLeft, Play, Shield, Grid3x3, Network, Layers } from 'lucide-react';
 import { useAnalysisError } from '@/hooks/useAnalysisError';
+import { useWebRGuard } from '@/hooks/useWebRGuard';
 
 interface ReliabilityViewProps {
     step: AnalysisStep;
@@ -49,6 +50,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
 }) => {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const handleAnalysisError = useAnalysisError(showToast);
+    const checkWebRReady = useWebRGuard(showToast);
 
     const ViewHeader = ({ title, subtitle, icon: Icon }: any) => (
         <div className="flex flex-col items-center text-center mb-8">
@@ -78,6 +80,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
             showToast('Thang đo cần ít nhất 2 biến cho Cronbach Alpha', 'error');
             return;
         }
+        if (!checkWebRReady()) return;
 
         if (user) {
             const cost = await getAnalysisCost('cronbach');
@@ -128,6 +131,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
     };
 
     const runCronbachBatch = async (groups: { name: string; columns: string[] }[]) => {
+        if (!checkWebRReady()) return;
         if (user) {
             const singleCost = await getAnalysisCost('cronbach');
             const totalCost = singleCost * groups.length;
@@ -187,6 +191,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
             showToast('McDonald\'s Omega cần ít nhất 3 biến', 'error');
             return;
         }
+        if (!checkWebRReady()) return;
 
         if (user) {
             const cost = await getAnalysisCost('omega');
