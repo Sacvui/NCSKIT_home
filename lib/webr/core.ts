@@ -374,8 +374,7 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
 export async function loadPackagesForMethod(method: string): Promise<void> {
     const webR = await initWebR();
     const required = getRequiredPackages(method);
-    const localRepo = (typeof window !== 'undefined' ? window.location.origin : '') + "/webr_repo_v2";
-    const fallbackRepo = "https://repo.r-wasm.org/";
+    const officialRepo = "https://repo.r-wasm.org/";
 
     for (const pkg of required) {
         if (isPackageLoaded(pkg)) continue;
@@ -383,15 +382,13 @@ export async function loadPackagesForMethod(method: string): Promise<void> {
         try {
             updateProgress(`Installing ${pkg}...`);
             await runLocked(async () => {
-                // Try local repo first, fallback to official CRAN mirror
+                // Use official CRAN mirror only to avoid 404 errors from missing local repo
                 await webR.evalR(`
-                    tryCatch({
-                        webr::install("${pkg}", repos="${localRepo}")
-                    }, error = function(e) {
-                        webr::install("${pkg}", repos="${fallbackRepo}")
-                    })
+                    if (!require("${pkg}", character.only = TRUE, quietly = TRUE)) {
+                        webr::install("${pkg}", repos="${officialRepo}")
+                        library("${pkg}", character.only = TRUE)
+                    }
                 `);
-                await webR.evalR(`library(${pkg})`);
             });
             markPackageLoaded(pkg);
         } catch (error) {
