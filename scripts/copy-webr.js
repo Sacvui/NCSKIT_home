@@ -6,7 +6,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const source = path.join(__dirname, '../node_modules/webr/dist');
-const dest = path.join(__dirname, '../public/webr_core_v2');
+const dest = path.join(__dirname, '../public/webr_core_v3');
 
 function copyDir(src, dest) {
     if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
