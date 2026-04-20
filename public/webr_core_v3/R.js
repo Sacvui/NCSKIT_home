@@ -39,9 +39,11 @@ let loadImage = function(dir, file, src, mountpoint) {
       Module.mountImageUrl(Module.locateFile(src), mountpoint);
 
       let mountNode = Module.FS.lookupPath(`${dir}/${file}`).node;
-      node.contents = new Uint8Array(
-        (new FileReaderSync()).readAsArrayBuffer(mountNode.contents)
-      );
+      if (mountNode.contents instanceof Blob || mountNode.contents instanceof File) {
+        node.contents = new Uint8Array((new FileReaderSync()).readAsArrayBuffer(mountNode.contents));
+      } else {
+        node.contents = new Uint8Array(mountNode.contents);
+      }
       node.size = mountNode.size;
     }
   }
