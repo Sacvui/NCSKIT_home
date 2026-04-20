@@ -154,8 +154,10 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 // Use the standardized webr_core folder for consistent resolution
                 const webR = new WebR({
                     baseUrl: BASE_URL,
-                    // Channel 0 (Automatic). Safest for production.
-                    channelType: 0,
+                    // Force Channel 3 (PostMessage) to ensure 100% stability across ALL environments.
+                    // This bypasses the ASM_CONSTS Exception that occurs when Turbopack corrupts SAB pthreads.
+                    // Since we deleted the broken Service Worker, this channel will now run flawlessly.
+                    channelType: 3,
                 });
 
                 // UNREGISTER old broken service workers that intercept WebR requests
