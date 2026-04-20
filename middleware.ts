@@ -37,6 +37,12 @@ export async function middleware(request: NextRequest) {
         return NextResponse.next()
     }
 
+    // Block HTML 404 fallbacks for WebR R binary static files
+    // If WebR fetches a missing .rds file, it chokes on the NextJS 404 HTML fallback.
+    if (request.nextUrl.pathname.includes('/webr_repo_v2/') && request.nextUrl.pathname.endsWith('.rds')) {
+        return new NextResponse(null, { status: 404 })
+    }
+
     return await updateSession(request)
 }
 
