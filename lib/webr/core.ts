@@ -235,10 +235,8 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     logger.warn('[WebR] Falling back to slow memory-only mode. Every page load will require re-downloading packages.');
                 }
 
-                const localRepo = (typeof window !== 'undefined' ? window.location.origin : '') + "/webr_repo_v2";
-                // Fallback to official WebR CRAN mirror if local repo is unavailable
                 const fallbackRepo = "https://repo.r-wasm.org/";
-                logger.debug("[WebR] Using synchronized repository:", localRepo);
+                logger.debug("[WebR] Using official WebR repository:", fallbackRepo);
 
                 await runLocked(async () => {
                     await webR.evalR(`
@@ -246,8 +244,8 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                             .libPaths(c('${persistentLib}', .libPaths()))
                         }
                         
-                        # Set repos: local self-hosted first, official CRAN mirror as fallback
-                        options(repos = c(LOCAL = "${localRepo}", CRAN = "https://repo.r-wasm.org/"))
+                        # Set repo to official CRAN WebR mirror
+                        options(repos = c(CRAN = "https://repo.r-wasm.org/"))
                         
                         # Core configuration for WASM
                         options(pkgType = "binary")
