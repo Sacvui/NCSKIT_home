@@ -298,19 +298,19 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                             // Try local repo first, fallback to official CRAN mirror
                             await runLocked(async () => {
                                 const installCmd = `
-                                    tryCatch({
+                                    suppressWarnings(tryCatch({
                                         webr::install("psych", repos="${localRepo}", lib="${persistentLib}")
                                     }, error = function(e) {
                                         webr::install("psych", repos="${fallbackRepo}", lib="${persistentLib}")
-                                    })
+                                    }))
                                 `;
                                 await webR.evalR(installCmd);
                                 await webR.evalR(`
-                                    tryCatch({
+                                    suppressWarnings(tryCatch({
                                         webr::install("jsonlite", repos="${localRepo}", lib="${persistentLib}")
                                     }, error = function(e) {
                                         webr::install("jsonlite", repos="${fallbackRepo}", lib="${persistentLib}")
-                                    })
+                                    }))
                                 `);
                                 await webR.evalR('library(psych); library(jsonlite)');
                             });
@@ -327,19 +327,19 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         await runLocked(async () => {
                             // Try local repo first, fallback to official CRAN mirror
                             const installCmd = `
-                                    tryCatch({
+                                    suppressWarnings(tryCatch({
                                         webr::install("psych", repos="${localRepo}", lib="${persistentLib}")
                                     }, error = function(e) {
                                         webr::install("psych", repos="${fallbackRepo}", lib="${persistentLib}")
-                                    })
+                                    }))
                                 `;
                             await webR.evalR(installCmd);
                             await webR.evalR(`
-                                    tryCatch({
+                                    suppressWarnings(tryCatch({
                                         webr::install("jsonlite", repos="${localRepo}", lib="${persistentLib}")
                                     }, error = function(e) {
                                         webr::install("jsonlite", repos="${fallbackRepo}", lib="${persistentLib}")
-                                    })
+                                    }))
                                 `);
                             await webR.evalR('library(psych); library(jsonlite)');
                         });
@@ -559,11 +559,11 @@ export async function executeRWithRecovery(
                 await runLocked(async () => {
                     await webR.evalR(`
                         if (!require("${missingPkg}", character.only = TRUE, quietly = TRUE)) {
-                            tryCatch({
+                            suppressWarnings(tryCatch({
                                 webr::install("${missingPkg}", repos="${localRepo}")
                             }, error = function(e) {
                                 webr::install("${missingPkg}", repos="${officialRepo}")
-                            })
+                            }))
                             library("${missingPkg}", character.only = TRUE)
                         }
                     `);
