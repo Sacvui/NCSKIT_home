@@ -4,7 +4,7 @@
 import { WEBR_TIMEOUTS, getTimeoutForMethod } from '../constants';
 import { validateAndCleanData } from '../input-validator';
 import { executeRWithRecovery, loadPackagesForMethod } from '../core';
-import { parseWebRResult, parseMatrix } from '../utils';
+import { parseWebRResult, parseMatrix, useRawDataInCode } from '../utils';
 import { getAnalysisRTemplate } from '../templates';
 import { runLavaanAnalysis } from './sem';
 
@@ -111,7 +111,9 @@ export async function runCronbachAlpha(
     `;
 
     // Fetch customized template and render it
-    const template = await getAnalysisRTemplate('cronbach', defaultRCode);
+    let template = await getAnalysisRTemplate('cronbach', defaultRCode);
+    template = useRawDataInCode(template);
+    
     const rCode = template
         .replace(/\{\{likertMin\}\}/g, String(likertMin))
         .replace(/\{\{likertMax\}\}/g, String(likertMax));
@@ -119,11 +121,12 @@ export async function runCronbachAlpha(
     const result = await executeRWithRecovery(rCode, 'cronbach', 0, 2, WEBR_TIMEOUTS.COMPLEX, cleanData);
     const getValue = parseWebRResult(result);
 
-    const rawAlpha = getValue('raw_alpha')?.[0] ?? 0;
+    // Support both new explicit JSON mapping and old legacy template keys
+    const rawAlpha = getValue('raw_alpha')?.[0] ?? getValue('alphaVal')?.[0] ?? 0;
     const stdAlpha = getValue('std_alpha')?.[0] ?? 0;
-    const omegaTotal = getValue('omega_total')?.[0] ?? 0;
+    const omegaTotal = getValue('omega_total')?.[0] ?? getValue('omegaVal')?.[0] ?? 0;
     const omegaH = getValue('omega_h')?.[0] ?? 0;
-    const nItems = getValue('n_items')?.[0] || 'N/A';
+    const nItems = getValue('n_items')?.[0] ?? getValue('n')?.[0] ?? 'N/A';
 
     const scaleMeanDeleted = getValue('scale_mean_deleted') || [];
     const scaleVarDeleted = getValue('scale_var_deleted') || [];

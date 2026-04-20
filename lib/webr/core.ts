@@ -488,13 +488,13 @@ export async function executeRWithRecovery(
             try {
                 // Check for R-side errors encoded in the binary/string stream
                 if (finalStr.startsWith("ERROR:")) {
-                    throw new Error(finalStr.replace("ERROR:", "").trim());
+                    throw new Error(finalStr);
                 }
 
                 return JSON.parse(finalStr);
             } catch (e: any) {
-                // If it's already an error we threw, re-throw it
-                if (e.message && e.message.includes('ERROR:')) throw e;
+                // If it's already an error we threw (e.g. from R script), re-throw it
+                if (e.message && e.message.startsWith('ERROR:')) throw new Error(e.message.replace("ERROR:", "").trim());
                 return finalStr;
             }
         });
