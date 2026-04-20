@@ -25,6 +25,12 @@ export async function middleware(request: NextRequest) {
     }
     */
 
+    // Block HTML 404 fallbacks for WebR R binary static files
+    // If WebR fetches a missing .rds file, it chokes on the NextJS 404 HTML fallback.
+    if (request.nextUrl.pathname.includes('/webr_repo_v2/') && request.nextUrl.pathname.endsWith('.rds')) {
+        return new NextResponse(null, { status: 404 })
+    }
+
     // Skip session update for static assets
     if (request.nextUrl.pathname.startsWith('/_next') || request.nextUrl.pathname.includes('.')) {
         return NextResponse.next()
@@ -35,12 +41,6 @@ export async function middleware(request: NextRequest) {
     // before the client-side can use it for exchangeCodeForSession().
     if (request.nextUrl.searchParams.has('code')) {
         return NextResponse.next()
-    }
-
-    // Block HTML 404 fallbacks for WebR R binary static files
-    // If WebR fetches a missing .rds file, it chokes on the NextJS 404 HTML fallback.
-    if (request.nextUrl.pathname.includes('/webr_repo_v2/') && request.nextUrl.pathname.endsWith('.rds')) {
-        return new NextResponse(null, { status: 404 })
     }
 
     return await updateSession(request)
