@@ -142,7 +142,7 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
 
     initPromise = (async () => {
         isInitializing = true;
-        updateProgress('âš™ï¸ Äang khá»Ÿi Ä‘á»™ng R-Engine...');
+        updateProgress('⚙️ Đang khởi động R-Engine...');
         const startTime = performance.now();
 
         const initTimeout = new Promise<never>((_, reject) => 
@@ -154,10 +154,9 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 // Use the standardized webr_core folder for consistent resolution
                 const webR = new WebR({
                     baseUrl: BASE_URL,
-                    // Channel 0 = Automatic. With Webpack bundler (not Turbopack),
-                    // SharedArrayBuffer works correctly on localhost origins.
-                    // Turbopack was the root cause of ASM_CONSTS crash - now fixed by using --webpack flag.
-                    channelType: 0,
+                    // MUST BE Channel 3 (PostMessage) to support IDBFS persistent storage caching!
+                    // SharedArrayBuffer (Channel 0) DOES NOT support IDBFS asynchronous I/O yet.
+                    channelType: 3,
                 });
 
                 // UNREGISTER old broken service workers that intercept WebR requests
@@ -180,7 +179,7 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 const persistentLib = '/home/web_user/library';
 
                 // Prepare Storage with Sanity Check
-                updateProgress('ðŸ“‚ Äang káº¿t ná»‘i bá»™ nhá»›...');
+                updateProgress('📂 Đang kết nối bộ nhớ...');
                 let storageSane = false;
 
                 // Handle manual wipe request
@@ -534,7 +533,7 @@ export async function executeRWithRecovery(
             errorMsg.includes('Blob')) {
              logger.error('[WebR] Fatal R state. Resetting engine...');
              resetWebR(); // Clear the hung instance
-             throw new Error("Há»‡ thá»‘ng R Ä‘ang báº­n. TÃ´i Ä‘Ã£ tá»± Ä‘á»™ng khá»Ÿi Ä‘á»™ng láº¡i, vui lÃ²ng thá»±c hiá»‡n láº¡i phÃ¢n tÃ­ch sau vÃ i giÃ¢y.");
+             throw new Error("Hệ thống R đang bận. Tôi đã tự động khởi động lại, vui lòng thực hiện lại phân tích sau vài giây.");
         }
 
         // SELF-HEALING for missing packages

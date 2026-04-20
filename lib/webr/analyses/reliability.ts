@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Reliability & Factor Analysis Modules
  */
 import { WEBR_TIMEOUTS, getTimeoutForMethod } from '../constants';
@@ -203,7 +203,7 @@ export async function runEFA(data: number[][], nFactors: number, rotation: strin
     
     # Basic validation
     if (any(is.na(cor_mat))) { 
-        stop("Lá»—i: Dá»¯ liá»‡u cÃ³ quÃ¡ nhiá»u giÃ¡ trá»‹ khuyáº¿t (NA) dáº«n Ä‘áº¿n ma tráº­n tÆ°Æ¡ng quan khÃ´ng há»£p lá»‡.") 
+        stop("Lỗi: Dữ liệu có quá nhiều giá trị khuyết (NA) dẫn đến ma trận tương quan không hợp lệ.") 
     }
     
     eigenvalues <- eigen(cor_mat)$values
@@ -316,7 +316,7 @@ export async function runCFA(data: number[][], columns: string[], modelSyntax: s
             fitMeasures: { cfi: 0, tli: 0, rmsea: 0, srmr: 0, chisq: 0, df: 0, pvalue: 0 },
             estimates: [],
             rCode: '',
-            error: `CFA yÃªu cáº§u thÆ° viá»‡n lavaan chÆ°a Ä‘Æ°á»£c táº£i. Vui lÃ²ng Ä‘á»£i WebR khá»Ÿi Ä‘á»™ng hoÃ n táº¥t vÃ  thá»­ láº¡i. Chi tiáº¿t: ${e?.message || String(e)}`,
+            error: `CFA yêu cầu thư viện lavaan chưa được tải. Vui lòng đợi WebR khởi động hoàn tất và thử lại. Chi tiết: ${e?.message || String(e)}`,
             warning: undefined
         };
     }

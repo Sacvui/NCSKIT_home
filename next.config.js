@@ -36,7 +36,7 @@ const CSP_DIRECTIVES = [
 
     // Connections: self + Supabase (REST + Realtime WSS) + Gemini AI + ORCID
     // + Cloudflare beacon
-    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://pub.orcid.org https://orcid.org https://va.vercel-scripts.com https://cloudflareinsights.com",
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://pub.orcid.org https://orcid.org https://va.vercel-scripts.com https://cloudflareinsights.com https://repo.r-wasm.org",
 
     // Workers: self + blob (WebR service worker)
     "worker-src 'self' blob:",
