@@ -237,7 +237,7 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
 
                 const fallbackRepo = "https://repo.r-wasm.org/";
                 const localRepo = (typeof window !== 'undefined' && window.location.origin) ? window.location.origin + "/webr_repo_v2" : "https://ncskit.org/webr_repo_v2";
-                logger.debug("[WebR] Using repositories. Local:", localRepo, "Official:", fallbackRepo);
+                logger.debug(`[WebR] Using repositories. Local: ${localRepo} Official: ${fallbackRepo}`);
 
                 await runLocked(async () => {
                     await webR.evalR(`
