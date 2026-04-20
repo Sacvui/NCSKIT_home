@@ -23,7 +23,7 @@ const CSP_DIRECTIVES = [
 
     // Scripts: self + WebR WASM eval + blob workers + inline (Next.js hydration)
     // + Vercel Analytics + Vercel Live + Cloudflare Insights
-    "script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://va.vercel-scripts.com https://vercel.live https://static.cloudflareinsights.com",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: https://va.vercel-scripts.com https://vercel.live https://static.cloudflareinsights.com",
 
     // Styles: self + inline (Tailwind CSS 4 requires unsafe-inline)
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
