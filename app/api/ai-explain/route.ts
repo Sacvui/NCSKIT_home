@@ -144,10 +144,10 @@ YÃŠU Cáº¦U Äáº¦U RA (Markdown):
         }
 
         // Parse the structured response
-        const sections = explanation.split('##').filter((s: string) => s.trim());
+        const sections = (explanation ?? '').split('##').filter((s: string) => s.trim());
 
         return NextResponse.json({
-            explanation,
+            explanation: explanation ?? '',
             interpretation: sections[0] || '',
             conclusion: sections[1] || '',
             practicalImplications: sections[2] || '',
