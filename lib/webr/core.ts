@@ -212,8 +212,7 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         } catch (e) {
                             logger.error('[WebR] Failed to wipe corrupted IDBFS:', e);
                         }
-                    }
-                        
+                    }    
                     // Sanity check for IDBFS
                     await webR.evalR(`writeLines("sane", "${persistentLib}/sanity.txt")`);
                     const sanity = await webR.evalR(`readLines("${persistentLib}/sanity.txt")`);
@@ -228,8 +227,12 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 } catch (fsErr) {
                     logger.warn('[WebR] IDBFS mount or sanity check failed:', fsErr);
                     try { await webR.FS.unmount(persistentLib); } catch(u) {}
-                    // If we tried to use IDBFS and it failed physically
-                    if (typeof localStorage !== 'undefined') {
+                    // Only flag as broken for actual IDBFS mount/IO failures
+                    // NOT for race conditions (FileReaderSync) which are handled separately
+                    const errMsg = String(fsErr);
+                    const isRealIDBFSFailure = errMsg.includes('IDBFS') || errMsg.includes('mount') || 
+                                               errMsg.includes('syncfs') || errMsg.includes('sanity');
+                    if (isRealIDBFSFailure && typeof localStorage !== 'undefined') {
                         localStorage.setItem('webr_fs_broken', 'true');
                     }
                 }
@@ -548,8 +551,9 @@ export async function executeRWithRecovery(
             errorMsg.includes('FileReaderSync') || 
             errorMsg.includes('Blob')) {
              logger.error('[WebR] Fatal R state. Resetting engine...');
-             // Flag the Virtual File System as fundamentally corrupted so it auto-nukes on next initialization
-             if (typeof localStorage !== 'undefined') localStorage.setItem('webr_fs_broken', 'true');
+             // DO NOT set webr_fs_broken here — FileReaderSync crash is a race condition
+             // (user triggered analysis while packages were still downloading), NOT IDBFS corruption.
+             // Setting webr_fs_broken would incorrectly nuke the cache on next load.
              resetWebR(); // Clear the hung instance
              throw new Error("Hệ thống R đang bận. Tôi đã tự động khởi động lại, vui lòng thực hiện lại phân tích sau vài giây.");
         }
