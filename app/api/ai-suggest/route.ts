@@ -128,7 +128,11 @@ Chá»‰ tráº£ vá» JSON, khÃ´ng thÃªm text khÃ¡c.
         }
 
         // Extract JSON from response (remove markdown code blocks if present)
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        const safeText = text ?? '';
+        if (!safeText) {
+            throw new Error('No response from AI service');
+        }
+        const jsonMatch = safeText.match(/\{[\s\S]*\}/);
         if (!jsonMatch) {
             throw new Error('Failed to parse AI response');
         }
