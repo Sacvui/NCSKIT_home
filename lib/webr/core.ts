@@ -473,7 +473,14 @@ export async function executeRWithRecovery(
     const webR = await initWebR();
 
     try {
-        if (method) await loadPackagesForMethod(method);
+        // NOTE: Callers (runCronbachAlpha, runEFA, etc.) already call loadPackagesForMethod
+        // before executeRWithRecovery. Only load here if method is provided AND packages
+        // are not yet loaded (avoids double runLocked() calls).
+        if (method) {
+            const required = getRequiredPackages(method);
+            const needsLoad = required.some(pkg => !isPackageLoaded(pkg));
+            if (needsLoad) await loadPackagesForMethod(method);
+        }
 
         // Prepare CSV data outside the lock (encoding is CPU-only, no WebR channel needed)
         let csvEncoded: Uint8Array | null = null;
@@ -541,13 +548,26 @@ export async function executeRWithRecovery(
         const errorMsg = error?.message || String(error);
         logger.warn('[WebR] Execution Error:', errorMsg);
 
-        // Fatal WebR state — reset engine
-        if (errorMsg.includes('promise already under evaluation') ||
+        // Fatal WebR worker state — only reset for true worker-level crashes
+        // DO NOT include broad strings like 'Blob' — they match R-side error messages too
+        const isFatalWorkerError = 
+            errorMsg.includes('promise already under evaluation') ||
             errorMsg.includes('FileReaderSync') ||
-            errorMsg.includes('Blob')) {
-            logger.error('[WebR] Fatal R state. Resetting engine...');
+            errorMsg.includes('webr-worker') ||
+            errorMsg.includes('Worker terminated') ||
+            errorMsg.includes('PostMessage channel');
+        
+        if (isFatalWorkerError) {
+            logger.error('[WebR] Fatal worker state. Resetting engine...');
             resetWebR();
             throw new Error("Hệ thống R đang bận. Tôi đã tự động khởi động lại, vui lòng thực hiện lại phân tích sau vài giây.");
+        }
+
+        // Timeout error — engine may be stuck, reset and let user retry
+        if (errorMsg.includes('Timeout after')) {
+            logger.error('[WebR] Execution timeout. Resetting engine...');
+            resetWebR();
+            throw new Error(`Phân tích quá thời gian. Hệ thống đã reset, vui lòng thử lại.`);
         }
 
         // Self-healing for missing packages
