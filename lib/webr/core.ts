@@ -486,25 +486,28 @@ export async function executeRWithRecovery(
         }
 
         // Prepare CSV data outside the lock (encoding is CPU-only, no WebR channel needed)
-        let csvEncoded: Uint8Array | null = null;
+        // NOTE: csvEncoded removed in v2.9.0 — data now injected via evalR, not FS.writeFile
         if (csvData && csvData.length > 0) {
             updateProgress('📊 Đang nạp dữ liệu...');
-            const csvText = csvData.map(row =>
-                row.map(v => (v === null || v === undefined || Number.isNaN(v as number)) ? 'NA' : v).join(',')
-            ).join('\n');
-            csvEncoded = new TextEncoder().encode(csvText);
         }
 
-        // v2.8.0 - Single unified runLocked() block
-        // CRITICAL: ALL FS and evalR operations MUST be in ONE runLocked() call.
-        // Two separate runLocked() calls deadlock: if the first throws, the second
-        // waits forever for a lock that was never released → timeout → "R đang bận".
+        // v2.9.0 - Single unified runLocked() block, NO FS.writeFile
+        // CRITICAL: webR.FS.writeFile(Uint8Array) triggers FileReaderSync.readAsArrayBuffer()
+        // inside the WebR worker, which ONLY accepts Blob — not Uint8Array.
+        // FIX: Inject CSV data directly via evalR() as an R string — bypasses VFS entirely.
         const executionPromise = runLocked(async () => {
-            // Step 1: Write CSV data if provided
-            if (csvEncoded && csvEncoded.length > 0) {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                await (webR.FS.writeFile as any)('/home/web_user/data.csv', csvEncoded);
-                await webR.evalR(`raw_data <- as.matrix(read.csv('/home/web_user/data.csv', header = FALSE, stringsAsFactors = FALSE))`);
+            // Step 1: Inject CSV data directly into R via evalR (no FS.writeFile needed)
+            if (csvData && csvData.length > 0) {
+                const csvText = csvData.map(row =>
+                    row.map(v => (v === null || v === undefined || Number.isNaN(v as number)) ? 'NA' : v).join(',')
+                ).join('\n');
+                // Escape backslashes and quotes for R string literal
+                const escapedCsv = csvText.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+                await webR.evalR(`
+                    .csv_text <- "${escapedCsv}"
+                    raw_data <- as.matrix(read.csv(text = .csv_text, header = FALSE, stringsAsFactors = FALSE))
+                    rm(.csv_text)
+                `);
             }
 
             // Step 2: Execute R analysis code + capture output via VFS
@@ -526,9 +529,12 @@ export async function executeRWithRecovery(
 
             await webR.evalR(wrappedCode);
 
-            // Step 3: Read result from VFS (inside same lock)
-            const rawBinary = await webR.FS.readFile("/home/web_user/output.json");
-            const finalStr = new TextDecoder().decode(rawBinary);
+            // Step 3: Read result via evalR — avoids FS.readFile which also triggers FileReaderSync
+            const resultProxy = await webR.evalR(`readLines("/home/web_user/output.json")`);
+            const resultLines = await resultProxy.toJs();
+            const finalStr = Array.isArray(resultLines?.values)
+                ? resultLines.values.join('\n')
+                : String(resultLines?.values ?? '');
 
             if (finalStr.startsWith("ERROR:")) {
                 throw new Error(finalStr.replace("ERROR:", "").trim());
