@@ -491,9 +491,11 @@ export async function executeRWithRecovery(
             // Passing Uint8Array directly causes: "parameter 1 is not of type 'Blob'"
             // Solution: wrap Uint8Array in a Blob before passing to writeFile.
             const encodedData = new TextEncoder().encode(csvText);
+            // WebR worker's FileReaderSync requires a Blob (not Uint8Array).
+            // The TS type says ArrayBufferView but the runtime needs Blob — cast to satisfy both.
             const csvBlob = new Blob([encodedData], { type: 'text/plain' });
             await runLocked(async () => {
-                await webR.FS.writeFile('/home/web_user/data.csv', csvBlob);
+                await webR.FS.writeFile('/home/web_user/data.csv', csvBlob as unknown as ArrayBufferView);
                 await webR.evalR(`raw_data <- as.matrix(read.csv('/home/web_user/data.csv', header = FALSE, stringsAsFactors = FALSE))`);
             });
         }
