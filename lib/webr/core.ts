@@ -494,20 +494,41 @@ export async function executeRWithRecovery(
         // v2.9.0 - Single unified runLocked() block, NO FS.writeFile
         // CRITICAL: webR.FS.writeFile(Uint8Array) triggers FileReaderSync.readAsArrayBuffer()
         // inside the WebR worker, which ONLY accepts Blob — not Uint8Array.
-        // FIX: Inject CSV data directly via evalR() as an R string — bypasses VFS entirely.
+        // FIX: Inject CSV data directly via evalR() — bypasses VFS/FileReaderSync entirely.
+        // For large datasets (>500 rows), use chunked injection to avoid R parser limits.
         const executionPromise = runLocked(async () => {
             // Step 1: Inject CSV data directly into R via evalR (no FS.writeFile needed)
             if (csvData && csvData.length > 0) {
-                const csvText = csvData.map(row =>
-                    row.map(v => (v === null || v === undefined || Number.isNaN(v as number)) ? 'NA' : v).join(',')
-                ).join('\n');
-                // Escape backslashes and quotes for R string literal
-                const escapedCsv = csvText.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-                await webR.evalR(`
-                    .csv_text <- "${escapedCsv}"
-                    raw_data <- as.matrix(read.csv(text = .csv_text, header = FALSE, stringsAsFactors = FALSE))
-                    rm(.csv_text)
-                `);
+                const CHUNK_SIZE = 500; // rows per chunk — safe for R parser
+                const numRows = csvData.length;
+
+                if (numRows <= CHUNK_SIZE) {
+                    // Small data: single evalR call
+                    const csvText = csvData.map(row =>
+                        row.map(v => (v === null || v === undefined || Number.isNaN(v as number)) ? 'NA' : v).join(',')
+                    ).join('\n');
+                    const escapedCsv = csvText.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+                    await webR.evalR(`
+                        .csv_text <- "${escapedCsv}"
+                        raw_data <- as.matrix(read.csv(text = .csv_text, header = FALSE, stringsAsFactors = FALSE))
+                        rm(.csv_text)
+                    `);
+                } else {
+                    // Large data: chunked injection, rbind in R
+                    await webR.evalR(`raw_data <- NULL`);
+                    for (let i = 0; i < numRows; i += CHUNK_SIZE) {
+                        const chunk = csvData.slice(i, i + CHUNK_SIZE);
+                        const chunkText = chunk.map(row =>
+                            row.map(v => (v === null || v === undefined || Number.isNaN(v as number)) ? 'NA' : v).join(',')
+                        ).join('\n');
+                        const escapedChunk = chunkText.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+                        await webR.evalR(`
+                            .chunk <- as.matrix(read.csv(text = "${escapedChunk}", header = FALSE, stringsAsFactors = FALSE))
+                            raw_data <- if(is.null(raw_data)) .chunk else rbind(raw_data, .chunk)
+                            rm(.chunk)
+                        `);
+                    }
+                }
             }
 
             // Step 2: Execute R analysis code + capture output via VFS
