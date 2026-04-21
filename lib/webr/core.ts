@@ -482,13 +482,18 @@ export async function executeRWithRecovery(
                 row.map(v => (v === null || v === undefined || Number.isNaN(v as number)) ? 'NA' : v).join(',')
             ).join('\n');
             
-            // v2.6.0 - Fully locked VFS Pipe
+            // v2.7.0 - Fully locked VFS Pipe + Blob fix
             // CRITICAL: webR.FS.writeFile() MUST be inside runLocked() because it uses
             // the same PostMessage channel as webR.evalR(). Calling it outside the mutex
             // causes FileReaderSync crash when IDBFS is being written concurrently.
+            //
+            // ROOT CAUSE FIX: WebR worker's FileReaderSync expects a Blob, NOT Uint8Array.
+            // Passing Uint8Array directly causes: "parameter 1 is not of type 'Blob'"
+            // Solution: wrap Uint8Array in a Blob before passing to writeFile.
             const encodedData = new TextEncoder().encode(csvText);
+            const csvBlob = new Blob([encodedData], { type: 'text/plain' });
             await runLocked(async () => {
-                await webR.FS.writeFile('/home/web_user/data.csv', encodedData);
+                await webR.FS.writeFile('/home/web_user/data.csv', csvBlob);
                 await webR.evalR(`raw_data <- as.matrix(read.csv('/home/web_user/data.csv', header = FALSE, stringsAsFactors = FALSE))`);
             });
         }
