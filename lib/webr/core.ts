@@ -1,7 +1,7 @@
 import { WebR } from 'webr';
 import { translateRError } from './utils';
 import { getCachedWebRState, setCachedWebRState } from './cache';
-import { getRequiredPackages, isPackageLoaded, markPackageLoaded } from './package-registry';
+import { getRequiredPackages, isPackageLoaded, markPackageLoaded, resetLoadedPackages } from './package-registry';
 import { logger } from '@/utils/logger';
 import { captureWebRError } from '@/lib/monitoring';
 
@@ -89,6 +89,9 @@ export function resetWebR(): void {
     initAttempts = 0;
     // Flush the lock
     evaluationLock = Promise.resolve();
+    // CRITICAL: Clear package registry — new R session has no packages loaded
+    // Without this, loadPackagesForMethod() skips install thinking packages exist
+    resetLoadedPackages();
     updateProgress('WebR reset - ready for reinitialization');
 }
 
