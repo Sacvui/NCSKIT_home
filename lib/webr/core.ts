@@ -482,11 +482,13 @@ export async function executeRWithRecovery(
                 row.map(v => (v === null || v === undefined || Number.isNaN(v as number)) ? 'NA' : v).join(',')
             ).join('\n');
             
-            // v2.5.0 - Bi-directional VFS Pipe
-            // Inject data via standard filesystem to bypass Blob serialization issues in webR.bind()
+            // v2.6.0 - Fully locked VFS Pipe
+            // CRITICAL: webR.FS.writeFile() MUST be inside runLocked() because it uses
+            // the same PostMessage channel as webR.evalR(). Calling it outside the mutex
+            // causes FileReaderSync crash when IDBFS is being written concurrently.
             const encodedData = new TextEncoder().encode(csvText);
-            await webR.FS.writeFile('/home/web_user/data.csv', encodedData);
             await runLocked(async () => {
+                await webR.FS.writeFile('/home/web_user/data.csv', encodedData);
                 await webR.evalR(`raw_data <- as.matrix(read.csv('/home/web_user/data.csv', header = FALSE, stringsAsFactors = FALSE))`);
             });
         }
@@ -514,8 +516,7 @@ export async function executeRWithRecovery(
             
             await webR.evalR(wrappedCode);
             
-            // v2.4.0 - VFS-based Ultra-stable Pipeline
-            // Bypasses R-JS object serialization entirely for the payload
+            // v2.6.0 - readFile also inside lock to prevent concurrent channel access
             const rawBinary = await webR.FS.readFile("/home/web_user/output.json");
             const finalStr = new TextDecoder().decode(rawBinary);
             
