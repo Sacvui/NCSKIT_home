@@ -4,6 +4,7 @@ import { sanitizeInput } from '@/utils/security';
 import CryptoJS from 'crypto-js';
 import { validateOrigin } from '@/utils/csrf-protection';
 import { callAI, AIChatMessage } from '@/lib/ai-service';
+import { logger } from '@/utils/logger';
 
 /**
  * Resolve the Gemini API key to use for this request.
