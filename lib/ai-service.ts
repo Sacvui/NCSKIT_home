@@ -7,7 +7,7 @@
  *
  * Usage in .env.local for local AI:
  *   OLLAMA_BASE_URL=http://localhost:11434
- *   OLLAMA_MODEL=qwen2.5:7b
+ *   OLLAMA_MODEL=qwen2.5:14b
  */
 
 import { logger } from '@/utils/logger';
