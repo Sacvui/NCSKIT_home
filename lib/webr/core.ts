@@ -475,70 +475,58 @@ export async function executeRWithRecovery(
     try {
         if (method) await loadPackagesForMethod(method);
 
+        // Prepare CSV data outside the lock (encoding is CPU-only, no WebR channel needed)
+        let csvEncoded: Uint8Array | null = null;
         if (csvData && csvData.length > 0) {
             updateProgress('📊 Đang nạp dữ liệu...');
-            // Convert data to a CSV formatted string
-            const csvText = csvData.map(row => 
+            const csvText = csvData.map(row =>
                 row.map(v => (v === null || v === undefined || Number.isNaN(v as number)) ? 'NA' : v).join(',')
             ).join('\n');
-            
-            // v2.7.0 - Fully locked VFS Pipe + Blob fix
-            // CRITICAL: webR.FS.writeFile() MUST be inside runLocked() because it uses
-            // the same PostMessage channel as webR.evalR(). Calling it outside the mutex
-            // causes FileReaderSync crash when IDBFS is being written concurrently.
-            //
-            // ROOT CAUSE FIX: WebR worker's FileReaderSync expects a Blob, NOT Uint8Array.
-            // Passing Uint8Array directly causes: "parameter 1 is not of type 'Blob'"
-            // Solution: wrap Uint8Array in a Blob before passing to writeFile.
-            const encodedData = new TextEncoder().encode(csvText);
-            // Use Uint8Array directly — Blob is NOT transferable to WebR worker context.
-            // The TS type is wrong (says ArrayBufferView but runtime accepts Uint8Array fine).
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            await runLocked(async () => {
-                await (webR.FS.writeFile as any)('/home/web_user/data.csv', encodedData);
-                await webR.evalR(`raw_data <- as.matrix(read.csv('/home/web_user/data.csv', header = FALSE, stringsAsFactors = FALSE))`);
-            });
+            csvEncoded = new TextEncoder().encode(csvText);
         }
 
-        let output: any;
+        // v2.8.0 - Single unified runLocked() block
+        // CRITICAL: ALL FS and evalR operations MUST be in ONE runLocked() call.
+        // Two separate runLocked() calls deadlock: if the first throws, the second
+        // waits forever for a lock that was never released → timeout → "R đang bận".
         const executionPromise = runLocked(async () => {
-            // Enhanced wrap with automated cleanup and result stripping to keep size small
+            // Step 1: Write CSV data if provided
+            if (csvEncoded && csvEncoded.length > 0) {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                await (webR.FS.writeFile as any)('/home/web_user/data.csv', csvEncoded);
+                await webR.evalR(`raw_data <- as.matrix(read.csv('/home/web_user/data.csv', header = FALSE, stringsAsFactors = FALSE))`);
+            }
+
+            // Step 2: Execute R analysis code + capture output via VFS
             const wrappedCode = `
                 tryCatch({
                     .res <- { ${rCode} }
-                    # Strip heavy attributes that crash toJs (like environments, calls, large models)
                     if (is.list(.res)) {
                         attributes(.res)$call <- NULL
                         attributes(.res)$model <- NULL
                     }
-                    # Convert to JSON and save to VFS for ultra-stable transfer
                     .json <- jsonlite::toJSON(.res, auto_unbox = TRUE, force = TRUE, digits = 8)
                     writeLines(as.character(.json), "/home/web_user/output.json")
-                    TRUE # Return success flag
+                    TRUE
                 }, error = function(e) {
                     writeLines(paste("ERROR:", e$message), "/home/web_user/output.json")
-                    FALSE # Return failure flag
+                    FALSE
                 })
             `;
-            
+
             await webR.evalR(wrappedCode);
-            
-            // v2.6.0 - readFile also inside lock to prevent concurrent channel access
+
+            // Step 3: Read result from VFS (inside same lock)
             const rawBinary = await webR.FS.readFile("/home/web_user/output.json");
             const finalStr = new TextDecoder().decode(rawBinary);
-            
-            logger.debug('[WebR] Engine System v2.4.0 - VFS-File Data Pipe Active');
+
+            if (finalStr.startsWith("ERROR:")) {
+                throw new Error(finalStr.replace("ERROR:", "").trim());
+            }
 
             try {
-                // Check for R-side errors encoded in the binary/string stream
-                if (finalStr.startsWith("ERROR:")) {
-                    throw new Error(finalStr);
-                }
-
                 return JSON.parse(finalStr);
-            } catch (e: any) {
-                // If it's already an error we threw (e.g. from R script), re-throw it
-                if (e.message && e.message.startsWith('ERROR:')) throw new Error(e.message.replace("ERROR:", "").trim());
+            } catch {
                 return finalStr;
             }
         });
@@ -547,37 +535,32 @@ export async function executeRWithRecovery(
             setTimeout(() => reject(new Error(`Timeout after ${timeoutMs / 1000}s`)), timeoutMs)
         );
 
-        output = await Promise.race([executionPromise, timeoutPromise]);
-        return output;
+        return await Promise.race([executionPromise, timeoutPromise]);
+
     } catch (error: any) {
         const errorMsg = error?.message || String(error);
-
         logger.warn('[WebR] Execution Error:', errorMsg);
 
-        // Recursive evaluation error is fatal to the current worker state -> Force Restart
-        if (errorMsg.includes('promise already under evaluation') || 
-            errorMsg.includes('FileReaderSync') || 
+        // Fatal WebR state — reset engine
+        if (errorMsg.includes('promise already under evaluation') ||
+            errorMsg.includes('FileReaderSync') ||
             errorMsg.includes('Blob')) {
-             logger.error('[WebR] Fatal R state. Resetting engine...');
-             // DO NOT set webr_fs_broken here — FileReaderSync crash is a race condition
-             // (user triggered analysis while packages were still downloading), NOT IDBFS corruption.
-             // Setting webr_fs_broken would incorrectly nuke the cache on next load.
-             resetWebR(); // Clear the hung instance
-             throw new Error("Hệ thống R đang bận. Tôi đã tự động khởi động lại, vui lòng thực hiện lại phân tích sau vài giây.");
+            logger.error('[WebR] Fatal R state. Resetting engine...');
+            resetWebR();
+            throw new Error("Hệ thống R đang bận. Tôi đã tự động khởi động lại, vui lòng thực hiện lại phân tích sau vài giây.");
         }
 
-        // SELF-HEALING for missing packages
+        // Self-healing for missing packages
         if (errorMsg.includes('there is no package called') && retryCount < maxRetries) {
-            const match = errorMsg.match(/no package called .(.*)./);
+            const match = errorMsg.match(/no package called ['"]?([^'"]+)['"]?/);
             const missingPkg = match ? match[1] : null;
-
             if (missingPkg) {
                 logger.warn(`Auto-installing missing package: ${missingPkg}`);
                 updateProgress(`Setting up ${missingPkg}...`);
                 const officialRepo = "https://repo.r-wasm.org/";
-                const localRepo = (typeof window !== 'undefined' && window.location.origin) ? window.location.origin + "/webr_repo_v2" : "https://ncskit.org/webr_repo_v2";
-                
-                // Try local repo first, fallback to official CRAN mirror
+                const localRepo = (typeof window !== 'undefined' && window.location.origin)
+                    ? window.location.origin + "/webr_repo_v2"
+                    : "https://ncskit.org/webr_repo_v2";
                 await runLocked(async () => {
                     await webR.evalR(`
                         if (!require("${missingPkg}", character.only = TRUE, quietly = TRUE)) {
