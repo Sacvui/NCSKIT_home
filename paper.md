@@ -28,7 +28,7 @@ Modern psychological and social research increasingly demands analytical tools t
 Data sovereignty is a critical requirement in contemporary research, where data privacy regulations (e.g., GDPR) often prohibit the transmission of sensitive raw data to external cloud servers. While native desktop applications like JASP or jamovi offer localized processing, they require administrative installation privileges—a significant barrier in institutional environments. 
 
 `ncsStat` addresses these challenges through three core innovations:
-1.  **Methodological Guardrails**: The framework acts as a "virtual mentor," enforcing rigorous pre-analysis checks (e.g., multivariate normality, homogeneity of variance) and automatically suggesting corrective paths (e.g., switching to Welch ANOVA or robust estimators). This prevents common statistical pitfalls in academic publishing.
+1.  **Methodological Guardrails**: The framework acts as a "virtual mentor," enforcing rigorous pre-analysis checks based on established multivariate standards [@Hair2010] (e.g., multivariate normality, homogeneity of variance) and automatically suggesting corrective paths (e.g., switching to Welch ANOVA or robust estimators). This prevents common statistical pitfalls in academic publishing.
 2.  **Democratizing Science**: By being **offline-ready** and zero-cost, `ncsStat` empowers researchers in low-resource settings or remote field environments where internet connectivity is unreliable and proprietary software licenses are unaffordable.
 3.  **Reproducibility via Script Export**: To bridge the gap between GUI simplicity and code-based transparency, `ncsStat` provides an "Export to R Script" feature, allowing users to reproduce any analysis in a native RStudio environment.
 
@@ -46,7 +46,7 @@ Architecturally, `ncsStat` introduces significant technical contributions:
 The framework integrates professional R packages such as `lavaan` [@Rosseel2012] and `psych` [@Psych2024] to provide:
 - **Privacy-preserving Analysis**: 100% local processing.
 - **Expert-Rule Interpretation**: Automated reporting logic based on established statistical thresholds.
-- **Methodological Guidance**: Context-aware suggestions for data cleaning and model refinement.
+- **Methodological Guidance**: Context-aware suggestions for data cleaning and model refinement, including specialized modules for mediation and moderation analysis based on standard paradigms [@BaronKenny1986].
 
 # Sustainability and Maintainability
 
