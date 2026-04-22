@@ -76,4 +76,4 @@ export default async function KnowledgeArticlePage({ params }: { params: Promise
             slug={slug} 
         />
     );
-                content_vi: `Hệ số Omega (ω) được các học giả hiện đại khuyến nghị sử dụng vì nó linh hoạt và chính xác hơn Alpha. ncsStat cung cấp song song cả hai chỉ số này giúp bài nghiên cứu của bạn đạt tiêu chuẩn xuất bản của các tạp chí quốc tế hàng đầu (Q1/Q2). Việc báo cáo đồng thời cả Alpha và Omega cho thấy sự chuyên nghiệp và cập nhật xu hướng thống kê hiện đại nhất của tác giả.`,
+}
