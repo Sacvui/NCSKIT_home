@@ -154,11 +154,8 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
 
         const performInit = (async (): Promise<WebR> => {
             try {
-                // Use the standardized webr_core folder for consistent resolution
                 const webR = new WebR({
-                    baseUrl: BASE_URL,
-                    // MUST BE Channel 3 (PostMessage) to support IDBFS persistent storage caching!
-                    // SharedArrayBuffer (Channel 0) DOES NOT support IDBFS asynchronous I/O yet.
+                    baseUrl: typeof window !== 'undefined' ? (window.location.origin + BASE_URL) : BASE_URL,
                     channelType: 3,
                 });
 
@@ -213,19 +210,17 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                             if (typeof localStorage !== 'undefined') localStorage.removeItem('webr_fs_broken');
                             logger.debug('[WebR] Wipe successful! Fresh DB ready.');
                         } catch (e) {
-                            logger.error('[WebR] Failed to wipe corrupted IDBFS:', e);
-                        }
-                    }    
-                    // Sanity check for IDBFS
-                    await webR.evalR(`writeLines("sane", "${persistentLib}/sanity.txt")`);
-                    const sanity = await webR.evalR(`readLines("${persistentLib}/sanity.txt")`);
-                    const sanityVal = unpackWebRObject(await sanity.toJs());
+                        // Sanity check for IDBFS using R-level directory checks instead of risky writeLines
+                    // writeLines/readLines via evalR can trigger FileReaderSync crashes in certain worker states
+                    const sanityCheck = await webR.evalR(`dir.exists("${persistentLib}") && file.access("${persistentLib}", 2) == 0`);
+                    const isHealthy = unpackWebRObject(await sanityCheck.toJs());
                     
-                    if (sanityVal === "sane") {
+                    if (isHealthy === true) {
                         storageSane = true;
-                        logger.debug('[WebR] IDBFS Sanity check passed! Storage is healthy.');
+                        logger.debug('[WebR] IDBFS Health check passed!');
                     } else {
-                        throw new Error('[WebR] IDBFS Sanity check failed - incorrect value read back');
+                        // If check failed but directory exists, try to re-mount or just use memory
+                        logger.warn('[WebR] IDBFS Health check failed - directory not writable or missing.');
                     }
                 } catch (fsErr) {
                     logger.warn('[WebR] IDBFS mount or sanity check failed:', fsErr);
