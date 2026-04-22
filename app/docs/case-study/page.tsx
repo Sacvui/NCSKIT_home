@@ -181,6 +181,96 @@ function CaseStudyContent() {
                         </div>
                     </div>
 
+                    {/* NEW: Beginner Marketing Roadmap Section */}
+                    <div className="mb-32">
+                        <div className="bg-indigo-600 rounded-[4rem] p-12 md:p-20 text-white shadow-2xl relative overflow-hidden">
+                            <div className="absolute -right-20 -top-20 w-96 h-96 bg-indigo-500 rounded-full blur-[100px] opacity-50"></div>
+                            <div className="relative z-10">
+                                <h2 className="text-3xl md:text-5xl font-black mb-8 leading-tight italic tracking-tighter">
+                                    Lộ trình Nghiên cứu <br />Marketing Chuẩn (Beginner)
+                                </h2>
+                                <p className="text-indigo-100 text-lg mb-12 max-w-2xl font-medium leading-relaxed opacity-90">
+                                    Dành cho người mới: "Sau khi tính Thống kê mô tả xong thì làm gì tiếp theo?". 
+                                    Dưới đây là luồng dữ liệu 5 bước giúp bạn đi từ bảng số thô đến bài báo khoa học hoàn chỉnh.
+                                </p>
+
+                                <div className="grid gap-8">
+                                    {[
+                                        {
+                                            step: "01",
+                                            name: "Thống kê Mô tả & Làm sạch",
+                                            purpose: "Hiểu chân dung mẫu nghiên cứu (Ai là người trả lời?).",
+                                            indices: [
+                                                { label: "Skewness", val: "± 2.0", desc: "Đạt chuẩn phân phối chuẩn" },
+                                                { label: "Missing Data", val: "< 5%", desc: "Dữ liệu đủ tin cậy" }
+                                            ]
+                                        },
+                                        {
+                                            step: "02",
+                                            name: "Kiểm định Độ tin cậy (Reliability)",
+                                            purpose: "Loại bỏ các câu hỏi 'rác' hoặc gây hiểu lầm.",
+                                            indices: [
+                                                { label: "Cronbach's Alpha", val: "> 0.70", desc: "Thang đo nhất quán" },
+                                                { label: "Corrected Item-Total", val: "> 0.30", desc: "Biến có đóng góp cho nhóm" }
+                                            ]
+                                        },
+                                        {
+                                            step: "03",
+                                            name: "Nhân tố khám phá (EFA)",
+                                            purpose: "Gom nhóm các câu hỏi vào đúng 'ngăn kéo' lý thuyết.",
+                                            indices: [
+                                                { label: "KMO", val: "> 0.50", desc: "Dữ liệu đủ điều kiện EFA" },
+                                                { label: "Factor Loading", val: "> 0.50", desc: "Biến thuộc về nhân tố đó" }
+                                            ]
+                                        },
+                                        {
+                                            step: "04",
+                                            name: "Nhân tố khẳng định (CFA)",
+                                            purpose: "Khẳng định mô hình đo lường đạt độ hội tụ và phân biệt.",
+                                            indices: [
+                                                { label: "CFI / TLI", val: "> 0.90", desc: "Mô hình phù hợp tốt" },
+                                                { label: "RMSEA", val: "< 0.08", desc: "Sai số trong mức cho phép" }
+                                            ]
+                                        },
+                                        {
+                                            step: "05",
+                                            name: "Mô hình cấu trúc (SEM)",
+                                            purpose: "Kết luận các giả thuyết H1, H2... là Đúng hay Sai.",
+                                            indices: [
+                                                { label: "P-Value", val: "< 0.05", desc: "Có ý nghĩa thống kê" },
+                                                { label: "R-Square", val: "0.2 - 0.7", desc: "Mức độ giải thích mô hình" }
+                                            ]
+                                        }
+                                    ].map((item, idx) => (
+                                        <div key={idx} className="bg-white/10 backdrop-blur-md border border-white/20 rounded-[2.5rem] p-8 md:p-12 hover:bg-white/20 transition-all group">
+                                            <div className="flex flex-col md:flex-row gap-8 items-start">
+                                                <div className="w-16 h-16 rounded-2xl bg-white text-indigo-600 flex items-center justify-center text-2xl font-black flex-shrink-0 shadow-lg">
+                                                    {item.step}
+                                                </div>
+                                                <div className="flex-grow">
+                                                    <h4 className="text-2xl font-black mb-3">{item.name}</h4>
+                                                    <p className="text-indigo-100 mb-8 font-medium italic opacity-80">{item.purpose}</p>
+                                                    
+                                                    <div className="grid sm:grid-cols-2 gap-4">
+                                                        {item.indices.map((idx_item, iidx) => (
+                                                            <div key={iidx} className="bg-white/5 border border-white/10 rounded-2xl p-4 flex justify-between items-center">
+                                                                <div>
+                                                                    <p className="text-[10px] font-black text-indigo-200 uppercase tracking-widest">{idx_item.label}</p>
+                                                                    <p className="text-[11px] text-white/60">{idx_item.desc}</p>
+                                                                </div>
+                                                                <div className="text-lg font-black text-white">{idx_item.val}</div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* Final Reporting Tips */}
                     <div className="bg-slate-900 p-12 md:p-16 rounded-[4rem] text-white relative overflow-hidden shadow-2xl mb-24">
                         <div className="absolute top-0 right-0 p-12 opacity-[0.03] pointer-events-none">

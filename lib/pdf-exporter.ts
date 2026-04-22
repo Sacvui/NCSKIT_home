@@ -84,88 +84,58 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
             const pageHeight = doc.internal.pageSize.height;
 
             // --- PREMIUM ACADEMIC HEADER ---
-            // High-impact Blue-900 banner at the top
             doc.setFillColor(30, 58, 138); // Blue-900
-            doc.rect(0, 0, pageWidth, 4, 'F');
+            doc.rect(0, 0, pageWidth, 5, 'F');
 
-            // Set font to NotoSans if loaded
             doc.setFont('NotoSans', 'bold');
-
-            // Logo/Platform Name
-            doc.setFontSize(22);
+            doc.setFontSize(24);
             doc.setTextColor(30, 58, 138);
             doc.text('ncsStat', 15, 22);
 
-            // Academic Tagline
             doc.setFontSize(8);
-            doc.setTextColor(100);
+            doc.setTextColor(100, 116, 139); // Slate-500
             doc.setFont('NotoSans', 'normal');
-            doc.text('SCIENTIFIC ANALYSIS PLATFORM FOR RESEARCHERS', 15, 28);
+            doc.text('HỆ THỐNG PHÂN TÍCH DỮ LIỆU KHOA HỌC CHUYÊN SÂU', 15, 28);
 
-            // Right side meta info
             doc.setFontSize(7);
-            doc.setTextColor(140);
-            doc.setFont('NotoSans', 'normal');
-            doc.text('VERSION 2.0 (STABLE)', pageWidth - 15, 18, { align: 'right' });
+            doc.setTextColor(148, 163, 184); // Slate-400
+            doc.text('NGƯỜI THỰC HIỆN: ' + userName.toUpperCase(), pageWidth - 15, 18, { align: 'right' });
             
             const exportDate = new Date().toLocaleDateString('vi-VN', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+                day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'
             });
             doc.setFont('NotoSans', 'bold');
-            doc.text(`REPORT GENERATED: ${exportDate.toUpperCase()}`, pageWidth - 15, 24, { align: 'right' });
+            doc.setTextColor(71, 85, 105); // Slate-600
+            doc.text(`NGÀY XUẤT BÁO CÁO: ${exportDate}`, pageWidth - 15, 24, { align: 'right' });
 
-            // Horizontal Separator
-            doc.setDrawColor(240);
+            doc.setDrawColor(226, 232, 240); // Slate-200
             doc.setLineWidth(0.5);
             doc.line(15, 34, pageWidth - 15, 34);
 
-            // Analysis Title (On first page only)
             if (showTitle) {
-                // Background for title - Professional Slate-100
-                doc.setFillColor(241, 245, 249);
-                const titleHeight = 20;
-                doc.roundedRect(15, 40, pageWidth - 30, titleHeight, 1, 1, 'F');
-                
-                // Left accent bar
-                doc.setFillColor(30, 58, 138); // Blue-900
-                doc.rect(15, 40, 3, titleHeight, 'F');
+                doc.setFillColor(248, 250, 252); // Slate-50
+                doc.roundedRect(15, 40, pageWidth - 30, 15, 1, 1, 'F');
+                doc.setFillColor(30, 58, 138); 
+                doc.rect(15, 40, 2, 15, 'F');
 
                 doc.setFont('NotoSans', 'bold');
-                doc.setFontSize(14);
+                doc.setFontSize(11);
                 doc.setTextColor(30, 58, 138);
-                const titleLines = doc.splitTextToSize(title.toUpperCase(), pageWidth - 50);
-                
-                // Center vertically in the box
-                const lineCount = titleLines.length;
-                const textHeight = lineCount * 7; // approximate line height
-                const yOffset = 40 + (titleHeight / 2) - (textHeight / 2) + 5;
-                
-                doc.text(titleLines, 25, yOffset);
+                doc.text(title.toUpperCase(), 22, 50);
             }
 
             // --- PROFESSIONAL FOOTER ---
-            // Footer separator
-            doc.setDrawColor(220);
-            doc.setLineWidth(0.3);
-            doc.line(15, pageHeight - 20, pageWidth - 15, pageHeight - 20);
+            doc.setDrawColor(226, 232, 240);
+            doc.line(15, pageHeight - 15, pageWidth - 15, pageHeight - 15);
 
-            // Page number & Branding
             const currentPage = pageNum || doc.getCurrentPageInfo().pageNumber;
             const total = totalPages || currentPage;
             
-            doc.setFontSize(8);
-            doc.setTextColor(100);
-            doc.setFont('NotoSans', 'bold');
-            doc.text(`NCSSTAT SYSTEM REPORT`, 15, pageHeight - 15);
-            doc.text(`PAGE ${currentPage} / ${total}`, pageWidth / 2, pageHeight - 15, { align: 'center' });
-            doc.text(`HTTPS://NCSSTAT.NC SKIT.ORG`, pageWidth - 15, pageHeight - 15, { align: 'right' });
-
-            // Reset font
-            doc.setFont('NotoSans', 'normal');
+            doc.setFontSize(7);
+            doc.setTextColor(148, 163, 184);
+            doc.text(`© 2026 NCSSTAT ENGINE - BÁO CÁO PHÂN TÍCH TỰ ĐỘNG`, 15, pageHeight - 10);
+            doc.text(`TRANG ${currentPage} / ${total}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
+            doc.text(`XÁC THỰC TẠI: WWW.NCSKIT.ORG`, pageWidth - 15, pageHeight - 10, { align: 'right' });
         };
 
         const doc = new jsPDF();
@@ -182,17 +152,29 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
         };
 
         const commonTableOptions = {
-            styles: { font: 'NotoSans', fontSize: 9, cellPadding: 3, textColor: [50, 50, 50] as [number, number, number] },
+            styles: { 
+                font: 'NotoSans', 
+                fontSize: 8.5, 
+                cellPadding: 2.5, 
+                textColor: [33, 37, 41] as [number, number, number],
+                lineWidth: 0.1,
+                lineColor: [200, 200, 200] as [number, number, number]
+            },
             headStyles: { 
-                fillColor: [30, 58, 138] as [number, number, number], // Blue-900
-                textColor: [255, 255, 255] as [number, number, number],
+                fillColor: [255, 255, 255] as [number, number, number], // White background for APA
+                textColor: [30, 58, 138] as [number, number, number], // Blue-900 text
                 fontStyle: 'bold' as any,
                 fontSize: 9,
-                halign: 'center' as any
+                halign: 'center' as any,
+                lineWidth: { top: 0.5, bottom: 0.5, left: 0, right: 0 } as any, // Only top/bottom lines for APA
+                lineColor: [30, 58, 138] as [number, number, number]
             },
-            alternateRowStyles: { fillColor: [248, 250, 252] as [number, number, number] },
-            theme: 'striped' as const,
-            margin: { top: 50 },
+            bodyStyles: {
+                lineWidth: { top: 0, bottom: 0.1, left: 0, right: 0 } as any,
+            },
+            alternateRowStyles: { fillColor: [250, 251, 253] as [number, number, number] },
+            theme: 'plain' as const, // Use plain for maximum control (APA style)
+            margin: { top: 50, left: 15, right: 15 },
         };
 
         // --- CONTENT GENERATION ---
@@ -393,42 +375,32 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
             }
 
             // Academic Interpretation for T-Test
-            checkPageBreak(50);
-            doc.setFillColor(248, 250, 252); // Light slate
-            doc.rect(15, yPos, 180, 45, 'F');
-            doc.setDrawColor(30, 58, 138); // Blue-900
-            doc.line(15, yPos, 15, yPos + 45); // Left accent line
+            checkPageBreak(60);
+            doc.setFillColor(241, 245, 249);
+            doc.roundedRect(15, yPos, 180, 50, 1, 1, 'F');
             
-            yPos += 10;
             doc.setFont('NotoSans', 'bold');
             doc.setFontSize(10);
             doc.setTextColor(30, 58, 138);
-            doc.text('NHẬN ĐỊNH HỌC THUẬT (ACADEMIC INTERPRETATION)', 20, yPos);
+            doc.text('NHẬN ĐỊNH HỌC THUẬT (ACADEMIC INTERPRETATION)', 20, yPos + 10);
             
-            yPos += 8;
             doc.setFont('NotoSans', 'normal');
-            doc.setFontSize(9);
-            doc.setTextColor(50, 50, 50);
+            doc.setFontSize(8.5);
+            doc.setTextColor(51, 65, 85);
             
             const isSig = results.pValue < 0.05;
-            const tText = isSig 
-                ? `Kết quả kiểm định T-test cho thấy có sự khác biệt có ý nghĩa thống kê (p < 0.05) giữa hai nhóm.` 
-                : `Kết quả kiểm định T-test cho thấy KHÔNG có sự khác biệt có ý nghĩa thống kê (p > 0.05) giữa hai nhóm.`;
+            const pVal = results.pValue < 0.001 ? '< 0.001' : results.pValue.toFixed(3);
+            const effect = Math.abs(results.effectSize);
+            const effectLabel = effect > 0.8 ? 'Lớn (Large)' : effect > 0.5 ? 'Trung bình (Medium)' : 'Nhỏ (Small)';
             
-            const cohenText = `Mức độ tác động (Cohen's d = ${results.effectSize.toFixed(3)}) được đánh giá ở mức ${Math.abs(results.effectSize) > 0.8 ? 'Lớn' : Math.abs(results.effectSize) > 0.5 ? 'Trung bình' : 'Nhỏ'}.`;
+            let ttestInterpret = `1. Ý nghĩa thống kê: Với p-value = ${pVal}, kết quả cho thấy ${isSig ? 'CÓ' : 'KHÔNG CÓ'} sự khác biệt có ý nghĩa thống kê giữa hai nhóm ở mức tin cậy 95%. `;
+            ttestInterpret += `\n2. Quy mô tác động: Chỉ số Cohen's d = ${results.effectSize.toFixed(3)} được đánh giá ở mức ${effectLabel}. `;
+            ttestInterpret += isSig ? `Điều này khẳng định sự khác biệt quan sát được là có giá trị thực tiễn.` : `Sự khác biệt nếu có chỉ là do ngẫu nhiên mẫu.`;
             
-            doc.text([tText, cohenText], 20, yPos, { maxWidth: 170 });
-            yPos += 20;
+            const splitInter = doc.splitTextToSize(ttestInterpret, 170);
+            doc.text(splitInter, 20, yPos + 18);
             
-            doc.setFont('NotoSans', 'italic');
-            doc.setFontSize(8);
-            doc.setTextColor(100);
-            doc.text('* Gợi ý: Kiểm tra tính đồng nhất phương sai (Levene\'s Test) để đảm bảo độ tin cậy của trị số t.', 20, yPos);
-            
-            doc.setTextColor(0);
-            doc.setFont('NotoSans', 'normal');
-            doc.setFontSize(10);
-            yPos += 15;
+            yPos += 60;
         }
         else if (analysisType === 'ttest-paired') {
             doc.text('Paired Samples T-Test:', 15, yPos);
@@ -595,41 +567,38 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
             yPos = (doc as any).lastAutoTable.finalY + 15;
 
             // Academic Interpretation for Regression
-            checkPageBreak(50);
-            doc.setFillColor(248, 250, 252);
-            doc.rect(15, yPos, 180, 50, 'F');
-            doc.setDrawColor(30, 58, 138); 
-            doc.line(15, yPos, 15, yPos + 50);
+            checkPageBreak(60);
+            doc.setFillColor(241, 245, 249);
+            doc.roundedRect(15, yPos, 180, 55, 1, 1, 'F');
             
-            yPos += 10;
             doc.setFont('NotoSans', 'bold');
             doc.setFontSize(10);
             doc.setTextColor(30, 58, 138);
-            doc.text('NHẬN ĐỊNH HỌC THUẬT (ACADEMIC INTERPRETATION)', 20, yPos);
+            doc.text('TỔNG KẾT VÀ NHẬN ĐỊNH MÔ HÌNH (MODEL INTERPRETATION)', 20, yPos + 10);
             
-            yPos += 8;
             doc.setFont('NotoSans', 'normal');
-            doc.setFontSize(9);
-            doc.setTextColor(50, 50, 50);
+            doc.setFontSize(8.5);
+            doc.setTextColor(51, 65, 85);
             
             const r2 = modelFit.rSquared;
-            const rText = `Mô hình có R-Square = ${r2.toFixed(3)}, cho thấy các biến độc lập giải thích được ${(r2 * 100).toFixed(1)}% sự biến thiên của biến phụ thuộc.`;
-            const fText = modelFit.pValue < 0.05 
-                ? `Kiểm định F có Sig < 0.05, khẳng định mô hình hồi quy là phù hợp.` 
-                : `Cảnh báo: Kiểm định F có Sig > 0.05, mô hình có thể không có ý nghĩa thống kê.`;
+            const fSig = modelFit.pValue;
+            const isModelFit = fSig < 0.05;
             
-            doc.text([rText, fText], 20, yPos, { maxWidth: 170 });
-            yPos += 22;
+            let regressionInterpret = `1. Độ phù hợp: Mô hình có R² = ${r2.toFixed(3)}, cho thấy các biến độc lập giải thích được ${(r2 * 100).toFixed(1)}% sự biến thiên của biến phụ thuộc. `;
+            regressionInterpret += isModelFit 
+                ? `Kiểm định F có Sig. = ${fSig < 0.001 ? '< 0.001' : fSig.toFixed(3)}, nhỏ hơn 0.05, cho thấy mô hình hồi quy xây dựng được là phù hợp với tập dữ liệu. `
+                : `CẢNH BÁO: Kiểm định F không có ý nghĩa thống kê (Sig. > 0.05), mô hình có thể không có giá trị dự báo. `;
             
-            doc.setFont('NotoSans', 'italic');
-            doc.setFontSize(8);
-            doc.setTextColor(100);
-            doc.text('* Gợi ý: Kiểm tra hệ số VIF (< 10 hoặc < 2) để loại trừ hiện tượng đa cộng tuyến giữa các biến độc lập.', 20, yPos);
+            // Multicollinearity check
+            const highVif = coefficients.filter((c: any) => c.vif > 10);
+            const vifText = highVif.length > 0 
+                ? `\n2. Đa cộng tuyến: Phát hiện ${highVif.length} biến có hệ số VIF > 10 (${highVif.map((c: any) => c.term).join(', ')}), cần xem xét loại bỏ để tránh sai số.` 
+                : `\n2. Đa cộng tuyến: Tất cả các hệ số VIF đều nằm trong ngưỡng an toàn (< 10, đa số < 2), cho thấy không có hiện tượng đa cộng tuyến nghiêm trọng.`;
             
-            doc.setTextColor(0);
-            doc.setFont('NotoSans', 'normal');
-            doc.setFontSize(10);
-            yPos += 15;
+            const splitInter = doc.splitTextToSize(regressionInterpret + vifText, 170);
+            doc.text(splitInter, 20, yPos + 18);
+            
+            yPos += 65;
         }
         else if (analysisType === 'efa') {
             doc.text(`KMO: ${results.kmo.toFixed(3)}`, 15, yPos);
