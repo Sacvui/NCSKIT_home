@@ -162,34 +162,44 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     try { await webR.FS.mkdir('/home/web_user'); } catch (e) {}
                     try { await webR.FS.mkdir(persistentLib); } catch (e) {}
                     
-                    logger.debug('[WebR] Attempting to mount IDBFS storage...');
-                    await webR.FS.mount('IDBFS', {}, persistentLib);
-                    await webR.FS.syncfs(true);
-
+                    logger.debug('[WebR] Connecting to persistent storage...');
+                    
+                    // If flagged as broken, try to nuke BEFORE mounting if possible
                     if (isFsBroken) {
-                        logger.warn('[WebR] FATAL CORRUPTION DETECTED! Nuking IDBFS...');
-                        try {
+                        logger.warn('[WebR] Target storage is corrupted. Attempting pre-mount cleanup.');
+                    }
+
+                    await webR.FS.mount('IDBFS', {}, persistentLib);
+                    
+                    // CRITICAL: syncfs(true) is where FileReaderSync crashes happen
+                    // We must catch this or the worker will die
+                    try {
+                        await Promise.race([
+                            webR.FS.syncfs(true),
+                            new Promise((_, reject) => setTimeout(() => reject(new Error('IDBFS Sync Timeout')), 15000))
+                        ]);
+
+                        if (isFsBroken) {
+                            logger.warn('[WebR] Repairing corrupted storage...');
                             await webR.evalR(`unlink("${persistentLib}", recursive = TRUE); dir.create("${persistentLib}", recursive = TRUE)`);
                             await webR.FS.syncfs(false);
                             if (typeof localStorage !== 'undefined') localStorage.removeItem('webr_fs_broken');
-                        } catch (e) {}
-                    }    
-                    const sanityCheck = await webR.evalR(`dir.exists("${persistentLib}") && file.access("${persistentLib}", 2) == 0`);
-                    const isHealthy = unpackWebRObject(await sanityCheck.toJs());
-                    
-                    if (isHealthy === true) {
-                        storageSane = true;
-                    } else {
-                        logger.warn('[WebR] IDBFS Health check failed.');
+                            logger.info('[WebR] Storage repair completed.');
+                        }
+                        
+                        const sanityCheck = await webR.evalR(`dir.exists("${persistentLib}") && file.access("${persistentLib}", 2) == 0`);
+                        if (unpackWebRObject(await sanityCheck.toJs()) === true) {
+                            storageSane = true;
+                            logger.info('[WebR] Persistent storage active.');
+                        }
+                    } catch (syncErr) {
+                        logger.warn('[WebR] Persistent storage sync failed. Falling back to RAM mode.', syncErr);
+                        if (typeof localStorage !== 'undefined') localStorage.setItem('webr_fs_broken', 'true');
+                        // Do not throw, let it continue in RAM mode
                     }
                 } catch (fsErr) {
-                    logger.warn('[WebR] IDBFS mount failed:', fsErr);
+                    logger.warn('[WebR] Storage mount failed:', fsErr);
                     try { await webR.FS.unmount(persistentLib); } catch(u) {}
-                    const errMsg = String(fsErr);
-                    const isRealIDBFSFailure = errMsg.includes('IDBFS') || errMsg.includes('mount') || errMsg.includes('syncfs');
-                    if (isRealIDBFSFailure && typeof localStorage !== 'undefined') {
-                        localStorage.setItem('webr_fs_broken', 'true');
-                    }
                 }
                 
                 if (!storageSane) {
@@ -457,8 +467,9 @@ export async function executeRWithRecovery(
         }
 
         if (errorMsg.includes('there is no package called') && retryCount < maxRetries) {
-            const match = errorMsg.match(/no package called ['"]?([^'"]+)['"]?/);
-            const missingPkg = match ? match[1] : null;
+            // Updated regex to handle curly quotes ‘...’ commonly used in R error messages
+            const match = errorMsg.match(/no package called [‘'"]?([^’'" ]+)[’'" ]?/);
+            const missingPkg = match ? match[1].replace(/[‘’'"]/g, '').trim() : null;
             if (missingPkg) {
                 logger.warn(`Auto-installing missing package: ${missingPkg}`);
                 updateProgress(`Setting up ${missingPkg}...`);
