@@ -234,35 +234,52 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         if (dir.exists("${persistentLib}")) {
                             .libPaths(c('${persistentLib}', .libPaths()))
                         }
+                        
+                        # Set a safe default first
                         options(repos = c(CRAN = "https://repo.r-wasm.org/"))
                         options(pkgType = "binary")
-                        options(warn = -1)
                         options(webr.repo_quiet = TRUE)
-                        options(timeout = 300)
+                        options(timeout = 60) # Reduce timeout for individual network calls
                         
-                        # Smart Repo Probing
-                        check_repo <- function(url) {
+                        # Smart Repo Probing with 4.4 Fallback
+                        check_repo_online <- function(url) {
                             tryCatch({
-                                con <- url(paste0(url, "/bin/emscripten/contrib/", 
-                                           paste0(R.version$major, ".", substr(R.version$minor, 1, 1)), 
-                                           "/PACKAGES"))
+                                r_ver <- paste0(R.version$major, ".", substr(R.version$minor, 1, 1))
+                                # Try current version first
+                                test_url <- paste0(url, "/bin/emscripten/contrib/", r_ver, "/PACKAGES")
+                                con <- url(test_url)
                                 suppressWarnings(readLines(con, n=1))
                                 close(con)
-                                TRUE
-                            }, error = function(e) FALSE)
+                                return(TRUE)
+                            }, error = function(e) {
+                                tryCatch({
+                                    # Fallback to 4.4 if current (e.g. 4.5) fails
+                                    test_url <- paste0(url, "/bin/emscripten/contrib/4.4/PACKAGES")
+                                    con <- url(test_url)
+                                    suppressWarnings(readLines(con, n=1))
+                                    close(con)
+                                    return(TRUE)
+                                }, error = function(e2) FALSE)
+                            })
                         }
 
-                        if (check_repo("${localRepo}")) {
-                            options(repos = c(LOCAL = "${localRepo}", CRAN = "https://repo.r-wasm.org/"))
+                        if (check_repo_online("${localRepo}")) {
+                           options(repos = c(LOCAL = "${localRepo}", CRAN = "https://repo.r-wasm.org/"))
+                        } else {
+                           # If local fails, double check CRAN versioning
+                           if (!check_repo_online("https://repo.r-wasm.org")) {
+                               # Force 4.4 repo if 4.5 is broken on CRAN
+                               options(repos = c(CRAN = "https://repo.r-wasm.org/bin/emscripten/contrib/4.4"))
+                           }
                         }
                         
                         psych_loaded <- require("psych", quietly = TRUE)
-                        r_version <- paste0(R.version$major, ".", R.version$minor)
+                        r_version_info <- paste0(R.version$major, ".", R.version$minor, " (", R.version$platform, ")")
                     `);
                 });
 
-                const rVersion = unpackWebRObject(await (await runLocked(() => webR.evalR('r_version'))).toJs());
-                logger.info(`[WebR] R ${rVersion} Engine Online`);
+                const rVersionFull = unpackWebRObject(await (await runLocked(() => webR.evalR('r_version_info'))).toJs());
+                logger.info(`[WebR] R Engine Online: ${rVersionFull}`);
 
                 updateProgress('📦 Đang thiết lập công cụ...');
                 const psychExists = unpackWebRObject(await (await runLocked(() => webR.evalR('psych_loaded'))).toJs());
