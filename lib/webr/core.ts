@@ -411,7 +411,7 @@ export async function executeRWithRecovery(
             await webR.evalR(wrappedCode);
 
             const resultProxy = await webR.evalR(`readLines("/home/web_user/output.json")`);
-            const resultLines = await resultProxy.toJs();
+            const resultLines = await resultProxy.toJs() as any;
             const finalStr = Array.isArray(resultLines?.values)
                 ? resultLines.values.join('\n')
                 : String(resultLines?.values ?? '');
