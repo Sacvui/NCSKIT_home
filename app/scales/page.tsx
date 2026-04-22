@@ -236,49 +236,79 @@ export default function ScalesLibrary() {
                                         </button>
                                     </div>
                                 ) : (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        {filteredScales.map(scale => {
+                                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-8">
+                                        {filteredScales.map((scale, sIdx) => {
                                             const itemCount = scale.scale_items?.length || 0;
                                             return (
                                             <div 
                                                 key={scale.id} 
                                                 onClick={() => setExpandedScale(scale.id)}
-                                                className="group relative bg-white rounded-[2rem] border border-slate-200/60 hover:border-indigo-300/50 hover:shadow-[0_20px_50px_-12px_rgba(79,70,229,0.12)] transition-all duration-500 overflow-hidden cursor-pointer"
+                                                className="group relative bg-white rounded-[2.5rem] border border-slate-200/60 hover:border-indigo-400/50 transition-all duration-700 cursor-pointer flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-8"
+                                                style={{ animationDelay: `${sIdx * 50}ms` }}
                                             >
-                                                {/* Card Background Accent */}
-                                                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-50/50 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700 blur-3xl"></div>
+                                                {/* Decorative Accent */}
+                                                <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-50 rounded-full group-hover:scale-[3] group-hover:bg-indigo-100/50 transition-transform duration-1000 blur-3xl"></div>
                                                 
-                                                <div className="p-7 relative z-10 flex flex-col h-full">
-                                                    <div className="flex items-center justify-between mb-5">
-                                                        <span className="text-[10px] font-black text-indigo-500 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100 uppercase tracking-widest">
-                                                            {scale.category?.[0] || 'General'}
-                                                        </span>
-                                                        <div className="flex items-center gap-1.5 text-slate-400 font-bold text-[10px]">
-                                                            <ListChecks className="w-3 h-3" />
-                                                            {itemCount > 0 ? `${itemCount} Items` : 'Coming Soon'}
+                                                <div className="p-10 relative z-10 flex flex-col h-full">
+                                                    <div className="flex items-start justify-between mb-8">
+                                                        <div className="flex flex-wrap gap-2">
+                                                            <span className="px-4 py-1.5 bg-slate-900 text-white text-[9px] font-black uppercase tracking-[0.2em] rounded-full shadow-lg">
+                                                                {scale.category?.[0] || 'Core'}
+                                                            </span>
+                                                            {scale.year > 2020 && (
+                                                                <span className="px-4 py-1.5 bg-emerald-50 text-emerald-600 text-[9px] font-black uppercase tracking-[0.2em] rounded-full border border-emerald-100">
+                                                                    Modern
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <div className="flex items-center gap-2 text-slate-400">
+                                                            <div className="flex -space-x-2">
+                                                                {[1, 2, 3].map(i => (
+                                                                    <div key={i} className="w-6 h-6 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center">
+                                                                        <User className="w-3 h-3" />
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                            <span className="text-[10px] font-black text-slate-400 uppercase">Trusted</span>
                                                         </div>
                                                     </div>
                                                     
-                                                    <h3 className="text-xl font-black text-slate-900 mb-3 group-hover:text-indigo-600 transition-colors line-clamp-2">
+                                                    <h3 className="text-3xl font-black text-slate-900 mb-5 group-hover:text-indigo-600 transition-colors leading-[1.1] tracking-tighter">
                                                         {isVi ? scale.name_vi : scale.name_en}
                                                     </h3>
                                                     
-                                                    <p className="text-sm text-slate-500 font-medium mb-8 line-clamp-2 leading-relaxed">
+                                                    <p className="text-lg text-slate-500 font-medium mb-10 line-clamp-3 leading-relaxed">
                                                         {isVi ? scale.description_vi : scale.description_en}
                                                     </p>
                                                     
-                                                    <div className="mt-auto flex items-center justify-between pt-6 border-t border-slate-50">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200">
-                                                                <User className="w-4 h-4 text-slate-400" />
+                                                    <div className="mt-auto pt-8 border-t border-slate-50 flex items-end justify-between">
+                                                        <div className="space-y-3">
+                                                            <div className="flex items-center gap-3 text-slate-400">
+                                                                <Quote className="w-4 h-4 text-indigo-400" />
+                                                                <span className="text-[10px] font-black uppercase tracking-widest truncate max-w-[200px]">{scale.author}</span>
                                                             </div>
-                                                            <div>
-                                                                <p className="text-[10px] font-black text-slate-900 uppercase tracking-wider truncate max-w-[120px]">{scale.author}</p>
-                                                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{scale.year}</p>
+                                                            <div className="flex items-center gap-6">
+                                                                <div className="flex flex-col">
+                                                                    <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">Items</span>
+                                                                    <span className="text-xl font-black text-slate-900">{itemCount}</span>
+                                                                </div>
+                                                                <div className="w-px h-8 bg-slate-100"></div>
+                                                                <div className="flex flex-col">
+                                                                    <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">Year</span>
+                                                                    <span className="text-xl font-black text-slate-900">{scale.year}</span>
+                                                                </div>
                                                             </div>
                                                         </div>
-                                                        <div className="w-10 h-10 rounded-2xl bg-slate-50 text-slate-400 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white group-hover:rotate-45 transition-all duration-500">
-                                                            <ArrowRight className="w-5 h-5 -rotate-45 group-hover:rotate-0 transition-transform duration-500" />
+                                                        <div className="flex flex-col items-end gap-3">
+                                                            <button 
+                                                                onClick={(e) => { e.stopPropagation(); copyCitation(scale); }}
+                                                                className="p-3 bg-slate-50 text-slate-400 rounded-2xl hover:bg-indigo-600 hover:text-white transition-all shadow-sm group/btn"
+                                                            >
+                                                                <Copy className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
+                                                            </button>
+                                                            <div className="w-14 h-14 rounded-3xl bg-slate-900 text-white flex items-center justify-center group-hover:bg-indigo-600 group-hover:shadow-[0_20px_40px_-10px_rgba(79,70,229,0.4)] transition-all duration-500">
+                                                                <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -320,167 +350,142 @@ export default function ScalesLibrary() {
                                     </button>
                                 </div>
 
-                                <div className="flex-grow overflow-y-auto no-scrollbar">
-                                    {/* Detailed Hero Section */}
-                                    <div className="relative p-6 md:p-12 bg-slate-900 text-white overflow-hidden">
-                                        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/20 blur-[100px] -mr-32 -mt-32 rounded-full"></div>
-                                        <div className="relative z-10">
-                                            <div className="flex flex-wrap gap-2 mb-6">
+                                <div className="flex-grow overflow-y-auto no-scrollbar bg-white">
+                                    {/* Detailed Hero Section - Editorial Style */}
+                                    <div className="relative p-10 md:p-20 bg-slate-900 text-white overflow-hidden">
+                                        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-600/10 blur-[120px] -mr-40 -mt-40 rounded-full animate-pulse"></div>
+                                        <div className="relative z-10 max-w-4xl">
+                                            <div className="flex flex-wrap gap-3 mb-10">
                                                 {(activeScale.category || []).map((cat: string) => (
-                                                    <span key={cat} className="px-3 py-1 bg-white/10 rounded-full text-[9px] font-black uppercase tracking-widest border border-white/5">
+                                                    <span key={cat} className="px-5 py-2 bg-white/5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border border-white/10 backdrop-blur-md">
                                                         {cat}
                                                     </span>
                                                 ))}
                                             </div>
-                                            <h1 className="text-3xl md:text-5xl font-black mb-6 tracking-tight leading-[1.1]">
+                                            <h1 className="text-4xl md:text-7xl font-black mb-10 tracking-tighter leading-[0.95]">
                                                 {isVi ? activeScale.name_vi : activeScale.name_en}
                                             </h1>
-                                            <div className="flex flex-wrap items-center gap-6 text-indigo-300 font-bold text-sm md:text-base">
-                                                <div className="flex items-center gap-2">
-                                                    <User className="w-4 h-4" />
+                                            <div className="flex flex-wrap items-center gap-10 text-indigo-300/80 font-black text-xs uppercase tracking-widest">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10"><User className="w-4 h-4" /></div>
                                                     <span>{activeScale.author}</span>
                                                 </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Clock className="w-4 h-4" />
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10"><Clock className="w-4 h-4" /></div>
                                                     <span>{activeScale.year}</span>
                                                 </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Target className="w-4 h-4" />
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10"><Target className="w-4 h-4" /></div>
                                                     <span>{activeScale.scale_items?.length || 0} Items</span>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    {/* Content Tabs/Grid */}
-                                    <div className="p-6 md:p-12 space-y-12">
-                                        {/* Row 1: Description & Quick Stats */}
-                                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                                            <div className="lg:col-span-2 space-y-6">
-                                                <div className="flex items-center gap-3 text-slate-900 mb-4">
-                                                    <Info className="w-5 h-5 text-indigo-600" />
-                                                    <h3 className="text-lg font-black uppercase tracking-tight">{isVi ? 'Tổng quan nghiên cứu' : 'Research Overview'}</h3>
-                                                </div>
-                                                <div className="space-y-6">
-                                                    <p className="text-slate-600 text-lg leading-relaxed font-medium bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                                    {/* Content Strategy Grid */}
+                                    <div className="max-w-7xl mx-auto p-10 md:p-20">
+                                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-20">
+                                            {/* Left Content (8 cols) */}
+                                            <div className="lg:col-span-8 space-y-20">
+                                                <section>
+                                                    <h3 className="text-[11px] font-black text-indigo-600 uppercase tracking-[0.4em] mb-10 flex items-center gap-4">
+                                                        <div className="w-8 h-[2px] bg-indigo-600"></div> Research Overview
+                                                    </h3>
+                                                    <p className="text-2xl md:text-3xl text-slate-700 font-medium leading-relaxed first-letter:text-6xl first-letter:font-black first-letter:mr-3 first-letter:float-left first-letter:text-indigo-600">
                                                         {isVi ? activeScale.description_vi : activeScale.description_en}
                                                     </p>
-                                                    
-                                                    {/* NEW: Usage Guide & Scoring */}
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                        {(activeScale.usage_guide_vi || activeScale.usage_guide_en) && (
-                                                            <div className="p-6 bg-indigo-50/50 rounded-2xl border border-indigo-100/50">
-                                                                <h4 className="text-xs font-black text-indigo-600 uppercase tracking-widest mb-3">{isVi ? 'Hướng dẫn sử dụng' : 'Usage Guide'}</h4>
-                                                                <p className="text-sm text-slate-600 leading-relaxed">
-                                                                    {isVi ? activeScale.usage_guide_vi : activeScale.usage_guide_en}
-                                                                </p>
-                                                            </div>
-                                                        )}
-                                                        {(activeScale.scoring_logic_vi || activeScale.scoring_logic_en) && (
-                                                            <div className="p-6 bg-emerald-50/50 rounded-2xl border border-emerald-100/50">
-                                                                <h4 className="text-xs font-black text-emerald-600 uppercase tracking-widest mb-3">{isVi ? 'Cách tính điểm' : 'Scoring Logic'}</h4>
-                                                                <p className="text-sm text-slate-600 leading-relaxed">
-                                                                    {isVi ? activeScale.scoring_logic_vi : activeScale.scoring_logic_en}
-                                                                </p>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            
-                                            <div className="space-y-6">
-                                                <div className="flex items-center gap-3 text-slate-900 mb-4">
-                                                    <Settings className="w-5 h-5 text-indigo-600" />
-                                                    <h3 className="text-lg font-black uppercase tracking-tight">{isVi ? 'Thông số kỹ thuật' : 'Technical Specs'}</h3>
-                                                </div>
-                                                <div className="grid grid-cols-1 gap-3">
-                                                    <div className="p-4 bg-white border border-slate-100 rounded-2xl flex items-center justify-between">
-                                                        <span className="text-xs font-bold text-slate-400">Dimensions</span>
-                                                        <span className="font-black text-indigo-600">{getDimensionCount(activeScale)}</span>
-                                                    </div>
-                                                    <div className="p-4 bg-white border border-slate-100 rounded-2xl flex items-center justify-between">
-                                                        <span className="text-xs font-bold text-slate-400">Lang Supported</span>
-                                                        <span className="font-black text-indigo-600">VI, EN</span>
-                                                    </div>
-                                                    <div className="p-4 bg-white border border-slate-100 rounded-2xl flex items-center justify-between">
-                                                        <span className="text-xs font-bold text-slate-400">Scoring Type</span>
-                                                        <span className="font-black text-indigo-600">Likert 1-5/7</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                                </section>
 
-                                        {/* Row 2: Item List (Dimension Breakdown) */}
-                                        <div className="space-y-8">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-3 text-slate-900">
-                                                    <ListChecks className="w-6 h-6 text-indigo-600" />
-                                                    <h3 className="text-xl font-black uppercase tracking-tight">{isVi ? 'Chi tiết các biến quan sát' : 'Scale Items Detail'}</h3>
-                                                </div>
-                                                <div className="hidden md:block px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-indigo-100">
-                                                    APA Standard
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-10">
-                                                {(() => {
-                                                    const items = activeScale.scale_items || [];
-                                                    const grouped: Record<string, any[]> = {};
-                                                    items.forEach((item: any) => {
-                                                        const prefix = item.code.replace(/[0-9]/g, '') || 'Global';
-                                                        if (!grouped[prefix]) grouped[prefix] = [];
-                                                        grouped[prefix].push(item);
-                                                    });
-
-                                                    return Object.entries(grouped).map(([prefix, groupItems]) => (
-                                                        <div key={prefix} className="space-y-4">
-                                                            <div className="flex items-center gap-4">
-                                                                <h4 className="text-sm font-black text-slate-400 uppercase tracking-[0.3em]">Dimension: {prefix}</h4>
-                                                                <div className="h-px bg-slate-100 flex-grow"></div>
-                                                            </div>
-                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                                {groupItems.map((item: any) => (
-                                                                    <div key={item.id} className="p-5 bg-slate-50 border border-slate-100 rounded-2xl flex items-start gap-4 hover:border-indigo-200 hover:bg-white transition-all group">
-                                                                        <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center font-black text-xs text-indigo-600 border border-slate-100 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                                                                            {item.code}
-                                                                        </div>
-                                                                        <div className="space-y-1">
-                                                                            <p className="text-sm font-bold text-slate-900 leading-tight">{isVi ? item.text_vi : item.text_en}</p>
-                                                                            <p className="text-[10px] text-slate-400 font-medium italic">{isVi ? item.text_en : item.text_vi}</p>
-                                                                        </div>
-                                                                    </div>
-                                                                ))}
-                                                            </div>
+                                                <section className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                                    {(activeScale.usage_guide_vi || activeScale.usage_guide_en) && (
+                                                        <div className="p-10 bg-indigo-50/30 rounded-[3rem] border border-indigo-100/50">
+                                                            <h4 className="text-sm font-black text-indigo-950 uppercase tracking-widest mb-6">{isVi ? 'Hướng dẫn' : 'Usage'}</h4>
+                                                            <p className="text-lg text-slate-600 leading-relaxed font-medium">
+                                                                {isVi ? activeScale.usage_guide_vi : activeScale.usage_guide_en}
+                                                            </p>
                                                         </div>
-                                                    ));
-                                                })()}
-                                            </div>
-                                        </div>
+                                                    )}
+                                                    {(activeScale.scoring_logic_vi || activeScale.scoring_logic_en) && (
+                                                        <div className="p-10 bg-emerald-50/30 rounded-[3rem] border border-emerald-100/50">
+                                                            <h4 className="text-sm font-black text-emerald-950 uppercase tracking-widest mb-6">{isVi ? 'Tính điểm' : 'Scoring'}</h4>
+                                                            <p className="text-lg text-slate-600 leading-relaxed font-medium">
+                                                                {isVi ? activeScale.scoring_logic_vi : activeScale.scoring_logic_en}
+                                                            </p>
+                                                        </div>
+                                                    )}
+                                                </section>
 
-                                        {/* Academic Citation Block */}
-                                        <div className="bg-slate-900 rounded-[2rem] p-8 md:p-12 text-center space-y-6">
-                                            <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-500/20 text-indigo-300 rounded-full font-black text-[10px] uppercase tracking-widest">
-                                                <Quote className="w-3 h-3" /> 
-                                                {isVi ? 'Trích dẫn khoa học' : 'Academic Citation'}
+                                                <section className="space-y-12">
+                                                    <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight border-b border-slate-100 pb-8">{isVi ? 'Danh mục biến quan sát' : 'Measurement Items'}</h3>
+                                                    <div className="space-y-10">
+                                                        {(() => {
+                                                            const items = activeScale.scale_items || [];
+                                                            const grouped: Record<string, any[]> = {};
+                                                            items.forEach((item: any) => {
+                                                                const prefix = item.code.replace(/[0-9]/g, '') || 'Global';
+                                                                if (!grouped[prefix]) grouped[prefix] = [];
+                                                                grouped[prefix].push(item);
+                                                            });
+
+                                                            return Object.entries(grouped).map(([prefix, groupItems]) => (
+                                                                <div key={prefix}>
+                                                                    <div className="flex items-center gap-6 mb-8">
+                                                                        <div className="px-5 py-2 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest">{prefix}</div>
+                                                                        <div className="h-px bg-slate-100 flex-grow"></div>
+                                                                    </div>
+                                                                    <div className="grid grid-cols-1 gap-4">
+                                                                        {groupItems.map((item: any) => (
+                                                                            <div key={item.id} className="p-8 bg-slate-50 border border-slate-100 rounded-[2rem] flex items-center gap-8 hover:bg-white hover:shadow-xl transition-all group">
+                                                                                <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center font-black text-xs text-indigo-600 border border-slate-100 group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                                                                                    {item.code}
+                                                                                </div>
+                                                                                <div className="flex-grow">
+                                                                                    <p className="text-lg font-bold text-slate-900 leading-tight">{isVi ? item.text_vi : item.text_en}</p>
+                                                                                    <p className="text-[10px] text-slate-400 font-medium italic">{isVi ? item.text_en : item.text_vi}</p>
+                                                                                </div>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            ));
+                                                        })()}
+                                                    </div>
+                                                </section>
                                             </div>
-                                            <p className="text-lg md:text-2xl text-white italic font-medium leading-relaxed max-w-3xl mx-auto">
-                                                "{activeScale.citation || `${activeScale.author} (${activeScale.year}). Scale for Research Purposes.`}"
-                                            </p>
-                                            <div className="flex flex-col md:flex-row gap-4 justify-center pt-6">
-                                                <button 
-                                                    onClick={(e) => { e.stopPropagation(); copyCitation(activeScale); }}
-                                                    className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-500 transition-all text-xs flex items-center justify-center gap-3 shadow-xl shadow-indigo-900/40"
-                                                >
-                                                    {copiedCitation ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-                                                    {copiedCitation ? (isVi ? 'ĐÃ SAO CHÉP' : 'COPIED') : (isVi ? 'SAO CHÉP TRÍCH DẪN' : 'COPY CITATION')}
-                                                </button>
-                                                <button 
-                                                    onClick={(e) => { e.stopPropagation(); router.push('/analyze'); }}
-                                                    className="px-8 py-4 bg-white text-slate-900 rounded-2xl font-black hover:bg-slate-100 transition-all text-xs flex items-center justify-center gap-3"
-                                                >
-                                                    <LineChart className="w-4 h-4" />
-                                                    {isVi ? 'PHÂN TÍCH NGAY' : 'ANALYZE NOW'}
-                                                </button>
+
+                                            {/* Right Sidebar (4 cols) */}
+                                            <div className="lg:col-span-4 space-y-12">
+                                                <div className="sticky top-10 space-y-12">
+                                                    <div className="p-10 bg-slate-900 rounded-[3rem] text-white space-y-8 relative overflow-hidden">
+                                                        <Quote className="absolute -top-10 -right-10 w-40 h-40 text-white/5 rotate-12" />
+                                                        <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.4em]">Authority</h4>
+                                                        <p className="text-xl font-medium leading-relaxed italic opacity-90">
+                                                            "{activeScale.citation || `${activeScale.author} (${activeScale.year}).`}"
+                                                        </p>
+                                                        <button 
+                                                            onClick={(e) => { e.stopPropagation(); copyCitation(activeScale); }}
+                                                            className="w-full py-5 bg-white text-slate-900 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all"
+                                                        >
+                                                            {copiedCitation ? 'Copied' : 'Copy Citation'}
+                                                        </button>
+                                                    </div>
+
+                                                    <div className="p-10 bg-slate-50 rounded-[3rem] border border-slate-100 space-y-8">
+                                                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Summary</h4>
+                                                        <div className="space-y-4">
+                                                            <div className="flex justify-between items-center py-4 border-b border-slate-200/50">
+                                                                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Dimensions</span>
+                                                                <span className="text-xl font-black text-slate-900">{getDimensionCount(activeScale)}</span>
+                                                            </div>
+                                                            <button 
+                                                                onClick={() => router.push('/analyze')}
+                                                                className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-indigo-100"
+                                                            >
+                                                                Analyze Now
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
