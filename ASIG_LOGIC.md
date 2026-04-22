@@ -40,5 +40,13 @@ Dựa trên tiêu chuẩn của Hu & Bentler (1999):
 
 Hệ thống tự động loại bỏ số 0 đứng trước (leading zero) đối với các chỉ số không bao giờ vượt quá 1 (ví dụ: *p*, *r*, *alpha*) theo đúng quy chuẩn APA 7th Edition.
 
+## 6. Methodological Guardrails (Virtual Mentoring)
+
+Hệ thống ASIG không chỉ diễn giải kết quả mà còn thực hiện vai trò của một người hướng dẫn phương pháp luận:
+- **Tự động kiểm định giả định**: Trước khi chạy ANOVA, hệ thống tự động kiểm tra tính đồng nhất phương sai. Nếu vi phạm, ASIG sẽ thông báo lý do và tự động chuyển sang kết quả **Welch ANOVA** để đảm bảo tính chính xác khoa học.
+- **Cảnh báo đa cộng tuyến**: Trong hồi quy đa biến, nếu VIF vượt ngưỡng, ASIG sẽ cảnh báo người dùng về nguy cơ sai lệch ước lượng.
+- **Gợi ý quy trình (Workflow)**: Nếu Cronbach's Alpha đạt chuẩn (> 0.7), ASIG sẽ gợi ý người dùng chuyển sang bước phân tích nhân tố khám phá (EFA).
+- **Phòng ngừa diễn giải sai**: ASIG ngăn chặn các tuyên bố quá mức về ý nghĩa thống kê khi cỡ mẫu quá nhỏ hoặc khi kết quả chỉ mấp mé ngưỡng ý nghĩa.
+
 ---
 *Tài liệu này được cung cấp để hỗ trợ quá trình kiểm duyệt khoa học (Scientific Review) của JOSS.*

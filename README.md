@@ -12,10 +12,13 @@
 ## 🚀 Key Features
 
 - **Absolute Privacy:** 100% client-side data processing. No sensitive data is ever uploaded to a server.
-- **High Performance:** Powered by WebAssembly (WASM), leveraging a full R 4.5 runtime.
+- **Offline-Ready:** Once loaded, ncsStat can perform full statistical analyses without an internet connection, ideal for field research.
+- **Methodological Guardrails:** Acts as a "virtual mentor" by automatically checking assumptions and suggesting corrective statistical paths.
+- **R Script Export:** Seamlessly export analysis logic to R scripts for reproducibility in RStudio.
 - **Comprehensive Analysis:** Supports 18+ methods including SEM, CFA, EFA, Logistic Regression, and Mediation Analysis.
 - **ASIG Expert System:** Automatically generates APA-compliant textual interpretations of results.
 - **Zero Installation:** Works in any modern browser across Windows, macOS, Linux, and tablets.
+- **High Performance:** Powered by WebAssembly (WASM), leveraging a full R 4.5 runtime.
 
 ---
 
