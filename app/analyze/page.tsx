@@ -112,7 +112,7 @@ function AnalyzeContent() {
         if (!authLoading) {
             const isSupabaseConfigured = process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
             
-            if (user || !isSupabaseConfigured || process.env.NODE_ENV === 'development') {
+            if (user || !isSupabaseConfigured || (process.env.NODE_ENV as string) === 'development') {
                 console.log('[Analyze] Allowing access (User present, Local Mode, or Guest Mode).');
                 setLoading(false);
             } else {
