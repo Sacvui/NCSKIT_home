@@ -3,8 +3,8 @@ import path from 'path';
 import https from 'https';
 
 const R_VERSION = '4.5';
-const BASE_PKG_URL = `https://cran.r-universe.dev/bin/emscripten/contrib/${R_VERSION}`;
-const TARGET_DIR = path.join(process.cwd(), 'public', 'webr_packages', 'bin', 'emscripten', 'contrib', R_VERSION);
+const BASE_PKG_URL = `https://repo.r-wasm.org/bin/emscripten/contrib/${R_VERSION}`;
+const TARGET_DIR = path.join(process.cwd(), 'public', 'webr_repo_v3', 'bin', 'emscripten', 'contrib', R_VERSION);
 
 // Essential packages and their recursive dependencies for 'psych'
 const PACKAGES = [
@@ -80,7 +80,7 @@ async function start() {
     }
   }
 
-  console.log('\n✨ WebR packages are now hosted locally in /public/webr_packages!');
+  console.log('\n✨ WebR packages are now hosted locally in /public/webr_repo_v3!');
   console.log('You can now use: options(repos = c(CRAN = window.location.origin + "/webr_packages"))');
 }
 

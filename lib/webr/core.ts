@@ -13,6 +13,10 @@ let onProgressCallback: ((msg: string) => void) | null = null;
 let initAttempts = 0;
 const MAX_INIT_ATTEMPTS = 3;
 
+// Storage keys for crash monitoring
+const CRASH_COUNTER_KEY = 'webr_crash_count';
+const REPO_VERSION = 'webr_repo_v3';
+
 // Error recovery state
 let lastError: Error | null = null;
 
@@ -73,42 +77,67 @@ export function resetWebR(): void {
     updateProgress('WebR reset - ready for reinitialization');
 }
 
+/**
+ * Aggressive environment cleanup
+ */
 export async function clearWebRStorage(): Promise<void> {
     if (typeof localStorage !== 'undefined') {
         localStorage.removeItem('webr_fs_broken');
+        localStorage.removeItem(CRASH_COUNTER_KEY);
     }
     
     if (typeof window !== 'undefined' && window.indexedDB) {
         try {
-            logger.debug('[WebR] Deleting ALL IndexedDB databases to ensure a fresh WebR file system...');
+            logger.debug('[WebR] DEEP CLEAN: Deleting all potential IndexedDB corruptions...');
             const idb: any = window.indexedDB;
+            const targetDBs = ['emscripten_fs', 'webr_fs', 'IDBFS', 'WebR'];
+            
+            for (const dbName of targetDBs) {
+                try { idb.deleteDatabase(dbName); } catch(err) {}
+            }
+
             if (typeof idb.databases === 'function') {
                 const dbs = await idb.databases();
                 dbs.forEach((db: any) => {
-                    if (db.name) {
-                        try {
-                            idb.deleteDatabase(db.name);
-                            logger.debug(`[WebR] Deleted DB: ${db.name}`);
-                        } catch(e) {}
+                    if (db.name?.toLowerCase().includes('webr') || db.name?.toLowerCase().includes('fs')) {
+                        idb.deleteDatabase(db.name);
                     }
                 });
-            } else {
-                idb.deleteDatabase('emscripten_fs');
-                idb.deleteDatabase('webr_fs');
-                idb.deleteDatabase('IDBFS');
             }
         } catch (e) {
-            logger.warn('[WebR] Could not flag storage for wipe:', e);
+            logger.warn('[WebR] Cleanup skipped or restricted:', e);
         }
+    }
+
+    if (typeof window !== 'undefined' && navigator.serviceWorker) {
+        try {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            for (let reg of regs) { await reg.unregister(); }
+        } catch(e) {}
     }
     
     resetWebR();
-    window.location.reload();
+    if (typeof window !== 'undefined') window.location.reload();
 }
 
+/**
+ * Main WebR Initialization with Rapid Recovery
+ */
 export async function initWebR(maxRetries: number = 3): Promise<WebR> {
     if (webRInstance) return webRInstance;
     if (initPromise) return initPromise;
+
+    // Monitor consecutive crashes in this session
+    let crashCount = 0;
+    if (typeof sessionStorage !== 'undefined') {
+        crashCount = parseInt(sessionStorage.getItem(CRASH_COUNTER_KEY) || '0');
+        if (crashCount >= 5) {
+            logger.error('[WebR] Critical failure loop detected! Triggering deep reset.');
+            sessionStorage.setItem(CRASH_COUNTER_KEY, '0');
+            await clearWebRStorage();
+            return new Promise(() => {}); // Stop execution, page will reload
+        }
+    }
 
     isInitializing = true;
     updateProgress('R-Engine Loading...');
@@ -129,20 +158,6 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     channelType: 3,
                 });
 
-                if (typeof window !== 'undefined' && navigator.serviceWorker) {
-                    try {
-                        const regs = await navigator.serviceWorker.getRegistrations();
-                        for (let reg of regs) {
-                            if (reg.active?.scriptURL.includes('webr')) {
-                                await reg.unregister();
-                                logger.info('[WebR] Unregistered broken ServiceWorker cache.');
-                            }
-                        }
-                    } catch (e) {
-                        logger.warn('[WebR] Error unregistering SW:', e);
-                    }
-                }
-
                 logger.debug('[WebR] Calling webR.init()...');
                 await webR.init();
                 const persistentLib = '/home/web_user/library';
@@ -150,64 +165,47 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 updateProgress('📂 Đang kết nối bộ nhớ...');
                 let storageSane = false;
 
-                if (typeof localStorage !== 'undefined' && localStorage.getItem('webr_fs_wipe_requested') === 'true') {
-                    logger.warn('[WebR] Force wipe requested. Resetting persistent storage...');
-                    localStorage.removeItem('webr_fs_wipe_requested');
-                    localStorage.removeItem('webr_fs_broken');
-                }
-
                 const isFsBroken = typeof localStorage !== 'undefined' ? localStorage.getItem('webr_fs_broken') === 'true' : false;
 
                 try {
                     try { await webR.FS.mkdir('/home/web_user'); } catch (e) {}
                     try { await webR.FS.mkdir(persistentLib); } catch (e) {}
                     
-                    logger.debug('[WebR] Connecting to persistent storage...');
-                    
-                    // If flagged as broken, try to nuke BEFORE mounting if possible
-                    if (isFsBroken) {
-                        logger.warn('[WebR] Target storage is corrupted. Attempting pre-mount cleanup.');
-                    }
-
+                    logger.debug('[WebR] Connecting storage...');
                     await webR.FS.mount('IDBFS', {}, persistentLib);
                     
-                    // CRITICAL: syncfs(true) is where FileReaderSync crashes happen
-                    // We must catch this or the worker will die
                     try {
                         await Promise.race([
                             webR.FS.syncfs(true),
-                            new Promise((_, reject) => setTimeout(() => reject(new Error('IDBFS Sync Timeout')), 15000))
+                            new Promise((_, reject) => setTimeout(() => reject(new Error('Sync Timeout')), 10000))
                         ]);
 
-                        if (isFsBroken) {
-                            logger.warn('[WebR] Repairing corrupted storage...');
+                        if (isFsBroken || crashCount > 1) {
+                            logger.warn('[WebR] Self-healing storage...');
                             await webR.evalR(`unlink("${persistentLib}", recursive = TRUE); dir.create("${persistentLib}", recursive = TRUE)`);
                             await webR.FS.syncfs(false);
                             if (typeof localStorage !== 'undefined') localStorage.removeItem('webr_fs_broken');
-                            logger.info('[WebR] Storage repair completed.');
                         }
                         
-                        const sanityCheck = await webR.evalR(`dir.exists("${persistentLib}") && file.access("${persistentLib}", 2) == 0`);
-                        if (unpackWebRObject(await sanityCheck.toJs()) === true) {
+                        const sanity = await webR.evalR(`dir.exists("${persistentLib}") && file.access("${persistentLib}", 2) == 0`);
+                        if (unpackWebRObject(await sanity.toJs()) === true) {
                             storageSane = true;
-                            logger.info('[WebR] Persistent storage active.');
                         }
                     } catch (syncErr) {
-                        logger.warn('[WebR] Persistent storage sync failed. Falling back to RAM mode.', syncErr);
+                        logger.warn('[WebR] IDBFS failed, using RAM mode.', syncErr);
                         if (typeof localStorage !== 'undefined') localStorage.setItem('webr_fs_broken', 'true');
-                        // Do not throw, let it continue in RAM mode
                     }
                 } catch (fsErr) {
-                    logger.warn('[WebR] Storage mount failed:', fsErr);
+                    logger.warn('[WebR] Storage skip:', fsErr);
                     try { await webR.FS.unmount(persistentLib); } catch(u) {}
                 }
                 
-                if (!storageSane) {
-                    logger.warn('[WebR] Falling back to slow memory-only mode.');
-                }
+                if (!storageSane) logger.info('[WebR] RAM Mode Active (High Stability)');
 
                 const fallbackRepo = "https://repo.r-wasm.org/";
-                const localRepo = (typeof window !== 'undefined' && window.location.origin) ? window.location.origin + "/webr_repo_v2" : "https://ncskit.org/webr_repo_v2";
+                const localRepo = (typeof window !== 'undefined' && window.location.origin) 
+                    ? window.location.origin + "/" + REPO_VERSION 
+                    : "https://ncskit.org/" + REPO_VERSION;
 
                 await runLocked(async () => {
                     await webR.evalR(`
@@ -220,29 +218,25 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         options(webr.repo_quiet = TRUE)
                         options(timeout = 300)
                         options(download.file.extra = "--no-cache") 
-                        psych_exists <- dir.exists("${persistentLib}/psych")
+                        psych_loaded <- require("psych", quietly = TRUE)
                         r_version <- paste0(R.version$major, ".", R.version$minor)
                     `);
                 });
 
-                const rVersionObj = await runLocked(() => webR.evalR('r_version'));
-                const rVersion = unpackWebRObject(await rVersionObj.toJs());
-                logger.debug(`[WebR] R Engine Version: ${rVersion}`);
+                const rVersion = unpackWebRObject(await (await runLocked(() => webR.evalR('r_version'))).toJs());
+                logger.info(`[WebR] R ${rVersion} Engine Online`);
 
                 updateProgress('📦 Đang thiết lập công cụ...');
-                const existsProxy = await runLocked(() => webR.evalR('psych_exists'));
-                const existsVal = unpackWebRObject(await existsProxy.toJs());
-                if (existsProxy && typeof (existsProxy as any).destroy === 'function') (existsProxy as any).destroy();
+                const psychExists = unpackWebRObject(await (await runLocked(() => webR.evalR('psych_loaded'))).toJs());
 
                 const corePackages = ['psych', 'jsonlite', 'mnormt', 'GPArotation', 'lattice', 'nlme'];
 
-                if (existsVal === true) {
+                if (psychExists === true) {
                     try {
-                        logger.debug('[WebR] Loading core libraries...');
                         await runLocked(() => webR.evalR('library(psych); library(jsonlite)'));
                         corePackages.forEach(pkg => markPackageLoaded(pkg));
                     } catch (e) {
-                        logger.warn('[WebR] Core loading failed! Wiping...', e);
+                        logger.warn('[WebR] Core load fail, purging...');
                         try {
                             await runLocked(() => webR.evalR(`unlink("${persistentLib}", recursive = TRUE); dir.create("${persistentLib}", recursive = TRUE)`));
                             await webR.FS.syncfs(false); 
@@ -264,9 +258,12 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 }
 
                 const elapsed = ((performance.now() - startTime) / 1000).toFixed(1);
-                logger.debug(`[WebR] Engine Loaded in ${elapsed}s`);
+                logger.debug(`[WebR] Ready in ${elapsed}s`);
                 updateProgress('✅ R-Engine sẵn sàng');
                 
+                // Clear crash count on success
+                if (typeof sessionStorage !== 'undefined') sessionStorage.setItem(CRASH_COUNTER_KEY, '0');
+
                 webRInstance = webR;
                 isInitializing = false;
                 initAttempts = 0;
@@ -274,6 +271,13 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
 
             } catch (error: any) {
                 logger.error('[WebR] Init Failure:', error);
+                
+                // Track crash count
+                if (typeof sessionStorage !== 'undefined') {
+                    const currentCrash = parseInt(sessionStorage.getItem(CRASH_COUNTER_KEY) || '0');
+                    sessionStorage.setItem(CRASH_COUNTER_KEY, (currentCrash + 1).toString());
+                }
+
                 captureWebRError(error, { phase: 'init' });
                 isInitializing = false;
                 initPromise = null;
@@ -294,7 +298,9 @@ export async function loadPackagesForMethod(method: string): Promise<void> {
     const webR = await initWebR();
     const required = getRequiredPackages(method);
     const officialRepo = "https://repo.r-wasm.org/";
-    const localRepo = (typeof window !== 'undefined' && window.location.origin) ? window.location.origin + "/webr_repo_v2" : "https://ncskit.org/webr_repo_v2";
+    const localRepo = (typeof window !== 'undefined' && window.location.origin) 
+        ? window.location.origin + "/" + REPO_VERSION 
+        : "https://ncskit.org/" + REPO_VERSION;
 
     for (const pkg of required) {
         if (isPackageLoaded(pkg)) continue;
@@ -467,16 +473,16 @@ export async function executeRWithRecovery(
         }
 
         if (errorMsg.includes('there is no package called') && retryCount < maxRetries) {
-            // Updated regex to handle curly quotes ‘...’ commonly used in R error messages
-            const match = errorMsg.match(/no package called [‘'"]?([^’'" ]+)[’'" ]?/);
+             const match = errorMsg.match(/no package called [‘'"]?([^’'" ]+)[’'" ]?/);
             const missingPkg = match ? match[1].replace(/[‘’'"]/g, '').trim() : null;
             if (missingPkg) {
                 logger.warn(`Auto-installing missing package: ${missingPkg}`);
                 updateProgress(`Setting up ${missingPkg}...`);
                 const officialRepo = "https://repo.r-wasm.org/";
-                const localRepo = (typeof window !== 'undefined' && window.location.origin)
-                    ? window.location.origin + "/webr_repo_v2"
-                    : "https://ncskit.org/webr_repo_v2";
+                const localRepo = (typeof window !== 'undefined' && window.location.origin) 
+                    ? window.location.origin + "/" + REPO_VERSION 
+                    : "https://ncskit.org/" + REPO_VERSION;
+                    
                 await runLocked(async () => {
                     await webR.evalR(`
                         if (!require("${missingPkg}", character.only = TRUE, quietly = TRUE)) {
