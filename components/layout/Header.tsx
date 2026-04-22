@@ -8,7 +8,7 @@ import { NcsBalanceBadge } from '@/components/NcsBalanceBadge'
 import { usePathname, useSearchParams } from 'next/navigation'
 import { getStoredLocale, setStoredLocale, t, type Locale } from '@/lib/i18n'
 import { useAuth } from '@/context/AuthContext'
-import { ChevronDown, BarChart3, Layout, BookOpen, GraduationCap, Microscope, FileText, Network, Brain, Menu, X } from 'lucide-react'
+import { ChevronDown, BarChart3, Layout, BookOpen, GraduationCap, Microscope, FileText, Network, Brain, Menu, X, ClipboardCheck } from 'lucide-react'
 
 interface HeaderProps {
     user?: any
@@ -86,6 +86,10 @@ function HeaderContent({ centerContent, rightActions, hideNav = false, user: pro
                                     icon={Network}
                                 />
                             </NavDropdown>
+
+                            <NavLink href="/cite-check" active={pathname === '/cite-check'}>
+                                {t(locale, 'nav.cite_check')}
+                            </NavLink>
 
                             <NavDropdown
                                 label={t(locale, 'nav.knowledge_guides')}
@@ -215,6 +219,14 @@ function HeaderContent({ centerContent, rightActions, hideNav = false, user: pro
                         >
                             <Network className="w-5 h-5 text-indigo-500" />
                             {t(locale, 'nav.research_models')}
+                        </Link>
+                        <Link 
+                            href="/cite-check" 
+                            className="flex items-center gap-3 p-3 rounded-xl text-slate-700 font-bold hover:bg-slate-50 active:bg-indigo-50 active:text-indigo-600"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                            <ClipboardCheck className="w-5 h-5 text-indigo-500" />
+                            {t(locale, 'nav.cite_check')}
                         </Link>
                         <Link 
                             href="/knowledge" 
