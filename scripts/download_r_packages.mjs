@@ -62,11 +62,15 @@ async function start() {
     fs.mkdirSync(TARGET_DIR, { recursive: true });
   }
 
-  // 1. Download PACKAGES index file (WebR needs this to find versions)
-  console.log('📥 Downloading PACKAGES index...');
+  // 1. Download PACKAGES index files (WebR needs ALL THREE to find packages)
+  // CRITICAL: webr::install() looks for PACKAGES.rds FIRST — without it,
+  // package installation fails with "not found in webR binary repo"
+  console.log('📥 Downloading PACKAGES index files...');
   try {
     await downloadWithRetry(`${BASE_PKG_URL}/PACKAGES`, path.join(TARGET_DIR, 'PACKAGES'));
     await downloadWithRetry(`${BASE_PKG_URL}/PACKAGES.gz`, path.join(TARGET_DIR, 'PACKAGES.gz'));
+    await downloadWithRetry(`${BASE_PKG_URL}/PACKAGES.rds`, path.join(TARGET_DIR, 'PACKAGES.rds'));
+    console.log('✅ All index files downloaded (PACKAGES, PACKAGES.gz, PACKAGES.rds)');
   } catch (e) {
     console.error('❌ Failed to download index files after all retries:', e.message);
     process.exit(1); // Kill build correctly so we don't deploy broken files
