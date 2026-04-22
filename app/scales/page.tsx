@@ -40,6 +40,15 @@ export default function ScalesLibrary() {
         return () => window.removeEventListener('localeChange', handleLocaleChange);
     }, []);
 
+    // Handle ESC key to close modal
+    useEffect(() => {
+        const handleEsc = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setExpandedScale(null);
+        };
+        window.addEventListener('keydown', handleEsc);
+        return () => window.removeEventListener('keydown', handleEsc);
+    }, []);
+
     // Debounce search input (300ms)
     useEffect(() => {
         const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300);
@@ -321,14 +330,17 @@ export default function ScalesLibrary() {
 
                         {/* --- FOCUS DETAIL VIEW MODAL (PREMIUM REDESIGN) --- */}
                     {expandedScale && activeScale && (
-                        <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-md flex items-end md:items-center justify-center p-0 md:p-8 animate-in fade-in duration-300">
-                            {/* Close overlay */}
-                            <div className="absolute inset-0" onClick={() => setExpandedScale(null)}></div>
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-6 lg:p-12 animate-in fade-in duration-500">
+                            {/* Premium Backdrop */}
+                            <div 
+                                className="absolute inset-0 bg-slate-900/40 backdrop-blur-md cursor-zoom-out" 
+                                onClick={() => setExpandedScale(null)}
+                            ></div>
                             
-                            <div className="w-full max-w-6xl h-[90vh] md:h-auto md:max-h-[90vh] overflow-hidden bg-white rounded-t-[2.5rem] md:rounded-[3rem] shadow-2xl relative animate-in slide-in-from-bottom-10 md:slide-in-from-bottom-0 md:zoom-in-95 duration-500 flex flex-col">
+                            <div className="w-full h-full max-w-7xl bg-white md:rounded-[3rem] shadow-[0_0_100px_rgba(0,0,0,0.1)] relative z-10 overflow-hidden flex flex-col animate-in zoom-in-95 slide-in-from-bottom-10 duration-700 ease-out-expo">
                                 
-                                {/* Header (Sticky) */}
-                                <div className="sticky top-0 z-[110] bg-white border-b border-slate-100 px-6 md:px-10 py-4 md:py-6 flex items-center justify-between">
+                                {/* Header - Dynamic & Slimmer */}
+                                <div className="sticky top-0 z-[110] bg-white/80 backdrop-blur-md border-b border-slate-100 px-6 md:px-12 py-5 flex items-center justify-between">
                                     <div className="flex items-center gap-4">
                                         <div className="w-10 h-10 md:w-12 md:h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-100">
                                             <BookOpen className="w-5 h-5 md:w-6 md:h-6" />
