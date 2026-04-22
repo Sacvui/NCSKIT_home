@@ -157,9 +157,21 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 updateProgress('🚀 Đang kết nối máy chủ R...');
                 
                 const webR = new WebR({
-                    baseUrl: BASE_URL, // Use relative path for maximum reliability
+                    baseUrl: BASE_URL,
                     channelType: 3,
                 });
+
+                if (typeof window !== 'undefined' && navigator.serviceWorker) {
+                    try {
+                        const regs = await navigator.serviceWorker.getRegistrations();
+                        for (let reg of regs) {
+                            if (reg.active?.scriptURL.includes('webr')) {
+                                await reg.unregister();
+                                logger.info('[WebR] Cleaned up old ServiceWorker.');
+                            }
+                        }
+                    } catch (e) {}
+                }
 
                 logger.debug('[WebR] Created instance, waiting for worker...');
                 
