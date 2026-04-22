@@ -35,7 +35,7 @@ const CSP_DIRECTIVES = [
     "img-src 'self' data: blob: https:",
 
     // Connections: self + Supabase + Gemini AI + ORCID + WebR Repos + CDNs
-    "connect-src 'self' blob: data: https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://pub.orcid.org https://orcid.org https://va.vercel-scripts.com https://*.vercel-scripts.com https://cloudflareinsights.com https://repo.r-wasm.org https://*.r-wasm.org https://cdn.jsdelivr.net https://*.vercel.app https://ncskit.org https://*.ncskit.org",
+    "connect-src 'self' blob: data: https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://api.crossref.org https://pub.orcid.org https://orcid.org https://va.vercel-scripts.com https://*.vercel-scripts.com https://cloudflareinsights.com https://repo.r-wasm.org https://*.r-wasm.org https://cdn.jsdelivr.net https://*.vercel.app https://ncskit.org https://*.ncskit.org",
 
     // Workers: self + blob (WebR service worker)
     "worker-src 'self' blob:",
