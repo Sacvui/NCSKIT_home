@@ -396,7 +396,7 @@ export default function KnowledgeBase() {
 
                     {/* Keywords/Tags */}
                     <div className="col-span-1 md:col-span-2 flex flex-wrap gap-2">
-                      {keywords.slice(0, 2).map((kw, idx) => (
+                      {keywords.slice(0, 2).map((kw: string, idx: number) => (
                         <span key={idx} className="text-[10px] text-slate-400 font-black px-3 py-1 border border-slate-100 rounded-lg bg-slate-50 group-hover:bg-white group-hover:border-indigo-100 transition-all">
                           #{kw.replace(/[^a-zA-Z0-9]/g, '')}
                         </span>
