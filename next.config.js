@@ -35,19 +35,13 @@ const CSP_DIRECTIVES = [
     "img-src 'self' data: blob: https:",
 
     // Connections: self + Supabase + Gemini AI + ORCID + WebR Repos + CDNs
-    "connect-src 'self' blob: data: https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://pub.orcid.org https://orcid.org https://va.vercel-scripts.com https://*.vercel-scripts.com https://cloudflareinsights.com https://*.r-wasm.org https://cdn.jsdelivr.net https://*.vercel.app",
+    "connect-src 'self' blob: data: https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://pub.orcid.org https://orcid.org https://va.vercel-scripts.com https://*.vercel-scripts.com https://cloudflareinsights.com https://repo.r-wasm.org https://*.r-wasm.org https://cdn.jsdelivr.net https://*.vercel.app",
 
     // Workers: self + blob (WebR service worker)
     "worker-src 'self' blob:",
-
-    // Frames: deny all (no iframes needed)
-    "frame-ancestors 'none'",
-
-    // Forms: only self
-    "form-action 'self'",
-
-    // Base URI: only self (prevent base tag injection)
-    "base-uri 'self'",
+    
+    // Media
+    "media-src 'self' blob: data:",
 ].join('; ');
 
 const nextConfig = {
@@ -59,11 +53,7 @@ const nextConfig = {
                 source: '/:path*',
                 headers: [
                     // WebR WASM headers
-                    // CRITICAL: 'credentialless' (NOT 'require-corp') is required because:
-                    // - repo.r-wasm.org does NOT send CORP headers
-                    // - 'require-corp' blocks ALL cross-origin fetches without CORP
-                    // - 'credentialless' still enables SharedArrayBuffer on Chrome 96+
-                    //   while allowing cross-origin fetches (without cookies/credentials)
+                    // CRITICAL: 'credentialless' is required for compatibility with external R repos
                     {
                         key: 'Cross-Origin-Embedder-Policy',
                         value: 'credentialless',
@@ -96,7 +86,7 @@ const nextConfig = {
                     },
                 ],
             },
-            // WebR core binaries (R.wasm, webr-worker.js, R.js)
+            // WebR core binaries
             {
                 source: '/webr_core_v3/:path*',
                 headers: [
@@ -113,19 +103,16 @@ const nextConfig = {
                         value: 'cross-origin',
                     },
                     {
-                        // Force browser to revalidate WebR binaries on each visit
-                        // This prevents stale worker cache issues after deployments
                         key: 'Cache-Control',
                         value: 'public, max-age=0, must-revalidate',
                     },
                 ],
             },
-            // Local R package repository (psych, jsonlite, etc.)
+            // Local R package repository
             {
                 source: '/webr_repo_v3/:path*',
                 headers: [
                     {
-                        // CRITICAL: Without this, COEP blocks loading .tgz packages
                         key: 'Cross-Origin-Resource-Policy',
                         value: 'cross-origin',
                     },
@@ -136,20 +123,6 @@ const nextConfig = {
                     {
                         key: 'Cache-Control',
                         value: 'public, max-age=86400, stale-while-revalidate=604800',
-                    },
-                ],
-            },
-            // Also serve old v2 repo with correct headers (if still referenced)
-            {
-                source: '/webr_repo_v2/:path*',
-                headers: [
-                    {
-                        key: 'Cross-Origin-Resource-Policy',
-                        value: 'cross-origin',
-                    },
-                    {
-                        key: 'Cross-Origin-Embedder-Policy',
-                        value: 'credentialless',
                     },
                 ],
             },
@@ -169,7 +142,6 @@ const nextConfig = {
                         value: 'same-origin',
                     },
                     {
-                        // Service workers MUST not be cached to ensure updates propagate
                         key: 'Cache-Control',
                         value: 'no-cache, no-store, must-revalidate',
                     },

@@ -199,43 +199,48 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
 
                 updateProgress('📂 Đang kết nối bộ nhớ...');
                 let storageSane = false;
+                const channelType = getOptimalChannelType();
 
-                const isFsBroken = typeof localStorage !== 'undefined' ? localStorage.getItem('webr_fs_broken') === 'true' : false;
-
-                try {
-                    try { await webR.FS.mkdir('/home/web_user'); } catch (e) {}
-                    try { await webR.FS.mkdir(persistentLib); } catch (e) {}
-                    
-                    logger.debug('[WebR] Connecting storage...');
-                    await webR.FS.mount('IDBFS', {}, persistentLib);
-                    
+                // CRITICAL: IDBFS is NOT supported with SharedArrayBuffer (Channel 0)
+                // It only works with PostMessage (Channel 3) or ServiceWorker (Channel 1)
+                if (channelType !== 0) {
                     try {
-                        await Promise.race([
-                            webR.FS.syncfs(true),
-                            new Promise((_, reject) => setTimeout(() => reject(new Error('Sync Timeout')), 10000))
-                        ]);
-
-                        if (isFsBroken || crashCount > 1) {
-                            logger.warn('[WebR] Self-healing storage...');
-                            await webR.evalR(`unlink("${persistentLib}", recursive = TRUE); dir.create("${persistentLib}", recursive = TRUE)`);
-                            await webR.FS.syncfs(false);
-                            if (typeof localStorage !== 'undefined') localStorage.removeItem('webr_fs_broken');
-                        }
+                        try { await webR.FS.mkdir('/home/web_user'); } catch (e) {}
+                        try { await webR.FS.mkdir(persistentLib); } catch (e) {}
                         
-                        const sanity = await webR.evalR(`dir.exists("${persistentLib}") && file.access("${persistentLib}", 2) == 0`);
-                        if (unpackWebRObject(await sanity.toJs()) === true) {
-                            storageSane = true;
+                        logger.debug('[WebR] Connecting storage (IDBFS)...');
+                        await webR.FS.mount('IDBFS', {}, persistentLib);
+                        
+                        try {
+                            await Promise.race([
+                                webR.FS.syncfs(true),
+                                new Promise((_, reject) => setTimeout(() => reject(new Error('Sync Timeout')), 10000))
+                            ]);
+
+                            const isFsBroken = typeof localStorage !== 'undefined' ? localStorage.getItem('webr_fs_broken') === 'true' : false;
+                            if (isFsBroken || crashCount > 1) {
+                                logger.warn('[WebR] Self-healing storage...');
+                                await webR.evalR(`unlink("${persistentLib}", recursive = TRUE); dir.create("${persistentLib}", recursive = TRUE)`);
+                                await webR.FS.syncfs(false);
+                                if (typeof localStorage !== 'undefined') localStorage.removeItem('webr_fs_broken');
+                            }
+                            
+                            const sanity = await webR.evalR(`dir.exists("${persistentLib}") && file.access("${persistentLib}", 2) == 0`);
+                            if (unpackWebRObject(await sanity.toJs()) === true) {
+                                storageSane = true;
+                            }
+                        } catch (syncErr) {
+                            logger.warn('[WebR] IDBFS failed, falling back to RAM.', syncErr);
+                            if (typeof localStorage !== 'undefined') localStorage.setItem('webr_fs_broken', 'true');
                         }
-                    } catch (syncErr) {
-                        logger.warn('[WebR] IDBFS failed, using RAM mode.', syncErr);
-                        if (typeof localStorage !== 'undefined') localStorage.setItem('webr_fs_broken', 'true');
+                    } catch (fsErr) {
+                        logger.warn('[WebR] Storage setup error:', fsErr);
                     }
-                } catch (fsErr) {
-                    logger.warn('[WebR] Storage skip:', fsErr);
-                    try { await webR.FS.unmount(persistentLib); } catch(u) {}
+                } else {
+                    logger.info('[WebR] SharedArrayBuffer detected, skipping IDBFS mount for stability.');
                 }
                 
-                if (!storageSane) logger.info('[WebR] RAM Mode Active (High Stability)');
+                if (!storageSane) logger.info('[WebR] RAM Mode Active (High Performance)');
 
                 const fallbackRepo = "https://repo.r-wasm.org/";
                 const localRepo = (typeof window !== 'undefined' && window.location.origin) 
@@ -249,34 +254,36 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         }
                         
                         # Configure repos: local first, then r-wasm.org as fallback
-                        options(repos = c(
-                            LOCAL = "${localRepo}",
-                            CRAN = "https://repo.r-wasm.org/"
-                        ))
+                        local_repo <- "${localRepo}"
+                        fallback_repo <- "https://repo.r-wasm.org/"
+                        
+                        options(repos = c(LOCAL = local_repo, CRAN = fallback_repo))
                         options(pkgType = "binary")
-                        options(webr.repo_quiet = TRUE)
+                        options(webr.repo_quiet = FALSE) # Set to FALSE to see errors in console
                         options(timeout = 60)
                         
-                        # Load psych - install if not available
-                        psych_loaded <- require("psych", quietly = TRUE)
-                        if (!psych_loaded) {
-                            tryCatch({
-                                webr::install("psych", quiet = TRUE)
-                                psych_loaded <- require("psych", quietly = TRUE)
-                            }, error = function(e) {
-                                message("[WebR] psych install failed: ", e$message)
-                            })
+                        # Helper to install if missing
+                        install_if_missing <- function(pkg) {
+                            if (!require(pkg, character.only = TRUE, quietly = TRUE)) {
+                                message("Installing missing package: ", pkg)
+                                tryCatch({
+                                    # Try local first by setting repos temporarily
+                                    webr::install(pkg, repos = local_repo)
+                                }, error = function(e) {
+                                    message("Local install failed for ", pkg, ", trying CRAN...")
+                                    tryCatch({
+                                        webr::install(pkg, repos = fallback_repo)
+                                    }, error = function(e2) {
+                                        stop("Failed to install ", pkg, ": ", e2$message)
+                                    })
+                                })
+                                library(pkg, character.only = TRUE)
+                            }
                         }
                         
-                        # Also ensure jsonlite is available (used for result serialization)
-                        if (!require("jsonlite", quietly = TRUE)) {
-                            tryCatch({
-                                webr::install("jsonlite", quiet = TRUE)
-                                library("jsonlite", quietly = TRUE)
-                            }, error = function(e) {
-                                message("[WebR] jsonlite install failed: ", e$message)
-                            })
-                        }
+                        # Ensure essential packages are available
+                        install_if_missing("jsonlite")
+                        install_if_missing("psych")
                         
                         r_version_info <- paste0(R.version$major, ".", R.version$minor, " (", R.version$platform, ")")
                     `);
