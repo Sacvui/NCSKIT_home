@@ -10,7 +10,7 @@ tags:
   - SEM
 authors:
   - name: Le Phuc Hai
-    orcid: 0009-0000-0000-0000
+    orcid: 0009-0004-1215-5023
     affiliation: 1
 affiliations:
   - name: Independent Researcher, Vietnam

@@ -3,7 +3,7 @@ message: "If you use this software, please cite it as below."
 authors:
 - family-names: "Le"
   given-names: "Phuc Hai"
-  orcid: "https://orcid.org/0009-0000-0000-0000"
+  orcid: "https://orcid.org/0009-0004-1215-5023"
 title: "ncsStat: A Web-Based Framework for Privacy-Preserving Decentralized Statistical Computing"
 version: 2.1.0
 date-released: 2026-04-22
