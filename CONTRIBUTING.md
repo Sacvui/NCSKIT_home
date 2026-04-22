@@ -1,44 +1,37 @@
 # Contributing to ncsStat
 
-Thank you for your interest in contributing to ncsStat! We welcome contributions from the community to make statistical analysis more accessible and secure.
-
-## Code of Conduct
-
-By participating in this project, you agree to abide by our Code of Conduct (standard professional academic conduct).
+Thank you for considering contributing to ncsStat! We welcome contributions that improve the statistical engine, the UI, or the interpretation logic (ASIG).
 
 ## How to Contribute
 
-### Reporting Bugs
-If you find a bug, please open an issue on our GitHub repository with:
-- A clear description of the bug.
-- Steps to reproduce the issue.
-- Expected vs. actual behavior.
-- Screenshots if applicable.
+1.  **Reporting Bugs**: Use the GitHub Issues tracker to report bugs. Please include steps to reproduce and a sample dataset if possible.
+2.  **Feature Requests**: We are always looking to expand our analysis methods (e.g., adding Meta-analysis or Multi-level modeling).
+3.  **Code Contributions**:
+    - Fork the repository.
+    - Create a new branch (`feature/your-feature`).
+    - Ensure code passes `npm run verify-build`.
+    - Submit a Pull Request.
 
-### Suggesting Enhancements
-We welcome ideas for new statistical methods or UI improvements. Please open an issue to discuss your suggestion before implementing it.
+## Extending the ASIG Logic (Expert System)
 
-### Pull Requests
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature/your-feature`).
-3. Make your changes.
-4. Ensure your code passes all tests (`npm run type-check`).
-5. Commit your changes (`git commit -m 'Add some feature'`).
-6. Push to the branch (`git push origin feature/your-feature`).
-7. Open a Pull Request.
+The **Academic Statistical Interpretation Generator (ASIG)** is designed to be extensible. If you want to add new interpretation rules or modify existing thresholds (e.g., changing SEM fit guidelines):
 
-## Development Setup
+1.  Navigate to `lib/interpretation-templates.ts`.
+2.  The system uses a template-based mapping. You can add a new method or modify the thresholds in the `INTERPRETATION_RULES` object.
+3.  Rules are defined using deterministic logic based on R output keys.
+4.  If you want to contribute a new analysis method, ensure you also provide the corresponding R template in `lib/webr/analyses/`.
 
-1. Clone the repo: `git clone https://github.com/Sacvui/NCSKIT_home.git`
-2. Install dependencies: `npm install`
-3. Copy `.env.example` to `.env.local` and fill in your Supabase credentials.
-4. Run the development server: `npm run dev`
+## Local Development Context
 
-## Coding Standards
-- Use TypeScript for all new code.
-- Follow the existing project structure (components, lib, hooks).
-- Ensure all R logic is placed in `lib/webr/analyses/`.
-- Add tests for new statistical modules in `__tests__`.
+`ncsStat` requires a Cross-Origin Isolated environment to enable full performance (SharedArrayBuffer). If you are developing locally:
+- Use `npm run dev`.
+- Ensure your local browser environment supports the required security headers.
 
-## License
-By contributing, you agree that your contributions will be licensed under the MIT License.
+## Documentation and Standards
+
+- We follow **TypeScript** strict mode for type safety.
+- All R code must be compatible with **WebR (R 4.5)**.
+- Statistical interpretations should aim for **APA 7th Edition** compliance.
+
+---
+*ncsStat is an open-source project aimed at democratizing science. We value clear, reproducible, and ethically-sound research tools.*

@@ -28,30 +28,30 @@ Modern psychological and social research increasingly demands analytical tools t
 Data sovereignty is a critical requirement in contemporary research, where data privacy regulations (e.g., GDPR) often prohibit the transmission of sensitive raw data to external cloud servers. While native desktop applications like JASP or jamovi offer localized processing, they require administrative installation privileges—a significant barrier in institutional environments. 
 
 `ncsStat` addresses these challenges through three core innovations:
-1.  **Methodological Guardrails**: The framework acts as a "virtual mentor," enforcing rigorous pre-analysis checks based on established multivariate standards [@Hair2010] and automatically suggesting corrective paths (e.g., switching to Welch ANOVA).
+1.  **Methodological Guardrails**: The framework acts as a "virtual mentor," enforcing rigorous pre-analysis checks based on established multivariate standards [@Hair2010] and automatically suggesting corrective paths.
 2.  **Democratizing Science**: By being **offline-ready** and zero-cost, `ncsStat` empowers researchers in low-resource settings.
-3.  **Reproducibility via Script Export**: To bridge the gap between GUI and code, `ncsStat` provides an "Export to R Script" feature, allowing full reproducibility in native RStudio environments.
+3.  **Reproducibility & Sustainability**: To ensure long-term reliability, `ncsStat` utilizes **version-locked WASM binaries** self-hosted within the application's infrastructure, shielding the system from upstream breaking changes or repository deprecations.
 
-# State of the Field
+# Technical Architecture & Security
 
-While `shinylive` allows R Shiny apps to run in the browser, `ncsStat` offers superior **State Management** and **Concurrency Control**. By leveraging the React/Next.js ecosystem, `ncsStat` implements a custom **Locked Execution Pipeline** that prevents race conditions—a common failure point in reactive Shiny environments when multiple analysis requests are fired asynchronously. 
+### Memory & Concurrency Management
+To address WASM memory constraints and ensure a smooth user experience, `ncsStat` implements:
+- **Locked Execution Pipeline**: A React-based orchestration layer that prevents race conditions during asynchronous R calls.
+- **Graceful Degradation**: The system performs active **environment sniffing** to detect security headers. If `SharedArrayBuffer` is unavailable (non-Cross-Origin Isolated contexts), `ncsStat` automatically falls back to a single-threaded `PostMessage` communication channel, ensuring security and compatibility without sacrificing core functionality.
 
-# Technical Architecture & Performance
+### ASIG: Contextual Guidance vs. Final Judgment
+The **Academic Statistical Interpretation Generator (ASIG)** is designed not as a definitive judge, but as an expert guidance system. While it utilizes established thresholds for model fit (e.g., CFI > 0.90), it explicitly highlights these as "guidelines" rather than binary outcomes. By providing the equivalent R script for every analysis, `ncsStat` encourages users to verify results manually and promotes transparency in statistical reporting.
 
-### Memory Management & Stability
-To address the inherent memory constraints of WASM (typically capped at 4GB), `ncsStat` implements an aggressive memory lifecycle management policy. This includes:
-- **Active Garbage Collection**: Automated invocation of `gc()` and `webr::purge()` after heavy computational cycles (e.g., Bootstrap 5000 iterations).
-- **Worker Isolation**: Each major analysis session operates within a dedicated worker context with a self-healing mechanism that resets the engine upon memory-induced crashes.
+# Functionality
 
-### Numerical Parity
-Mathematical accuracy is verified through a dedicated validation suite. Benchmarks comparing `ncsStat` against Native R 4.4 for complex SEM models (using FIML for missing data) show numerical parity with an error margin of $\epsilon < 10^{-8}$ for point estimates and $\epsilon < 10^{-5}$ for standard errors. Detailed benchmark results are available in the repository documentation.
+The framework integrates professional R packages such as `lavaan` [@Rosseel2012] and `psych` [@Psych2024] to provide:
+- **Privacy-preserving Analysis**: 100% local processing.
+- **Expert-Rule Interpretation**: Automated reporting logic with built-in pedagogical cues.
+- **Script Export**: One-click generation of R scripts for RStudio reproduction.
 
-# Limitations
+# Sustainability and Maintainability
 
-Despite its advantages, `ncsStat` has inherent limitations:
-1.  **Memory Caps**: Analysis of extremely large datasets (e.g., $>10^6$ rows with hundreds of variables) may exceed the browser's WASM memory heap.
-2.  **Computational Speed**: While near-native for standard tests, iterative procedures like complex SEM Bootstrapping are approximately 1.5x–2x slower than native execution.
-3.  **Browser Compatibility**: Full performance requires modern browsers with `SharedArrayBuffer` support for multi-threaded operations.
+`ncsStat` follows a modular architecture, allowing for community-driven expansion of the ASIG rule engine. The public validation suite ensures that future updates maintain numerical parity with native R environments.
 
 # AI Disclosure
 
