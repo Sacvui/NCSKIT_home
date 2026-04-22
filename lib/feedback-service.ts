@@ -110,10 +110,12 @@ export const FeedbackService = {
                 raw_data: data
             });
 
-            const { error } = await supabase.from('feedback').insert({
+            const { error } = await supabase.from('feedback').upsert({
                 user_id: user.id,
                 content: fullContentStr,
                 rating
+            }, {
+                onConflict: 'user_id'
             });
 
             if (error) {

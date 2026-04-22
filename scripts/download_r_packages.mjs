@@ -14,7 +14,11 @@ const PACKAGES = [
   'lattice',
   'nlme',
   'foreign',
-  'GPArotation'
+  'GPArotation',
+  'lavaan',
+  'quadprog',
+  'pbivnorm',
+  'numDeriv'
 ];
 
 async function downloadFile(url, dest) {

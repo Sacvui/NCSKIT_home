@@ -195,8 +195,8 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
             doc.setFontSize(10);
             doc.setTextColor(50);
             doc.setFont('NotoSans', 'normal');
-            doc.text(`• Hệ số Cronbach's Alpha: ${alpha.toFixed(3)}`, 22, yPos + 18);
-            doc.text(`• Số lượng biến quan sát: ${nItems}`, 100, yPos + 18);
+            doc.text(`• Hệ số Cronbach's Alpha: ${(alpha || 0).toFixed(3)}`, 22, yPos + 18);
+            doc.text(`• Số lượng biến quan sát: ${nItems || 0}`, 100, yPos + 18);
             
             yPos += 35;
 
@@ -214,7 +214,7 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
                         columns[idx] || item.itemName || `Item ${idx + 1}`,
                         (item.scaleMeanIfDeleted ?? 0).toFixed(3),
                         (item.scaleVarianceIfDeleted ?? 0).toFixed(3),
-                        { content: corr.toFixed(3), styles: { fontStyle: isLow ? 'bold' : 'normal', textColor: isLow ? [185, 28, 28] : [0, 0, 0] } },
+                        { content: (corr || 0).toFixed(3), styles: { fontStyle: isLow ? 'bold' : 'normal', textColor: isLow ? [185, 28, 28] : [0, 0, 0] } },
                         (item.alphaIfItemDeleted ?? 0).toFixed(3)
                     ];
                 });
@@ -248,7 +248,7 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
             doc.setFont('NotoSans', 'normal');
             doc.setTextColor(30, 41, 59);
             const evalText = alpha >= 0.9 ? 'Rất tốt (Excellent)' : alpha >= 0.7 ? 'Tốt/Chấp nhận được (Acceptable)' : 'Kém (Poor)';
-            const interpretation = `Thang đo đạt độ tin cậy ${evalText} với Alpha = ${alpha.toFixed(3)}. ${alpha >= 0.7 ? 'Thang đo đủ tính nhất quán nội tại để thực hiện các bước phân tích tiếp theo.' : 'Cần xem xét loại bỏ các biến có tương quan thấp để cải thiện độ tin cậy.'}`;
+            const interpretation = `Thang đo đạt độ tin cậy ${evalText} với Alpha = ${(alpha || 0).toFixed(3)}. ${alpha >= 0.7 ? 'Thang đo đủ tính nhất quán nội tại để thực hiện các bước phân tích tiếp theo.' : 'Cần xem xét loại bỏ các biến có tương quan thấp để cải thiện độ tin cậy.'}`;
             const splitInter = doc.splitTextToSize(interpretation, 170);
             doc.text(splitInter, 20, yPos + 15);
             
@@ -267,7 +267,7 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
             const summaryData = batchResults.map((r: any) => {
                 const alpha = r.alpha || r.rawAlpha || 0;
                 const evalText = alpha >= 0.9 ? 'Excellent' : alpha >= 0.8 ? 'Good' : alpha >= 0.7 ? 'Acceptable' : alpha >= 0.6 ? 'Questionable' : 'Poor';
-                return [r.scaleName, r.nItems || '-', alpha.toFixed(3), evalText];
+                return [r.scaleName, r.nItems || '-', (alpha || 0).toFixed(3), evalText];
             });
 
             autoTable(doc, {
@@ -293,7 +293,7 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
                 yPos += 7;
 
                 const alpha = r.alpha || r.rawAlpha || 0;
-                doc.text(`Alpha: ${alpha.toFixed(3)}`, 15, yPos);
+                doc.text(`Alpha: ${(alpha || 0).toFixed(3)}`, 15, yPos);
                 yPos += 7;
 
                 if (r.itemTotalStats && r.itemTotalStats.length > 0) {
@@ -378,7 +378,8 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
             doc.setTextColor(51, 65, 85);
             
             const isSigT = results.pValue < 0.05;
-            const interpretT = `Kết quả cho thấy ${isSigT ? 'CÓ' : 'KHÔNG CÓ'} sự khác biệt có ý nghĩa thống kê giữa hai nhóm (p = ${results.pValue < 0.001 ? '< 0.001' : results.pValue.toFixed(3)}). Quy mô tác động (Effect Size) đạt mức ${Math.abs(results.effectSize) > 0.5 ? 'Trung bình trở lên' : 'Thấp'}.`;
+            const pValueText = (results.pValue === null || results.pValue === undefined) ? 'N/A' : (results.pValue < 0.001 ? '< 0.001' : results.pValue.toFixed(3));
+            const interpretT = `Kết quả cho thấy ${isSigT ? 'CÓ' : 'KHÔNG CÓ'} sự khác biệt có ý nghĩa thống kê giữa hai nhóm (p = ${pValueText}). Quy mô tác động (Effect Size) đạt mức ${Math.abs(results.effectSize || 0) > 0.5 ? 'Trung bình trở lên' : 'Thấp'}.`;
             doc.text(doc.splitTextToSize(interpretT, 170), 20, yPos + 18);
             yPos += 50;
         }
@@ -577,9 +578,9 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
                 yPos += 7;
 
                 const nFac = results.loadings[0].length;
-                const headers = [['Biến quan sát', ...Array(nFac).fill(0).map((_, i) => `F${i + 1}`)]];
+                const headers = [['Biến quan sát', ...Array(nFac).fill(0).map((_: any, i: number) => `F${i + 1}`)]];
                 const data = results.loadings.map((row: number[], i: number) => {
-                    return [columns[i] || `Biến ${i + 1}`, ...row.map(v => v.toFixed(3))];
+                    return [columns[i] || `Biến ${i + 1}`, ...row.map(v => (v ?? 0).toFixed(3))];
                 });
 
                 autoTable(doc, {
@@ -610,11 +611,11 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
 
                 const fitHeaders = [['Chỉ số', 'Giá trị', 'Ngưỡng chấp nhận', 'Đánh giá']];
                 const fitData = [
-                    ['Chi-square / df', (fitMeasures.chisq / fitMeasures.df).toFixed(3), '< 3.0', (fitMeasures.chisq / fitMeasures.df) < 3 ? 'Rất tốt' : 'Đạt'],
-                    ['CFI (Comparative Fit Index)', fitMeasures.cfi.toFixed(3), '> 0.90', fitMeasures.cfi >= 0.9 ? 'Đạt' : 'Kém'],
-                    ['TLI (Tucker-Lewis Index)', fitMeasures.tli.toFixed(3), '> 0.90', fitMeasures.tli >= 0.9 ? 'Đạt' : 'Kém'],
-                    ['RMSEA', fitMeasures.rmsea.toFixed(3), '< 0.08', fitMeasures.rmsea <= 0.08 ? 'Đạt' : 'Kém'],
-                    ['SRMR', fitMeasures.srmr.toFixed(3), '< 0.08', fitMeasures.srmr <= 0.08 ? 'Đạt' : 'Kém']
+                    ['Chi-square / df', ((fitMeasures.chisq || 0) / (fitMeasures.df || 1)).toFixed(3), '< 3.0', ((fitMeasures.chisq || 0) / (fitMeasures.df || 1)) < 3 ? 'Rất tốt' : 'Đạt'],
+                    ['CFI (Comparative Fit Index)', (fitMeasures.cfi || 0).toFixed(3), '> 0.90', (fitMeasures.cfi || 0) >= 0.9 ? 'Đạt' : 'Kém'],
+                    ['TLI (Tucker-Lewis Index)', (fitMeasures.tli || 0).toFixed(3), '> 0.90', (fitMeasures.tli || 0) >= 0.9 ? 'Đạt' : 'Kém'],
+                    ['RMSEA', (fitMeasures.rmsea || 0).toFixed(3), '< 0.08', (fitMeasures.rmsea || 0) <= 0.08 ? 'Đạt' : 'Kém'],
+                    ['SRMR', (fitMeasures.srmr || 0).toFixed(3), '< 0.08', (fitMeasures.srmr || 0) <= 0.08 ? 'Đạt' : 'Kém']
                 ];
 
                 autoTable(doc, {
@@ -637,9 +638,9 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
                     e.lhs,
                     e.op === '=~' ? 'Đo lường' : e.op === '~' ? 'Tác động' : 'Tương quan',
                     e.rhs,
-                    e.est.toFixed(3),
-                    e.se.toFixed(3),
-                    e.pvalue < 0.001 ? '< 0.001' : e.pvalue.toFixed(3),
+                    (e.est || 0).toFixed(3),
+                    (e.se || 0).toFixed(3),
+                    (e.pvalue === null || e.pvalue === undefined) ? 'N/A' : (e.pvalue < 0.001 ? '< 0.001' : e.pvalue.toFixed(3)),
                     (e.std || 0).toFixed(3)
                 ]);
 
@@ -710,7 +711,7 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
             const kurtArr = results.kurtosis || [];
             const isNormal = skewArr.every((s: number) => Math.abs(s) <= 2) && kurtArr.every((k: number) => Math.abs(k) <= 2);
 
-            const interpretation = `Kết quả thống kê cho thấy các biến quan sát có giá trị trung bình trong khoảng [${minMean.toFixed(2)} - ${maxMean.toFixed(2)}]. Độ lệch chuẩn thể hiện mức độ phân tán của dữ liệu. ${isNormal ? 'Dựa trên chỉ số Skewness và Kurtosis (nằm trong khoảng [-2, 2]), dữ liệu có xu hướng phân phối chuẩn, đảm bảo điều kiện cho các kiểm định tham số tiếp theo.' : 'Tuy nhiên, phát hiện một số biến có chỉ số Skewness hoặc Kurtosis vượt ngưỡng [-2, 2], cho thấy dữ liệu có dấu hiệu vi phạm phân phối chuẩn. Cần thận trọng khi sử dụng các kiểm định tham số.'}`;
+            const interpretation = `Kết quả thống kê cho thấy các biến quan sát có giá trị trung bình trong khoảng [${(minMean || 0).toFixed(2)} - ${(maxMean || 0).toFixed(2)}]. Độ lệch chuẩn thể hiện mức độ phân tán của dữ liệu. ${isNormal ? 'Dựa trên chỉ số Skewness và Kurtosis (nằm trong khoảng [-2, 2]), dữ liệu có xu hướng phân phối chuẩn, đảm bảo điều kiện cho các kiểm định tham số tiếp theo.' : 'Tuy nhiên, phát hiện một số biến có chỉ số Skewness hoặc Kurtosis vượt ngưỡng [-2, 2], cho thấy dữ liệu có dấu hiệu vi phạm phân phối chuẩn. Cần thận trọng khi sử dụng các kiểm định tham số.'}`;
             const splitInter = doc.splitTextToSize(interpretation, 170);
             doc.text(splitInter, 20, yPos + 18);
             

@@ -348,7 +348,7 @@ export async function loadPackagesForMethod(method: string): Promise<void> {
             await runLocked(async () => {
                 await webR.evalR(`
                     if (!require("${pkg}", character.only = TRUE, quietly = TRUE)) {
-                        webr::install("${pkg}")
+                        webr::install("${pkg}", repos = c("${localRepo}", "${officialRepo}"))
                         library("${pkg}", character.only = TRUE)
                     }
                 `);
@@ -523,7 +523,7 @@ export async function executeRWithRecovery(
                 await runLocked(async () => {
                     await webR.evalR(`
                         if (!require("${missingPkg}", character.only = TRUE, quietly = TRUE)) {
-                            webr::install("${missingPkg}")
+                            webr::install("${missingPkg}", repos = c("${localRepo}", "${officialRepo}"))
                             library("${missingPkg}", character.only = TRUE)
                         }
                     `);
