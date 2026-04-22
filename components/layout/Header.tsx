@@ -68,9 +68,24 @@ function HeaderContent({ centerContent, rightActions, hideNav = false, user: pro
                                 />
                             </NavDropdown>
 
-                            <NavLink href="/scales" active={pathname?.startsWith('/scales')}>
-                                {t(locale, 'nav.research_model')}
-                            </NavLink>
+                            <NavDropdown
+                                label={t(locale, 'nav.research_model')}
+                                active={pathname?.startsWith('/scales') || pathname === '/knowledge/what-is-a-research-model'}
+                                icon={Layout}
+                            >
+                                <NavDropdownItem
+                                    href="/scales"
+                                    active={pathname === '/scales'}
+                                    label={t(locale, 'nav.academic_scales')}
+                                    icon={Layout}
+                                />
+                                <NavDropdownItem
+                                    href="/knowledge/what-is-a-research-model"
+                                    active={pathname === '/knowledge/what-is-a-research-model'}
+                                    label={t(locale, 'nav.research_models')}
+                                    icon={Network}
+                                />
+                            </NavDropdown>
 
                             <NavDropdown
                                 label={t(locale, 'nav.knowledge_guides')}
@@ -191,7 +206,15 @@ function HeaderContent({ centerContent, rightActions, hideNav = false, user: pro
                             onClick={() => setIsMobileMenuOpen(false)}
                         >
                             <Layout className="w-5 h-5 text-indigo-500" />
-                            {t(locale, 'nav.research_model')}
+                            {t(locale, 'nav.academic_scales')}
+                        </Link>
+                        <Link 
+                            href="/knowledge/what-is-a-research-model" 
+                            className="flex items-center gap-3 p-3 rounded-xl text-slate-700 font-bold hover:bg-slate-50 active:bg-indigo-50 active:text-indigo-600"
+                            onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                            <Network className="w-5 h-5 text-indigo-500" />
+                            {t(locale, 'nav.research_models')}
                         </Link>
                         <Link 
                             href="/knowledge" 
