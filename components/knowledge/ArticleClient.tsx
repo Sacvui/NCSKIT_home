@@ -278,31 +278,45 @@ export default function ArticleClient({ initialArticle, fallbackArticles, slug }
                                 </div>
                             </header>
 
-                            <div className="prose prose-xl max-w-none prose-slate">
+                            <div className="prose prose-2xl max-w-none prose-slate prose-headings:tracking-tighter prose-headings:font-black prose-p:leading-[1.8] prose-p:text-slate-600">
                                 {(isEditing ? editedArticle : displayArticle).content_structure.map((section, idx) => (
-                                    <div key={idx} id={`section-${idx}`} className="mb-24 last:mb-0 scroll-mt-32">
+                                    <div key={idx} id={`section-${idx}`} className="mb-20 last:mb-0 scroll-mt-32 group/section">
                                         {isEditing ? (
-                                            <div className="space-y-6">
-                                                <input className="w-full text-2xl font-black p-6 bg-slate-50 rounded-2xl border-2 border-slate-100 outline-none focus:border-indigo-200 transition-all" value={isVi ? section.h2_vi : section.h2_en} onChange={(e) => {
+                                            <div className="space-y-6 p-10 bg-slate-50 rounded-[3rem] border-2 border-dashed border-slate-200">
+                                                <div className="flex items-center gap-4 mb-2">
+                                                    <div className="px-3 py-1 bg-indigo-600 text-white text-[10px] font-black rounded-lg uppercase">Section {idx + 1}</div>
+                                                    <div className="h-px bg-slate-200 flex-grow"></div>
+                                                </div>
+                                                <input className="w-full text-3xl font-black p-4 bg-white rounded-xl border border-slate-200 outline-none focus:ring-4 focus:ring-indigo-50" value={isVi ? section.h2_vi : section.h2_en} onChange={(e) => {
                                                     const newS = [...editedArticle.content_structure];
                                                     newS[idx] = {...newS[idx], [isVi ? 'h2_vi' : 'h2_en']: e.target.value};
                                                     setEditedArticle({...editedArticle, content_structure: newS});
                                                 }} />
-                                                <textarea className="w-full min-h-[500px] p-10 bg-slate-50 rounded-[3rem] outline-none text-xl leading-relaxed border-2 border-slate-100 focus:border-indigo-200 transition-all" value={isVi ? section.content_vi : section.content_en} onChange={(e) => {
+                                                <textarea className="w-full min-h-[400px] p-8 bg-white rounded-2xl outline-none text-xl leading-relaxed border border-slate-200 focus:ring-4 focus:ring-indigo-50" value={isVi ? section.content_vi : section.content_en} onChange={(e) => {
                                                     const newS = [...editedArticle.content_structure];
                                                     newS[idx] = {...newS[idx], [isVi ? 'content_vi' : 'content_en']: e.target.value};
                                                     setEditedArticle({...editedArticle, content_structure: newS});
                                                 }} />
                                             </div>
                                         ) : (
-                                            <>
-                                                <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-10 border-l-[10px] border-indigo-600 pl-8 overflow-hidden">
+                                            <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                                <h2 className="text-4xl md:text-5xl font-black text-slate-900 mb-8 tracking-tighter leading-tight group-hover/section:text-indigo-600 transition-colors">
                                                     {isVi ? section.h2_vi : section.h2_en}
                                                 </h2>
-                                                <div className="text-xl md:text-2xl text-slate-700 font-normal leading-[1.8] whitespace-pre-line bg-slate-50/50 p-12 rounded-[4rem] border border-slate-100 shadow-sm">
-                                                    {isVi ? section.content_vi : section.content_en}
+                                                
+                                                {/* Editorial Content Flow */}
+                                                <div className={`text-xl md:text-2xl leading-[1.85] text-slate-600 font-normal space-y-8 ${idx === 0 ? 'first-letter:text-7xl first-letter:font-black first-letter:mr-3 first-letter:float-left first-letter:text-indigo-600 first-letter:mt-2' : ''}`}>
+                                                    {/* Split content by newlines to create natural paragraphs */}
+                                                    {(isVi ? section.content_vi : section.content_en).split('\n').map((para, pIdx) => (
+                                                        para.trim() && <p key={pIdx} className="mb-6">{para.trim()}</p>
+                                                    ))}
                                                 </div>
-                                            </>
+                                                
+                                                {/* Contextual Accent for key sections */}
+                                                {idx % 2 === 0 && (
+                                                    <div className="w-20 h-1.5 bg-indigo-100 rounded-full mt-16 group-hover/section:w-32 group-hover:bg-indigo-400 transition-all duration-700"></div>
+                                                )}
+                                            </div>
                                         )}
                                     </div>
                                 ))}
