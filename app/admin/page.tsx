@@ -119,7 +119,7 @@ export default function AdminPage() {
                     icon={MessageSquare}
                     label="Phản hồi"
                     value={stats.totalFeedbacks}
-                    subValue={`★ ${stats.avgRating}/5`}
+                    subValue={`Rating: ${stats.avgRating}/5`}
                     color="amber"
                     href="/admin/feedback"
                 />

@@ -49,14 +49,14 @@ async function downloadWithRetry(url, dest, retries = 5) {
     } catch (err) {
       if (i === retries - 1) throw err;
       const delay = Math.pow(2, i) * 1000;
-      console.warn(`⚠️ [Retry ${i + 1}/${retries}] ${url} thất bại, thử lại sau ${delay}ms...`);
+      console.warn(`[Retry ${i + 1}/${retries}] ${url} thất bại, thử lại sau ${delay}ms...`);
       await new Promise(r => setTimeout(r, delay));
     }
   }
 }
 
 async function start() {
-  console.log('🚀 Starting WebR package local bundling (Immortal Mode)...');
+  console.log('[WebR Bundler] Starting WebR package local bundling...');
   
   if (!fs.existsSync(TARGET_DIR)) {
     fs.mkdirSync(TARGET_DIR, { recursive: true });
@@ -65,15 +65,15 @@ async function start() {
   // 1. Download PACKAGES index files (WebR needs ALL THREE to find packages)
   // CRITICAL: webr::install() looks for PACKAGES.rds FIRST — without it,
   // package installation fails with "not found in webR binary repo"
-  console.log('📥 Downloading PACKAGES index files...');
+  console.log('[WebR Bundler] Downloading PACKAGES index files...');
   try {
     await downloadWithRetry(`${BASE_PKG_URL}/PACKAGES`, path.join(TARGET_DIR, 'PACKAGES'));
     await downloadWithRetry(`${BASE_PKG_URL}/PACKAGES.gz`, path.join(TARGET_DIR, 'PACKAGES.gz'));
     await downloadWithRetry(`${BASE_PKG_URL}/PACKAGES.rds`, path.join(TARGET_DIR, 'PACKAGES.rds'));
-    console.log('✅ All index files downloaded (PACKAGES, PACKAGES.gz, PACKAGES.rds)');
+    console.log('[WebR Bundler] All index files downloaded');
   } catch (e) {
-    console.error('❌ Failed to download index files after all retries:', e.message);
-    process.exit(1); // Kill build correctly so we don't deploy broken files
+    console.error('[WebR Bundler] Failed to download index files:', e.message);
+    process.exit(1); 
   }
 
   // 2. Read PACKAGES file to get exact filenames (with versions)
@@ -84,20 +84,20 @@ async function start() {
     if (pkgMatch) {
       const version = pkgMatch[1].trim();
       const filename = `${pkgName}_${version}.tgz`;
-      console.log(`📦 Downloading ${filename}...`);
+      console.log(`[WebR Bundler] Downloading ${filename}...`);
       
       try {
         await downloadWithRetry(`${BASE_PKG_URL}/${filename}`, path.join(TARGET_DIR, filename));
-        console.log(`✅ Saved ${pkgName}`);
+        console.log(`[WebR Bundler] Saved ${pkgName}`);
       } catch (e) {
-        console.error(`❌ Failed to download ${pkgName} after all retries:`, e.message);
+        console.error(`[WebR Bundler] Failed to download ${pkgName}:`, e.message);
       }
     } else {
-      console.warn(`⚠️ Could not find ${pkgName} in PACKAGES index.`);
+      console.warn(`[WebR Bundler] Could not find ${pkgName} in PACKAGES index.`);
     }
   }
 
-  console.log('\n✨ WebR packages are now hosted locally in /public/webr_repo_v3!');
+  console.log('\n[WebR Bundler] WebR packages are now hosted locally in /public/webr_repo_v3!');
   console.log('You can now use: options(repos = c(CRAN = window.location.origin + "/webr_packages"))');
 }
 

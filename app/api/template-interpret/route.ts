@@ -226,13 +226,13 @@ function formatAsMarkdown(result: InterpretationResult): string {
     const lines: string[] = [];
 
     // Summary
-    lines.push('## 📊 Kết quả phân tích\n');
+    lines.push('## Kết quả phân tích\n');
     lines.push(result.summary);
     lines.push('');
 
     // Details
     if (result.details.length > 0) {
-        lines.push('### 📝 Chi tiết\n');
+        lines.push('### Chi tiết\n');
         for (const detail of result.details) {
             lines.push(`- ${detail}`);
         }
@@ -241,16 +241,16 @@ function formatAsMarkdown(result: InterpretationResult): string {
 
     // Warnings
     if (result.warnings.length > 0) {
-        lines.push('### ⚠️ Lưu ý\n');
+        lines.push('### Lưu ý\n');
         for (const warning of result.warnings) {
-            lines.push(`> ⚠️ ${warning}`);
+            lines.push(`> [!] ${warning}`);
         }
         lines.push('');
     }
 
     // Citations
     if (result.citations.length > 0) {
-        lines.push('### 📚 Tài liệu tham khảo\n');
+        lines.push('### Tài liệu tham khảo\n');
         for (const citation of result.citations) {
             lines.push(`- ${citation}`);
         }

@@ -24,7 +24,7 @@ export function UploadStep() {
             <FileUpload onDataLoaded={handleDataLoaded} locale={state.locale} />
 
             <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <h3 className="font-semibold text-blue-800 mb-2">💡 {state.locale === 'vi' ? 'Lưu ý:' : 'Note:'}</h3>
+                <h3 className="font-semibold text-blue-800 mb-2">{state.locale === 'vi' ? 'Lưu ý:' : 'Note:'}</h3>
                 <ul className="text-sm text-blue-700 space-y-1">
                     <li>• {state.locale === 'vi' ? 'Dòng đầu tiên nên là tên biến (header)' : 'First row should be variable names (header)'}</li>
                     <li>• {t(state.locale, 'analyze.common.security')}</li>
