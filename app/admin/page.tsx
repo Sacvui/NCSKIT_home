@@ -6,7 +6,7 @@ import Link from 'next/link'
 import {
     Users, Activity, Coins, TrendingUp, BookOpen, Scale,
     MessageSquare, ArrowUpRight, Loader2, ShieldCheck, BarChart3,
-    TrendingUp, Activity, CreditCard
+    CreditCard
 } from 'lucide-react'
 import ActivityFeed from '@/components/admin/ActivityFeed'
 

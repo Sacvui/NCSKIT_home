@@ -15,7 +15,7 @@ import { STATIC_SCALES } from '@/lib/constants/scales-fallbacks';
 // Cấu hình Metadata động cho SEO
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
     const supabase = getSupabase();
-    const { data: scale } = await supabase
+    const { data: dbScale } = await supabase
         .from('scales')
         .select('*')
         .eq('id', params.id)

@@ -543,7 +543,9 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
                 ...commonTableOptions,
                 startY: yPos,
                 head: headers,
-            yPos += 65;
+                body: data,
+            });
+            yPos = (doc as any).lastAutoTable.finalY + 10;
         }
         else if (analysisType === 'efa') {
             doc.setFont('NotoSans', 'bold');
