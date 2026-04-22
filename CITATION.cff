@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Le"
+  given-names: "Phuc Hai"
+  orcid: "https://orcid.org/0009-0000-0000-0000"
+title: "ncsStat: A Web-Based Framework for Privacy-Preserving Decentralized Statistical Computing"
+version: 2.1.0
+date-released: 2026-04-22
+url: "https://github.com/Sacvui/NCSKIT_home"
+license: MIT
+repository-code: "https://github.com/Sacvui/NCSKIT_home"
+abstract: >-
+  An open-source, browser-based statistical framework that decentralizes statistical computing by executing 
+  a full R engine (WebR) within the browser's sandbox via WebAssembly.
+keywords:
+  - statistics
+  - webassembly
+  - r-language
+  - privacy
+  - open-source
