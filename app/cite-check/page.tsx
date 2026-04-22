@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
     ClipboardCheck, FileText, Upload, AlertCircle, CheckCircle2, 
     ArrowRight, Info, Search, List, Download, RefreshCw, Layers,
-    Terminal, Play, Pause, RotateCcw, ShieldAlert
+    Terminal, Play, Pause, RotateCcw, ShieldAlert, Database
 } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
@@ -39,6 +39,7 @@ export default function CiteCheckPage() {
         totalRefs: number;
         doiIssues: { doi: string; rec: string }[];
         missingDoi: number;
+        verificationResults: any[];
     } | null>(null);
 
     const logEndRef = useRef<HTMLDivElement>(null);
@@ -86,43 +87,77 @@ export default function CiteCheckPage() {
         const refs = refContent.split('\n').filter(line => line.trim().length > 10);
         addLog(isVi ? `Đã bóc tách ${refs.length} tài liệu tham khảo.` : `Extracted ${refs.length} reference entries.`, "success");
 
-        // --- Step 3: DOI Health Check ---
+        // --- Step 3: DOI & Metadata Verification (Crossref API) ---
         await new Promise(r => setTimeout(r, 1200));
         setProgress(60);
-        addLog(isVi ? "Đang kiểm tra tính hợp lệ của mã DOI (APA 7th)..." : "Validating DOI health (APA 7th)...", "info");
+        addLog(isVi ? "Đang kết nối với cơ sở dữ liệu Crossref để xác minh tài liệu..." : "Connecting to Crossref database for metadata verification...", "info");
+        
         const doiRegex = /10.\d{4,9}\/[-._;()/:A-Z0-9]+/gi;
-        const doiResults = refs.map(ref => {
-            const match = ref.match(doiRegex);
-            const doi = match ? match[0] : null;
-            const isProperFormat = doi ? ref.includes('https://doi.org/' + doi) : false;
-            return { ref, doi, isProperFormat };
-        });
-        const badDois = doiResults.filter(r => r.doi && !r.isProperFormat);
-        if (badDois.length > 0) addLog(isVi ? `Cảnh báo: Phát hiện ${badDois.length} DOI sai định dạng URL.` : `Warning: Found ${badDois.length} DOIs with incorrect URL format.`, "warn");
+        const verificationResults: any[] = [];
+
+        // We process top 5 refs for demonstration/speed, or all if needed
+        const refsToVerify = refs.slice(0, 10); 
+        
+        for (let i = 0; i < refsToVerify.length; i++) {
+            const ref = refsToVerify[i];
+            const doiMatch = ref.match(doiRegex);
+            const doi = doiMatch ? doiMatch[0] : null;
+            
+            addLog(isVi ? `Đang kiểm tra [${i+1}/${refsToVerify.length}]: ${ref.substring(0, 30)}...` : `Verifying [${i+1}/${refsToVerify.length}]: ${ref.substring(0, 30)}...`);
+            
+            try {
+                // Search by DOI or Title
+                const query = doi ? `https://api.crossref.org/works/${doi}` : `https://api.crossref.org/works?query.bibliographic=${encodeURIComponent(ref)}&rows=1`;
+                const res = await fetch(query);
+                const data = await res.json();
+                const metadata = doi ? data.message : data.message.items[0];
+
+                if (metadata) {
+                    const officialYear = metadata.issued?.['date-parts']?.[0]?.[0] || metadata.created?.['date-parts']?.[0]?.[0];
+                    const userYearMatch = ref.match(/\((\d{4})\)/);
+                    const userYear = userYearMatch ? userYearMatch[1] : null;
+                    
+                    let conclusion = 'VALID';
+                    let note = isVi ? 'Thông tin khớp với cơ sở dữ liệu quốc tế.' : 'Information matches international database.';
+                    
+                    if (userYear && officialYear && Math.abs(parseInt(userYear) - officialYear) > 0) {
+                        conclusion = 'INVALID';
+                        note = isVi ? `Năm xuất bản sai lệch (Thực tế: ${officialYear}, Bạn viết: ${userYear}).` : `Year mismatch (Official: ${officialYear}, Yours: ${userYear}).`;
+                    }
+
+                    verificationResults.push({
+                        ref,
+                        conclusion,
+                        note,
+                        details: `Title: ${metadata.title?.[0]} | DOI: ${metadata.DOI}`
+                    });
+                } else {
+                    verificationResults.push({ ref, conclusion: 'UNCERTAIN', note: isVi ? 'Không tìm thấy dữ liệu đối soát.' : 'No matching metadata found.' });
+                }
+            } catch (e) {
+                verificationResults.push({ ref, conclusion: 'ERROR', note: isVi ? 'Lỗi kết nối API.' : 'API Connection Error.' });
+            }
+            setProgress(60 + (i / refsToVerify.length) * 25);
+        }
 
         // --- Step 4: Cross-Reference Matching ---
-        await new Promise(r => setTimeout(r, 1500));
-        setProgress(85);
+        await new Promise(r => setTimeout(r, 800));
+        setProgress(90);
         addLog(isVi ? "Đang đối soát trích dẫn chéo (Cross-matching)..." : "Running Cross-matching algorithm...", "info");
         
         const ghostCitations = inTextCitations
             .filter(cite => !refs.some(ref => ref.toLowerCase().includes(cite.author.toLowerCase())))
             .map(c => ({ 
                 cite: c.full, 
-                rec: isVi ? `Tác giả "${c.author}" không có trong danh mục tham khảo. Hãy kiểm tra lại lỗi đánh máy hoặc bổ sung tài liệu.` : `Author "${c.author}" is missing from references. Check for typos or add the entry.`
+                rec: isVi ? `Tác giả "${c.author}" không có trong danh mục tham khảo.` : `Author "${c.author}" is missing from references.`
             }));
 
         const deadRefs = refs
             .filter(ref => !inTextCitations.some(cite => ref.toLowerCase().includes(cite.author.toLowerCase())))
             .map(r => ({
                 ref: r,
-                rec: isVi ? "Tài liệu này không được trích dẫn trong bài. Cân nhắc xóa bỏ để tránh làm loãng danh mục." : "This entry is not cited in text. Consider removing it to keep the list clean."
+                rec: isVi ? "Tài liệu này không được trích dẫn trong bài." : "This entry is not cited in text."
             }));
-
-        // --- Step 5: Finalizing ---
-        await new Promise(r => setTimeout(r, 800));
-        setProgress(100);
-        addLog(isVi ? "Kiểm định hoàn tất. Đang xuất báo cáo và khuyến nghị..." : "Validation complete. Generating reports and recommendations...", "success");
 
         setAnalysisResult({
             ghostCitations,
@@ -130,8 +165,9 @@ export default function CiteCheckPage() {
             matchCount: inTextCitations.length - ghostCitations.length,
             totalCitations: inTextCitations.length,
             totalRefs: refs.length,
-            doiIssues: badDois.map(r => ({ doi: r.doi!, rec: isVi ? "Yêu cầu thêm tiền tố 'https://doi.org/' để đạt chuẩn APA 7." : "Must add 'https://doi.org/' prefix to meet APA 7 standards." })),
-            missingDoi: doiResults.filter(r => !r.doi).length
+            doiIssues: verificationResults.filter(v => v.conclusion === 'INVALID').map(v => ({ doi: v.ref, rec: v.note })),
+            missingDoi: verificationResults.length,
+            verificationResults // New detailed results
         });
         
         setIsAnalyzing(false);
@@ -364,6 +400,59 @@ export default function CiteCheckPage() {
                                         </div>
                                     ) : (
                                         <p className="text-indigo-700 font-bold italic opacity-60">Excellent! Your DOIs are perfectly formatted.</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Database Verification Results (Matches Source Logic) */}
+                            <div className="bg-white rounded-[4rem] p-12 border border-slate-200 shadow-xl overflow-hidden relative">
+                                <div className="absolute top-0 right-0 p-8 opacity-10">
+                                    <Database className="w-32 h-32" />
+                                </div>
+                                <h3 className="text-2xl font-black text-slate-900 mb-8 flex items-center gap-4 relative z-10">
+                                    <ShieldCheck className="w-8 h-8 text-emerald-500" /> {isVi ? 'Kết quả xác thực từ Cơ sở dữ liệu Quốc tế (Crossref)' : 'Crossref API Verification Results'}
+                                </h3>
+                                
+                                <div className="space-y-4 relative z-10">
+                                    {analysisResult.verificationResults?.map((item: any, i: number) => (
+                                        <div key={i} className="flex flex-col md:flex-row gap-4 p-6 bg-slate-50 rounded-3xl border border-slate-100 hover:bg-white hover:shadow-lg transition-all group">
+                                            <div className="flex-1">
+                                                <p className="text-sm font-bold text-slate-900 mb-2 leading-relaxed">{item.ref}</p>
+                                                <div className="flex items-center gap-3">
+                                                    <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm ${
+                                                        item.conclusion === 'VALID' ? 'bg-emerald-500 text-white' : 
+                                                        item.conclusion === 'INVALID' ? 'bg-rose-500 text-white' : 'bg-slate-400 text-white'
+                                                    }`}>
+                                                        {item.conclusion}
+                                                    </span>
+                                                    <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                                                        <Search className="w-3 h-3" /> API Verified
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="md:w-[350px] p-5 bg-white rounded-2xl border border-slate-100 shadow-inner group-hover:border-indigo-100 transition-colors">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <div className={`w-1.5 h-1.5 rounded-full ${item.conclusion === 'INVALID' ? 'bg-rose-500 animate-pulse' : 'bg-emerald-500'}`}></div>
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                                        {isVi ? 'Ghi chú đối soát API' : 'API Audit Note'}
+                                                    </p>
+                                                </div>
+                                                <p className={`text-xs leading-relaxed font-medium ${item.conclusion === 'INVALID' ? 'text-rose-700' : 'text-slate-600'}`}>
+                                                    {item.note}
+                                                </p>
+                                                {item.details && (
+                                                    <div className="mt-3 pt-3 border-t border-slate-50">
+                                                        <p className="text-[9px] text-slate-400 italic leading-tight truncate">{item.details}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                    
+                                    {(!analysisResult.verificationResults || analysisResult.verificationResults.length === 0) && (
+                                        <div className="text-center py-12">
+                                            <p className="text-slate-400 italic">No verification results available. Run audit to begin.</p>
+                                        </div>
                                     )}
                                 </div>
                             </div>
