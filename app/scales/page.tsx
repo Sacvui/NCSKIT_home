@@ -28,8 +28,10 @@ export default function ScalesLibrary() {
     const [scales, setScales] = useState<any[]>(STATIC_SCALES);
     const [loading, setLoading] = useState(true);
     const [copiedCitation, setCopiedCitation] = useState(false);
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        setMounted(true);
         setLocale(getStoredLocale());
         fetchScales();
         
@@ -119,6 +121,8 @@ export default function ScalesLibrary() {
 
     const isVi = locale === 'vi';
     const activeScale = scales.find(s => s.id === expandedScale);
+
+    if (!mounted) return null;
 
     return (
         <div className="min-h-screen bg-slate-50 font-sans selection:bg-indigo-100 selection:text-indigo-900">
