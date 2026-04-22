@@ -225,7 +225,7 @@ export function AdminActivityLog() {
                             </tr>
                         </thead>
                         <tbody>
-                            {activities.map((activity) => (
+                            {activities.map((activity: ActivityLog) => (
                                 <tr key={activity.id} className="border-b hover:bg-gray-50 transition-colors">
                                     <td className="py-3 px-4 text-gray-600 whitespace-nowrap">
                                         {formatDate(activity.created_at)}

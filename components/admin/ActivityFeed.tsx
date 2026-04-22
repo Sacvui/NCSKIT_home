@@ -33,7 +33,7 @@ export default function ActivityFeed() {
             .on(
                 'postgres_changes',
                 { event: 'INSERT', schema: 'public', table: 'activity_logs' },
-                async (payload) => {
+                async (payload: any) => {
                     // Fetch profile info for the new log
                     const { data: profile } = await supabase
                         .from('profiles')

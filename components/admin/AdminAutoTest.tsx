@@ -126,7 +126,7 @@ export function AdminAutoTest({ onTestComplete }: AdminAutoTestProps) {
 
     // Initialize test results
     const initializeResults = () => {
-        const initial: TestResult[] = AUTO_TEST_WORKFLOW.map(id => ({
+        const initial: TestResult[] = AUTO_TEST_WORKFLOW.map((id: string) => ({
             analysisId: id,
             status: 'pending'
         }));
@@ -136,7 +136,7 @@ export function AdminAutoTest({ onTestComplete }: AdminAutoTestProps) {
 
     // Update single result
     const updateResult = (id: string, update: Partial<TestResult>) => {
-        setTestResults(prev => prev.map(r =>
+        setTestResults(prev => prev.map((r: TestResult) =>
             r.analysisId === id ? { ...r, ...update } : r
         ));
     };
@@ -195,7 +195,7 @@ export function AdminAutoTest({ onTestComplete }: AdminAutoTestProps) {
 
                     case 'correlation':
                         // Run correlation on composite scores (first item of each scale)
-                        const corrVars = TEST_DATA_SCALES.map(s => s.items[0]);
+                        const corrVars = TEST_DATA_SCALES.map((s: any) => s.items[0]);
                         const corrMatrix = extractColumnsAsMatrix(data, corrVars);
                         result = await runCorrelation(corrMatrix, 'pearson');
                         break;
@@ -336,7 +336,7 @@ export function AdminAutoTest({ onTestComplete }: AdminAutoTestProps) {
                     )}
                 </div>
                 <div className="grid grid-cols-4 gap-2 text-xs">
-                    {TEST_DATA_SCALES.map(scale => (
+                    {TEST_DATA_SCALES.map((scale: any) => (
                         <div key={scale.name} className="bg-white rounded px-2 py-1 border border-slate-200">
                             <span className="font-medium">{scale.name.split(' ')[0]}</span>
                             <span className="text-slate-400 ml-1">({scale.items.length} items)</span>
@@ -369,7 +369,7 @@ export function AdminAutoTest({ onTestComplete }: AdminAutoTestProps) {
                         Test Results
                     </h4>
                     <div className="bg-white rounded-lg border border-slate-200 divide-y">
-                        {testResults.map(result => (
+                        {testResults.map((result: TestResult) => (
                             <div
                                 key={result.analysisId}
                                 className={`p-3 flex items-center justify-between ${currentTest === result.analysisId ? 'bg-blue-50' : ''

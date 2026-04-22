@@ -162,7 +162,7 @@ export default function AdminDashboard() {
             <div className="bg-white/80 backdrop-blur-sm border-b sticky top-0 z-10 shadow-sm">
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="flex gap-1 overflow-x-auto">
-                        {tabs.map(tab => (
+                        {tabs.map((tab: any) => (
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
@@ -184,7 +184,7 @@ export default function AdminDashboard() {
                 {loading && (
                     <div className="space-y-6">
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            {[1, 2, 3, 4].map(i => (
+                            {[1, 2, 3, 4].map((i: number) => (
                                 <div key={i} className="bg-white rounded-xl p-6 animate-pulse">
                                     <div className="h-4 bg-gray-200 rounded w-2/3 mb-3"></div>
                                     <div className="h-8 bg-gray-200 rounded w-1/2"></div>
@@ -233,7 +233,7 @@ export default function AdminDashboard() {
                         <div className="bg-white rounded-xl border p-6">
                             <h3 className="text-lg font-semibold mb-4">Activity Breakdown (30 days)</h3>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                {activityBreakdown.map(item => (
+                                {activityBreakdown.map((item: any) => (
                                     <div key={item.type} className="bg-gray-50 rounded-lg p-3">
                                         <div className="text-2xl font-bold text-gray-900">{item.count}</div>
                                         <div className="text-sm text-gray-500 capitalize">{item.type.replace('_', ' ')}</div>
@@ -275,7 +275,7 @@ export default function AdminDashboard() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y">
-                                    {users.map(user => (
+                                    {users.map((user: User) => (
                                         <tr key={user.id} className="hover:bg-gray-50">
                                             <td className="px-4 py-3">
                                                 <div>
@@ -391,7 +391,7 @@ export default function AdminDashboard() {
                         <div className="bg-white rounded-xl border shadow-sm p-6">
                             <h3 className="text-lg font-semibold mb-4">Top Inviters</h3>
                             <div className="space-y-3">
-                                {topInviters.map((inviter, idx) => (
+                                {topInviters.map((inviter: any, idx: number) => (
                                     <div key={inviter.id} className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-white rounded-lg border border-gray-100">
                                         <div className="flex items-center gap-3">
                                             <span className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white flex items-center justify-center text-sm font-bold shadow-md">

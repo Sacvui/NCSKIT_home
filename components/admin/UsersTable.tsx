@@ -162,7 +162,7 @@ export default function UsersTable() {
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                         {loading ? (
-                            Array.from({ length: 5 }).map((_, i) => (
+                            Array.from({ length: 5 }).map((_: any, i: number) => (
                                 <tr key={i} className="animate-pulse">
                                     <td className="px-6 py-4"><div className="h-10 w-40 bg-slate-100 rounded"></div></td>
                                     <td className="px-6 py-4"><div className="h-4 w-24 bg-slate-100 rounded my-1"></div></td>
@@ -178,7 +178,7 @@ export default function UsersTable() {
                                 </td>
                             </tr>
                         ) : (
-                            filteredUsers.map((user) => (
+                            filteredUsers.map((user: Profile) => (
                                 <tr key={user.id} className="hover:bg-slate-50/50 transition-colors">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-3">
