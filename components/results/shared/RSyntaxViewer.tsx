@@ -2,7 +2,7 @@
 
 import React, { useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Code, Copy, Check, Lock, Sparkles, Terminal } from 'lucide-react';
+import { Code, Copy, Check, Lock, Sparkles, Terminal, Download } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 interface RSyntaxViewerProps {
@@ -41,6 +41,18 @@ export function RSyntaxViewer({ code, userProfile }: RSyntaxViewerProps) {
         navigator.clipboard.writeText(code);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
+    }, [code]);
+
+    const handleDownload = useCallback(() => {
+        const blob = new Blob([code], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'ncsstat_analysis.R';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
     }, [code]);
 
     const handleUnlock = useCallback(async () => {
@@ -224,16 +236,27 @@ export function RSyntaxViewer({ code, userProfile }: RSyntaxViewerProps) {
                                 return minIndent === Infinity ? lines.join('\n') : lines.map(l => l.startsWith(' '.repeat(minIndent)) ? l.substring(minIndent) : l).join('\n');
                             })()}
                         </pre>
-                        <button
-                            onClick={(e) => { e.stopPropagation(); handleCopy(); }}
-                            className="absolute top-6 right-4 p-2 bg-slate-800/80 hover:bg-indigo-600 text-white rounded-lg transition-all opacity-0 group-hover/code:opacity-100 focus:opacity-100 flex items-center gap-2 border border-slate-700 shadow-lg"
-                        >
-                            {copied ? (
-                                <><Check className="h-3 w-3" /> <span className="text-[10px] font-bold uppercase tracking-wider">Copied</span></>
-                            ) : (
-                                <><Copy className="h-3 w-3" /> <span className="text-[10px] font-bold uppercase tracking-wider">Copy</span></>
-                            )}
-                        </button>
+                        <div className="absolute top-6 right-4 flex items-center gap-2 opacity-0 group-hover/code:opacity-100 focus-within:opacity-100 transition-all">
+                            <button
+                                onClick={(e) => { e.stopPropagation(); handleCopy(); }}
+                                className="p-2 bg-slate-800/80 hover:bg-indigo-600 text-white rounded-lg flex items-center gap-2 border border-slate-700 shadow-lg transition-all active:scale-95"
+                                title="Copy code"
+                            >
+                                {copied ? (
+                                    <><Check className="h-3.5 w-3.5" /> <span className="text-[10px] font-black uppercase tracking-wider hidden md:inline">Copied</span></>
+                                ) : (
+                                    <><Copy className="h-3.5 w-3.5" /> <span className="text-[10px] font-black uppercase tracking-wider hidden md:inline">Copy</span></>
+                                )}
+                            </button>
+                            <button
+                                onClick={(e) => { e.stopPropagation(); handleDownload(); }}
+                                className="p-2 bg-slate-800/80 hover:bg-emerald-600 text-white rounded-lg flex items-center gap-2 border border-slate-700 shadow-lg transition-all active:scale-95"
+                                title="Download .R script"
+                            >
+                                <Download className="h-3.5 w-3.5" />
+                                <span className="text-[10px] font-black uppercase tracking-wider hidden md:inline">Export .R</span>
+                            </button>
+                        </div>
                     </div>
                     <div className="mt-4 flex items-center gap-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
