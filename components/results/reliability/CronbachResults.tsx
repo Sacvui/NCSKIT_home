@@ -4,6 +4,7 @@ import React, { useMemo, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { TrendingUp, Activity, CheckCircle2, ChevronRight, FileText } from 'lucide-react';
 import { getStoredLocale, t, type Locale } from '../../../lib/i18n';
+import { TemplateInterpretation } from '@/components/TemplateInterpretation';
 
 interface CronbachResultsProps {
     results: any;
@@ -131,39 +132,13 @@ export const CronbachResults = React.memo(function CronbachResults({
                 </div>
             )}
 
-            {/* Academic Interpretation Section */}
-            <div className="bg-white border border-blue-100 p-8 rounded-xl shadow-sm relative overflow-hidden">
-                <h4 className="text-xs font-black uppercase text-blue-600 tracking-widest mb-6 flex items-center gap-2">
-                    <FileText className="w-4 h-4" />
-                    Nhận định khoa học (Academic Interpretation)
-                </h4>
+            {/* Professional Template Interpretation */}
+            <TemplateInterpretation 
+                analysisType={isOmega ? 'omega' : 'cronbach'}
+                results={results}
+                scaleName={scaleName}
+            />
 
-                <div className="space-y-6 border-l-2 border-blue-50 pl-6 text-sm">
-                    <div className="bg-blue-50/40 p-6 rounded-lg border border-blue-50 leading-relaxed text-slate-800">
-                        Hệ số tin cậy **{isOmega ? 'Omega' : 'Cronbach\'s Alpha'}** của thang đo <strong>{scaleName || 'nghiên cứu'}</strong> đạt <strong>{formatNum(alpha, 3)}</strong>. 
-                        Số lượng biến quan sát là <strong>{nItems}</strong>. 
-                        {alpha >= 0.7 
-                            ? "Thang đo đạt độ tin cậy tốt để sử dụng trong các phân tích tiếp theo."
-                            : "Thang đo có độ tin cậy chưa cao, cần xem xét loại bỏ các biến có tương quan biến-tổng thấp."
-                        }
-                    </div>
-                    
-                    <div className="flex flex-col gap-4">
-                        <p className="flex items-center gap-3">
-                             <span className="w-2 h-2 bg-red-400 rounded-full"></span>
-                             <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-                                <strong>Item-Total Correlation &lt; 0.3:</strong> Tương quan yếu, biến không phản ánh tốt thang đo.
-                             </span>
-                        </p>
-                        <p className="flex items-center gap-3">
-                             <span className="w-2 h-2 bg-amber-400 rounded-full"></span>
-                             <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-                                <strong>Alpha if Item Deleted &gt; Current Alpha:</strong> Loại bỏ biến này sẽ trực tiếp làm tăng độ tin cậy.
-                             </span>
-                        </p>
-                    </div>
-                </div>
-            </div>
 
             {/* Workflow Step: Proceed to EFA */}
             {goodItems.length >= 3 && onProceedToEFA && (

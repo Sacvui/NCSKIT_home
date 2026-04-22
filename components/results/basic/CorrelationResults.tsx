@@ -4,6 +4,7 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { FileText, Layers, Activity } from 'lucide-react';
 import { getStoredLocale, t, type Locale } from '@/lib/i18n';
+import { TemplateInterpretation } from '@/components/TemplateInterpretation';
 
 interface CorrelationResultsProps {
     results: any;
@@ -104,22 +105,26 @@ export const CorrelationResults = React.memo(function CorrelationResults({ resul
                 </div>
             </div>
 
-            {/* Significance Legend */}
-            <div className="flex items-center gap-6 text-[11px] font-black text-blue-900 uppercase tracking-widest p-4 rounded-xl border border-blue-100 bg-blue-50/20">
-                <div className="flex items-center gap-2">
-                    <span className="text-xl text-blue-600">**</span>
-                    <span>Significant at 0.01 level</span>
-                </div>
-                <div className="flex items-center gap-2 border-l border-blue-200 pl-6">
-                    <span className="text-xl text-blue-600 font-black">*</span>
-                    <span>Significant at 0.05 level</span>
-                </div>
-                <div className="flex-1 text-right italic font-normal normal-case text-slate-400 border-l border-blue-200 pl-6">
-                    Sample size (N) = {results?.N?.[0] || 'N/A'}
-                </div>
             </div>
+
+            {/* Professional Template Interpretation for the primary relationship */}
+            {columns.length >= 2 && (
+                <TemplateInterpretation 
+                    analysisType="correlation"
+                    results={{
+                        r: matrix[0][1],
+                        pValue: pValues ? pValues[0][1] : 1,
+                        method: 'pearson'
+                    }}
+                    variableNames={{
+                        var1: columns[0],
+                        var2: columns[1]
+                    }}
+                />
+            )}
         </div>
     );
 });
 
 export default CorrelationResults;
+

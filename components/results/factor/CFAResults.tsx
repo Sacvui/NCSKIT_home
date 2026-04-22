@@ -2,6 +2,7 @@
 
 import React, { useMemo, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { TemplateInterpretation } from '@/components/TemplateInterpretation';
 
 interface CFAResultsProps {
     results: any;
@@ -173,7 +174,14 @@ export const CFAResults = React.memo(function CFAResults({ results, onProceedToS
                 </Card>
             )}
 
+            {/* Professional Template Interpretation */}
+            <TemplateInterpretation 
+                analysisType="cfa"
+                results={results}
+            />
+
             {/* Workflow: Next Step Button */}
+
             {factors.length > 0 && onProceedToSEM && fitGood && (
                 <div className="bg-gradient-to-tr from-indigo-600 to-violet-700 p-8 rounded-2xl shadow-xl shadow-indigo-200 dark:shadow-none text-white relative overflow-hidden group">
                     <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-2xl group-hover:scale-125 transition-transform duration-700"></div>

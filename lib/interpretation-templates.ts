@@ -89,24 +89,24 @@ export function interpretCronbachAlpha(params: {
     const citations = ['Nunnally, J. C. (1978). Psychometric theory (2nd ed.). McGraw-Hill.'];
 
     if (alpha >= 0.7) {
-        summary = `Kết quả kiểm định độ tin cậy cho thang đo "${scaleName}" (gồm ${nItems} biến quan sát) cho thấy hệ số Cronbach's Alpha đạt α = ${alphaStr}${omega && omega > 0 ? ` và McDonald's Omega đạt ω = ${formatCoef(omega)}` : ''}. Kết quả này thỏa mãn điều kiện khuyến nghị (${omega ? 'các chỉ số' : 'α'} ≥ .70), chứng tỏ thang đo có độ tin cậy nội tại tốt và phù hợp cho các phân tích tiếp theo.`;
+        summary = `Kết quả kiểm định độ tin cậy cho thấy thang đo "${scaleName}" (gồm ${nItems} biến quan sát) đạt hệ số Cronbach's Alpha α = ${alphaStr}${omega && omega > 0 ? ` và McDonald's Omega ω = ${formatCoef(omega)}` : ''}. Các chỉ số này đều vượt ngưỡng khuyến nghị (.700), khẳng định thang đo có tính nhất quán nội tại cao, đủ độ tin cậy để thực hiện các phân tích đa biến tiếp theo.`;
     } else if (alpha >= 0.6) {
-        summary = `Hệ số Cronbach's Alpha của thang đo "${scaleName}" là α = ${alphaStr}. Mặc dù giá trị này thấp hơn ngưỡng .70 nhưng vẫn nằm trong mức chấp nhận được đối với các nghiên cứu mang tính khám phá.`;
-        if (omega) summary += ` Hệ số McDonald's Omega là ω = ${formatCoef(omega)}.`;
+        summary = `Hệ số Cronbach's Alpha của thang đo "${scaleName}" đạt α = ${alphaStr}. Mặc dù chưa đạt ngưỡng lý tưởng (.700) nhưng giá trị này vẫn nằm trong mức chấp nhận được đối với các nghiên cứu mang tính khám phá (Exploratory Research).`;
+        if (omega) summary += ` Hệ số McDonald's Omega đạt ω = ${formatCoef(omega)}.`;
         citations.push('Hair, J. F., et al. (2010). Multivariate data analysis (7th ed.). Pearson.');
     } else {
-        summary = `Thang đo "${scaleName}" có hệ số Cronbach's Alpha là α = ${alphaStr} (< .60). Thang đo này không đảm bảo độ tin cậy và cần được điều chỉnh lại cấu trúc.`;
-        warnings.push('Độ tin cậy không đạt yêu cầu. Cần xem xét loại bỏ hoặc điều chỉnh biến.');
+        summary = `Thang đo "${scaleName}" có hệ số Cronbach's Alpha α = ${alphaStr} (< .600), không đảm bảo độ tin cậy cần thiết cho các phân tích khoa học.`;
+        warnings.push('Độ tin cậy không đạt yêu cầu quy chuẩn. Cần xem xét điều chỉnh cấu trúc thang đo.');
     }
 
     // McDonald's Omega
     if (omega && omega > 0) {
-        details.push(`Hệ số McDonald's Omega (ω) = ${formatCoef(omega)}, cho thấy độ tin cậy tổng thể của thang đo.`);
+        details.push(`Chỉ số McDonald's Omega (ω) = ${formatCoef(omega)} bổ trợ thêm bằng chứng về tính nhất quán tổng thể của cấu trúc.`);
     }
 
     // Bad items
     if (badItems && badItems.length > 0) {
-        warnings.push(`Biến quan sát ${badItems.join(', ')} có hệ số tương quan biến-tổng (Item-Total Correlation) nhỏ hơn .30. Việc loại bỏ biến này có thể cải thiện độ tin cậy.`);
+        warnings.push(`Các biến [${badItems.join(', ')}] có hệ số tương quan biến-tổng (Corrected Item-Total Correlation) nhỏ hơn .300. Việc loại bỏ các biến này có thể giúp tối ưu hóa độ tin cậy của thang đo.`);
     }
 
     return { summary, details, warnings, citations };
@@ -133,7 +133,7 @@ export function interpretCorrelation(params: {
     const methodName = method === 'pearson' ? 'Pearson' : method === 'spearman' ? 'Spearman' : 'Kendall';
 
     if (pValue > 0.05) {
-        summary = `Kết quả kiểm định ${methodName} cho thấy không có mối tương quan có ý nghĩa thống kê giữa "${var1}" và "${var2}" (r = ${rStr}, ${pStr}).`;
+        summary = `Kết quả kiểm định ${methodName} cho thấy không tồn tại mối liên hệ có ý nghĩa thống kê giữa "${var1}" và "${var2}" ở mức ý nghĩa 5% (r = ${rStr}, ${pStr}).`;
     } else {
         const direction = r > 0 ? 'thuận' : 'nghịch';
         const trend = r > 0 ? 'tăng' : 'giảm';
@@ -141,12 +141,12 @@ export function interpretCorrelation(params: {
         let strength = '';
         const absR = Math.abs(r);
         if (absR < 0.3) strength = 'yếu';
-        else if (absR < 0.5) strength = 'trung bình';
+        else if (absR < 0.7) strength = 'trung bình';
         else strength = 'mạnh';
 
-        summary = `Kết quả phân tích cho thấy tồn tại mối tương quan ${direction} ở mức độ ${strength} giữa "${var1}" và "${var2}" với độ tin cậy 95% (r = ${rStr}, ${pStr}). Điều này hàm ý rằng khi "${var1}" tăng thì "${var2}" có xu hướng ${trend}.`;
+        summary = `Phân tích tương quan cho thấy tồn tại mối liên hệ ${direction} ở mức độ ${strength} giữa "${var1}" và "${var2}" có ý nghĩa thống kê (r = ${rStr}, ${pStr}). Điều này hàm ý rằng sự biến thiên của "${var1}" đi kèm với xu hướng ${trend} của "${var2}".`;
 
-        details.push(`Hệ số xác định r² = ${formatCoef(r * r)} cho thấy ${formatNum(r * r * 100, 1)}% sự biến thiên của biến này có thể giải thích bởi biến kia.`);
+        details.push(`Hệ số xác định r² = ${formatCoef(r * r)} chỉ ra rằng biến độc lập giải thích được khoảng ${formatNum(r * r * 100, 1)}% sự biến thiên của biến phụ thuộc trong mối quan hệ này.`);
     }
 
     return { summary, details, warnings, citations };
@@ -183,7 +183,7 @@ export function interpretTTestIndependent(params: {
     const citations = ['Cohen, J. (1988). Statistical power analysis for behavioral sciences.'];
 
     if (pValue > 0.05) {
-        summary = `Kiểm định ${testName} cho thấy không có sự khác biệt có ý nghĩa thống kê về "${targetVar}" giữa nhóm ${group1Name} (M = ${formatNum(mean1)}, SD = ${formatNum(sd1)}) và nhóm ${group2Name} (M = ${formatNum(mean2)}, SD = ${formatNum(sd2)}) với t(${formatNum(df, 0)}) = ${formatNum(t)}, ${pStr}.`;
+        summary = `Kiểm định ${testName} cho thấy không tìm thấy sự khác biệt có ý nghĩa thống kê về giá trị trung bình của "${targetVar}" giữa nhóm ${group1Name} (M = ${formatNum(mean1)}, SD = ${formatNum(sd1)}) và nhóm ${group2Name} (M = ${formatNum(mean2)}, SD = ${formatNum(sd2)}) với t(${formatNum(df, 0)}) = ${formatNum(t)}, ${pStr}.`;
     } else {
         const higherGroup = mean1 > mean2 ? group1Name : group2Name;
         const lowerGroup = mean1 > mean2 ? group2Name : group1Name;
@@ -192,7 +192,7 @@ export function interpretTTestIndependent(params: {
         const sdHigh = mean1 > mean2 ? sd1 : sd2;
         const sdLow = mean1 > mean2 ? sd2 : sd1;
 
-        summary = `Có sự khác biệt có ý nghĩa thống kê về "${targetVar}" giữa hai nhóm (t(${formatNum(df, 0)}) = ${formatNum(t)}, ${pStr}). Cụ thể, giá trị trung bình của nhóm ${higherGroup} (M = ${formatNum(mHigh)}, SD = ${formatNum(sdHigh)}) cao hơn đáng kể so với nhóm ${lowerGroup} (M = ${formatNum(mLow)}, SD = ${formatNum(sdLow)}).`;
+        summary = `Kết quả kiểm định ${testName} xác nhận có sự khác biệt có ý nghĩa thống kê về "${targetVar}" giữa hai nhóm đối tượng nghiên cứu (t(${formatNum(df, 0)}) = ${formatNum(t)}, ${pStr}). Cụ thể, giá trị trung bình của nhóm ${higherGroup} (M = ${formatNum(mHigh)}, SD = ${formatNum(sdHigh)}) cao hơn có ý nghĩa so với nhóm ${lowerGroup} (M = ${formatNum(mLow)}, SD = ${formatNum(sdLow)}).`;
     }
 
     // Effect size
@@ -249,16 +249,16 @@ export function interpretANOVA(params: {
     const citations = ['Richardson, J. T. E. (2011). Eta squared and partial eta squared as measures of effect size.'];
 
     if (pValue > 0.05) {
-        summary = `Kết quả phân tích phương sai một yếu tố (${testName}) không tìm thấy sự khác biệt có ý nghĩa thống kê về "${targetVar}" giữa các nhóm "${factorVar}" khác nhau (F(${formatNum(dfBetween, 0)}, ${formatNum(dfWithin, 0)}) = ${formatNum(F)}, ${pStr}).`;
+        summary = `Kết quả phân tích phương sai một yếu tố (${testName}) cho thấy sự khác biệt về giá trị trung bình của "${targetVar}" giữa các nhóm "${factorVar}" là không có ý nghĩa thống kê (F(${formatNum(dfBetween, 0)}, ${formatNum(dfWithin, 0)}) = ${formatNum(F)}, ${pStr}).`;
     } else {
-        summary = `Kết quả kiểm định ${testName} cho thấy có sự khác biệt có ý nghĩa thống kê về "${targetVar}" giữa các nhóm "${factorVar}" (F(${formatNum(dfBetween, 0)}, ${formatNum(dfWithin, 0)}) = ${formatNum(F)}, ${pStr}).`;
+        summary = `Kết quả kiểm định ${testName} xác nhận có sự khác biệt có ý nghĩa thống kê về giá trị trung bình của "${targetVar}" giữa các phân lớp thuộc biến "${factorVar}" (F(${formatNum(dfBetween, 0)}, ${formatNum(dfWithin, 0)}) = ${formatNum(F)}, ${pStr}).`;
 
         // Post-hoc
         if (postHoc && postHoc.length > 0) {
             const sigPairs = postHoc.filter(p => p.pAdj < 0.05);
             if (sigPairs.length > 0) {
                 const pairStr = sigPairs.map(p => p.comparison).join(', ');
-                details.push(`Kiểm định hậu kiểm (Post-hoc Tukey HSD) chỉ ra sự khác biệt có ý nghĩa giữa: ${pairStr}.`);
+                details.push(`Phân tích so sánh cặp (Post-hoc) chỉ ra các cặp nhóm có sự khác biệt thực sự là: ${pairStr}.`);
             }
         }
     }

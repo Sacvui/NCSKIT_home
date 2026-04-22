@@ -91,25 +91,18 @@ export const PairedTTestResults = React.memo(function PairedTTestResults({ resul
                 </div>
             </div>
 
-            {/* Academic Interpretation Section */}
-            <div className="bg-white border border-blue-100 p-8 rounded-xl shadow-sm relative overflow-hidden">
-                <h4 className="text-xs font-black uppercase text-blue-600 tracking-widest mb-6 flex items-center gap-2">
-                    <FileText className="w-4 h-4" />
-                    Nhận định khoa học (Academic Interpretation)
-                </h4>
-
-                <div className="space-y-6 border-l-2 border-blue-50 pl-6">
-                    <p className="text-sm text-slate-800 leading-relaxed font-medium bg-blue-50/40 p-5 rounded-lg border border-blue-50">
-                        <span className="text-blue-900 font-black uppercase text-[10px] mr-2 tracking-tighter block mb-2 underline underline-offset-4">Kết luận phân tích:</span>
-                        {significant
-                            ? `Kết quả kiểm định Paired T-Test t(${results.df?.toFixed(0)}) = ${results.t?.toFixed(2)} cho thấy p = ${pValue?.toFixed(4)} < 0.05. Sự khác biệt giữa ${columns[0]} và ${columns[1]} có ý nghĩa thống kê. Trung bình thay đổi ${results.meanDiff > 0 ? 'giảm' : 'tăng'} ${Math.abs(results.meanDiff)?.toFixed(3)} đơn vị.`
-                            : `Kết quả kiểm định Paired T-Test t(${results.df?.toFixed(0)}) = ${results.t?.toFixed(2)} cho thấy p = ${pValue?.toFixed(4)} >= 0.05. Không có sự thay đổi có ý nghĩa thống kê giữa hai lần đo đạc/biến này.`
-                        }
-                    </p>
-                </div>
-            </div>
+            {/* Professional Template Interpretation */}
+            <TemplateInterpretation 
+                analysisType="ttest_paired"
+                results={results}
+                variableNames={{
+                    targetVar: columns[1],
+                    groupVar: columns[0]
+                }}
+            />
         </div>
     );
 });
 
 export default PairedTTestResults;
+

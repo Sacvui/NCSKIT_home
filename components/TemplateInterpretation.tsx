@@ -87,6 +87,7 @@ export function TemplateInterpretation({
                     break;
 
                 case 'ttest':
+                case 'ttest-indep':
                 case 'ttest_independent':
                     result = interpretTTestIndependent({
                         groupVar: variableNames.groupVar || 'Nhóm',
@@ -108,6 +109,7 @@ export function TemplateInterpretation({
                     break;
 
                 case 'ttest_paired':
+                case 'ttest-paired':
                 case 'paired_ttest':
                     result = interpretTTestPaired({
                         targetVar: variableNames.targetVar || 'Biến phụ thuộc',

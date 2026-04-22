@@ -1,62 +1,67 @@
-'use client';
-
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Database, FileText, Activity, Info, BarChart } from 'lucide-react';
+import { TemplateInterpretation } from '@/components/TemplateInterpretation';
 
 interface WilcoxonResultsProps {
     results: any;
+    variableNames?: {
+        targetVar?: string;
+    };
 }
 
 /**
- * Wilcoxon Signed Rank Test Results Component
- * Displays Wilcoxon test results with median difference
+ * Wilcoxon Signed Rank Test Results Component - Scientific Academic Style (White & Blue)
  */
-export const WilcoxonResults = React.memo(function WilcoxonResults({ results }: WilcoxonResultsProps) {
+export const WilcoxonResults = React.memo(function WilcoxonResults({ results, variableNames }: WilcoxonResultsProps) {
+    if (!results) return null;
     const pValue = results.pValue;
     const significant = pValue < 0.05;
 
     return (
-        <div className="space-y-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Wilcoxon Signed Rank Test Results</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <table className="w-full text-sm">
-                        <tbody>
-                            <tr className="border-b border-gray-200">
-                                <td className="py-2 font-medium">V Statistic</td>
-                                <td className="py-2 text-right">{results.statistic?.toFixed(1)}</td>
-                            </tr>
-                            <tr className="border-b border-gray-200">
-                                <td className="py-2 font-medium">Median Difference</td>
-                                <td className="py-2 text-right">{results.medianDiff?.toFixed(3)}</td>
-                            </tr>
-                            <tr className="border-b border-gray-200">
-                                <td className="py-2 font-medium">p-value</td>
-                                <td className={`py-2 text-right font-bold ${significant ? 'text-green-600' : 'text-gray-600'}`}>
-                                    {pValue?.toFixed(4)} {significant && '***'}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td className="py-2 font-medium">Method</td>
-                                <td className="py-2 text-right">{results.method}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </CardContent>
-            </Card>
-
-            <div className="bg-gray-50 border border-gray-200 p-6 rounded-lg">
-                <h4 className="font-bold mb-4 text-gray-800 uppercase text-xs tracking-wider">Kết luận</h4>
-                <p className="text-sm text-gray-800">
-                    {significant
-                        ? `Có sự khác biệt có ý nghĩa thống kê giữa hai điều kiện (V = ${results.statistic?.toFixed(1)}, p = ${pValue?.toFixed(4)} < 0.05).`
-                        : `Không có sự khác biệt có ý nghĩa thống kê giữa hai điều kiện (V = ${results.statistic?.toFixed(1)}, p = ${pValue?.toFixed(4)} >= 0.05).`}
-                </p>
+        <div className="space-y-8 pb-10 animate-in fade-in duration-700">
+            {/* Quick Stats Header */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="bg-white border border-blue-100 p-5 rounded-xl shadow-sm flex items-center gap-4">
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                        <Activity className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Statistic (V)</p>
+                        <p className="text-2xl font-black text-blue-900">{results.statistic?.toFixed(1)}</p>
+                    </div>
+                </div>
+                <div className="bg-white border border-blue-100 p-5 rounded-xl shadow-sm flex items-center gap-4">
+                    <div className="p-3 bg-emerald-50 rounded-lg">
+                        <Info className="w-6 h-6 text-emerald-600" />
+                    </div>
+                    <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">p-value</p>
+                        <p className={`text-2xl font-black ${significant ? 'text-emerald-600' : 'text-slate-900'}`}>
+                            {pValue < 0.001 ? '< .001' : pValue.toFixed(4)}
+                        </p>
+                    </div>
+                </div>
+                <div className="bg-white border border-blue-100 p-5 rounded-xl shadow-sm flex items-center gap-4">
+                    <div className="p-3 bg-indigo-50 rounded-lg">
+                        <BarChart className="w-6 h-6 text-indigo-600" />
+                    </div>
+                    <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Median Diff.</p>
+                        <p className="text-2xl font-black text-indigo-900">{results.medianDiff?.toFixed(3)}</p>
+                    </div>
+                </div>
             </div>
+
+            {/* Professional Template Interpretation */}
+            <TemplateInterpretation 
+                analysisType="wilcoxon"
+                results={results}
+                variableNames={variableNames}
+            />
         </div>
     );
 });
 
 export default WilcoxonResults;
+

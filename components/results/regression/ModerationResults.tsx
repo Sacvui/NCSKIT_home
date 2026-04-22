@@ -4,6 +4,7 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { FileText, Database, Activity, Target, Share2 } from 'lucide-react';
 import { getStoredLocale, t, type Locale } from '@/lib/i18n';
+import { TemplateInterpretation } from '@/components/TemplateInterpretation';
 
 interface ModerationResultsProps {
     results: any;
@@ -106,22 +107,17 @@ export const ModerationResults = React.memo(function ModerationResults({ results
                 </div>
             </div>
 
-            {/* Academic Interpretation Section */}
-            <div className="bg-white border border-blue-100 p-8 rounded-xl shadow-sm relative overflow-hidden">
-                <h4 className="text-xs font-black uppercase text-blue-600 tracking-widest mb-6 flex items-center gap-2">
-                    <FileText className="w-4 h-4" />
-                    Nhận định khoa học (Academic Interpretation - Moderation)
-                </h4>
+            {/* Professional Template Interpretation */}
+            <TemplateInterpretation 
+                analysisType="moderation"
+                results={results}
+                variableNames={{
+                    x: columns[1],
+                    m: columns[2],
+                    y: columns[0]
+                }}
+            />
 
-                <div className="space-y-6 border-l-2 border-blue-50 pl-6 text-sm">
-                    <div className="bg-slate-50 border border-blue-50 p-6 rounded-lg leading-relaxed text-slate-800">
-                        {significant 
-                            ? `Kết quả chứng minh có hiệu ứng điều tiết có ý nghĩa thống kê (p = ${interactionP?.toFixed(4)} < 0.05). Biến **${columns[2]}** đóng vai trò là biến điều tiết, làm thay đổi cường độ tác động của **${columns[1]}** lên **${columns[0]}**.` 
-                            : `Kết quả chưa đủ bằng chứng thống kê để kết luận có hiệu ứng điều tiết (p = ${interactionP?.toFixed(4)} >= 0.05). Biến **${columns[2]}** không làm thay đổi có ý nghĩa mối quan hệ giữa **${columns[1]}** và **${columns[0]}**.`
-                        }
-                    </div>
-                </div>
-            </div>
         </div>
     );
 });

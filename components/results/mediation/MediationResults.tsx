@@ -4,6 +4,7 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { FileText, Database, Activity, Target, Share2, ArrowRight } from 'lucide-react';
 import { getStoredLocale, t, type Locale } from '@/lib/i18n';
+import { TemplateInterpretation } from '@/components/TemplateInterpretation';
 
 interface MediationResultsProps {
     results: any;
@@ -107,22 +108,26 @@ export const MediationResults = React.memo(function MediationResults({ results, 
                  </div>
             </div>
 
-            {/* Academic Interpretation Section */}
-            <div className="bg-white border border-blue-100 p-8 rounded-xl shadow-sm relative overflow-hidden">
-                <h4 className="text-xs font-black uppercase text-blue-600 tracking-widest mb-6 flex items-center gap-2">
-                    <FileText className="w-4 h-4" />
-                    Nhận định khoa học (Academic Interpretation - Mediation)
-                </h4>
+            {/* Professional Template Interpretation */}
+            <TemplateInterpretation 
+                analysisType="mediation"
+                results={{
+                    pathA: { estimate: results.paths?.a?.est || 0, pValue: results.paths?.a?.p || 1 },
+                    pathB: { estimate: results.paths?.b?.est || 0, pValue: results.paths?.b?.p || 1 },
+                    pathC: { estimate: results.paths?.c_prime?.est || 0, pValue: results.paths?.c_prime?.p || 1 },
+                    pathCprime: { estimate: results.paths?.c?.est || 0, pValue: results.paths?.c?.p || 1 },
+                    indirectEffect: results.indirectEffect?.est || 0,
+                    sobelZ: results.sobelZ || 0,
+                    sobelP: results.sobelP || 1,
+                    mediationType: results.mediationType || 'none'
+                }}
+                variableNames={{
+                    x: columns[0],
+                    m: columns[1],
+                    y: columns[2]
+                }}
+            />
 
-                <div className="space-y-6 border-l-2 border-blue-50 pl-6 text-sm">
-                    <div className="bg-slate-50 border border-blue-50 p-6 rounded-lg leading-relaxed text-slate-800">
-                        {significant 
-                            ? `Kết quả kiểm định Sobel (Z = ${results.sobelZ?.toFixed(3)}, p = ${sobelP?.toFixed(4)} < 0.05) chứng minh có hiệu ứng trung gian có ý nghĩa thống kê. Biến **${columns[1]}** đóng vai trò là biến trung gian **${results.mediationType === 'full' ? 'toàn phần' : 'một phần'}** trong mối quan hệ giữa **${columns[0]}** và **${columns[2]}**.` 
-                            : `Kết quả kiểm định Sobel (p = ${sobelP?.toFixed(4)} >= 0.05) không tìm thấy bằng chứng về hiệu ứng trung gian của **${columns[1]}** trong mối quan hệ đang xét.`
-                        }
-                    </div>
-                </div>
-            </div>
         </div>
     );
 });

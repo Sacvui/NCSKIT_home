@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { TrendingUp, FileText, CheckCircle2, LayoutGrid, Info, ShieldCheck } from 'lucide-react';
 
 import { getStoredLocale, t, type Locale } from '@/lib/i18n';
+import { TemplateInterpretation } from '@/components/TemplateInterpretation';
 
 interface EFAResultsProps {
     results: any;
@@ -168,39 +169,12 @@ export const EFAResults = React.memo(function EFAResults({ results, columns, onP
                 </div>
             )}
 
-            {/* Academic Interpretation Section */}
-            <div className="bg-white border border-blue-100 p-8 rounded-xl shadow-sm relative overflow-hidden">
-                <h4 className="text-xs font-black uppercase text-blue-600 tracking-widest mb-6 flex items-center gap-2">
-                    <FileText className="w-4 h-4" />
-                    Nhận định khoa học (Academic Interpretation - EFA)
-                </h4>
+            {/* Professional Template Interpretation */}
+            <TemplateInterpretation 
+                analysisType="efa"
+                results={results}
+            />
 
-                <div className="space-y-6 border-l-2 border-blue-50 pl-6 text-sm">
-                    <div className="bg-blue-50/40 p-6 rounded-lg border border-blue-50 leading-relaxed text-slate-800">
-                        Phân tích nhân tố khám phá (EFA) cho thấy hệ số <strong>KMO = {kmo.toFixed(3)}</strong> (&gt; 0.6) và kiểm định Bartlett có ý nghĩa thống kê (p &lt; 0.05). 
-                        Mẫu dữ liệu hoàn toàn phù hợp để thực hiện phân tích nhân tố. 
-                        Số nhân tố trích xuất được là <strong>{results.nFactorsUsed}</strong> với tổng phương sai trích là <strong>{((results.eigenvalues.slice(0, results.nFactorsUsed).reduce((s:number,v:number)=>s+v, 0) / results.eigenvalues.reduce((s:number,v:number)=>s+v, 0)) * 100).toFixed(2)}%</strong>. 
-                        Tất cả các biến quan sát đều có hệ số tải nhân tố (Loading) đạt chuẩn (&gt; 0.5) và hội tụ vào các nhân tố tương ứng.
-                    </div>
-                </div>
-
-                {/* SEO & Academic Evaluation Badge */}
-                <div className="mt-8 flex items-center justify-between px-6 py-4 bg-slate-50 rounded-2xl border border-slate-100">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-green-50 rounded-full flex items-center justify-center border border-green-100">
-                            <ShieldCheck className="w-4 h-4 text-green-600" />
-                        </div>
-                        <div>
-                            <div className="text-[10px] font-black text-slate-900 uppercase tracking-tight">Interpretation Status</div>
-                            <div className="text-[9px] font-bold text-green-600 uppercase tracking-widest">SEO & Academic Ready (APA 7)</div>
-                        </div>
-                    </div>
-                    <div className="flex gap-2">
-                        <div className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-[9px] font-black text-slate-400 uppercase tracking-tighter">Readability: 92%</div>
-                        <div className="px-3 py-1 bg-white border border-slate-200 rounded-lg text-[9px] font-black text-slate-400 uppercase tracking-tighter">Authority: High</div>
-                    </div>
-                </div>
-            </div>
 
             {/* Workflow Step: Proceed to CFA */}
             {suggestedFactors.length > 0 && onProceedToCFA && kmoAcceptable && bartlettSignificant && (

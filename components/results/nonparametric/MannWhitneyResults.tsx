@@ -1,74 +1,100 @@
-'use client';
-
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Database, FileText, Activity, Info, BarChart } from 'lucide-react';
+import { TemplateInterpretation } from '@/components/TemplateInterpretation';
 
 interface MannWhitneyResultsProps {
     results: any;
-    columns: string[];
+    variableNames?: {
+        groupVar?: string;
+        targetVar?: string;
+        group1?: string;
+        group2?: string;
+    };
 }
 
 /**
- * Mann-Whitney U Test Results Component
- * Displays Mann-Whitney U test results with median comparison
+ * Mann-Whitney U Test Results Component - Scientific Academic Style (White & Blue)
  */
-export const MannWhitneyResults = React.memo(function MannWhitneyResults({ results, columns }: MannWhitneyResultsProps) {
+export const MannWhitneyResults = React.memo(function MannWhitneyResults({ results, variableNames }: MannWhitneyResultsProps) {
     if (!results) return null;
     const { statistic, pValue, median1, median2, effectSize } = results;
     const significant = pValue < 0.05;
 
     return (
-        <div className="space-y-8 font-sans">
-            <div className="bg-white border-t-2 border-b-2 border-cyan-600 p-6">
-                <h3 className="text-lg font-bold uppercase tracking-widest border-b-2 border-cyan-600 inline-block pb-1 mb-4 text-cyan-800">
-                    Mann-Whitney U Test
-                </h3>
-                <div className="grid grid-cols-3 gap-6 text-center max-w-2xl mx-auto">
-                    <div className="p-4 bg-cyan-50 rounded">
-                        <div className="text-sm text-gray-500 uppercase font-semibold mb-1">Statistic (W)</div>
-                        <div className="text-2xl font-bold text-cyan-700">{statistic}</div>
+        <div className="space-y-8 pb-10 animate-in fade-in duration-700">
+            {/* Quick Stats Header */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="bg-white border border-blue-100 p-5 rounded-xl shadow-sm flex items-center gap-4">
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                        <Activity className="w-6 h-6 text-blue-600" />
                     </div>
-                    <div className="p-4 bg-cyan-50 rounded">
-                        <div className="text-sm text-gray-500 uppercase font-semibold mb-1">p-value</div>
-                        <div className={`text-xl font-bold ${significant ? 'text-green-600' : 'text-gray-600'}`}>
-                            {pValue < 0.001 ? '< .001' : pValue.toFixed(4)} {significant && '***'}
-                        </div>
-                    </div>
-                    <div className="p-4 bg-cyan-50 rounded">
-                        <div className="text-sm text-gray-500 uppercase font-semibold mb-1">Effect Size (r)</div>
-                        <div className="text-2xl font-bold text-cyan-700">{effectSize?.toFixed(3)}</div>
+                    <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Statistic (U)</p>
+                        <p className="text-2xl font-black text-blue-900">{statistic}</p>
                     </div>
                 </div>
-                <p className="text-sm text-gray-600 mt-4 text-center italic">
-                    {significant
-                        ? 'Có sự khác biệt có ý nghĩa thống kê về phân phối giữa hai nhóm (H0 bị bác bỏ).'
-                        : 'Không có sự khác biệt có ý nghĩa thống kê giữa hai nhóm (Chưa đủ bằng chứng bác bỏ H0).'}
-                </p>
+                <div className="bg-white border border-blue-100 p-5 rounded-xl shadow-sm flex items-center gap-4">
+                    <div className="p-3 bg-emerald-50 rounded-lg">
+                        <Info className="w-6 h-6 text-emerald-600" />
+                    </div>
+                    <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">p-value</p>
+                        <p className={`text-2xl font-black ${significant ? 'text-emerald-600' : 'text-slate-900'}`}>
+                            {pValue < 0.001 ? '< .001' : pValue.toFixed(4)}
+                        </p>
+                    </div>
+                </div>
+                <div className="bg-white border border-blue-100 p-5 rounded-xl shadow-sm flex items-center gap-4">
+                    <div className="p-3 bg-indigo-50 rounded-lg">
+                        <BarChart className="w-6 h-6 text-indigo-600" />
+                    </div>
+                    <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Effect Size (r)</p>
+                        <p className="text-2xl font-black text-indigo-900">{effectSize?.toFixed(3) || 'N/A'}</p>
+                    </div>
+                </div>
             </div>
 
-            <div className="bg-gray-50 p-6 border rounded-sm max-w-2xl mx-auto">
-                <h4 className="font-bold mb-3 text-cyan-800 uppercase text-xs tracking-wider">Median Comparison</h4>
-                <table className="w-full text-sm">
-                    <thead>
-                        <tr className="border-b border-gray-300">
-                            <th className="py-2 text-left">Group</th>
-                            <th className="py-2 text-right">Median</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr className="border-b border-gray-100">
-                            <td className="py-2 font-medium">{columns[0] || 'Group 1'}</td>
-                            <td className="py-2 text-right font-bold text-gray-700">{median1?.toFixed(3)}</td>
-                        </tr>
-                        <tr className="border-b border-gray-100">
-                            <td className="py-2 font-medium">{columns[1] || 'Group 2'}</td>
-                            <td className="py-2 text-right font-bold text-gray-700">{median2?.toFixed(3)}</td>
-                        </tr>
-                    </tbody>
-                </table>
+            {/* Median Comparison Table */}
+            <div className="bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-blue-50 bg-slate-50/50">
+                    <h3 className="text-sm font-bold text-blue-900 uppercase tracking-wider flex items-center gap-2">
+                        <Database className="w-4 h-4 text-blue-600" />
+                        Median Comparison (So sánh Trung vị)
+                    </h3>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse text-slate-700">
+                        <thead className="bg-blue-50/50 border-y border-blue-100">
+                            <tr>
+                                <th className="py-4 px-6 text-xs font-black text-blue-900 uppercase">Group</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-right">Median</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-blue-50">
+                            <tr className="hover:bg-blue-50/30 transition-colors">
+                                <td className="py-5 px-6 text-sm font-bold text-slate-700">{variableNames?.group1 || 'Group 1'}</td>
+                                <td className="py-5 px-4 text-sm text-right font-mono font-bold text-blue-900">{median1?.toFixed(3)}</td>
+                            </tr>
+                            <tr className="hover:bg-blue-50/30 transition-colors">
+                                <td className="py-5 px-6 text-sm font-bold text-slate-700">{variableNames?.group2 || 'Group 2'}</td>
+                                <td className="py-5 px-4 text-sm text-right font-mono font-bold text-blue-900">{median2?.toFixed(3)}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
+
+            {/* Professional Template Interpretation */}
+            <TemplateInterpretation 
+                analysisType="mann_whitney"
+                results={results}
+                variableNames={variableNames}
+            />
         </div>
     );
 });
 
 export default MannWhitneyResults;
+

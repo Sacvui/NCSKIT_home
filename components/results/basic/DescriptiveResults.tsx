@@ -1,9 +1,8 @@
-'use client';
-
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { FileText, Database, BarChart3 } from 'lucide-react';
+import { FileText, Database, BarChart3, TrendingUp, Hash, Activity } from 'lucide-react';
 import { getStoredLocale, t, type Locale } from '@/lib/i18n';
+import { TemplateInterpretation } from '@/components/TemplateInterpretation';
 
 interface DescriptiveResultsProps {
     results: any;
@@ -28,8 +27,44 @@ export const DescriptiveResults = React.memo(function DescriptiveResults({ resul
     if (!results || !results.mean) return null;
 
     return (
-        <div className="space-y-8 pb-10 animate-in fade-in duration-500">
-            {/* White-Blue Academic Table */}
+        <div className="space-y-8 pb-10 animate-in fade-in duration-700">
+            {/* Quick Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="bg-white border border-blue-100 p-5 rounded-xl shadow-sm">
+                    <div className="flex items-center gap-3 mb-2">
+                        <Hash className="w-4 h-4 text-blue-500" />
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total Vars</span>
+                    </div>
+                    <p className="text-2xl font-black text-blue-900">{columns.length}</p>
+                </div>
+                <div className="bg-white border border-blue-100 p-5 rounded-xl shadow-sm">
+                    <div className="flex items-center gap-3 mb-2">
+                        <Activity className="w-4 h-4 text-emerald-500" />
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Avg. Mean</span>
+                    </div>
+                    <p className="text-2xl font-black text-emerald-700">
+                        {(results.mean.reduce((a: number, b: number) => a + b, 0) / results.mean.length).toFixed(2)}
+                    </p>
+                </div>
+                <div className="bg-white border border-blue-100 p-5 rounded-xl shadow-sm">
+                    <div className="flex items-center gap-3 mb-2">
+                        <TrendingUp className="w-4 h-4 text-indigo-500" />
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Max Mean</span>
+                    </div>
+                    <p className="text-2xl font-black text-indigo-800">
+                        {Math.max(...results.mean).toFixed(2)}
+                    </p>
+                </div>
+                <div className="bg-white border border-blue-100 p-5 rounded-xl shadow-sm">
+                    <div className="flex items-center gap-3 mb-2">
+                        <Database className="w-4 h-4 text-slate-500" />
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total N</span>
+                    </div>
+                    <p className="text-2xl font-black text-slate-900">{results.N?.[0] || 'N/A'}</p>
+                </div>
+            </div>
+
+            {/* Main Statistics Table */}
             <div className="bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-blue-50 bg-slate-50/50 flex items-center justify-between">
                     <h3 className="text-sm font-bold text-blue-900 uppercase tracking-wider flex items-center gap-2">
@@ -60,8 +95,12 @@ export const DescriptiveResults = React.memo(function DescriptiveResults({ resul
                                     <td className="py-5 px-4 text-sm text-right font-mono text-slate-800">{safeToFixed(results.max?.[idx])}</td>
                                     <td className="py-5 px-4 text-sm text-right font-black text-blue-900 bg-blue-50/20">{safeToFixed(results.mean?.[idx])}</td>
                                     <td className="py-5 px-4 text-sm text-right font-mono text-slate-800">{safeToFixed(results.sd?.[idx])}</td>
-                                    <td className="py-5 px-4 text-sm text-right font-mono italic text-blue-900/60 font-black">{safeToFixed(results.skew?.[idx])}</td>
-                                    <td className="py-5 px-4 text-sm text-right font-mono italic text-blue-900/60 font-black">{safeToFixed(results.kurtosis?.[idx])}</td>
+                                    <td className={`py-5 px-4 text-sm text-right font-mono italic font-black ${Math.abs(results.skew?.[idx]) > 2 ? 'text-amber-600' : 'text-blue-900/60'}`}>
+                                        {safeToFixed(results.skew?.[idx])}
+                                    </td>
+                                    <td className={`py-5 px-4 text-sm text-right font-mono italic font-black ${Math.abs(results.kurtosis?.[idx]) > 2 ? 'text-amber-600' : 'text-blue-900/60'}`}>
+                                        {safeToFixed(results.kurtosis?.[idx])}
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -69,36 +108,14 @@ export const DescriptiveResults = React.memo(function DescriptiveResults({ resul
                 </div>
             </div>
 
-            {/* Academic Interpretation Section */}
-            <div className="bg-white border border-blue-100 p-8 rounded-xl shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4">
-                    <span className="text-[10px] font-black text-blue-200 uppercase tracking-widest italic border border-blue-100 px-2 py-1 rounded">Descriptives</span>
-                </div>
-                
-                <h4 className="text-xs font-black uppercase text-blue-600 tracking-widest mb-6 flex items-center gap-2">
-                    <FileText className="w-4 h-4" />
-                    Nhận định khoa học (Academic Interpretation)
-                </h4>
-
-                <div className="space-y-6 border-l-2 border-blue-50 pl-6">
-                    <div className="text-sm text-slate-800 leading-relaxed font-medium bg-blue-50/40 p-5 rounded-lg border border-blue-50">
-                        <span className="text-blue-900 font-black uppercase text-[10px] mr-2 tracking-tighter block mb-3 underline underline-offset-4">Tóm tắt kết quả:</span>
-                        <ul className="space-y-3 list-disc pl-5">
-                            {columns.slice(0, 5).map((col, idx) => (
-                                <li key={idx}>
-                                    Biến <strong>{col}</strong> có giá trị trung bình là <strong>{safeToFixed(results.mean?.[idx])}</strong> với độ lệch chuẩn <strong>{safeToFixed(results.sd?.[idx])}</strong> (N = {results.N?.[idx]}).
-                                </li>
-                            ))}
-                            {columns.length > 5 && <li>Và các biến khác tương tự...</li>}
-                        </ul>
-                    </div>
-                    <p className="text-xs text-slate-500 italic mt-4 px-2">
-                        * Skewness (Độ lệch) và Kurtosis (Độ nhọn) được sử dụng để kiểm tra tính chuẩn của phân phối dữ liệu (thường nằm trong khoảng ±2).
-                    </p>
-                </div>
-            </div>
+            {/* Professional Template Interpretation */}
+            <TemplateInterpretation 
+                analysisType="descriptive"
+                results={results}
+            />
         </div>
     );
 });
 
 export default DescriptiveResults;
+

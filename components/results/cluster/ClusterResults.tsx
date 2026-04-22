@@ -1,7 +1,7 @@
-'use client';
-
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Database, FileText, Activity, Users, Box, BarChart } from 'lucide-react';
+import { TemplateInterpretation } from '@/components/TemplateInterpretation';
 
 interface ClusterResultsProps {
     results: any;
@@ -9,87 +9,101 @@ interface ClusterResultsProps {
 }
 
 /**
- * Cluster Analysis Results Component
- * Displays K-Means clustering results with cluster centers
+ * Cluster Analysis Results Component - Scientific Academic Style (White & Blue)
  */
 export const ClusterResults = React.memo(function ClusterResults({ results, columns }: ClusterResultsProps) {
+    if (!results) return null;
     const k = results.k || 3;
     const clusterSizes = results.clusterSizes || [];
     const centers = results.centers || [];
 
     return (
-        <div className="space-y-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Cluster Analysis Summary (K-Means, k={k})</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                        <div className="p-4 bg-blue-50 rounded-lg text-center">
-                            <div className="text-2xl font-bold text-blue-600">{k}</div>
-                            <div className="text-xs text-blue-600">Clusters</div>
-                        </div>
-                        <div className="p-4 bg-green-50 rounded-lg text-center">
-                            <div className="text-2xl font-bold text-green-600">{results.totalN || 'N/A'}</div>
-                            <div className="text-xs text-green-600">Total Observations</div>
-                        </div>
-                        <div className="p-4 bg-purple-50 rounded-lg text-center">
-                            <div className="text-2xl font-bold text-purple-600">{results.betweenSS?.toFixed(1) || 'N/A'}</div>
-                            <div className="text-xs text-purple-600">Between SS</div>
-                        </div>
-                        <div className="p-4 bg-orange-50 rounded-lg text-center">
-                            <div className="text-2xl font-bold text-orange-600">{results.totWithinSS?.toFixed(1) || 'N/A'}</div>
-                            <div className="text-xs text-orange-600">Total Within SS</div>
-                        </div>
+        <div className="space-y-8 pb-10 animate-in fade-in duration-700">
+            {/* Quick Stats Header */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div className="bg-white border border-blue-100 p-5 rounded-xl shadow-sm flex items-center gap-4">
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                        <Box className="w-6 h-6 text-blue-600" />
                     </div>
-
-                    <h4 className="font-semibold mb-2">Cluster Sizes</h4>
-                    <div className="flex gap-2 mb-6">
-                        {clusterSizes.map((size: number, idx: number) => (
-                            <div key={idx} className="px-4 py-2 bg-gray-100 rounded-lg text-center">
-                                <span className="font-bold">Cluster {idx + 1}:</span> {size}
-                            </div>
-                        ))}
+                    <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Clusters (k)</p>
+                        <p className="text-2xl font-black text-blue-900">{k}</p>
                     </div>
+                </div>
+                <div className="bg-white border border-blue-100 p-5 rounded-xl shadow-sm flex items-center gap-4">
+                    <div className="p-3 bg-emerald-50 rounded-lg">
+                        <Users className="w-6 h-6 text-emerald-600" />
+                    </div>
+                    <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total N</p>
+                        <p className="text-2xl font-black text-emerald-900">{results.totalN || 'N/A'}</p>
+                    </div>
+                </div>
+                <div className="bg-white border border-blue-100 p-5 rounded-xl shadow-sm flex items-center gap-4">
+                    <div className="p-3 bg-indigo-50 rounded-lg">
+                        <Activity className="w-6 h-6 text-indigo-600" />
+                    </div>
+                    <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Between SS</p>
+                        <p className="text-xl font-black text-indigo-900">{results.betweenSS?.toFixed(1) || 'N/A'}</p>
+                    </div>
+                </div>
+                <div className="bg-white border border-blue-100 p-5 rounded-xl shadow-sm flex items-center gap-4">
+                    <div className="p-3 bg-amber-50 rounded-lg">
+                        <BarChart className="w-6 h-6 text-amber-600" />
+                    </div>
+                    <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Within SS</p>
+                        <p className="text-xl font-black text-amber-900">{results.totWithinSS?.toFixed(1) || 'N/A'}</p>
+                    </div>
+                </div>
+            </div>
 
-                    <h4 className="font-semibold mb-2">Cluster Centers</h4>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
-                            <thead>
-                                <tr className="border-b border-gray-200 bg-gray-50">
-                                    <th className="py-2 px-3 text-left font-semibold">Cluster</th>
-                                    {columns.map((col, idx) => (
-                                        <th key={idx} className="py-2 px-3 text-right font-semibold">{col}</th>
+            {/* Cluster Centers Table */}
+            <div className="bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-blue-50 bg-slate-50/50 flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-blue-900 uppercase tracking-wider flex items-center gap-2">
+                        <Database className="w-4 h-4 text-blue-600" />
+                        Cluster Centers (Đặc điểm các cụm)
+                    </h3>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse text-slate-700">
+                        <thead className="bg-blue-50/50 border-y border-blue-100">
+                            <tr>
+                                <th className="py-4 px-6 text-xs font-black text-blue-900 uppercase min-w-[150px]">Cluster (Size)</th>
+                                {columns.map((col, idx) => (
+                                    <th key={idx} className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-right border-l border-blue-50 min-w-[120px]">{col}</th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-blue-50">
+                            {centers.map((center: number[], cIdx: number) => (
+                                <tr key={cIdx} className="hover:bg-blue-50/30 transition-colors group">
+                                    <td className="py-5 px-6 text-sm font-bold text-slate-900 bg-slate-50/30">
+                                        Cluster {cIdx + 1} 
+                                        <span className="ml-2 px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] rounded-full uppercase tracking-tighter">N={clusterSizes[cIdx]}</span>
+                                    </td>
+                                    {center.map((val: number, vIdx: number) => (
+                                        <td key={vIdx} className="py-5 px-4 text-sm text-right font-mono border-l border-blue-50 text-blue-900 font-medium group-hover:font-black transition-all">
+                                            {typeof val === 'number' ? val.toFixed(3) : val}
+                                        </td>
                                     ))}
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {centers.map((center: number[], cIdx: number) => (
-                                    <tr key={cIdx} className="border-b border-gray-100 hover:bg-gray-50">
-                                        <td className="py-2 px-3 font-medium">Cluster {cIdx + 1}</td>
-                                        {center.map((val: number, vIdx: number) => (
-                                            <td key={vIdx} className="py-2 px-3 text-right">
-                                                {typeof val === 'number' ? val.toFixed(3) : val}
-                                            </td>
-                                        ))}
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <div className="bg-gray-50 border border-gray-200 p-6 rounded-lg">
-                <h4 className="font-bold mb-4 text-gray-800 uppercase text-xs tracking-wider">Kết luận</h4>
-                <p className="text-sm text-gray-800">
-                    Dữ liệu được phân thành <strong>{k} cụm</strong> sử dụng thuật toán K-Means.
-                    Các cụm có kích thước: {clusterSizes.join(', ')}.
-                    Xem bảng Cluster Centers để hiểu đặc điểm của từng cụm dựa trên giá trị trung bình của các biến.
-                </p>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
+
+            {/* Professional Template Interpretation */}
+            <TemplateInterpretation 
+                analysisType="cluster"
+                results={results}
+            />
         </div>
     );
 });
 
 export default ClusterResults;
+

@@ -1,18 +1,23 @@
-'use client';
-
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { FileText, Database, Activity } from 'lucide-react';
+import { FileText, Database, Activity, Info, BarChart } from 'lucide-react';
 import { getStoredLocale, t, type Locale } from '@/lib/i18n';
+import { TemplateInterpretation } from '@/components/TemplateInterpretation';
 
 interface TTestResultsProps {
     results: any;
+    variableNames?: {
+        groupVar?: string;
+        targetVar?: string;
+        group1?: string;
+        group2?: string;
+    };
 }
 
 /**
  * T-Test Results Component - Scientific Academic Style (White & Blue)
  */
-export const TTestResults = React.memo(function TTestResults({ results }: TTestResultsProps) {
+export const TTestResults = React.memo(function TTestResults({ results, variableNames }: TTestResultsProps) {
     const [locale, setLocale] = React.useState<Locale>('vi');
 
     React.useEffect(() => {
@@ -34,8 +39,41 @@ export const TTestResults = React.memo(function TTestResults({ results }: TTestR
     const leveneSig = lP < 0.05;
 
     return (
-        <div className="space-y-8 pb-10 animate-in fade-in duration-500">
-            {/* White-Blue Academic Table */}
+        <div className="space-y-8 pb-10 animate-in fade-in duration-700">
+            {/* Quick Stats Header */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="bg-white border border-blue-100 p-5 rounded-xl shadow-sm flex items-center gap-4">
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                        <Activity className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">t-Statistic</p>
+                        <p className="text-2xl font-black text-blue-900">{formatNum(results.tStatistic, 3)}</p>
+                    </div>
+                </div>
+                <div className="bg-white border border-blue-100 p-5 rounded-xl shadow-sm flex items-center gap-4">
+                    <div className="p-3 bg-emerald-50 rounded-lg">
+                        <Info className="w-6 h-6 text-emerald-600" />
+                    </div>
+                    <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">p-value</p>
+                        <p className={`text-2xl font-black ${significant ? 'text-emerald-600' : 'text-slate-900'}`}>
+                            {pValue < 0.001 ? '< .001' : formatNum(pValue, 4)}
+                        </p>
+                    </div>
+                </div>
+                <div className="bg-white border border-blue-100 p-5 rounded-xl shadow-sm flex items-center gap-4">
+                    <div className="p-3 bg-indigo-50 rounded-lg">
+                        <BarChart className="w-6 h-6 text-indigo-600" />
+                    </div>
+                    <div>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Cohen&apos;s d</p>
+                        <p className="text-2xl font-black text-indigo-900">{formatNum(results.effectSize, 3)}</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Main T-Test Table */}
             <div className="bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
                 <div className="px-6 py-4 border-b border-blue-50 bg-slate-50/50 flex items-center justify-between">
                     <h3 className="text-sm font-bold text-blue-900 uppercase tracking-wider flex items-center gap-2">
@@ -47,23 +85,23 @@ export const TTestResults = React.memo(function TTestResults({ results }: TTestR
                     <table className="w-full text-left border-collapse text-slate-700">
                         <thead className="bg-blue-50/50 border-y border-blue-100">
                             <tr>
-                                <th className="py-4 px-6 text-xs font-black text-blue-900 uppercase">Test Variation</th>
+                                <th className="py-4 px-6 text-xs font-black text-blue-900 uppercase">Test Assumption</th>
                                 <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-right">t-Value</th>
                                 <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-center">df</th>
-                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-right">p-value (2-tailed)</th>
-                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-right">Mean Difference</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-right">p-value</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-right">Mean Diff.</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-blue-50">
                             <tr className="hover:bg-blue-50/30 transition-colors">
                                 <td className="py-5 px-6">
-                                    <div className="text-sm font-bold text-blue-800">Equal variances assumed</div>
-                                    <div className="text-[10px] text-slate-400 italic">Giả định phương sai bằng nhau</div>
+                                    <div className="text-sm font-bold text-blue-800">{leveneSig ? "Equal variances not assumed (Welch)" : "Equal variances assumed"}</div>
+                                    <div className="text-[10px] text-slate-400 italic">{leveneSig ? "Giả định phương sai không bằng nhau" : "Giả định phương sai bằng nhau"}</div>
                                 </td>
                                 <td className="py-5 px-4 text-sm text-right font-mono">{formatNum(results.tStatistic, 3)}</td>
                                 <td className="py-5 px-4 text-sm text-center font-bold">{formatNum(results.df, 2)}</td>
-                                 <td className={`py-5 px-4 text-sm text-right font-black ${significant ? 'text-blue-950 underline underline-offset-4 ring-1 ring-blue-100 rounded-lg px-2' : 'text-slate-700'}`}>
-                                    {formatNum(pValue, 4)} {significant ? ' (Sig.)' : ''}
+                                 <td className={`py-5 px-4 text-sm text-right font-black ${significant ? 'text-emerald-700 underline underline-offset-4' : 'text-slate-700'}`}>
+                                    {formatNum(pValue, 4)} {significant ? ' *' : ''}
                                 </td>
                                 <td className="py-5 px-4 text-sm text-right font-mono text-slate-800 font-black">{formatNum(results.meanDiff, 3)}</td>
                             </tr>
@@ -72,47 +110,65 @@ export const TTestResults = React.memo(function TTestResults({ results }: TTestR
                 </div>
             </div>
 
-            {/* Levene's Test Card */}
-            <div className="bg-slate-50/50 border border-slate-200 p-6 rounded-xl shadow-sm">
-                <h4 className="text-[10px] font-black uppercase text-slate-500 tracking-widest mb-3">
-                    Levene&apos;s Test for Equality of Variances
-                </h4>
-                <div className="flex items-center gap-6 flex-wrap">
-                    <div className="text-sm">
-                        <span className="text-slate-600 font-black mr-2">F:</span>
-                        <span className="text-blue-900 font-black">{formatNum(results.leveneF, 3)}</span>
-                    </div>
-                    <div className="text-sm">
-                        <span className="text-slate-600 font-black mr-2">Sig:</span>
-                        <span className={`font-black ${leveneSig ? 'text-blue-900' : 'text-slate-900'}`}>
-                            {formatNum(lP, 4)}
-                        </span>
-                    </div>
-                    <div className={`text-[10px] uppercase font-black px-3 py-1 rounded-lg border ${leveneSig ? 'bg-amber-50 border-amber-300 text-amber-700 shadow-sm' : 'bg-blue-900 border-blue-900 text-white shadow-lg shadow-blue-100 animate-in fade-in zoom-in-95'}`}>
-                        {leveneSig ? 'Variances NOT Assume EQUAL' : 'Variances Assume EQUAL (OK)'}
-                    </div>
+            {/* Group Statistics Table */}
+            <div className="bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-blue-50 bg-slate-50/50">
+                    <h3 className="text-sm font-bold text-blue-900 uppercase tracking-wider flex items-center gap-2">
+                        <BarChart className="w-4 h-4 text-blue-600" />
+                        Group Statistics (Thống kê Nhóm)
+                    </h3>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse text-slate-700">
+                        <thead className="bg-blue-50/50 border-y border-blue-100">
+                            <tr>
+                                <th className="py-4 px-6 text-xs font-black text-blue-900 uppercase">Group</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-right">Mean</th>
+                                <th className="py-4 px-4 text-xs font-black text-blue-900 uppercase text-right">Std. Deviation</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-blue-50">
+                            <tr className="hover:bg-blue-50/30">
+                                <td className="py-4 px-6 text-sm font-bold text-slate-700">{variableNames?.group1 || 'Group 1'}</td>
+                                <td className="py-4 px-4 text-sm text-right font-mono font-bold text-blue-900">{formatNum(results.mean1, 3)}</td>
+                                <td className="py-4 px-4 text-sm text-right font-mono">{formatNum(results.sd1, 3)}</td>
+                            </tr>
+                            <tr className="hover:bg-blue-50/30">
+                                <td className="py-4 px-6 text-sm font-bold text-slate-700">{variableNames?.group2 || 'Group 2'}</td>
+                                <td className="py-4 px-4 text-sm text-right font-mono font-bold text-blue-900">{formatNum(results.mean2, 3)}</td>
+                                <td className="py-4 px-4 text-sm text-right font-mono">{formatNum(results.sd2, 3)}</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
 
-            {/* Academic Interpretation Section */}
-            <div className="bg-white border border-blue-100 p-8 rounded-xl shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4">
-                    <span className="text-[10px] font-black text-blue-200 uppercase tracking-widest italic border border-blue-100 px-2 py-1 rounded">Independent Samples</span>
-                </div>
-                
-                <h4 className="text-xs font-black uppercase text-blue-600 tracking-widest mb-6 flex items-center gap-2">
-                    <FileText className="w-4 h-4" />
-                    Nhận định khoa học (Academic Interpretation)
-                </h4>
+            {/* Professional Interpretation */}
+            <TemplateInterpretation 
+                analysisType="ttest_independent"
+                results={results}
+                variableNames={variableNames}
+            />
 
-                <div className="space-y-6 border-l-2 border-blue-50 pl-6">
-                    <p className="text-sm text-slate-800 leading-relaxed font-medium bg-blue-50/40 p-5 rounded-lg border border-blue-50">
-                        <span className="text-blue-900 font-black uppercase text-[10px] mr-2 tracking-tighter block mb-2 underline underline-offset-4">Kết luận phân tích:</span>
-                        {significant
-                            ? `Kết quả kiểm định T-Test t(${formatNum(results.df, 1)}) = ${formatNum(results.tStatistic, 2)} cho thấy p = ${formatNum(pValue, 4)} < 0.05. Do đó, ta bác bỏ giả thuyết H₀. Có sự khác biệt có ý nghĩa thống kê giữa hai nhóm được so sánh.`
-                            : `Kết quả kiểm định T-Test t(${formatNum(results.df, 1)}) = ${formatNum(results.tStatistic, 2)} cho thấy p = ${formatNum(pValue, 4)} >= 0.05. Chưa có đủ bằng chứng thống kê để bác bỏ giả thuyết H₀. Sự khác biệt giữa hai nhóm không có ý nghĩa thống kê.`
-                        }
-                    </p>
+            {/* Assumptions & Levene's Test */}
+            <div className="bg-slate-50 border border-slate-200 p-6 rounded-xl shadow-sm">
+                <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-[10px] font-black uppercase text-slate-500 tracking-widest">
+                        Levene&apos;s Test for Equality of Variances
+                    </h4>
+                    <div className={`text-[10px] uppercase font-black px-3 py-1 rounded-lg border ${leveneSig ? 'bg-amber-50 border-amber-300 text-amber-700' : 'bg-emerald-50 border-emerald-300 text-emerald-700'}`}>
+                        {leveneSig ? 'Variances NOT Assume EQUAL' : 'Variances Assume EQUAL (OK)'}
+                    </div>
+                </div>
+                <div className="flex items-center gap-6">
+                    <div className="text-sm">
+                        <span className="text-slate-600 font-bold mr-2">F-Value:</span>
+                        <span className="text-blue-900 font-mono font-bold">{formatNum(results.leveneF, 3)}</span>
+                    </div>
+                    <div className="text-sm">
+                        <span className="text-slate-600 font-bold mr-2">Significance:</span>
+                        <span className="text-blue-900 font-mono font-bold">{formatNum(lP, 4)}</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -120,3 +176,4 @@ export const TTestResults = React.memo(function TTestResults({ results }: TTestR
 });
 
 export default TTestResults;
+

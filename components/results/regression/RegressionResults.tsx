@@ -167,39 +167,14 @@ export const RegressionResults = React.memo(function RegressionResults({ results
                 </div>
             </div>
 
-            {/* Academic Interpretation Section */}
-            <div className="bg-white border border-blue-100 p-8 rounded-xl shadow-sm relative overflow-hidden">
-                 <h4 className="text-xs font-black uppercase text-blue-600 tracking-widest mb-6 flex items-center gap-2">
-                    <FileText className="w-4 h-4" />
-                    Nhận định khoa học (Academic Interpretation)
-                </h4>
-
-                <div className="space-y-6 border-l-2 border-blue-50 pl-6">
-                    <div className="text-sm text-slate-800 leading-relaxed font-medium bg-blue-50/40 p-6 rounded-lg border border-blue-50">
-                        <ul className="list-disc pl-5 space-y-4">
-                            <li>
-                                Mô hình hồi quy có ý nghĩa thống kê ở mức <strong>{modelFit.pValue < 0.05 ? 'ý nghĩa 5%' : 'không có ý nghĩa'}</strong> (F = {modelFit.fStatistic?.toFixed(2)}, p = {fmtP(modelFit.pValue)}).
-                            </li>
-                            <li>
-                                Hệ số R² hiệu chỉnh là <strong>{fmt(modelFit.adjRSquared)}</strong>, cho thấy các biến độc lập giải thích được <strong>{(modelFit.adjRSquared * 100).toFixed(1)}%</strong> sự biến thiên của biến phụ thuộc.
-                            </li>
-                            <li>
-                                Các nhân tố có tác động tích cực và có ý nghĩa thống kê (p &lt; 0.05):{' '}
-                                <span className="text-blue-700">
-                                {coefficients.filter((c: any) => c.term !== '(Intercept)' && c.pValue < 0.05).length > 0
-                                    ? coefficients
-                                        .filter((c: any) => c.term !== '(Intercept)' && c.pValue < 0.05)
-                                        .map((c: any) => `${c.term.replace(/`/g, '')} (std. β = ${fmt(c.stdBeta)})`)
-                                        .join(', ')
-                                    : 'Không có nhân tố nào có ý nghĩa.'}
-                                </span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+            {/* Professional Template Interpretation */}
+            <TemplateInterpretation 
+                analysisType="regression"
+                results={results}
+            />
         </div>
     );
 });
 
 export default RegressionResults;
+

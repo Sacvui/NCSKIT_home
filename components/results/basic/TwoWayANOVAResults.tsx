@@ -90,37 +90,19 @@ export const TwoWayANOVAResults = React.memo(function TwoWayANOVAResults({ resul
                 </div>
             </div>
 
-            {/* Academic Interpretation Section */}
-            <div className="bg-white border border-blue-100 p-8 rounded-xl shadow-sm relative overflow-hidden">
-                <h4 className="text-xs font-black uppercase text-blue-600 tracking-widest mb-6 flex items-center gap-2">
-                    <FileText className="w-4 h-4" />
-                    Nhận định khoa học (Academic Interpretation)
-                </h4>
-
-                <div className="space-y-6 border-l-2 border-blue-50 pl-6 text-sm">
-                    <div className="bg-blue-50/40 p-6 rounded-lg border border-blue-50 leading-relaxed text-slate-800">
-                        <ul className="list-disc pl-5 space-y-3">
-                            <li>
-                                <strong>Tác động chính {columns[1]}:</strong> {results.factor1P < 0.05 
-                                    ? `Có ý nghĩa thống kê (p = ${results.factor1P?.toFixed(4)} < 0.05).` 
-                                    : `Chưa có ý nghĩa thống kê (p = ${results.factor1P?.toFixed(4)} >= 0.05).`}
-                            </li>
-                            <li>
-                                <strong>Tác động chính {columns[2]}:</strong> {results.factor2P < 0.05 
-                                    ? `Có ý nghĩa thống kê (p = ${results.factor2P?.toFixed(4)} < 0.05).` 
-                                    : `Chưa có ý nghĩa thống kê (p = ${results.factor2P?.toFixed(4)} >= 0.05).`}
-                            </li>
-                            <li>
-                                <strong>Tác động tương tác:</strong> {results.interactionP < 0.05 
-                                    ? `Có ý nghĩa thống kê (p = ${results.interactionP?.toFixed(4)} < 0.05). Cấu trúc tác động của ${columns[1]} lên biến phụ thuộc phụ thuộc vào mức độ của ${columns[2]}.` 
-                                    : `Không có ý nghĩa thống kê (p = ${results.interactionP?.toFixed(4)} >= 0.05).`}
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+            {/* Professional Template Interpretation */}
+            <TemplateInterpretation 
+                analysisType="two_way_anova"
+                results={results}
+                variableNames={{
+                    factor1: columns[1],
+                    factor2: columns[2],
+                    targetVar: columns[0]
+                }}
+            />
         </div>
     );
 });
 
 export default TwoWayANOVAResults;
+
