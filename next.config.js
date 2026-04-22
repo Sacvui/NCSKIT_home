@@ -59,6 +59,11 @@ const nextConfig = {
                 source: '/:path*',
                 headers: [
                     // WebR WASM headers
+                    // CRITICAL: 'credentialless' (NOT 'require-corp') is required because:
+                    // - repo.r-wasm.org does NOT send CORP headers
+                    // - 'require-corp' blocks ALL cross-origin fetches without CORP
+                    // - 'credentialless' still enables SharedArrayBuffer on Chrome 96+
+                    //   while allowing cross-origin fetches (without cookies/credentials)
                     {
                         key: 'Cross-Origin-Embedder-Policy',
                         value: 'credentialless',
@@ -91,6 +96,7 @@ const nextConfig = {
                     },
                 ],
             },
+            // WebR core binaries (R.wasm, webr-worker.js, R.js)
             {
                 source: '/webr_core_v3/:path*',
                 headers: [
@@ -111,6 +117,39 @@ const nextConfig = {
                         // This prevents stale worker cache issues after deployments
                         key: 'Cache-Control',
                         value: 'public, max-age=0, must-revalidate',
+                    },
+                ],
+            },
+            // Local R package repository (psych, jsonlite, etc.)
+            {
+                source: '/webr_repo_v3/:path*',
+                headers: [
+                    {
+                        // CRITICAL: Without this, COEP blocks loading .tgz packages
+                        key: 'Cross-Origin-Resource-Policy',
+                        value: 'cross-origin',
+                    },
+                    {
+                        key: 'Cross-Origin-Embedder-Policy',
+                        value: 'credentialless',
+                    },
+                    {
+                        key: 'Cache-Control',
+                        value: 'public, max-age=86400, stale-while-revalidate=604800',
+                    },
+                ],
+            },
+            // Also serve old v2 repo with correct headers (if still referenced)
+            {
+                source: '/webr_repo_v2/:path*',
+                headers: [
+                    {
+                        key: 'Cross-Origin-Resource-Policy',
+                        value: 'cross-origin',
+                    },
+                    {
+                        key: 'Cross-Origin-Embedder-Policy',
+                        value: 'credentialless',
                     },
                 ],
             },

@@ -29,6 +29,7 @@ const mockSupabase = {
     from: jest.fn().mockReturnThis(),
     select: jest.fn().mockReturnThis(),
     eq: jest.fn().mockReturnThis(),
+    // @ts-ignore — jest mock chain infers 'never' for chained builder methods
     single: jest.fn().mockResolvedValue({ data: mockProfile, error: null }),
     update: jest.fn().mockReturnThis(),
     insert: jest.fn().mockReturnThis(),

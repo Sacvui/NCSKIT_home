@@ -36,7 +36,18 @@ async function runLocked<T>(task: () => Promise<T>): Promise<T> {
     }
 }
 
-const BASE_URL = '/webr_core_v3/';
+const BASE_URL = typeof window !== 'undefined' 
+    ? window.location.origin + '/webr_core_v3/' 
+    : '/webr_core_v3/';
+
+const getOptimalChannelType = (): 0 | 1 | 3 => {
+    if (typeof window === 'undefined') return 3;
+    // WebR 0.5.x: channelType 0 = SharedArrayBuffer, 1 = ServiceWorker, 3 = PostMessage
+    // SharedArrayBuffer (0) is fastest and most stable when crossOriginIsolated is true
+    if (typeof SharedArrayBuffer !== 'undefined' && window.crossOriginIsolated) return 0;
+    // PostMessage (3) as universal fallback — works everywhere
+    return 3;
+};
 
 export function getWebRStatus(): {
     isReady: boolean;
@@ -158,16 +169,18 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 
                 const webR = new WebR({
                     baseUrl: BASE_URL,
-                    channelType: 3,
+                    channelType: getOptimalChannelType(),
                 });
 
-                if (typeof window !== 'undefined' && navigator.serviceWorker) {
+                // Only clean up ServiceWorker if we're not in the middle of a successful run
+                // or if we have a high crash count. Continuous unregistering causes race conditions.
+                if (typeof window !== 'undefined' && navigator.serviceWorker && crashCount > 2) {
                     try {
                         const regs = await navigator.serviceWorker.getRegistrations();
                         for (let reg of regs) {
                             if (reg.active?.scriptURL.includes('webr')) {
                                 await reg.unregister();
-                                logger.info('[WebR] Cleaned up old ServiceWorker.');
+                                logger.info('[WebR] Cleaned up conflicting ServiceWorker.');
                             }
                         }
                     } catch (e) {}
@@ -235,45 +248,36 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                             .libPaths(c('${persistentLib}', .libPaths()))
                         }
                         
-                        # Set a safe default first
-                        options(repos = c(CRAN = "https://repo.r-wasm.org/"))
+                        # Configure repos: local first, then r-wasm.org as fallback
+                        options(repos = c(
+                            LOCAL = "${localRepo}",
+                            CRAN = "https://repo.r-wasm.org/"
+                        ))
                         options(pkgType = "binary")
                         options(webr.repo_quiet = TRUE)
-                        options(timeout = 60) # Reduce timeout for individual network calls
+                        options(timeout = 60)
                         
-                        # Smart Repo Probing with 4.4 Fallback
-                        check_repo_online <- function(url) {
+                        # Load psych - install if not available
+                        psych_loaded <- require("psych", quietly = TRUE)
+                        if (!psych_loaded) {
                             tryCatch({
-                                r_ver <- paste0(R.version$major, ".", substr(R.version$minor, 1, 1))
-                                # Try current version first
-                                test_url <- paste0(url, "/bin/emscripten/contrib/", r_ver, "/PACKAGES")
-                                con <- url(test_url)
-                                suppressWarnings(readLines(con, n=1))
-                                close(con)
-                                return(TRUE)
+                                webr::install("psych", quiet = TRUE)
+                                psych_loaded <- require("psych", quietly = TRUE)
                             }, error = function(e) {
-                                tryCatch({
-                                    # Fallback to 4.4 if current (e.g. 4.5) fails
-                                    test_url <- paste0(url, "/bin/emscripten/contrib/4.4/PACKAGES")
-                                    con <- url(test_url)
-                                    suppressWarnings(readLines(con, n=1))
-                                    close(con)
-                                    return(TRUE)
-                                }, error = function(e2) FALSE)
+                                message("[WebR] psych install failed: ", e$message)
                             })
                         }
-
-                        if (check_repo_online("${localRepo}")) {
-                           options(repos = c(LOCAL = "${localRepo}", CRAN = "https://repo.r-wasm.org/"))
-                        } else {
-                           # If local fails, double check CRAN versioning
-                           if (!check_repo_online("https://repo.r-wasm.org")) {
-                               # Force 4.4 repo if 4.5 is broken on CRAN
-                               options(repos = c(CRAN = "https://repo.r-wasm.org/bin/emscripten/contrib/4.4"))
-                           }
+                        
+                        # Also ensure jsonlite is available (used for result serialization)
+                        if (!require("jsonlite", quietly = TRUE)) {
+                            tryCatch({
+                                webr::install("jsonlite", quiet = TRUE)
+                                library("jsonlite", quietly = TRUE)
+                            }, error = function(e) {
+                                message("[WebR] jsonlite install failed: ", e$message)
+                            })
                         }
                         
-                        psych_loaded <- require("psych", quietly = TRUE)
                         r_version_info <- paste0(R.version$major, ".", R.version$minor, " (", R.version$platform, ")")
                     `);
                 });
