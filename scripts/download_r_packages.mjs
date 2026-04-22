@@ -18,7 +18,13 @@ const PACKAGES = [
   'lavaan',
   'quadprog',
   'pbivnorm',
-  'numDeriv'
+  'numDeriv',
+  'cluster',
+  'boot',
+  'class',
+  'nnet',
+  'rpart',
+  'survival'
 ];
 
 async function downloadFile(url, dest) {
