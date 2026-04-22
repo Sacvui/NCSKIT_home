@@ -21,7 +21,8 @@ export const LogisticResults = React.memo(function LogisticResults({ results, co
         setLocale(getStoredLocale());
     }, []);
 
-    if (!results) return null;
+    const displayResults = results.data || results;
+    if (!displayResults) return null;
 
     return (
         <div className="space-y-8 pb-10 animate-in fade-in duration-500">
@@ -45,7 +46,7 @@ export const LogisticResults = React.memo(function LogisticResults({ results, co
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-blue-50">
-                            {results.coefficients?.map((coeff: any, idx: number) => {
+                            {displayResults.coefficients?.map((coeff: any, idx: number) => {
                                 const sig = coeff.pValue < 0.05;
                                 return (
                                     <tr key={idx} className="hover:bg-blue-50/30 transition-colors">
@@ -74,16 +75,16 @@ export const LogisticResults = React.memo(function LogisticResults({ results, co
                     <div className="space-y-6">
                         <div className="flex justify-between items-end border-b border-blue-50/50 pb-4">
                             <span className="text-sm font-bold text-slate-400">Classification Accuracy:</span>
-                            <span className="font-black text-3xl text-blue-900">{(results.modelFit?.accuracy * 100)?.toFixed(2)}%</span>
+                            <span className="font-black text-3xl text-blue-900">{(displayResults.modelFit?.accuracy * 100)?.toFixed(2)}%</span>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div className="p-3 bg-white rounded-lg border border-blue-50 shadow-sm text-center">
                                 <span className="block text-[10px] font-black text-slate-400 uppercase">McFadden R²</span>
-                                <span className="font-bold text-blue-900">{results.modelFit?.pseudoR2?.toFixed(4)}</span>
+                                <span className="font-bold text-blue-900">{displayResults.modelFit?.pseudoR2?.toFixed(4)}</span>
                             </div>
                             <div className="p-3 bg-white rounded-lg border border-blue-50 shadow-sm text-center">
                                 <span className="block text-[10px] font-black text-slate-400 uppercase">AIC</span>
-                                <span className="font-bold text-blue-900">{results.modelFit?.aic?.toFixed(2)}</span>
+                                <span className="font-bold text-blue-900">{displayResults.modelFit?.aic?.toFixed(2)}</span>
                             </div>
                         </div>
                     </div>
@@ -91,23 +92,23 @@ export const LogisticResults = React.memo(function LogisticResults({ results, co
 
                 <div className="bg-white border border-blue-100 p-8 rounded-xl shadow-sm">
                     <h4 className="text-[10px] font-black uppercase text-blue-500 tracking-widest mb-6 border-b border-blue-50 pb-2">Confusion Matrix (Bảng nhầm lẫn)</h4>
-                    {results.confusionMatrix && (
+                    {displayResults.confusionMatrix && (
                         <div className="grid grid-cols-2 gap-2 text-center text-sm font-mono p-4 bg-slate-50/50 rounded-xl border border-dashed border-blue-100">
                             <div className="p-3 bg-white rounded border border-blue-50 flex flex-col justify-center">
                                 <div className="text-[9px] uppercase text-slate-400 mb-1">True Negative</div>
-                                <div className="font-black text-blue-900 text-xl">{results.confusionMatrix.tn}</div>
+                                <div className="font-black text-blue-900 text-xl">{displayResults.confusionMatrix.tn}</div>
                             </div>
                             <div className="p-3 bg-white rounded border border-blue-100 flex flex-col justify-center">
                                 <div className="text-[9px] uppercase text-slate-400 mb-1">False Positive</div>
-                                <div className="font-black text-slate-300 text-xl">{results.confusionMatrix.fp}</div>
+                                <div className="font-black text-slate-300 text-xl">{displayResults.confusionMatrix.fp}</div>
                             </div>
                             <div className="p-3 bg-white rounded border border-blue-100 flex flex-col justify-center">
                                 <div className="text-[9px] uppercase text-slate-400 mb-1">False Negative</div>
-                                <div className="font-black text-slate-300 text-xl">{results.confusionMatrix.fn}</div>
+                                <div className="font-black text-slate-300 text-xl">{displayResults.confusionMatrix.fn}</div>
                             </div>
                             <div className="p-3 bg-white rounded border border-blue-50 flex flex-col justify-center">
                                 <div className="text-[9px] uppercase text-slate-400 mb-1">True Positive</div>
-                                <div className="font-black text-blue-900 text-xl">{results.confusionMatrix.tp}</div>
+                                <div className="font-black text-blue-900 text-xl">{displayResults.confusionMatrix.tp}</div>
                             </div>
                         </div>
                     )}
@@ -117,9 +118,13 @@ export const LogisticResults = React.memo(function LogisticResults({ results, co
             {/* Professional Template Interpretation */}
             <TemplateInterpretation 
                 analysisType="logistic"
-                results={results}
+                results={displayResults}
+                variableNames={{
+                    dependent: columns[0] || 'Biến phụ thuộc'
+                }}
             />
         </div>
+
     );
 });
 

@@ -21,7 +21,8 @@ export const TwoWayANOVAResults = React.memo(function TwoWayANOVAResults({ resul
         setLocale(getStoredLocale());
     }, []);
 
-    if (!results || !results.table) return null;
+    const displayResults = results.data || results;
+    if (!displayResults || !displayResults.table) return null;
 
     return (
         <div className="space-y-8 pb-10 animate-in fade-in duration-500">
@@ -46,7 +47,7 @@ export const TwoWayANOVAResults = React.memo(function TwoWayANOVAResults({ resul
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-blue-50">
-                            {results.table.map((row: any, idx: number) => {
+                            {displayResults.table.map((row: any, idx: number) => {
                                 const isResiduals = row.source.toLowerCase().includes('residuals') || row.source.toLowerCase().includes('sai so');
                                 const isSignificant = row.p < 0.05 && !isResiduals;
                                 const isInteraction = row.source.toLowerCase().includes('tuong tac') || row.source.includes(':');
@@ -79,9 +80,15 @@ export const TwoWayANOVAResults = React.memo(function TwoWayANOVAResults({ resul
             {/* Professional Template Interpretation */}
             <TemplateInterpretation 
                 analysisType="two_way_anova"
-                results={results}
+                results={displayResults}
+                variableNames={{
+                    targetVar: columns[0] || 'Biến phụ thuộc',
+                    factor1: columns[1] || 'Yếu tố 1',
+                    factor2: columns[2] || 'Yếu tố 2'
+                }}
             />
         </div>
+
     );
 });
 

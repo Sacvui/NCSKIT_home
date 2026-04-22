@@ -34,13 +34,14 @@ export const RegressionResults = React.memo(function RegressionResults({ results
     }, []);
 
     const isVi = locale === 'vi';
-    if (!results || !results.modelFit) return null;
+    const displayResults = results.data || results;
+    if (!displayResults || !displayResults.modelFit) return null;
 
-    const { modelFit, coefficients, equation } = results;
+    const { modelFit, coefficients, equation } = displayResults;
 
     // Derived values for report
-    const actualVals = results.chartData?.actual || [];
-    const fittedVals = results.chartData?.fitted || [];
+    const actualVals = displayResults.chartData?.actual || [];
+    const fittedVals = displayResults.chartData?.fitted || [];
     const n = actualVals.length;
     
     return (
@@ -171,7 +172,10 @@ export const RegressionResults = React.memo(function RegressionResults({ results
             {/* Professional Template Interpretation */}
             <TemplateInterpretation 
                 analysisType="regression"
-                results={results}
+                results={displayResults}
+                variableNames={{
+                    dependent: columns[0] || 'Biến phụ thuộc'
+                }}
             />
         </div>
     );
