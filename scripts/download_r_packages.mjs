@@ -41,8 +41,22 @@ async function downloadFile(url, dest) {
   });
 }
 
+async function downloadWithRetry(url, dest, retries = 5) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      await downloadFile(url, dest);
+      return;
+    } catch (err) {
+      if (i === retries - 1) throw err;
+      const delay = Math.pow(2, i) * 1000;
+      console.warn(`⚠️ [Retry ${i + 1}/${retries}] ${url} thất bại, thử lại sau ${delay}ms...`);
+      await new Promise(r => setTimeout(r, delay));
+    }
+  }
+}
+
 async function start() {
-  console.log('🚀 Starting WebR package local bundling...');
+  console.log('🚀 Starting WebR package local bundling (Immortal Mode)...');
   
   if (!fs.existsSync(TARGET_DIR)) {
     fs.mkdirSync(TARGET_DIR, { recursive: true });
@@ -51,18 +65,17 @@ async function start() {
   // 1. Download PACKAGES index file (WebR needs this to find versions)
   console.log('📥 Downloading PACKAGES index...');
   try {
-    await downloadFile(`${BASE_PKG_URL}/PACKAGES`, path.join(TARGET_DIR, 'PACKAGES'));
-    await downloadFile(`${BASE_PKG_URL}/PACKAGES.gz`, path.join(TARGET_DIR, 'PACKAGES.gz'));
+    await downloadWithRetry(`${BASE_PKG_URL}/PACKAGES`, path.join(TARGET_DIR, 'PACKAGES'));
+    await downloadWithRetry(`${BASE_PKG_URL}/PACKAGES.gz`, path.join(TARGET_DIR, 'PACKAGES.gz'));
   } catch (e) {
-    console.error('❌ Failed to download index files:', e.message);
-    return;
+    console.error('❌ Failed to download index files after all retries:', e.message);
+    process.exit(1); // Kill build correctly so we don't deploy broken files
   }
 
   // 2. Read PACKAGES file to get exact filenames (with versions)
   const packagesContent = fs.readFileSync(path.join(TARGET_DIR, 'PACKAGES'), 'utf8');
   
   for (const pkgName of PACKAGES) {
-    // Find the line that starts with "Package: pkgName" and subsequent "File: ..."
     const pkgMatch = packagesContent.match(new RegExp(`Package: ${pkgName}\\nVersion: (.*?)\\n`, 's'));
     if (pkgMatch) {
       const version = pkgMatch[1].trim();
@@ -70,10 +83,10 @@ async function start() {
       console.log(`📦 Downloading ${filename}...`);
       
       try {
-        await downloadFile(`${BASE_PKG_URL}/${filename}`, path.join(TARGET_DIR, filename));
+        await downloadWithRetry(`${BASE_PKG_URL}/${filename}`, path.join(TARGET_DIR, filename));
         console.log(`✅ Saved ${pkgName}`);
       } catch (e) {
-        console.error(`❌ Failed to download ${pkgName}:`, e.message);
+        console.error(`❌ Failed to download ${pkgName} after all retries:`, e.message);
       }
     } else {
       console.warn(`⚠️ Could not find ${pkgName} in PACKAGES index.`);

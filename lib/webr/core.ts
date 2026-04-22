@@ -281,41 +281,13 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 const rVersionFull = unpackWebRObject(await (await runLocked(() => webR.evalR('r_version_info'))).toJs());
                 logger.info(`[WebR] R Engine Online: ${rVersionFull}`);
 
-                updateProgress('📦 Đang thiết lập công cụ...');
-                const psychExists = unpackWebRObject(await (await runLocked(() => webR.evalR('psych_loaded'))).toJs());
-
-                const corePackages = ['psych', 'jsonlite', 'mnormt', 'GPArotation', 'lattice', 'nlme'];
-
-                if (psychExists === true) {
-                    try {
-                        await runLocked(() => webR.evalR('library(psych); library(jsonlite)'));
-                        corePackages.forEach(pkg => markPackageLoaded(pkg));
-                    } catch (e) {
-                        logger.warn('[WebR] Core load fail, purging...');
-                        try {
-                            await runLocked(() => webR.evalR(`unlink("${persistentLib}", recursive = TRUE); dir.create("${persistentLib}", recursive = TRUE)`));
-                            await webR.FS.syncfs(false); 
-                        } catch (wipeErr) {}
-                    }
-                } else {
-                    updateProgress('🌐 Đang tải thư viện R...');
-                    try {
-                        await runLocked(async () => {
-                            await webR.evalR(`webr::install("psych", lib="${persistentLib}")`);
-                            await webR.evalR(`webr::install("jsonlite", lib="${persistentLib}")`);
-                            await webR.evalR('library(psych); library(jsonlite)');
-                        });
-                        corePackages.forEach(pkg => markPackageLoaded(pkg));
-                        await webR.FS.syncfs(false);
-                    } catch (installErr) {
-                        logger.error('[WebR] Install failed:', installErr);
-                    }
-                }
-
                 const elapsed = ((performance.now() - startTime) / 1000).toFixed(1);
                 logger.debug(`[WebR] Ready in ${elapsed}s`);
                 updateProgress('✅ R-Engine sẵn sàng');
                 
+                // Active Memory Management (Immortal Mode)
+                await runLocked(() => webR.evalR('gc()'));
+
                 // Clear crash count on success
                 if (typeof sessionStorage !== 'undefined') sessionStorage.setItem(CRASH_COUNTER_KEY, '0');
 
@@ -486,6 +458,9 @@ export async function executeRWithRecovery(
             if (finalStr.startsWith("ERROR:")) {
                 throw new Error(finalStr.replace("ERROR:", "").trim());
             }
+
+            // Clear memory after successful execution
+            await webR.evalR('gc()');
 
             try {
                 return JSON.parse(finalStr);
