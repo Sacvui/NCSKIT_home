@@ -217,7 +217,23 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         options(warn = -1)
                         options(webr.repo_quiet = TRUE)
                         options(timeout = 300)
-                        options(download.file.extra = "--no-cache") 
+                        
+                        # Smart Repo Probing
+                        check_repo <- function(url) {
+                            tryCatch({
+                                con <- url(paste0(url, "/bin/emscripten/contrib/", 
+                                           paste0(R.version$major, ".", substr(R.version$minor, 1, 1)), 
+                                           "/PACKAGES"))
+                                suppressWarnings(readLines(con, n=1))
+                                close(con)
+                                TRUE
+                            }, error = function(e) FALSE)
+                        }
+
+                        if (check_repo("${localRepo}")) {
+                            options(repos = c(LOCAL = "${localRepo}", CRAN = "https://repo.r-wasm.org/"))
+                        }
+                        
                         psych_loaded <- require("psych", quietly = TRUE)
                         r_version <- paste0(R.version$major, ".", R.version$minor)
                     `);
@@ -246,8 +262,8 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     updateProgress('🌐 Đang tải thư viện R...');
                     try {
                         await runLocked(async () => {
-                            await webR.evalR(`webr::install("psych", repos="${localRepo}", lib="${persistentLib}")`);
-                            await webR.evalR(`webr::install("jsonlite", repos="${localRepo}", lib="${persistentLib}")`);
+                            await webR.evalR(`webr::install("psych", lib="${persistentLib}")`);
+                            await webR.evalR(`webr::install("jsonlite", lib="${persistentLib}")`);
                             await webR.evalR('library(psych); library(jsonlite)');
                         });
                         corePackages.forEach(pkg => markPackageLoaded(pkg));
@@ -310,11 +326,7 @@ export async function loadPackagesForMethod(method: string): Promise<void> {
             await runLocked(async () => {
                 await webR.evalR(`
                     if (!require("${pkg}", character.only = TRUE, quietly = TRUE)) {
-                        suppressWarnings(tryCatch({
-                            webr::install("${pkg}", repos="${localRepo}")
-                        }, error = function(e) {
-                            webr::install("${pkg}", repos="${officialRepo}")
-                        }))
+                        webr::install("${pkg}")
                         library("${pkg}", character.only = TRUE)
                     }
                 `);
@@ -486,11 +498,7 @@ export async function executeRWithRecovery(
                 await runLocked(async () => {
                     await webR.evalR(`
                         if (!require("${missingPkg}", character.only = TRUE, quietly = TRUE)) {
-                            suppressWarnings(tryCatch({
-                                webr::install("${missingPkg}", repos="${localRepo}")
-                            }, error = function(e) {
-                                webr::install("${missingPkg}", repos="${officialRepo}")
-                            }))
+                            webr::install("${missingPkg}")
                             library("${missingPkg}", character.only = TRUE)
                         }
                     `);
