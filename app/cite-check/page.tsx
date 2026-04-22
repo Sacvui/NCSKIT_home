@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
     ClipboardCheck, FileText, Upload, AlertCircle, CheckCircle2, 
     ArrowRight, Info, Search, List, Download, RefreshCw, Layers,
-    Terminal, Play, Pause, RotateCcw, ShieldAlert, Database
+    Terminal, Play, Pause, RotateCcw, ShieldAlert, Database, ShieldCheck
 } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
