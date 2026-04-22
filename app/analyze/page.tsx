@@ -110,8 +110,10 @@ function AnalyzeContent() {
         }
 
         if (!authLoading) {
-            if (user) {
-                console.log('[Analyze] User found, allowing access.');
+            const isSupabaseConfigured = process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+            
+            if (user || !isSupabaseConfigured || process.env.NODE_ENV === 'development') {
+                console.log('[Analyze] Allowing access (User present, Local Mode, or Guest Mode).');
                 setLoading(false);
             } else {
                 console.log('[Analyze] No user and no code, redirecting to login');

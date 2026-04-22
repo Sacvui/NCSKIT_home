@@ -36,42 +36,37 @@
 
 ## 🧪 JOSS Reviewer Guide
 
-To facilitate the functional review process, please follow these instructions.
+ncsStat is designed to be **Zero-Config** for peer review. You can run the full analytical engine locally without setting up a database or authentication.
 
-### 1. Local Development & SharedArrayBuffer
-`ncsStat` requires high-performance memory buffers provided by `SharedArrayBuffer`. Browsers only enable this in **Cross-Origin Isolated** contexts.
+### 1. Quick Start (Zero-Config Mode)
+1.  **Clone & Install**:
+    ```bash
+    git clone https://github.com/Sacvui/NCSKIT_home.git
+    cd NCSKIT_home
+    npm install
+    ```
+2.  **Start Development Server**:
+    ```bash
+    npm run dev
+    ```
+    *Note: ncsStat automatically detects the absence of environment variables and enables **Guest Mode**, allowing full access to the analytical engine without login.*
 
-**To run locally:**
-```bash
-# 1. Clone & Install
-git clone https://github.com/Sacvui/NCSKIT_home.git
-cd NCSKIT_home
-npm install
+3.  **Access the Application**:
+    Open [http://localhost:3000/analyze](http://localhost:3000/analyze) to start your evaluation.
 
-# 2. Configure Environment
-cp .env.example .env.local
-# (Optional: Add Supabase/Gemini keys for cloud features, 
-# but core analysis works offline with WebR)
+### 2. Functional Verification
+-   **Mathematical Accuracy**: We provide a validation suite comparing `ncsStat` (WebR) outputs against native R results. See `__tests__/validation/`.
+-   **Expert System Logic**: The deterministic rules for the ASIG interpretation system are documented in [ASIG_LOGIC.md](./ASIG_LOGIC.md).
+-   **Numerical Parity**: Check [BENCHMARK.md](./BENCHMARK.md) for head-to-head comparisons on complex SEM models.
 
-# 3. Start Development Server
-npm run dev
-```
-The Next.js configuration in `next.config.js` is already pre-configured with the required headers:
-- `Cross-Origin-Embedder-Policy: credentialless`
-- `Cross-Origin-Opener-Policy: same-origin`
+### 3. Project Structure
+-   `app/analyze/`: Core analysis page and workflow orchestration.
+-   `lib/webr/`: WebR engine initialization, memory management, and recovery logic.
+-   `lib/webr/analyses/`: R computation templates for each statistical method.
+-   `lib/interpretation-templates.ts`: The ASIG expert-rule engine.
+-   `public/webr_core_v3/`: Self-hosted WebR binaries and R package repository (Version-locked).
 
-Access the app at `http://localhost:3000`.
-
-### 2. Verification of Mathematical Accuracy
-We have provided a validation suite that compares `ncsStat` (WebR) outputs against native R results for critical algorithms (SEM, Cronbach's Alpha, ANOVA).
-- **Validation Scripts:** See `__tests__/validation/`
-- **Logic Documentation:** Detailed rule-base for the ASIG system is documented in [ASIG_LOGIC.md](./ASIG_LOGIC.md).
-
-### 3. Automated Tests
-Run the test suite using:
-```bash
-npm test
-```
+---
 
 ---
 
