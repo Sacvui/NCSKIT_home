@@ -190,7 +190,7 @@ export default function ScalesLibrary() {
                         </aside>
 
                         {/* Main Content Area */}
-                        <div className="flex-grow w-full">    <div className="lg:col-span-9">
+                        <div className="flex-grow w-full">
                                 {/* Result Counter */}
                                 {!loading && (
                                     <div className="flex items-center justify-between mb-6">
@@ -281,7 +281,11 @@ export default function ScalesLibrary() {
                                             </div>
                                         );})}
                                     </div>
-                                  {/* --- FOCUS DETAIL VIEW MODAL (PREMIUM REDESIGN) --- */}
+                                )}
+                            </div>
+                        </div>
+
+                        {/* --- FOCUS DETAIL VIEW MODAL (PREMIUM REDESIGN) --- */}
                     {expandedScale && activeScale && (
                         <div className="fixed inset-0 z-[100] bg-slate-900/60 backdrop-blur-md flex items-end md:items-center justify-center p-0 md:p-8 animate-in fade-in duration-300">
                             {/* Close overlay */}
