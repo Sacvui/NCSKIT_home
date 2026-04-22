@@ -4,6 +4,7 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { FileText, Database, Activity } from 'lucide-react';
 import { getStoredLocale, t, type Locale } from '@/lib/i18n';
+import { TemplateInterpretation } from '@/components/TemplateInterpretation';
 
 interface TwoWayANOVAResultsProps {
     results: any;

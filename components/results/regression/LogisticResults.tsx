@@ -4,6 +4,7 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { FileText, Database, Activity, Target } from 'lucide-react';
 import { getStoredLocale, t, type Locale } from '@/lib/i18n';
+import { TemplateInterpretation } from '@/components/TemplateInterpretation';
 
 interface LogisticResultsProps {
     results: any;
@@ -113,21 +114,11 @@ export const LogisticResults = React.memo(function LogisticResults({ results, co
                 </div>
             </div>
 
-            {/* Academic Interpretation Section */}
-            <div className="bg-white border border-blue-100 p-8 rounded-xl shadow-sm relative overflow-hidden">
-                <h4 className="text-xs font-black uppercase text-blue-600 tracking-widest mb-6 flex items-center gap-2">
-                    <FileText className="w-4 h-4" />
-                    Nhận định khoa học (Academic Interpretation - Logistic)
-                </h4>
-
-                <div className="space-y-6 border-l-2 border-blue-50 pl-6 text-sm">
-                    <div className="bg-blue-50/40 p-6 rounded-lg border border-blue-50 leading-relaxed text-slate-800">
-                        Mô hình hồi quy Logistic đạt độ chính xác dự báo là <strong>{(results.modelFit?.accuracy * 100)?.toFixed(1)}%</strong>. 
-                        Chỉ số <strong>Odds Ratio (OR)</strong> cho thấy xác suất xảy ra của sự kiện khi biến độc lập thay đổi 1 đơn vị. 
-                        Biến quan trọng nhất có ý nghĩa thống kê là <strong>{results.coefficients?.find((c:any)=>c.term !== '(Intercept)' && c.pValue < 0.05)?.term || 'mô hình chung'}</strong> (OR = {results.coefficients?.find((c:any)=>c.term !== '(Intercept)' && c.pValue < 0.05)?.oddsRatio?.toFixed(3)}).
-                    </div>
-                </div>
-            </div>
+            {/* Professional Template Interpretation */}
+            <TemplateInterpretation 
+                analysisType="logistic"
+                results={results}
+            />
         </div>
     );
 });
