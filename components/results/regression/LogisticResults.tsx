@@ -95,19 +95,19 @@ export const LogisticResults = React.memo(function LogisticResults({ results, co
                         <div className="grid grid-cols-2 gap-2 text-center text-sm font-mono p-4 bg-slate-50/50 rounded-xl border border-dashed border-blue-100">
                             <div className="p-3 bg-white rounded border border-blue-50 flex flex-col justify-center">
                                 <div className="text-[9px] uppercase text-slate-400 mb-1">True Negative</div>
-                                <div className="font-black text-blue-900 text-xl">{results.confusionMatrix.trueNegative}</div>
+                                <div className="font-black text-blue-900 text-xl">{results.confusionMatrix.tn}</div>
                             </div>
-                            <div className="p-3 bg-white rounded border border-blue-50 flex flex-col justify-center">
+                            <div className="p-3 bg-white rounded border border-blue-100 flex flex-col justify-center">
                                 <div className="text-[9px] uppercase text-slate-400 mb-1">False Positive</div>
-                                <div className="font-black text-slate-300 text-xl">{results.confusionMatrix.falsePositive}</div>
+                                <div className="font-black text-slate-300 text-xl">{results.confusionMatrix.fp}</div>
                             </div>
-                            <div className="p-3 bg-white rounded border border-blue-50 flex flex-col justify-center">
+                            <div className="p-3 bg-white rounded border border-blue-100 flex flex-col justify-center">
                                 <div className="text-[9px] uppercase text-slate-400 mb-1">False Negative</div>
-                                <div className="font-black text-slate-300 text-xl">{results.confusionMatrix.falseNegative}</div>
+                                <div className="font-black text-slate-300 text-xl">{results.confusionMatrix.fn}</div>
                             </div>
                             <div className="p-3 bg-white rounded border border-blue-50 flex flex-col justify-center">
                                 <div className="text-[9px] uppercase text-slate-400 mb-1">True Positive</div>
-                                <div className="font-black text-blue-900 text-xl">{results.confusionMatrix.truePositive}</div>
+                                <div className="font-black text-blue-900 text-xl">{results.confusionMatrix.tp}</div>
                             </div>
                         </div>
                     )}

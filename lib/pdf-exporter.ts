@@ -573,7 +573,7 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
             const data = coefficients.map((c: any) => [
                 c.term,
                 (c.estimate || 0).toFixed(3),
-                (c.beta || 0).toFixed(3),
+                (c.stdBeta || c.beta || 0).toFixed(3),
                 (c.tValue || 0).toFixed(3),
                 c.pValue < 0.001 ? '< 0.001' : (c.pValue || 0).toFixed(3),
                 c.vif ? c.vif.toFixed(3) : '-'
@@ -599,6 +599,143 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
             const interpretReg = `Mô hình hồi quy ${isModelSig ? 'có ý nghĩa thống kê' : 'không có ý nghĩa thống kê'} (p < 0.05) với hệ số R bình phương hiệu chỉnh là ${results.modelFit.adjRSquared.toFixed(3)}. ${isModelSig ? 'Các biến độc lập giải thích được ' + (results.modelFit.adjRSquared * 100).toFixed(1) + '% sự biến thiên của biến phụ thuộc. Các chỉ số VIF đều nằm trong ngưỡng an toàn (< 10), cho thấy không có hiện tượng đa cộng tuyến.' : ''}`;
             doc.text(doc.splitTextToSize(interpretReg, 170), 20, yPos + 18);
             yPos += 55;
+        }
+        else if (analysisType === 'twoway-anova') {
+            doc.setFont('NotoSans', 'bold');
+            doc.setFontSize(12);
+            doc.text('PHÂN TÍCH PHƯƠNG SAI HAI NHÂN TỐ (TWO-WAY ANOVA)', 15, yPos);
+            yPos += 10;
+
+            const headers = [['Nguồn tác động', 'df', 'Sum of Squares', 'F-value', 'Sig. (p)', 'Partial η²']];
+            const data = (results.table || []).map((row: any) => {
+                const isResiduals = row.source.toLowerCase().includes('residuals') || row.source.toLowerCase().includes('sai so');
+                return [
+                    row.source,
+                    row.df,
+                    (row.ss || 0).toFixed(3),
+                    !isResiduals ? (row.f || 0).toFixed(3) : '-',
+                    !isResiduals ? (row.p < 0.001 ? '< .001' : (row.p || 0).toFixed(4)) : '-',
+                    !isResiduals ? (row.etaPartial || 0).toFixed(3) : '-'
+                ];
+            });
+
+            autoTable(doc, {
+                ...commonTableOptions,
+                startY: yPos,
+                head: headers,
+                body: data,
+            });
+            yPos = (doc as any).lastAutoTable.finalY + 15;
+
+            checkPageBreak(50);
+            doc.setFillColor(248, 250, 252);
+            doc.roundedRect(15, yPos, 180, 40, 1, 1, 'F');
+            doc.setFont('NotoSans', 'bold');
+            doc.setTextColor(30, 58, 138);
+            doc.text('NHẬN ĐỊNH HỌC THUẬT TWO-WAY ANOVA:', 20, yPos + 10);
+            doc.setFont('NotoSans', 'normal');
+            doc.setTextColor(51, 65, 85);
+            
+            const table = results.table || [];
+            const sigEffects = table.filter((r: any) => r.p < 0.05 && !r.source.toLowerCase().includes('residual'));
+            const interpret2Way = `Kết quả phân tích phương sai hai nhân tố cho thấy có ${sigEffects.length} nguồn tác động có ý nghĩa thống kê (p < 0.05). ${sigEffects.length > 0 ? 'Điều này chỉ ra rằng các yếu tố đầu vào hoặc sự tương tác giữa chúng ảnh hưởng đáng kể đến biến phụ thuộc.' : 'Không tìm thấy sự khác biệt có ý nghĩa thống kê từ các nhân tố chính cũng như tương tác giữa chúng.'}`;
+            doc.text(doc.splitTextToSize(interpret2Way, 170), 20, yPos + 18);
+            yPos += 50;
+        }
+        else if (analysisType === 'logistic') {
+            doc.setFont('NotoSans', 'bold');
+            doc.setFontSize(12);
+            doc.text('HỒI QUY LOGISTIC NHỊ PHÂN (BINARY LOGISTIC REGRESSION)', 15, yPos);
+            yPos += 10;
+
+            const fitHeaders = [['Nagelkerke R²', 'Accuracy', 'Sensitivity', 'Specificity', 'AIC']];
+            const fitData = [[
+                (results.modelFit.nagelkerkeR2 || 0).toFixed(3),
+                ((results.modelFit.accuracy || 0) * 100).toFixed(1) + '%',
+                ((results.modelFit.sensitivity || 0) * 100).toFixed(1) + '%',
+                ((results.modelFit.specificity || 0) * 100).toFixed(1) + '%',
+                (results.modelFit.aic || 0).toFixed(2)
+            ]];
+
+            autoTable(doc, {
+                ...commonTableOptions,
+                startY: yPos,
+                head: fitHeaders,
+                body: fitData,
+                tableWidth: 160
+            });
+            yPos = (doc as any).lastAutoTable.finalY + 15;
+
+            checkPageBreak(60);
+            const coefHeaders = [['Biến độc lập', 'Estimate (B)', 'Odds Ratio (Exp(B))', 'Sig.', '95% CI for OR']];
+            const coefData = (results.coefficients || []).map((c: any) => [
+                c.term,
+                (c.estimate || 0).toFixed(3),
+                (c.oddsRatio || 0).toFixed(3),
+                c.pValue < 0.001 ? '< .001' : (c.pValue || 0).toFixed(3),
+                `${(c.orCI95Lower || 0).toFixed(2)} - ${(c.orCI95Upper || 0).toFixed(2)}`
+            ]);
+
+            autoTable(doc, {
+                ...commonTableOptions,
+                startY: yPos,
+                head: coefHeaders,
+                body: coefData
+            });
+            yPos = (doc as any).lastAutoTable.finalY + 15;
+        }
+        else if (analysisType === 'kruskal-wallis') {
+            doc.setFont('NotoSans', 'bold');
+            doc.text('KIỂM ĐỊNH PHI THAM SỐ KRUSKAL-WALLIS H', 15, yPos);
+            yPos += 10;
+
+            const headers = [['Chi-squared', 'df', 'Sig. (p-value)', 'Quy mô tác động (Epsilon²)']];
+            const data = [[
+                (results.statistic || 0).toFixed(3),
+                results.df || 0,
+                results.pValue < 0.001 ? '< .001' : (results.pValue || 0).toFixed(3),
+                (results.epsilonSquared || 0).toFixed(3)
+            ]];
+
+            autoTable(doc, { ...commonTableOptions, startY: yPos, head: headers, body: data, tableWidth: 160 });
+            yPos = (doc as any).lastAutoTable.finalY + 15;
+        }
+        else if (analysisType === 'wilcoxon') {
+            doc.setFont('NotoSans', 'bold');
+            doc.text('KIỂM ĐỊNH PHI THAM SỐ WILCOXON SIGNED-RANK', 15, yPos);
+            yPos += 10;
+
+            const headers = [['Giá trị W', 'Sig. (p-value)', 'Quy mô tác động (r)']];
+            const data = [[
+                (results.statistic || 0).toFixed(1),
+                results.pValue < 0.001 ? '< .001' : (results.pValue || 0).toFixed(3),
+                (results.effectSize || 0).toFixed(3)
+            ]];
+
+            autoTable(doc, { ...commonTableOptions, startY: yPos, head: headers, body: data, tableWidth: 140 });
+            yPos = (doc as any).lastAutoTable.finalY + 15;
+        }
+        else if (analysisType === 'cluster') {
+            doc.setFont('NotoSans', 'bold');
+            doc.setFontSize(12);
+            doc.text('PHÂN TÍCH PHÂN CỤM (CLUSTER ANALYSIS - K-MEANS)', 15, yPos);
+            yPos += 10;
+
+            const headers = [['Cụm (Cluster)', 'Số lượng phần tử (Size)', 'Within SS']];
+            const data = (results.size || []).map((s: number, i: number) => [
+                `Cụm ${i + 1}`,
+                s,
+                (results.withinSS?.[i] || 0).toFixed(3)
+            ]);
+
+            autoTable(doc, { ...commonTableOptions, startY: yPos, head: headers, body: data, tableWidth: 140 });
+            yPos = (doc as any).lastAutoTable.finalY + 15;
+            
+            doc.setFontSize(9);
+            doc.text(`Tổng biến thiên nội bộ (Total Within SS): ${(results.totWithinSS || 0).toFixed(3)}`, 15, yPos);
+            yPos += 7;
+            doc.text(`Biến thiên giữa các cụm (Between SS): ${(results.betweensSS || 0).toFixed(3)}`, 15, yPos);
+            yPos += 15;
         }
         else if (analysisType === 'efa') {
             doc.setFont('NotoSans', 'bold');
