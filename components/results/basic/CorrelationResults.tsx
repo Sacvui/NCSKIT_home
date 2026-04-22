@@ -105,8 +105,6 @@ export const CorrelationResults = React.memo(function CorrelationResults({ resul
                 </div>
             </div>
 
-            </div>
-
             {/* Professional Template Interpretation for the primary relationship */}
             {columns.length >= 2 && (
                 <TemplateInterpretation 
