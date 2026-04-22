@@ -252,9 +252,4 @@ export const ANOVAResults = React.memo(function ANOVAResults({ results, columns,
 });
 
 export default ANOVAResults;
-        </div>
-    );
-});
-
-export default ANOVAResults;
 
