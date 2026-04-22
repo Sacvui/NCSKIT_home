@@ -34,9 +34,8 @@ const CSP_DIRECTIVES = [
     // Images: self + data URIs + blob + all HTTPS (avatar proxy, OG images)
     "img-src 'self' data: blob: https:",
 
-    // Connections: self + Supabase (REST + Realtime WSS) + Gemini AI + ORCID
-    // + Cloudflare beacon + WebR Repos (wildcard) + CDNs
-    "connect-src 'self' blob: https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://pub.orcid.org https://orcid.org https://va.vercel-scripts.com https://cloudflareinsights.com https://*.r-wasm.org https://cdn.jsdelivr.net",
+    // Connections: self + Supabase + Gemini AI + ORCID + WebR Repos + CDNs
+    "connect-src 'self' blob: data: https://*.supabase.co wss://*.supabase.co https://generativelanguage.googleapis.com https://pub.orcid.org https://orcid.org https://va.vercel-scripts.com https://*.vercel-scripts.com https://cloudflareinsights.com https://*.r-wasm.org https://cdn.jsdelivr.net https://*.vercel.app",
 
     // Workers: self + blob (WebR service worker)
     "worker-src 'self' blob:",
