@@ -21,7 +21,7 @@ export const TwoWayANOVAResults = React.memo(function TwoWayANOVAResults({ resul
         setLocale(getStoredLocale());
     }, []);
 
-    if (!results) return null;
+    if (!results || !results.table) return null;
 
     return (
         <div className="space-y-8 pb-10 animate-in fade-in duration-500">
@@ -46,46 +46,31 @@ export const TwoWayANOVAResults = React.memo(function TwoWayANOVAResults({ resul
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-blue-50">
-                            {/* Factor 1 */}
-                            <tr className="hover:bg-blue-50/30 transition-colors">
-                                <td className="py-5 px-6 text-sm font-bold text-blue-800">{columns[1]}</td>
-                                <td className="py-5 px-4 text-sm text-center font-bold">{results.factor1Df}</td>
-                                <td className="py-5 px-4 text-sm text-right font-mono text-slate-400">{results.factor1SS?.toFixed(3)}</td>
-                                <td className="py-5 px-4 text-sm text-right font-black text-blue-900">{results.factor1F?.toFixed(3)}</td>
-                                <td className={`py-5 px-4 text-sm text-right font-black ${results.factor1P < 0.05 ? 'text-blue-600 underline underline-offset-4' : 'text-slate-400'}`}>
-                                    {results.factor1P?.toFixed(4)} {results.factor1P < 0.05 ? ' (Sig.)' : ''}
-                                </td>
-                                <td className="py-5 px-4 text-sm text-right font-mono text-slate-500">{results.factor1Eta?.toFixed(3)}</td>
-                            </tr>
-                            {/* Factor 2 */}
-                            <tr className="hover:bg-blue-50/30 transition-colors">
-                                <td className="py-5 px-6 text-sm font-bold text-blue-800">{columns[2]}</td>
-                                <td className="py-5 px-4 text-sm text-center font-bold">{results.factor2Df}</td>
-                                <td className="py-5 px-4 text-sm text-right font-mono text-slate-400">{results.factor2SS?.toFixed(3)}</td>
-                                <td className="py-5 px-4 text-sm text-right font-black text-blue-900">{results.factor2F?.toFixed(3)}</td>
-                                <td className={`py-5 px-4 text-sm text-right font-black ${results.factor2P < 0.05 ? 'text-blue-600 underline underline-offset-4' : 'text-slate-400'}`}>
-                                    {results.factor2P?.toFixed(4)} {results.factor2P < 0.05 ? ' (Sig.)' : ''}
-                                </td>
-                                <td className="py-5 px-4 text-sm text-right font-mono text-slate-500">{results.factor2Eta?.toFixed(3)}</td>
-                            </tr>
-                            {/* Interaction */}
-                            <tr className={`hover:bg-blue-50/30 transition-colors ${results.interactionP < 0.05 ? 'bg-amber-50/30' : ''}`}>
-                                <td className="py-5 px-6 text-sm font-black text-blue-900 italic">Interaction (Tương tác)</td>
-                                <td className="py-5 px-4 text-sm text-center font-bold">{results.interactionDf}</td>
-                                <td className="py-5 px-4 text-sm text-right font-mono text-slate-400">{results.interactionSS?.toFixed(3)}</td>
-                                <td className="py-5 px-4 text-sm text-right font-black text-blue-900">{results.interactionF?.toFixed(3)}</td>
-                                <td className={`py-5 px-4 text-sm text-right font-black ${results.interactionP < 0.05 ? 'text-blue-600 underline underline-offset-4' : 'text-slate-400'}`}>
-                                    {results.interactionP?.toFixed(4)} {results.interactionP < 0.05 ? ' (Sig.)' : ''}
-                                </td>
-                                <td className="py-5 px-4 text-sm text-right font-mono text-slate-500">{results.interactionEta?.toFixed(3)}</td>
-                            </tr>
-                            {/* Residuals */}
-                            <tr className="bg-slate-50 text-slate-400 italic">
-                                <td className="py-5 px-6 text-sm">Residuals (Sai số)</td>
-                                <td className="py-5 px-4 text-sm text-center">{results.residualDf}</td>
-                                <td className="py-5 px-4 text-sm text-right font-mono">{results.residualSS?.toFixed(3)}</td>
-                                <td colSpan={3}></td>
-                            </tr>
+                            {results.table.map((row: any, idx: number) => {
+                                const isResiduals = row.source.toLowerCase().includes('residuals') || row.source.toLowerCase().includes('sai so');
+                                const isSignificant = row.p < 0.05 && !isResiduals;
+                                const isInteraction = row.source.toLowerCase().includes('tuong tac') || row.source.includes(':');
+
+                                return (
+                                    <tr key={idx} className={`hover:bg-blue-50/30 transition-colors ${isInteraction && row.p < 0.05 ? 'bg-amber-50/30' : ''} ${isResiduals ? 'bg-slate-50 text-slate-400 italic' : ''}`}>
+                                        <td className={`py-5 px-6 text-sm ${isResiduals ? '' : isInteraction ? 'font-black text-blue-900 italic' : 'font-bold text-blue-800'}`}>
+                                            {row.source}
+                                        </td>
+                                        <td className="py-5 px-4 text-sm text-center font-bold">{row.df}</td>
+                                        <td className="py-5 px-4 text-sm text-right font-mono">{row.ss?.toFixed(3)}</td>
+                                        <td className="py-5 px-4 text-sm text-right font-black text-blue-900">
+                                            {!isResiduals ? row.f?.toFixed(3) : ''}
+                                        </td>
+                                        <td className={`py-5 px-4 text-sm text-right font-black ${isSignificant ? 'text-blue-600 underline underline-offset-4' : 'text-slate-400'}`}>
+                                            {!isResiduals ? (row.p < 0.001 ? '< .001' : row.p?.toFixed(4)) : ''}
+                                            {isSignificant ? ' (Sig.)' : ''}
+                                        </td>
+                                        <td className="py-5 px-4 text-sm text-right font-mono text-slate-500">
+                                            {!isResiduals ? row.etaPartial?.toFixed(3) : ''}
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>
@@ -95,11 +80,6 @@ export const TwoWayANOVAResults = React.memo(function TwoWayANOVAResults({ resul
             <TemplateInterpretation 
                 analysisType="two_way_anova"
                 results={results}
-                variableNames={{
-                    factor1: columns[1],
-                    factor2: columns[2],
-                    targetVar: columns[0]
-                }}
             />
         </div>
     );
