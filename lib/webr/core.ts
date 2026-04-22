@@ -153,13 +153,23 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
 
         const performInit = (async (): Promise<WebR> => {
             try {
+                logger.info('[WebR] Initializing WebR instance...');
+                updateProgress('🚀 Đang kết nối máy chủ R...');
+                
                 const webR = new WebR({
-                    baseUrl: typeof window !== 'undefined' ? (window.location.origin + BASE_URL) : BASE_URL,
+                    baseUrl: BASE_URL, // Use relative path for maximum reliability
                     channelType: 3,
                 });
 
-                logger.debug('[WebR] Calling webR.init()...');
-                await webR.init();
+                logger.debug('[WebR] Created instance, waiting for worker...');
+                
+                // CRITICAL: Safety timeout for webR.init()
+                await Promise.race([
+                    webR.init(),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('WebR worker init timeout')), 30000))
+                ]);
+                
+                logger.info('[WebR] Worker online.');
                 const persistentLib = '/home/web_user/library';
 
                 updateProgress('📂 Đang kết nối bộ nhớ...');
