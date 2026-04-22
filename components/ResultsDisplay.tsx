@@ -73,11 +73,11 @@ export function ResultsDisplay({
 
         switch (analysisType) {
             case 'ttest-indep':
-                return <TTestResults results={results} />;
+                return <TTestResults results={results} columns={results.columns || []} />;
             case 'ttest-paired':
                 return <PairedTTestResults results={results} columns={results.columns || []} />;
             case 'anova':
-                return <ANOVAResults results={results} />;
+                return <ANOVAResults results={results} columns={results.columns || []} />;
             case 'correlation':
                 return <CorrelationResults results={results} columns={results.columns || []} />;
             case 'regression':
@@ -94,11 +94,11 @@ export function ResultsDisplay({
             case 'mann-whitney':
                 return <MannWhitneyResults results={results} columns={results.columns || []} />;
             case 'kruskal-wallis':
-                return <KruskalWallisResults results={results} />;
+                return <KruskalWallisResults results={results} columns={results.columns || []} />;
             case 'wilcoxon':
-                return <WilcoxonResults results={results} />;
+                return <WilcoxonResults results={results} columns={results.columns || []} />;
             case 'chisquare':
-                return <ChiSquareResults results={results} />;
+                return <ChiSquareResults results={results} columns={results.columns || []} />;
             case 'descriptive':
                 return <DescriptiveResults results={results} columns={columns || []} />;
             case 'moderation':

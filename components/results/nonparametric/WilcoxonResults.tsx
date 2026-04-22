@@ -5,6 +5,7 @@ import { TemplateInterpretation } from '@/components/TemplateInterpretation';
 
 interface WilcoxonResultsProps {
     results: any;
+    columns?: string[];
     variableNames?: {
         targetVar?: string;
     };
@@ -13,7 +14,7 @@ interface WilcoxonResultsProps {
 /**
  * Wilcoxon Signed Rank Test Results Component - Scientific Academic Style (White & Blue)
  */
-export const WilcoxonResults = React.memo(function WilcoxonResults({ results, variableNames }: WilcoxonResultsProps) {
+export const WilcoxonResults = React.memo(function WilcoxonResults({ results, columns, variableNames }: WilcoxonResultsProps) {
     if (!results) return null;
     const pValue = results.pValue;
     const significant = pValue < 0.05;

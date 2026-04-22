@@ -5,6 +5,7 @@ import { TemplateInterpretation } from '@/components/TemplateInterpretation';
 
 interface MannWhitneyResultsProps {
     results: any;
+    columns?: string[];
     variableNames?: {
         groupVar?: string;
         targetVar?: string;
@@ -16,7 +17,7 @@ interface MannWhitneyResultsProps {
 /**
  * Mann-Whitney U Test Results Component - Scientific Academic Style (White & Blue)
  */
-export const MannWhitneyResults = React.memo(function MannWhitneyResults({ results, variableNames }: MannWhitneyResultsProps) {
+export const MannWhitneyResults = React.memo(function MannWhitneyResults({ results, columns, variableNames }: MannWhitneyResultsProps) {
     if (!results) return null;
     const { statistic, pValue, median1, median2, effectSize } = results;
     const significant = pValue < 0.05;

@@ -5,6 +5,7 @@ import { TemplateInterpretation } from '@/components/TemplateInterpretation';
 
 interface ChiSquareResultsProps {
     results: any;
+    columns?: string[];
     variableNames?: {
         rowVar?: string;
         colVar?: string;
@@ -14,7 +15,7 @@ interface ChiSquareResultsProps {
 /**
  * Chi-Square Test Results Component - Scientific Academic Style (White & Blue)
  */
-export const ChiSquareResults = React.memo(function ChiSquareResults({ results, variableNames }: ChiSquareResultsProps) {
+export const ChiSquareResults = React.memo(function ChiSquareResults({ results, columns, variableNames }: ChiSquareResultsProps) {
     if (!results) return null;
 
     const { statistic, df, pValue, observed, expected, cramersV } = results;

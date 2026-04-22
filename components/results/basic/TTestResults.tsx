@@ -6,6 +6,7 @@ import { TemplateInterpretation } from '@/components/TemplateInterpretation';
 
 interface TTestResultsProps {
     results: any;
+    columns?: string[];
     variableNames?: {
         groupVar?: string;
         targetVar?: string;
@@ -17,7 +18,7 @@ interface TTestResultsProps {
 /**
  * T-Test Results Component - Scientific Academic Style (White & Blue)
  */
-export const TTestResults = React.memo(function TTestResults({ results, variableNames }: TTestResultsProps) {
+export const TTestResults = React.memo(function TTestResults({ results, columns, variableNames }: TTestResultsProps) {
     const [locale, setLocale] = React.useState<Locale>('vi');
 
     React.useEffect(() => {

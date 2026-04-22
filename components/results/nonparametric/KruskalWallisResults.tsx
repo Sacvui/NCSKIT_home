@@ -5,6 +5,7 @@ import { TemplateInterpretation } from '@/components/TemplateInterpretation';
 
 interface KruskalWallisResultsProps {
     results: any;
+    columns?: string[];
     variableNames?: {
         factorVar?: string;
         targetVar?: string;
@@ -14,7 +15,7 @@ interface KruskalWallisResultsProps {
 /**
  * Kruskal-Wallis Test Results Component - Scientific Academic Style (White & Blue)
  */
-export const KruskalWallisResults = React.memo(function KruskalWallisResults({ results, variableNames }: KruskalWallisResultsProps) {
+export const KruskalWallisResults = React.memo(function KruskalWallisResults({ results, columns, variableNames }: KruskalWallisResultsProps) {
     if (!results) return null;
     const pValue = results.pValue;
     const significant = pValue < 0.05;

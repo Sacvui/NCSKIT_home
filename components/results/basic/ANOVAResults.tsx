@@ -6,6 +6,7 @@ import { TemplateInterpretation } from '@/components/TemplateInterpretation';
 
 interface ANOVAResultsProps {
     results: any;
+    columns?: string[];
     variableNames?: {
         factorVar?: string;
         targetVar?: string;
@@ -15,7 +16,7 @@ interface ANOVAResultsProps {
 /**
  * ANOVA Results Component - Scientific Academic Style (White & Blue)
  */
-export const ANOVAResults = React.memo(function ANOVAResults({ results, variableNames }: ANOVAResultsProps) {
+export const ANOVAResults = React.memo(function ANOVAResults({ results, columns, variableNames }: ANOVAResultsProps) {
     const [locale, setLocale] = React.useState<Locale>('vi');
 
     React.useEffect(() => {
