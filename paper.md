@@ -6,6 +6,7 @@ tags:
   - Statistics
   - Next.js
   - Client-side Analysis
+  - Psychometrics
 authors:
   - name: Le Phuc Hai
     orcid: 0009-0000-0000-0000
@@ -19,44 +20,36 @@ bibliography: paper.bib
 
 # Summary
 
-The landscape of social science research is increasingly dependent on accessible, robust, and secure statistical software. However, researchers often face a dilemma between expensive proprietary tools like SPSS and high-learning-curve open-source languages like R. Furthermore, existing web-based solutions typically require uploading datasets to a central server, raising significant concerns regarding data privacy and compliance with regulations like GDPR.
-
-`ncsStat` is an open-source, browser-based statistical framework that addresses these challenges by executing a full R engine entirely on the client-side. Built with Next.js and powered by `WebR` (R compiled to WebAssembly), `ncsStat` allows researchers to perform complex multivariate analyses—ranging from Cronbach's Alpha and EFA to Structural Equation Modeling (SEM)—without data ever leaving their local machine.
+Modern statistical analysis in social sciences and psychology traditionally relies on expensive proprietary software (e.g., SPSS) or server-dependent web platforms. `ncsStat` is an open-source, decentralized statistical framework that executes a full R engine entirely within the user's browser sandbox via WebAssembly (WASM). By leveraging the `WebR` runtime, it enables high-performance computing—including complex Structural Equation Modeling (SEM) and factor analysis—with zero data transmission to external servers. This paradigm shift ensures absolute data privacy by design while providing a user-friendly interface for researchers who may not be proficient in R programming.
 
 # Statement of Need
 
-Modern academic research necessitates tools that are not only mathematically accurate but also privacy-centric and user-friendly. While desktop applications like JASP and jamovi provide excellent GUI interfaces for R, they require local installation and administrative privileges, which can be a barrier in institutional or restricted environments. Web-based alternatives like R Shiny apps often suffer from server-side bottlenecks and latency, and they inherently require data transmission.
+Data sovereignty is a critical requirement in modern academic research, yet cloud-based analytical tools often necessitate the transmission of sensitive datasets to remote backends, creating potential security vulnerabilities and compliance challenges (e.g., GDPR). While desktop alternatives like JASP or jamovi offer excellent GUI-based R wrappers, they require local installation and administrative privileges, which are often restricted in institutional environments.
 
-`ncsStat` fills this gap by providing a "Serverless-Client-Side" paradigm. It caters specifically to researchers in developing regions and students who need a portable, zero-cost, and high-performance analytical environment. The inclusion of the Academic Statistical Interpretation Generator (ASIG) further bridges the gap between raw data and scholarly reporting by providing deterministic, template-driven results interpretation in multiple languages (Vietnamese and English).
+`ncsStat` addresses these limitations by providing a "Serverless-Client-Side" environment. It caters to a growing community of researchers and students—particularly in developing regions—who require portable, high-performance, and cost-free analytical tools. A unique contribution of the framework is the **Academic Statistical Interpretation Generator (ASIG)**, which automates the translation of numerical outputs into deterministic, APA-compliant interpretations, significantly reducing human error in statistical reporting.
+
+# State of the Field
+
+While `WebR` itself provides the underlying technology to run R in the browser, using it directly requires significant coding expertise and manual environment configuration (e.g., managing worker lifecycles, package installation, and data serialization). Other web-based R platforms, such as R Shiny, rely on server-side execution, which introduces network latency and privacy risks. 
+
+`ncsStat` distinguishes itself from "raw" WebR implementations by providing:
+1.  **Abstraction Layer**: A React-based orchestration layer that manages complex asynchronous WebR worker states, including a self-healing mechanism for crash recovery.
+2.  **Expert System**: The ASIG module provides deterministic logic that goes beyond simple visualization, offering rigorous textual analysis similar to what is found in high-end commercial software.
+3.  **Portability**: Unlike jamovi desktop, `ncsStat` is accessible from any modern browser (including tablets and high-end mobile devices) without installation, while maintaining the same mathematical accuracy through WASM-compiled R binaries.
 
 # Functionality
 
-The framework leverages the `WebR` runtime to execute specialized R packages such as `psych` [@Psych2024] for psychometrics and `lavaan` [@Rosseel2012] for latent variable modeling. Key features include:
-
-- **Decentralized Execution**: Utilizes WebAssembly to run R code in a dedicated worker thread, ensuring high performance even with large datasets ($N > 10,000$).
-- **Privacy-by-Design**: 100% of data processing occurs in the browser's memory sandbox.
-- **ASIG System**: A rule-based expert system that provides automated, APA-compliant interpretations of statistical results, including effect sizes and assumption testing.
-- **Workflow Mode**: Guided sequences for complex analyses (e.g., automatically suggesting SEM after a successful CFA).
-- **Self-Healing Infrastructure**: Robust error recovery mechanisms that handle WASM worker crashes and IndexedDB corruptions automatically.
-
-# Comparison to Other Software
-
-| Feature | ncsStat | JASP / jamovi | R / RStudio | R Shiny Apps |
-|---------|---------|---------------|-------------|--------------|
-| **Installation** | None (Web) | Desktop Install | Local Install | None (Web) |
-| **Privacy** | 100% Client-side | Local | Local | Server-side |
-| **Engine** | WebR (WASM) | Native R | Native R | Remote R |
-| **Interp.** | Automated (ASIG)| Minimal | Manual | Varies |
-| **Cost** | Free (GPL/MIT) | Free | Free | Varies |
-
-`ncsStat` distinguishes itself by offering the portability of a web app with the privacy and performance characteristics of a native desktop application.
+The framework integrates professional R packages such as `psych` [@Psych2024] and `lavaan` [@Rosseel2012]. Key architectural innovations include:
+- **Zero-Copy Data Stream**: Utilizing TypedArrays for fast data transfer between JavaScript and the WASM environment.
+- **Workflow Enforcement**: Automatically suggesting subsequent analyses (e.g., suggesting SEM after CFA validity checks) to ensure methodological rigor.
+- **WASM Optimization**: Utilizing `SharedArrayBuffer` for multi-threaded performance when supported by the browser context.
 
 # AI Disclosure
 
-Generative AI (Google Gemini 2.0 and Qwen 2.5) was used during the development of this software for code refactoring, bug fixing, and drafting initial versions of the documentation and this manuscript. All AI-generated outputs, including statistical logic and architectural designs, were rigorously verified and validated by the primary author to ensure mathematical accuracy and adherence to scientific standards.
+Generative AI (Google Gemini 2.0 and Qwen 2.5) was utilized during the development of this software for code refactoring, structural debugging, and drafting technical documentation. All AI-generated logic and prose were strictly audited and verified by the primary author to ensure mathematical correctness and adherence to JOSS standards.
 
 # Acknowledgements
 
-The authors wish to thank the `WebR` project team at Posit and William Revelle for the `psych` package, which forms the backbone of the psychometric modules in `ncsStat`.
+The authors thank the Posit team for the `WebR` runtime and the open-source contributors of the `lavaan` and `psych` packages.
 
 # References

@@ -1,212 +1,107 @@
-# ncsStat: Nền tảng Phân tích Thống kê Trực tuyến
+# ncsStat: A Web-Based Framework for Privacy-Preserving Decentralized Statistical Computing
 
-**"Democratizing Data Science for Vietnamese Researchers"**
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![JOSS](https://joss.theoj.org/papers/unknown/status.svg)](https://joss.theoj.org/papers/unknown)
 
-🔗 **Live App:** [https://stat.ncskit.org](https://stat.ncskit.org)
+**ncsStat** is an open-source, decentralized statistical analysis platform that runs a full R engine (WebR) entirely within the browser. It is designed to provide high-performance, privacy-centric research tools without the need for server-side computation or data transmission.
 
-📄 **Version:** 2.1.0 (2026-03-01)
-
----
-
-## 📄 Giới Thiệu
-
-**ncsStat** là nền tảng phân tích thống kê mã nguồn mở, chạy trực tiếp trên trình duyệt web, được thiết kế đặc biệt cho Nghiên cứu sinh và Giảng viên tại Việt Nam.
-
-### Điểm nổi bật:
-- 🔒 **Bảo mật tuyệt đối:** Dữ liệu xử lý 100% client-side, không upload lên server
-- ⚡ **Tốc độ cao:** WebAssembly R runtime, không độ trễ mạng
-- 💸 **Miễn phí hoàn toàn:** Thay thế SPSS/AMOS đắt đỏ
-- 🧠 **AI hỗ trợ:** Gemini AI tự động giải thích kết quả bằng tiếng Việt
-- 🌐 **Đa ngôn ngữ:** Hỗ trợ Tiếng Việt và English
+🔗 **Live Application:** [https://stat.ncskit.org](https://stat.ncskit.org)
 
 ---
 
-## 🚀 Tính Năng Chính
+## 🚀 Key Features
 
-### 1. Phân Tích Đa Dạng (18 phương pháp)
-
-| Nhóm | Phương pháp | Chi tiết |
-|------|-------------|----------|
-| **Độ tin cậy** | Cronbach's Alpha + **McDonald's Omega** | Item-total stats, Alpha/Omega if deleted |
-| **Tương quan** | Pearson, Spearman, Kendall | Ma trận r + p-values |
-| **So sánh nhóm** | T-test (độc lập, ghép cặp) | Shapiro-Wilk, Levene's, Cohen's d |
-| **ANOVA** | One-Way ANOVA (**Auto Welch**) | Tukey HSD, Eta², auto-switch |
-| **Khám phá** | EFA (**Parallel Analysis**) | KMO, Bartlett, Varimax/Oblimin |
-| **Khẳng định** | CFA | CFI, TLI, RMSEA, SRMR |
-| **Mô hình** | SEM | Structural paths, Fit indices |
-| **Hồi quy** | Linear Regression | VIF, R², **Standardized β** |
-| **Hồi quy nhị phân** | **Logistic Regression** | Odds Ratio, Pseudo R², Confusion Matrix |
-| **Phi tham số** | Mann-Whitney U, **Kruskal-Wallis** | Effect size (ε², r) |
-| **Phi tham số cặp** | **Wilcoxon Signed-Rank** | Median diff, Effect r |
-| **Phân loại** | Chi-Square + **Fisher's Exact** | Cramér's V, Warning < 5 |
-| **Trung gian** | **Mediation Analysis** | Sobel test, Bootstrap CI 95% |
-| **Mô tả** | Descriptive Stats | Mean, SD, Skew, Kurtosis, SE |
-
-### 2. Kiểm định Giả định Tự động ✅
-
-- **Shapiro-Wilk:** Phân phối chuẩn
-- **Levene's Test:** Đồng nhất phương sai → **Auto Welch ANOVA**
-- **Fisher's Exact:** Tự động cho bảng 2x2 nhỏ
-- **Warning:** Cảnh báo khi expected < 5
-
-### 3. Workflow Mode (Trợ lý thông minh) 🎯
-
-- Cronbach's Alpha → EFA (khi α ≥ 0.7)
-- EFA → CFA (khi cấu trúc rõ ràng)
-- CFA → SEM (khi fit tốt)
-
-### 4. AI Interpretation 🤖
-
-- Tự động viết nhận xét học thuật
-- Giải thích CFI, RMSEA, p-value cho người không chuyên
-- Ngôn ngữ chuẩn paper
+- **Absolute Privacy:** 100% client-side data processing. No sensitive data is ever uploaded to a server.
+- **High Performance:** Powered by WebAssembly (WASM), leveraging a full R 4.5 runtime.
+- **Comprehensive Analysis:** Supports 18+ methods including SEM, CFA, EFA, Logistic Regression, and Mediation Analysis.
+- **ASIG Expert System:** Automatically generates APA-compliant textual interpretations of results.
+- **Zero Installation:** Works in any modern browser across Windows, macOS, Linux, and tablets.
 
 ---
 
-## 🛠️ Công Nghệ
+## 🛠️ Technology Stack
 
 | Layer | Stack |
 |-------|-------|
-| **Frontend** | Next.js 16, React 19, TypeScript |
-| **Styling** | Tailwind CSS 4, Lucide Icons |
-| **R Engine** | WebR 0.5 (WebAssembly R) |
-| **R Packages** | `psych`, `GPArotation`, `lavaan` |
-| **AI** | Google Gemini 2.0 Flash |
-| **Auth** | Supabase Auth (Google, ORCID, LinkedIn) |
-| **Database** | Supabase PostgreSQL |
-| **Hosting** | Vercel Edge Network |
+| **Core** | Next.js 16, React 19, TypeScript |
+| **Statistical Engine** | WebR 0.5 (WebAssembly R) |
+| **Key R Packages** | `psych`, `lavaan`, `GPArotation`, `cluster` |
+| **Backend/Auth** | Supabase (PostgreSQL, OAuth) |
+| **AI Integration** | Google Gemini 2.0 Flash (for optional advanced insights) |
 
 ---
 
-## 📚 Hướng Dẫn Trích Dẫn (Citation)
+## 🧪 JOSS Reviewer Guide
 
-### Trong phần Phương pháp:
-> "Dữ liệu được phân tích bằng ngôn ngữ R (R Core Team, 2024) thông qua nền tảng **ncsStat** (Le, 2026). Các phân tích độ tin cậy và nhân tố sử dụng package `psych` (Revelle, 2024)."
+To facilitate the functional review process, please follow these instructions.
 
-### Trong Danh mục Tài liệu tham khảo:
+### 1. Local Development & SharedArrayBuffer
+`ncsStat` requires high-performance memory buffers provided by `SharedArrayBuffer`. Browsers only enable this in **Cross-Origin Isolated** contexts.
 
-**APA Format:**
-> Le, P. H. (2026). *ncsStat: A Web-Based Statistical Analysis Platform for Vietnamese Researchers*. https://stat.ncskit.org
-
-**Tiếng Việt:**
-> Lê Phúc Hải (2026). *ncsStat: Nền tảng phân tích thống kê trực tuyến cho nghiên cứu sinh Việt Nam*. https://stat.ncskit.org
-
----
-
-## 📦 Cài Đặt Local
-
+**To run locally:**
 ```bash
-# 1. Clone repo
-git clone https://github.com/hailp1/ncsStat2.git
-cd ncsStat2
-
-# 2. Install dependencies
+# 1. Clone & Install
+git clone https://github.com/Sacvui/NCSKIT_home.git
+cd NCSKIT_home
 npm install
 
-# 3. Setup environment
+# 2. Configure Environment
 cp .env.example .env.local
-# Edit .env.local with your Supabase URL, anon key, and optional Gemini API key
+# (Optional: Add Supabase/Gemini keys for cloud features, 
+# but core analysis works offline with WebR)
 
-# 4. Run dev server
+# 3. Start Development Server
 npm run dev
 ```
+The Next.js configuration in `next.config.js` is already pre-configured with the required headers:
+- `Cross-Origin-Embedder-Policy: credentialless`
+- `Cross-Origin-Opener-Policy: same-origin`
 
-Truy cập `http://localhost:3000`
+Access the app at `http://localhost:3000`.
 
----
+### 2. Verification of Mathematical Accuracy
+We have provided a validation suite that compares `ncsStat` (WebR) outputs against native R results for critical algorithms (SEM, Cronbach's Alpha, ANOVA).
+- **Validation Scripts:** See `__tests__/validation/`
+- **Logic Documentation:** Detailed rule-base for the ASIG system is documented in [ASIG_LOGIC.md](./ASIG_LOGIC.md).
 
-## 📂 Cấu trúc Project
-
-```
-ncsStat/
-├── app/                    # Next.js App Router
-│   ├── analyze/            # Trang phân tích chính (Basic)
-│   ├── analyze2/           # Trang phân tích PLS-SEM
-│   ├── api/                # API Routes (auth, feedback, AI)
-│   ├── admin/              # Admin panel
-│   ├── login/              # Đăng nhập OAuth
-│   └── profile/            # Hồ sơ người dùng
-├── components/             # React Components
-│   ├── analyze/            # Analysis workflow components
-│   ├── results/            # Result display (9 categories)
-│   ├── ui/                 # Shared UI primitives
-│   └── layout/             # Header, Footer
-├── lib/
-│   ├── webr/               # WebR engine & analysis modules
-│   │   ├── core.ts         # WebR singleton, init, retry logic
-│   │   └── analyses/       # 8 analysis modules (hypothesis, reliability, etc.)
-│   ├── i18n.ts             # Internationalization (vi/en)
-│   ├── interpretation-templates.ts  # ASIG template system
-│   └── pdf-exporter.ts     # PDF export
-├── hooks/                  # Custom React hooks
-├── context/                # Auth & Language providers
-├── types/                  # TypeScript type definitions
-├── utils/supabase/         # Supabase client & migrations
-├── scripts/                # Dev utilities (copy-webr, check-env, etc.)
-└── supabase/migrations/    # Database migration files
-```
-
----
-
-## 🗄️ Database Setup
-
-Dự án dùng Supabase PostgreSQL. Migrations nằm trong `supabase/migrations/` và được áp dụng theo thứ tự:
-
+### 3. Automated Tests
+Run the test suite using:
 ```bash
-# Áp dụng migrations qua Supabase CLI
-supabase db push
-
-# Hoặc chạy thủ công từng file trong Supabase SQL Editor:
-# supabase/migrations/20260124_performance_indexes.sql
-# supabase/migrations/20260128000000_add_feedback_table.sql
-# supabase/migrations/20260329000000_update_profile_and_rls.sql
-# supabase/migrations/20260331035048_create_knowledge_base_table.sql
-```
-
-Sau khi setup, promote user lên admin:
-```sql
-UPDATE public.profiles SET role = 'admin' WHERE email = 'your-email@example.com';
+npm test
 ```
 
 ---
 
-## 🚀 Deployment (Vercel)
+## 📦 Installation & Deployment
 
-1. Push code lên GitHub
-2. Import project vào [Vercel](https://vercel.com)
-3. Thêm Environment Variables:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `GEMINI_API_KEY` *(tùy chọn — nếu set, tất cả users dùng chung key này, không cần nhập key cá nhân)*
-   - `NEXT_PUBLIC_KEY_SALT` *(tùy chọn — salt để mã hóa personal key trong localStorage)*
-4. Cấu hình Supabase Auth → URL Configuration → thêm Vercel domain vào Redirect URLs
-5. Deploy
-
-> **Bảo mật AI Key:** Nếu `GEMINI_API_KEY` được set trên server, key không bao giờ xuất hiện trong browser. Nếu user dùng personal key, key được mã hóa AES-256 trước khi lưu localStorage và truyền qua network.
-
----
-
-## 🛠️ Scripts hữu ích
-
+### Production Build
 ```bash
-npm run dev          # Dev server
-npm run build        # Production build
-npm run type-check   # TypeScript check
-npm run verify-build # Full check (type + lint + build)
-npm run clean        # Xóa .next cache
+npm run build
+npm start
 ```
+
+### Deployment (Vercel)
+The project is optimized for Vercel. Ensure the following Environment Variables are set:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+---
+
+## 📚 Citation
+
+If you use ncsStat in your research, please cite it as follows:
+
+**CFF File:** [CITATION.cff](./CITATION.cff)
+
+**APA Format:**
+> Le, P. H. (2026). *ncsStat: A Web-Based Statistical Analysis Platform for Privacy-Preserving Decentralized Computing*. https://stat.ncskit.org
 
 ---
 
 ## 📝 License
 
-MIT License © 2026 Le Phuc Hai
-
----
+This project is licensed under the **MIT License**. See the [LICENSE](./LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- **WebR Project:** https://docs.r-wasm.org/
-- **psych R Package:** William Revelle
-- **Next.js:** Vercel Team
-- **Supabase:** Open source Firebase alternative
+Special thanks to the **WebR project** team at Posit and the authors of the `lavaan` and `psych` R packages.
