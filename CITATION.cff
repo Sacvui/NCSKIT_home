@@ -11,8 +11,9 @@ url: "https://github.com/Sacvui/NCSKIT_home"
 license: MIT
 repository-code: "https://github.com/Sacvui/NCSKIT_home"
 abstract: >-
-  An open-source, browser-based statistical framework that decentralizes statistical computing by executing 
-  a full R engine (WebR) within the browser's sandbox via WebAssembly.
+  A privacy-preserving framework for decentralized statistical computing, 
+  leveraging WebAssembly to execute a complete R engine client-side with 
+  automated APA-compliant interpretation logic.
 keywords:
   - statistics
   - webassembly
