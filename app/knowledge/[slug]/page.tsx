@@ -1,25 +1,83 @@
 import React from 'react';
+import { Metadata } from 'next';
 import ArticleClient from '@/components/knowledge/ArticleClient';
 import { getSupabase } from '@/utils/supabase/client';
+import { FALLBACK_ARTICLES, DEFAULT_ARTICLE } from '@/lib/constants/knowledge-fallbacks';
 
-// MASTER REPOSITORY (FALLBACK - GUARANTEED UPTIME)
-// Using this directly on Server helps SEO and initial render speed
-const FALLBACK_ARTICLES: Record<string, any> = {
-    'cronbach-alpha': {
-        slug: 'cronbach-alpha', category: 'Scale Reliability',
-        title_vi: 'Cronbach\'s Alpha: Đánh giá tính nhất quán nội tại Masterclass',
-        title_en: 'Cronbach\'s Alpha: Internal Consistency Masterclass',
-        expert_tip_vi: 'Hãy luôn kiểm tra cột "Cronbach\'s Alpha if Item Deleted". Nếu xóa một câu mà Alpha tăng mạnh, câu đó chính là "kẻ phá bĩnh" thang đo của bạn.',
-        expert_tip_en: 'Look beyond the global Alpha. Check "Alpha if Item Deleted"—if removing an item spikes the score, that item is undermining your scale.',
-        author: 'ncsStat Academic Team', updated_at: new Date().toISOString(),
-        thresholds: 'Alpha > 0.70 (Good), Alpha > 0.60 (Acceptable for new scales)',
-        content_structure: [
-            {
-                h2_vi: '1. Cronbach\'s Alpha là gì? Tại sao phải "nhất quán"?',
-                h2_en: '1. What is Cronbach\'s Alpha? The Need for Consistency',
-                content_vi: `Hãy tưởng tượng bạn đang đo lường sự "Hoài nghi xanh" (Green Skepticism) của người tiêu dùng bằng 5 câu hỏi. Nếu một người trả lời "Rất đồng ý" ở câu 1 nhưng lại "Rất không đồng ý" ở câu 2 (trong khi cả hai cùng đo một nội dung), thì thang đo của bạn đang có vấn đề. Cronbach's Alpha chính là thước đo xem các câu hỏi đó có "về cùng một đội" hay không. ncsStat giúp bạn khẳng định rằng các biến quan sát của bạn thực sự đang cùng soi rọi vào một khái niệm nghiên cứu duy nhất.`,
-                content_en: `Imagine measuring "Green Skepticism" with 5 items. If a respondent strongly agrees with item 1 but strongly disagrees with item 2 (despite both targeting the same construct), your scale is flawed. Cronbach's Alpha tests if your items belong to the same "team." ncsStat ensures your indicators collectively reflect a single underlying concept.`
-            },
+// Cấu hình Metadata động cho SEO bài viết
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
+    const { slug } = params;
+    const supabase = getSupabase();
+    
+    // Thử lấy dữ liệu từ DB cho SEO
+    const { data: article } = await supabase
+        .from('knowledge_articles')
+        .select('title_vi, category')
+        .eq('slug', slug)
+        .single();
+
+    const currentArticle = article || FALLBACK_ARTICLES[slug];
+
+    if (!currentArticle) {
+        return { title: 'Bài viết không tồn tại | ncsStat' };
+    }
+
+    const title = `${currentArticle.title_vi || 'Kiến thức Thống kê'} - ncsStat Academy`;
+    const description = `Tìm hiểu chuyên sâu về ${currentArticle.title_vi} và các ứng dụng trong nghiên cứu khoa học. Tài liệu học thuật chuẩn quốc tế tại ncsStat.`;
+
+    return {
+        title,
+        description,
+        openGraph: {
+            title,
+            description,
+            type: 'article',
+            url: `https://ncskit.org/knowledge/${slug}`,
+        }
+    };
+}
+
+export async function generateStaticParams() {
+    return [
+        { slug: 'cronbach-alpha' }, 
+        { slug: 'efa-factor-analysis' }, 
+        { slug: 'regression-vif-multicollinearity' }
+    ];
+}
+
+export const dynamicParams = true;
+
+export default async function KnowledgeArticlePage({ params }: { params: Promise<{ slug: string }> }) {
+    const { slug } = await params;
+    
+    const supabase = getSupabase();
+    let article = FALLBACK_ARTICLES[slug] || DEFAULT_ARTICLE;
+
+    if (supabase) {
+        try {
+            const { data, error } = await supabase
+                .from('knowledge_articles')
+                .select('*')
+                .eq('slug', slug)
+                .single();
+            
+            if (data && !error) {
+                article = data;
+            }
+        } catch (e) {
+            console.error("Server fetch error - Using Fallback");
+        }
+    }
+
+    return (
+        <ArticleClient 
+            initialArticle={article} 
+            fallbackArticles={FALLBACK_ARTICLES} 
+            slug={slug} 
+        />
+    );
+}
+
             {
                 h2_vi: '2. Ngưỡng giá trị: Khi nào là "Đạt chuẩn"?',
                 h2_en: '2. Thresholds: When is it "Acceptable"?',

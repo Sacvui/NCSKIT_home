@@ -10,6 +10,7 @@ import {
     FileSpreadsheet, ClipboardCheck, Info
 } from 'lucide-react';
 import Link from 'next/link';
+import { STATIC_SCALES } from '@/lib/constants/scales-fallbacks';
 
 // Cấu hình Metadata động cho SEO
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
@@ -19,6 +20,8 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
         .select('*')
         .eq('id', params.id)
         .single();
+
+    const scale = dbScale || STATIC_SCALES.find(s => s.id === params.id);
 
     if (!scale) return { title: 'Scale Not Found - ncsStat' };
 
@@ -41,13 +44,15 @@ export default async function ScaleDetailPage({ params }: { params: { id: string
     const supabase = getSupabase();
     
     // Fetch dữ liệu thang đo và items
-    const { data: scale, error } = await supabase
+    const { data: dbScale, error } = await supabase
         .from('scales')
         .select('*, scale_items(*)')
         .eq('id', params.id)
         .single();
 
-    if (error || !scale) {
+    const scale = dbScale || STATIC_SCALES.find(s => s.id === params.id);
+
+    if (!scale) {
         notFound();
     }
 

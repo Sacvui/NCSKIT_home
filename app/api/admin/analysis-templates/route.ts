@@ -62,5 +62,16 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
+    // Log the action
+    await supabase.from('activity_logs').insert({
+        user_id: user.id,
+        action_type: 'analysis_template_update',
+        action_details: {
+            analysis_key: analysisKey,
+            config_key: configKey,
+            timestamp: new Date().toISOString()
+        }
+    });
+
     return NextResponse.json({ success: true });
 }

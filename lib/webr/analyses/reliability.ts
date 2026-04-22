@@ -195,26 +195,24 @@ export async function runEFA(data: number[][], nFactors: number, rotation: strin
         stop("QuÃ¡ Ã­t dá»¯ liá»‡u hoÃ n chá»‰nh (< 3 máº«u). Vui lÃ²ng kiá»ƒm tra dá»¯ liá»‡u khuyáº¿t.") 
     }
     
-    # Use pairwise correlation for eigenvalues (more robust)
-    # but use complete data for actual EFA
+    # Use pairwise correlation for ALL steps to ensure consistency
     cor_mat <- tryCatch({
         cor(df, use = "pairwise.complete.obs")
     }, error = function(e) {
-        # Fallback to complete cases
+        # Fallback to complete cases if pairwise fails (e.g. non-numeric)
         cor(df_clean)
     })
     
-    # Basic validation
+    # Validation: check if correlation matrix is positive definite
     if (any(is.na(cor_mat))) { 
-        stop("Lỗi: Dữ liệu có quá nhiều giá trị khuyết (NA) dẫn đến ma trận tương quan không hợp lệ.") 
+        stop("Lỗi: Dữ liệu có quá nhiều giá trị khuyết (NA) hoặc biến không đổi (constant), dẫn đến ma trận tương quan không hợp lệ.") 
     }
     
     eigenvalues <- eigen(cor_mat)$values
 
-    # PARALLEL ANALYSIS (uses complete data)
+    # PARALLEL ANALYSIS (uses the robust correlation matrix)
     n_factors_parallel <- tryCatch({
-        # Optimized n.iter for faster execution
-        pa <- fa.parallel(df_clean, fm = "pa", fa = "fa", plot = FALSE, n.iter = 10, quant = 0.95)
+        pa <- fa.parallel(cor_mat, n.obs = n_complete, fm = "minres", fa = "fa", plot = FALSE, n.iter = 20)
         pa$nfact
     }, error = function(e) NA)
     
@@ -235,13 +233,14 @@ export async function runEFA(data: number[][], nFactors: number, rotation: strin
     }
     if (n_factors_run < 1) n_factors_run <- 1
 
-    # KMO and Bartlett (use complete data)
-    kmo_result <- tryCatch(KMO(df_clean), error = function(e) list(MSA = 0))
-    bartlett_result <- tryCatch(cortest.bartlett(cor_mat, n = nrow(df_clean)), error = function(e) list(p.value = 1))
+    # KMO and Bartlett
+    kmo_result <- tryCatch(KMO(cor_mat), error = function(e) list(MSA = 0))
+    bartlett_result <- tryCatch(cortest.bartlett(cor_mat, n = n_complete), error = function(e) list(p.value = 1))
     
-    # Run EFA (use complete data)
+    # Run EFA using the SAME correlation matrix
     rotation_method <- "{{rotation}}"
-    efa_result <- fa(df_clean, nfactors = n_factors_run, rotate = rotation_method, fm = "pa")
+    # Use minres (Minimum Residual) as it's more robust and closer to SPSS results than PA in many cases
+    efa_result <- fa(cor_mat, nfactors = n_factors_run, rotate = rotation_method, fm = "minres", n.obs = n_complete)
 
     list(
         kmo = if (is.numeric(kmo_result$MSA)) kmo_result$MSA[1] else 0,

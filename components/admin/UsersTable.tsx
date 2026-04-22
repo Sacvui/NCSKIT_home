@@ -25,6 +25,11 @@ export default function UsersTable() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState('all');
+    
+    // Manage User Modal State
+    const [isManageModalOpen, setIsManageModalOpen] = useState(false);
+    const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         const fetchUsers = async () => {
@@ -53,6 +58,59 @@ export default function UsersTable() {
 
         fetchUsers();
     }, []);
+
+    const fetchUsers = async () => {
+        setLoading(true);
+        const supabase = getSupabase();
+        const { data, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (data) {
+            setUsers(data);
+        }
+        setLoading(false);
+    };
+
+    const handleUpdateRole = async (userId: string, newRole: string) => {
+        if (!window.confirm(`Xác nhận đổi quyền sang ${newRole}?`)) return;
+        setIsSubmitting(true);
+        const supabase = getSupabase();
+        const { error } = await supabase
+            .from('profiles')
+            .update({ role: newRole })
+            .eq('id', userId);
+
+        if (!error) {
+            await fetchUsers();
+            setIsManageModalOpen(false);
+        } else {
+            alert('Lỗi khi cập nhật quyền');
+        }
+        setIsSubmitting(false);
+    };
+
+    const handleDeleteUser = async (userId: string) => {
+        if (!window.confirm('CẢNH BÁO: Bạn có chắc chắn muốn xóa người dùng này? Hành động này không thể hoàn tác.')) return;
+        setIsSubmitting(true);
+        const supabase = getSupabase();
+        
+        // Note: Real deletion might fail if there are FK constraints. 
+        // In a real system, we might want 'is_deleted' flag instead.
+        const { error } = await supabase
+            .from('profiles')
+            .delete()
+            .eq('id', userId);
+
+        if (!error) {
+            await fetchUsers();
+            setIsManageModalOpen(false);
+        } else {
+            alert('Lỗi khi xóa người dùng (Có thể do ràng buộc dữ liệu)');
+        }
+        setIsSubmitting(false);
+    };
 
     const filteredUsers = users.filter(user => {
         const matchesSearch = (user.full_name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
@@ -188,7 +246,13 @@ export default function UsersTable() {
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 text-right">
-                                        <button className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition-colors">
+                                        <button 
+                                            onClick={() => {
+                                                setSelectedUser(user);
+                                                setIsManageModalOpen(true);
+                                            }}
+                                            className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-blue-600 transition-colors"
+                                        >
                                             <MoreHorizontal className="w-4 h-4" />
                                         </button>
                                     </td>
@@ -202,6 +266,70 @@ export default function UsersTable() {
             <div className="p-4 border-t border-slate-200 bg-slate-50 text-xs text-slate-500 flex justify-between">
                 <span>Hiển thị {filteredUsers.length} người dùng</span>
             </div>
+
+            {/* Manage User Modal */}
+            {isManageModalOpen && selectedUser && (
+                <div className="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+                        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                            <h3 className="font-black text-slate-800 uppercase tracking-tight">Quản trị tài khoản</h3>
+                            <button onClick={() => setIsManageModalOpen(false)} className="text-slate-400 hover:text-slate-600">×</button>
+                        </div>
+                        
+                        <div className="p-6 space-y-6">
+                            <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                                <div className="w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center text-xl font-bold">
+                                    {selectedUser.full_name?.[0] || 'U'}
+                                </div>
+                                <div>
+                                    <div className="font-bold text-slate-900">{selectedUser.full_name || 'Chưa đặt tên'}</div>
+                                    <div className="text-sm text-slate-500">{selectedUser.email}</div>
+                                </div>
+                            </div>
+
+                            <div className="space-y-3">
+                                <label className="block text-sm font-bold text-slate-700 uppercase tracking-wider">Thay đổi vai trò</label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button
+                                        onClick={() => handleUpdateRole(selectedUser.id, 'user')}
+                                        disabled={isSubmitting || selectedUser.role === 'user'}
+                                        className={`py-3 rounded-xl border-2 font-bold transition-all ${selectedUser.role === 'user' ? 'bg-blue-600 text-white border-blue-600 shadow-lg' : 'bg-white text-slate-600 border-slate-100 hover:border-blue-200'}`}
+                                    >
+                                        Người dùng
+                                    </button>
+                                    <button
+                                        onClick={() => handleUpdateRole(selectedUser.id, 'admin')}
+                                        disabled={isSubmitting || selectedUser.role === 'admin'}
+                                        className={`py-3 rounded-xl border-2 font-bold transition-all ${selectedUser.role === 'admin' ? 'bg-purple-600 text-white border-purple-600 shadow-lg' : 'bg-white text-slate-600 border-slate-100 hover:border-purple-200'}`}
+                                    >
+                                        Quản trị viên
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="pt-4 border-t border-slate-100">
+                                <button
+                                    onClick={() => handleDeleteUser(selectedUser.id)}
+                                    disabled={isSubmitting}
+                                    className="w-full py-3 bg-rose-50 text-rose-600 font-bold rounded-xl border border-rose-100 hover:bg-rose-100 transition-all flex items-center justify-center gap-2"
+                                >
+                                    Xóa vĩnh viễn tài khoản
+                                </button>
+                                <p className="text-[10px] text-slate-400 text-center mt-3 uppercase font-medium">Hành động này không thể hoàn tác</p>
+                            </div>
+                        </div>
+
+                        <div className="p-4 bg-slate-50 text-right">
+                            <button
+                                onClick={() => setIsManageModalOpen(false)}
+                                className="px-6 py-2 text-sm font-bold text-slate-500 hover:text-slate-700"
+                            >
+                                Đóng
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

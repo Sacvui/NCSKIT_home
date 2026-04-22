@@ -40,8 +40,8 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
             try {
                 // Try both possible paths for NotoSans
                 const paths = [
-                    '/webr_core/vfs/usr/share/fonts/NotoSans-Regular.ttf',
-                    '/webr/vfs/usr/share/fonts/NotoSans-Regular.ttf'
+                    '/webr_core_v3/vfs/usr/share/fonts/NotoSans-Regular.ttf',
+                    '/webr_core/vfs/usr/share/fonts/NotoSans-Regular.ttf'
                 ];
                 
                 let regularBuffer: ArrayBuffer | null = null;
@@ -62,7 +62,7 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
                 doc.addFont('NotoSans-Regular.ttf', 'NotoSans', 'normal');
                 
                 // Try loading Bold for better headers
-                const boldPath = '/webr_core/vfs/usr/share/fonts/NotoSans-Bold.ttf';
+                const boldPath = '/webr_core_v3/vfs/usr/share/fonts/NotoSans-Bold.ttf';
                 try {
                     const boldResponse = await fetch(boldPath);
                     if (boldResponse.ok) {
@@ -319,23 +319,24 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
                 }
             }
 
-            // Interpretation guide
             checkPageBreak(30);
             doc.setFontSize(8);
             doc.setTextColor(100);
-            doc.text('• α ≥ 0.9: Excellent | α ≥ 0.8: Good | α ≥ 0.7: Acceptable | α ≥ 0.6: Questionable | α < 0.6: Poor', 15, yPos);
+            doc.text('• α ≥ 0.9: Rất tốt | α ≥ 0.8: Tốt | α ≥ 0.7: Chấp nhận được | α ≥ 0.6: Cần xem xét | α < 0.6: Kém', 15, yPos);
             doc.setTextColor(0);
             doc.setFontSize(10);
             yPos += 10;
         }
         else if (analysisType === 'ttest-indep' || analysisType === 'ttest') {
-            doc.text('Independent Samples T-Test:', 15, yPos);
+            doc.setFont('NotoSans', 'bold');
+            doc.setFontSize(12);
+            doc.text('KIỂM ĐỊNH T-TEST ĐỘC LẬP (INDEPENDENT SAMPLES T-TEST)', 15, yPos);
             yPos += 10;
 
-            const headers1 = [['Group', 'Mean', 'N (Sample)']];
+            const headers1 = [['Nhóm', 'Trung bình (Mean)', 'Độ lệch chuẩn (SD)', 'Kích thước mẫu (N)']];
             const data1 = [
-                ['Group 1', results.mean1.toFixed(2), '-'],
-                ['Group 2', results.mean2.toFixed(2), '-']
+                ['Nhóm 1', (results.mean1 || 0).toFixed(3), '-', '-'],
+                ['Nhóm 2', (results.mean2 || 0).toFixed(3), '-', '-']
             ];
 
             autoTable(doc, {
@@ -343,18 +344,17 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
                 startY: yPos,
                 head: headers1,
                 body: data1,
-                theme: 'plain',
-                tableWidth: 80
+                tableWidth: 140
             });
             yPos = (doc as any).lastAutoTable.finalY + 10;
 
-            const headers2 = [['t', 'df', 'Sig. (2-tailed)', 'Mean Diff', 'Cohen\'s d']];
+            const headers2 = [['Giá trị t', 'Bậc tự do (df)', 'Sig. (2-tailed)', 'Chênh lệch TB', "Cohen's d"]];
             const data2 = [[
-                results.t.toFixed(3),
-                results.df.toFixed(3),
-                results.pValue < 0.001 ? '< .001' : results.pValue.toFixed(3),
-                results.meanDiff.toFixed(3),
-                results.effectSize.toFixed(3)
+                (results.t || 0).toFixed(3),
+                (results.df || 0).toFixed(3),
+                results.pValue < 0.001 ? '< 0.001' : (results.pValue || 0).toFixed(3),
+                (results.meanDiff || 0).toFixed(3),
+                (results.effectSize || 0).toFixed(3)
             ]];
 
             autoTable(doc, {
@@ -362,194 +362,180 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
                 startY: yPos,
                 head: headers2,
                 body: data2,
-                headStyles: { fillColor: [52, 152, 219] as any, fontStyle: 'bold' as any }
+                headStyles: { fillColor: [30, 58, 138] as any, textColor: [255, 255, 255] as any }
             });
             yPos = (doc as any).lastAutoTable.finalY + 15;
 
-            if (results.varTestP !== undefined) {
-                doc.setFontSize(9);
-                const varMsg = results.varTestP < 0.05 ? "Violated (Welch t-test used)" : "Assumed Equal Variance";
-                doc.text(`* Levene's Test: p = ${results.varTestP.toFixed(3)} (${varMsg})`, 15, yPos);
-                yPos += 10;
-                doc.setFontSize(10);
-            }
-
-            // Academic Interpretation for T-Test
-            checkPageBreak(60);
+            checkPageBreak(50);
             doc.setFillColor(241, 245, 249);
-            doc.roundedRect(15, yPos, 180, 50, 1, 1, 'F');
-            
+            doc.roundedRect(15, yPos, 180, 40, 1, 1, 'F');
             doc.setFont('NotoSans', 'bold');
             doc.setFontSize(10);
             doc.setTextColor(30, 58, 138);
-            doc.text('NHẬN ĐỊNH HỌC THUẬT (ACADEMIC INTERPRETATION)', 20, yPos + 10);
-            
+            doc.text('NHẬN ĐỊNH HỌC THUẬT QUY CHUẨN', 20, yPos + 10);
             doc.setFont('NotoSans', 'normal');
             doc.setFontSize(8.5);
             doc.setTextColor(51, 65, 85);
             
-            const isSig = results.pValue < 0.05;
-            const pVal = results.pValue < 0.001 ? '< 0.001' : results.pValue.toFixed(3);
-            const effect = Math.abs(results.effectSize);
-            const effectLabel = effect > 0.8 ? 'Lớn (Large)' : effect > 0.5 ? 'Trung bình (Medium)' : 'Nhỏ (Small)';
-            
-            let ttestInterpret = `1. Ý nghĩa thống kê: Với p-value = ${pVal}, kết quả cho thấy ${isSig ? 'CÓ' : 'KHÔNG CÓ'} sự khác biệt có ý nghĩa thống kê giữa hai nhóm ở mức tin cậy 95%. `;
-            ttestInterpret += `\n2. Quy mô tác động: Chỉ số Cohen's d = ${results.effectSize.toFixed(3)} được đánh giá ở mức ${effectLabel}. `;
-            ttestInterpret += isSig ? `Điều này khẳng định sự khác biệt quan sát được là có giá trị thực tiễn.` : `Sự khác biệt nếu có chỉ là do ngẫu nhiên mẫu.`;
-            
-            const splitInter = doc.splitTextToSize(ttestInterpret, 170);
-            doc.text(splitInter, 20, yPos + 18);
-            
-            yPos += 60;
+            const isSigT = results.pValue < 0.05;
+            const interpretT = `Kết quả cho thấy ${isSigT ? 'CÓ' : 'KHÔNG CÓ'} sự khác biệt có ý nghĩa thống kê giữa hai nhóm (p = ${results.pValue < 0.001 ? '< 0.001' : results.pValue.toFixed(3)}). Quy mô tác động (Effect Size) đạt mức ${Math.abs(results.effectSize) > 0.5 ? 'Trung bình trở lên' : 'Thấp'}.`;
+            doc.text(doc.splitTextToSize(interpretT, 170), 20, yPos + 18);
+            yPos += 50;
         }
         else if (analysisType === 'ttest-paired') {
-            doc.text('Paired Samples T-Test:', 15, yPos);
+            doc.setFont('NotoSans', 'bold');
+            doc.setFontSize(12);
+            doc.text('KIỂM ĐỊNH T-TEST CẶP (PAIRED SAMPLES T-TEST)', 15, yPos);
             yPos += 10;
 
-            const headers1 = [['Time', 'Mean']];
+            const headers1 = [['Thời điểm', 'Trung bình (Mean)']];
             const data1 = [
-                [`Before (${columns[0] || 'V1'})`, results.meanBefore.toFixed(2)],
-                [`After (${columns[1] || 'V2'})`, results.meanAfter.toFixed(2)]
+                [`Trước (${columns[0] || 'V1'})`, (results.meanBefore || 0).toFixed(3)],
+                [`Sau (${columns[1] || 'V2'})`, (results.meanAfter || 0).toFixed(3)]
             ];
             autoTable(doc, {
-                ...commonTableOptions, startY: yPos, head: headers1, body: data1, theme: 'plain', tableWidth: 80
+                ...commonTableOptions, startY: yPos, head: headers1, body: data1, tableWidth: 100
             });
             yPos = (doc as any).lastAutoTable.finalY + 10;
 
-            const headers2 = [['t', 'df', 'Sig. (2-tailed)', 'Mean Diff', 'Cohen\'s d']];
+            const headers2 = [['Giá trị t', 'Bậc tự do (df)', 'Sig. (2-tailed)', 'Chênh lệch TB', "Cohen's d"]];
             const data2 = [[
-                results.t.toFixed(3),
-                results.df.toFixed(0),
-                results.pValue < 0.001 ? '< .001' : results.pValue.toFixed(3),
-                results.meanDiff.toFixed(3),
-                results.effectSize.toFixed(3)
+                (results.t || 0).toFixed(3),
+                (results.df || 0).toFixed(0),
+                results.pValue < 0.001 ? '< 0.001' : (results.pValue || 0).toFixed(3),
+                (results.meanDiff || 0).toFixed(3),
+                (results.effectSize || 0).toFixed(3)
             ]];
             autoTable(doc, {
-                ...commonTableOptions, startY: yPos, head: headers2, body: data2,
-                headStyles: { fillColor: [52, 152, 219] as any, fontStyle: 'bold' as any }
+                ...commonTableOptions, startY: yPos, head: headers2, body: data2
             });
             yPos = (doc as any).lastAutoTable.finalY + 15;
         }
         else if (analysisType === 'anova') {
-            doc.text('One-Way ANOVA:', 15, yPos);
+            doc.setFont('NotoSans', 'bold');
+            doc.setFontSize(12);
+            doc.text('PHÂN TÍCH PHƯƠNG SAI MỘT NHÂN TỐ (ONE-WAY ANOVA)', 15, yPos);
             yPos += 10;
 
-            const headers = [['F', 'df1 (Between)', 'df2 (Within)', 'Sig.', 'Eta Squared']];
+            const headers = [['Chỉ số F', 'df1 (Giữa nhóm)', 'df2 (Trong nhóm)', 'Sig.', 'Eta Squared']];
             const data = [[
-                results.F.toFixed(3),
+                (results.F || 0).toFixed(3),
                 results.dfBetween,
                 results.dfWithin,
-                results.pValue < 0.001 ? '< .001' : results.pValue.toFixed(3),
-                results.etaSquared.toFixed(3)
+                results.pValue < 0.001 ? '< 0.001' : (results.pValue || 0).toFixed(3),
+                (results.etaSquared || 0).toFixed(3)
             ]];
 
             autoTable(doc, {
                 ...commonTableOptions,
                 startY: yPos,
                 head: headers,
-                body: data,
-                headStyles: { fillColor: [30, 58, 138] as any, fontStyle: 'bold' as any }
+                body: data
             });
             yPos = (doc as any).lastAutoTable.finalY + 15;
 
-            // Group Means
             if (results.groupMeans) {
-                checkPageBreak(40);
-                doc.text('Group Means:', 15, yPos);
-                yPos += 5;
-                const hMeans = [['Group', 'Mean']];
-                const dMeans = columns.map((col, i) => [col, results.groupMeans[i]?.toFixed(3) || '-']);
-                if (results.grandMean) dMeans.push(['Grand Mean', results.grandMean.toFixed(3)]);
-
-                autoTable(doc, { ...commonTableOptions, startY: yPos, head: hMeans, body: dMeans });
+                checkPageBreak(50);
+                doc.setFont('NotoSans', 'bold');
+                doc.text('Giá trị trung bình theo nhóm (Group Means)', 15, yPos);
+                yPos += 7;
+                const hMeans = [['Tên Nhóm', 'Trung bình (Mean)']];
+                const dMeans = (columns.length > 0 ? columns : Array(results.groupMeans.length).fill(0).map((_, i) => `Nhóm ${i+1}`)).map((col, i) => [col, results.groupMeans[i]?.toFixed(3) || '-']);
+                
+                autoTable(doc, { ...commonTableOptions, startY: yPos, head: hMeans, body: dMeans, tableWidth: 120 });
                 yPos = (doc as any).lastAutoTable.finalY + 15;
             }
 
-            // Academic Interpretation for ANOVA
             checkPageBreak(50);
             doc.setFillColor(248, 250, 252);
-            doc.rect(15, yPos, 180, 45, 'F');
-            doc.setDrawColor(30, 58, 138); 
-            doc.line(15, yPos, 15, yPos + 45);
-            
-            yPos += 10;
+            doc.roundedRect(15, yPos, 180, 40, 1, 1, 'F');
             doc.setFont('NotoSans', 'bold');
             doc.setFontSize(10);
             doc.setTextColor(30, 58, 138);
-            doc.text('NHẬN ĐỊNH HỌC THUẬT (ACADEMIC INTERPRETATION)', 20, yPos);
-            
-            yPos += 8;
+            doc.text('NHẬN ĐỊNH HỌC THUẬT ANOVA', 20, yPos + 10);
             doc.setFont('NotoSans', 'normal');
-            doc.setFontSize(9);
-            doc.setTextColor(50, 50, 50);
-            
+            doc.setFontSize(8.5);
+            doc.setTextColor(51, 65, 85);
             const isSigA = results.pValue < 0.05;
-            const aText = isSigA 
-                ? `Kết quả ANOVA cho thấy có sự khác biệt có ý nghĩa thống kê (Sig < 0.05) ít nhất giữa một cặp nhóm.` 
-                : `Kết quả ANOVA cho thấy KHÔNG có sự khác biệt có ý nghĩa thống kê (Sig > 0.05) giữa các nhóm.`;
-            
-            const etaText = `Chỉ số Eta Squared (${results.etaSquared.toFixed(3)}) cho biết mức độ giải thích của biến phân loại đối với biến phụ thuộc.`;
-            
-            doc.text([aText, etaText], 20, yPos, { maxWidth: 170 });
-            yPos += 20;
-            
-            doc.setFont('NotoSans', 'italic');
-            doc.setFontSize(8);
-            doc.setTextColor(100);
-            doc.text('* Gợi ý: Nếu Sig < 0.05, hãy xem xét kết quả Post-hoc (Tukey/Games-Howell) để xác định cụ thể cặp nhóm có sự khác biệt.', 20, yPos);
-            
-            doc.setTextColor(0);
-            doc.setFont('NotoSans', 'normal');
-            doc.setFontSize(10);
-            yPos += 15;
+            const interpretA = `Mô hình ANOVA cho thấy ${isSigA ? 'CÓ' : 'KHÔNG CÓ'} sự khác biệt có ý nghĩa thống kê giữa các nhóm (p = ${results.pValue < 0.001 ? '< 0.001' : results.pValue.toFixed(3)}). Mức độ ảnh hưởng (Eta Squared) là ${(results.etaSquared * 100).toFixed(1)}%.`;
+            doc.text(doc.splitTextToSize(interpretA, 170), 20, yPos + 18);
+            yPos += 50;
         }
         else if (analysisType === 'chisquare') {
-            doc.text('Chi-Square Test (Independence):', 15, yPos);
+            doc.setFont('NotoSans', 'bold');
+            doc.setFontSize(12);
+            doc.text('KIỂM ĐỊNH KHI BÌNH PHƯƠNG (CHI-SQUARE INDEPENDENCE)', 15, yPos);
             yPos += 10;
 
-            doc.text(`Chi-Square: ${results.chiSquare.toFixed(3)}`, 15, yPos);
-            yPos += 7;
-            doc.text(`df: ${results.df}`, 15, yPos);
-            yPos += 7;
-            doc.text(`p-value: ${results.pValue < 0.001 ? '< .001' : results.pValue.toFixed(3)}`, 15, yPos);
-            yPos += 10;
+            const headers = [['Chỉ số', 'Giá trị', 'Bậc tự do (df)', 'Sig.', "Cramer's V"]];
+            const data = [[
+                'Pearson Chi-Square',
+                (results.chiSquare || 0).toFixed(3),
+                results.df || 0,
+                results.pValue < 0.001 ? '< 0.001' : (results.pValue || 0).toFixed(3),
+                (results.cramersV || 0).toFixed(3)
+            ]];
 
-            doc.text(`Cramer\'s V: ${results.cramersV.toFixed(3)}`, 15, yPos);
-            yPos += 15;
+            autoTable(doc, {
+                ...commonTableOptions,
+                startY: yPos,
+                head: headers,
+                body: data
+            });
+            yPos = (doc as any).lastAutoTable.finalY + 15;
         }
         else if (analysisType === 'mann-whitney') {
-            doc.text('Mann-Whitney U Test:', 15, yPos);
+            doc.setFont('NotoSans', 'bold');
+            doc.text('KIỂM ĐỊNH PHI THAM SỐ MANN-WHITNEY U', 15, yPos);
             yPos += 10;
 
-            doc.text(`U Statistic: ${results.uStatistic.toFixed(2)}`, 15, yPos);
-            yPos += 7;
-            doc.text(`p-value: ${results.pValue < 0.001 ? '< .001' : results.pValue.toFixed(3)}`, 15, yPos);
-            yPos += 7;
-            if (results.effectSize) {
-                doc.text(`Effect Size (r): ${results.effectSize.toFixed(3)}`, 15, yPos);
-                yPos += 15;
-            }
+            const headers = [['Chỉ số U', 'Sig. (p-value)', 'Quy mô tác động (r)']];
+            const data = [[
+                (results.uStatistic || 0).toFixed(2),
+                results.pValue < 0.001 ? '< 0.001' : (results.pValue || 0).toFixed(3),
+                (results.effectSize || 0).toFixed(3)
+            ]];
+
+            autoTable(doc, { ...commonTableOptions, startY: yPos, head: headers, body: data, tableWidth: 150 });
+            yPos = (doc as any).lastAutoTable.finalY + 15;
         }
         else if (analysisType === 'regression') {
             const { modelFit, coefficients, equation } = results;
 
+            doc.setFont('NotoSans', 'bold');
             doc.setFontSize(10);
-            doc.text(`Equation: ${equation}`, 15, yPos, { maxWidth: 180 });
+            doc.text(`Phương trình hồi quy: ${equation}`, 15, yPos, { maxWidth: 180 });
             yPos += 15;
 
-            checkPageBreak();
-            doc.text(`R Square: ${modelFit.rSquared.toFixed(3)} | Adj R Square: ${modelFit.adjRSquared.toFixed(3)}`, 15, yPos);
-            yPos += 7;
-            doc.text(`F: ${modelFit.fStatistic.toFixed(2)} | Sig: ${modelFit.pValue < 0.001 ? '< .001' : modelFit.pValue.toFixed(3)}`, 15, yPos);
-            yPos += 10;
+            const fitHeaders = [['R Square', 'Adj. R Square', 'Chỉ số F', 'Sig. (ANOVA)']];
+            const fitData = [[
+                (modelFit.rSquared || 0).toFixed(3),
+                (modelFit.adjRSquared || 0).toFixed(3),
+                (modelFit.fStatistic || 0).toFixed(2),
+                modelFit.pValue < 0.001 ? '< 0.001' : (modelFit.pValue || 0).toFixed(3)
+            ]];
 
-            const headers = [['Variable', 'B', 'Std. Error', 't', 'Sig.', 'VIF']];
+            autoTable(doc, {
+                ...commonTableOptions,
+                startY: yPos,
+                head: fitHeaders,
+                body: fitData,
+                tableWidth: 160
+            });
+            yPos = (doc as any).lastAutoTable.finalY + 15;
+
+            checkPageBreak(60);
+            doc.setFont('NotoSans', 'bold');
+            doc.text('Hệ số hồi quy (Regression Coefficients)', 15, yPos);
+            yPos += 7;
+
+            const headers = [['Biến độc lập', 'B (Chưa chuẩn hóa)', 'Beta (Chuẩn hóa)', 'Giá trị t', 'Sig.', 'VIF']];
             const data = coefficients.map((c: any) => [
                 c.term,
-                c.estimate.toFixed(3),
-                c.stdError.toFixed(3),
-                c.tValue.toFixed(3),
-                c.pValue < 0.001 ? '< .001' : c.pValue.toFixed(3),
+                (c.estimate || 0).toFixed(3),
+                (c.beta || 0).toFixed(3),
+                (c.tValue || 0).toFixed(3),
+                c.pValue < 0.001 ? '< 0.001' : (c.pValue || 0).toFixed(3),
                 c.vif ? c.vif.toFixed(3) : '-'
             ]);
 
@@ -557,116 +543,102 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
                 ...commonTableOptions,
                 startY: yPos,
                 head: headers,
-                body: data,
-                headStyles: { 
-                    fillColor: [30, 58, 138] as [number, number, number], 
-                    textColor: [255, 255, 255] as [number, number, number],
-                    fontStyle: 'bold' as any 
-                }
-            });
-            yPos = (doc as any).lastAutoTable.finalY + 15;
-
-            // Academic Interpretation for Regression
-            checkPageBreak(60);
-            doc.setFillColor(241, 245, 249);
-            doc.roundedRect(15, yPos, 180, 55, 1, 1, 'F');
-            
-            doc.setFont('NotoSans', 'bold');
-            doc.setFontSize(10);
-            doc.setTextColor(30, 58, 138);
-            doc.text('TỔNG KẾT VÀ NHẬN ĐỊNH MÔ HÌNH (MODEL INTERPRETATION)', 20, yPos + 10);
-            
-            doc.setFont('NotoSans', 'normal');
-            doc.setFontSize(8.5);
-            doc.setTextColor(51, 65, 85);
-            
-            const r2 = modelFit.rSquared;
-            const fSig = modelFit.pValue;
-            const isModelFit = fSig < 0.05;
-            
-            let regressionInterpret = `1. Độ phù hợp: Mô hình có R² = ${r2.toFixed(3)}, cho thấy các biến độc lập giải thích được ${(r2 * 100).toFixed(1)}% sự biến thiên của biến phụ thuộc. `;
-            regressionInterpret += isModelFit 
-                ? `Kiểm định F có Sig. = ${fSig < 0.001 ? '< 0.001' : fSig.toFixed(3)}, nhỏ hơn 0.05, cho thấy mô hình hồi quy xây dựng được là phù hợp với tập dữ liệu. `
-                : `CẢNH BÁO: Kiểm định F không có ý nghĩa thống kê (Sig. > 0.05), mô hình có thể không có giá trị dự báo. `;
-            
-            // Multicollinearity check
-            const highVif = coefficients.filter((c: any) => c.vif > 10);
-            const vifText = highVif.length > 0 
-                ? `\n2. Đa cộng tuyến: Phát hiện ${highVif.length} biến có hệ số VIF > 10 (${highVif.map((c: any) => c.term).join(', ')}), cần xem xét loại bỏ để tránh sai số.` 
-                : `\n2. Đa cộng tuyến: Tất cả các hệ số VIF đều nằm trong ngưỡng an toàn (< 10, đa số < 2), cho thấy không có hiện tượng đa cộng tuyến nghiêm trọng.`;
-            
-            const splitInter = doc.splitTextToSize(regressionInterpret + vifText, 170);
-            doc.text(splitInter, 20, yPos + 18);
-            
             yPos += 65;
         }
         else if (analysisType === 'efa') {
-            doc.text(`KMO: ${results.kmo.toFixed(3)}`, 15, yPos);
-            yPos += 7;
-            doc.text(`Bartlett Sig: ${results.bartlettP < 0.001 ? '< .001' : results.bartlettP.toFixed(3)}`, 15, yPos);
+            doc.setFont('NotoSans', 'bold');
+            doc.setFontSize(12);
+            doc.text('PHÂN TÍCH NHÂN TỐ KHÁM PHÁ (EFA REPORT)', 15, yPos);
             yPos += 10;
 
-            if (results.eigenvalues) {
-                const evInfo = results.eigenvalues.slice(0, 8).map((e: number, i: number) => `F${i + 1}: ${e.toFixed(2)}`).join(', ');
-                doc.text(`Eigenvalues: ${evInfo}...`, 15, yPos);
-                yPos += 10;
-            }
+            const kmoHeaders = [['Chỉ số', 'Giá trị', 'Đánh giá']];
+            const kmo = results.kmo || 0;
+            const kmoEval = kmo >= 0.8 ? 'Rất tốt' : kmo >= 0.6 ? 'Đạt yêu cầu' : 'Kém';
+            const kmoData = [
+                ['Hệ số KMO (Kaiser-Meyer-Olkin)', kmo.toFixed(3), kmoEval],
+                ['Kiểm định Bartlett (p-value)', results.bartlettP < 0.001 ? '< 0.001' : results.bartlettP.toFixed(3), results.bartlettP < 0.05 ? 'Có ý nghĩa' : 'Không đạt']
+            ];
+
+            autoTable(doc, {
+                ...commonTableOptions,
+                startY: yPos,
+                head: kmoHeaders,
+                body: kmoData,
+                tableWidth: 120
+            });
+            yPos = (doc as any).lastAutoTable.finalY + 15;
 
             if (results.loadings) {
-                const headers = [['Variable', ...Array(results.loadings[0].length).fill(0).map((_, i) => `Factor ${i + 1}`)]];
+                checkPageBreak(60);
+                doc.setFont('NotoSans', 'bold');
+                doc.text('Ma trận xoay nhân tố (Rotated Factor Matrix)', 15, yPos);
+                yPos += 7;
+
+                const nFac = results.loadings[0].length;
+                const headers = [['Biến quan sát', ...Array(nFac).fill(0).map((_, i) => `F${i + 1}`)]];
                 const data = results.loadings.map((row: number[], i: number) => {
-                    return [`Var ${i + 1} (${columns[i] || ''})`, ...row.map(v => v.toFixed(3))];
+                    return [columns[i] || `Biến ${i + 1}`, ...row.map(v => v.toFixed(3))];
                 });
 
                 autoTable(doc, {
                     ...commonTableOptions,
                     startY: yPos,
                     head: headers,
-                    body: data
+                    body: data,
+                    styles: { fontSize: 8, font: 'NotoSans' }
                 });
                 yPos = (doc as any).lastAutoTable.finalY + 15;
             }
+
+            checkPageBreak(30);
+            doc.setFont('NotoSans', 'normal');
+            doc.setFontSize(9);
+            doc.setTextColor(100);
+            doc.text(`* Phương pháp trích: Principal Axis Factoring | Phép xoay: ${results.rotation || 'Varimax'}`, 15, yPos);
+            yPos += 15;
         }
-        else if (analysisType === 'cfa' || analysisType === 'sem') {
+        else if (analysisType === 'sem' || analysisType === 'cfa') {
             const { fitMeasures, estimates } = results;
 
             if (fitMeasures) {
-                checkPageBreak();
-                doc.text('Model Fit Indices:', 15, yPos);
-                yPos += 5;
+                doc.setFont('NotoSans', 'bold');
+                doc.setFontSize(12);
+                doc.text('CHỈ SỐ PHÙ HỢP MÔ HÌNH (MODEL FIT INDICES)', 15, yPos);
+                yPos += 8;
 
-                const fitHeaders = [['Index', 'Value']];
-                const fitOrder = ['chisq', 'df', 'pvalue', 'cfi', 'tli', 'rmsea', 'srmr'];
-                const fitLabels: any = { chisq: 'Chi-square', df: 'df', pvalue: 'P-value', cfi: 'CFI', tli: 'TLI', rmsea: 'RMSEA', srmr: 'SRMR' };
-
-                const fitData = fitOrder.map(key => [fitLabels[key], fitMeasures[key]?.toFixed(3) || '-']);
+                const fitHeaders = [['Chỉ số', 'Giá trị', 'Ngưỡng chấp nhận', 'Đánh giá']];
+                const fitData = [
+                    ['Chi-square / df', (fitMeasures.chisq / fitMeasures.df).toFixed(3), '< 3.0', (fitMeasures.chisq / fitMeasures.df) < 3 ? 'Rất tốt' : 'Đạt'],
+                    ['CFI (Comparative Fit Index)', fitMeasures.cfi.toFixed(3), '> 0.90', fitMeasures.cfi >= 0.9 ? 'Đạt' : 'Kém'],
+                    ['TLI (Tucker-Lewis Index)', fitMeasures.tli.toFixed(3), '> 0.90', fitMeasures.tli >= 0.9 ? 'Đạt' : 'Kém'],
+                    ['RMSEA', fitMeasures.rmsea.toFixed(3), '< 0.08', fitMeasures.rmsea <= 0.08 ? 'Đạt' : 'Kém'],
+                    ['SRMR', fitMeasures.srmr.toFixed(3), '< 0.08', fitMeasures.srmr <= 0.08 ? 'Đạt' : 'Kém']
+                ];
 
                 autoTable(doc, {
                     ...commonTableOptions,
                     startY: yPos,
                     head: fitHeaders,
-                    body: fitData,
-                    theme: 'plain',
-                    tableWidth: 80
+                    body: fitData
                 });
                 yPos = (doc as any).lastAutoTable.finalY + 15;
             }
 
             if (estimates) {
-                checkPageBreak();
-                doc.text('Parameter Estimates:', 15, yPos);
-                yPos += 5;
+                checkPageBreak(60);
+                doc.setFont('NotoSans', 'bold');
+                doc.text('BẢNG THAM SỐ ƯỚC LƯỢNG (PARAMETER ESTIMATES)', 15, yPos);
+                yPos += 7;
 
-                const estHeaders = [['LHS', 'Op', 'RHS', 'Est', 'Std.Err', 'z', 'P(>|z|)', 'Std.All']];
+                const estHeaders = [['Vế trái', 'Quan hệ', 'Vế phải', 'Hệ số', 'Sai số', 'P-value', 'Chuẩn hóa']];
                 const estData = estimates.map((e: any) => [
                     e.lhs,
-                    e.op,
+                    e.op === '=~' ? 'Đo lường' : e.op === '~' ? 'Tác động' : 'Tương quan',
                     e.rhs,
                     e.est.toFixed(3),
                     e.se.toFixed(3),
-                    e.z.toFixed(3),
-                    e.pvalue < 0.001 ? '< .001' : e.pvalue.toFixed(3),
-                    e.std_all.toFixed(3)
+                    e.pvalue < 0.001 ? '< 0.001' : e.pvalue.toFixed(3),
+                    (e.std || 0).toFixed(3)
                 ]);
 
                 autoTable(doc, {
@@ -674,8 +646,7 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
                     startY: yPos,
                     head: estHeaders,
                     body: estData,
-                    headStyles: { fillColor: [100, 100, 100] as any, fontStyle: 'bold' as any },
-                    styles: { fontSize: 8, font: 'NotoSans' }
+                    styles: { fontSize: 7.5, font: 'NotoSans' }
                 });
                 yPos = (doc as any).lastAutoTable.finalY + 15;
             }

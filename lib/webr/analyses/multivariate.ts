@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Multivariate Analysis Modules - Template-Driven
  */
 import { WEBR_TIMEOUTS, getTimeoutForMethod } from '../constants';
@@ -77,14 +77,15 @@ export async function runClusterAnalysis(
 
 /**
  * Run Two-Way ANOVA
+ * csvData layout: col0 = dependent variable (y), col1 = factor 1 (coded), col2 = factor 2 (coded)
  */
 export async function runTwoWayANOVA(
     y: number[],
     f1: string[],
     f2: string[],
-    f1Name: string,
-    f2Name: string,
-    yName: string
+    f1Name: string = "Factor1",
+    f2Name: string = "Factor2",
+    yName: string = "Dependent"
 ): Promise<{
     table: {
         source: string;
@@ -93,37 +94,64 @@ export async function runTwoWayANOVA(
         ms: number;
         f: number;
         p: number;
+        etaPartial: number;
     }[];
     rCode: string;
 }> {
     await loadPackagesForMethod('anova');
 
+    // Encode string factors to numeric indices for raw_data transfer
+    const distinctF1 = Array.from(new Set(f1));
+    const distinctF2 = Array.from(new Set(f2));
+    
+    const encodedData: number[][] = y.map((val, i) => [
+        val,
+        distinctF1.indexOf(f1[i]) + 1,
+        distinctF2.indexOf(f2[i]) + 1
+    ]);
+
     const defaultRCode = `
-    y <- c({{y}});
-    f1 <- factor(c({{f1}}));
-    f2 <- factor(c({{f2}}));
-    mod <- aov(y ~ f1 * f2);
+    y_vals <- raw_data[,1];
+    f1_vals <- factor(raw_data[,2], labels = c({{f1_labels}}));
+    f2_vals <- factor(raw_data[,3], labels = c({{f2_labels}}));
+    
+    # Model with interaction
+    mod <- aov(y_vals ~ f1_vals * f2_vals);
     res <- summary(mod)[[1]];
+    
+    # Calculate Partial Eta Squared: SS_effect / (SS_effect + SS_error)
+    ss_error <- res[nrow(res), "Sum Sq"];
+    eta_p <- res[, "Sum Sq"] / (res[, "Sum Sq"] + ss_error);
+    
+    sources <- rownames(res);
+    # Translate common R names to Vietnamese
+    sources <- gsub("f1_vals", "{{f1_name}}", sources);
+    sources <- gsub("f2_vals", "{{f2_name}}", sources);
+    sources <- gsub("f1_vals:f2_vals", "Tuong tac ({{f1_name}} * {{f2_name}})", sources);
+    sources <- gsub("Residuals", "Sai so (Residuals)", sources);
+
     list(
-        sources = rownames(res),
+        sources = sources,
         df = res$Df,
         ss = res$"Sum Sq",
         ms = res$"Mean Sq",
         f = res$"F value",
-        p = res$"Pr(>F)"
+        p = res$"Pr(>F)",
+        eta_p = eta_p
     );
     `;
 
-    const f1Str = f1.map(v => `"${v}"`).join(',');
-    const f2Str = f2.map(v => `"${v}"`).join(',');
+    const f1Labels = distinctF1.map(l => `"${l}"`).join(',');
+    const f2Labels = distinctF2.map(l => `"${l}"`).join(',');
 
     const template = await getAnalysisRTemplate('anova2way', defaultRCode);
     const rCode = template
-        .replace(/\{\{y\}\}/g, y.join(','))
-        .replace(/\{\{f1\}\}/g, f1Str)
-        .replace(/\{\{f2\}\}/g, f2Str);
+        .replace(/\{\{f1_labels\}\}/g, f1Labels)
+        .replace(/\{\{f2_labels\}\}/g, f2Labels)
+        .replace(/\{\{f1_name\}\}/g, f1Name)
+        .replace(/\{\{f2_name\}\}/g, f2Name);
 
-    const result = await executeRWithRecovery(rCode, 'anova2way', 0, 2, WEBR_TIMEOUTS.COMPLEX);
+    const result = await executeRWithRecovery(rCode, 'anova2way', 0, 2, WEBR_TIMEOUTS.COMPLEX, encodedData);
     const getValue = parseWebRResult(result);
 
     const sources = getValue('sources') || [];
@@ -132,6 +160,7 @@ export async function runTwoWayANOVA(
     const ms = getValue('ms') || [];
     const f = getValue('f') || [];
     const p = getValue('p') || [];
+    const etaP = getValue('eta_p') || [];
 
     const table = sources.map((s: string, i: number) => ({
         source: s.trim(),
@@ -139,7 +168,8 @@ export async function runTwoWayANOVA(
         ss: ss[i] || 0,
         ms: ms[i] || 0,
         f: f[i] || 0,
-        p: p[i] || 0
+        p: p[i] || 0,
+        etaPartial: etaP[i] || 0
     }));
 
     return { table, rCode };

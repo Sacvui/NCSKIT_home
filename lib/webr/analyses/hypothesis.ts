@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Hypothesis Testing Modules - Fully Template-Driven
  *
  * Data passing strategy:
@@ -241,39 +241,56 @@ export async function runOneWayANOVA(groups: number[][]): Promise<{
     grps <- factor(raw_data[,2]);
     mod <- aov(vals ~ grps);
     res <- summary(mod)[[1]];
-    ssb <- res[1, "Sum Sq"]; ssw <- res[2, "Sum Sq"];
-    msb <- res[1, "Mean Sq"]; msw <- res[2, "Mean Sq"];
+    
+    # Assumption Check: Homogeneity of Variance (Levene-like)
     m_meds <- tapply(vals, grps, median);
     devs <- vals - m_meds[as.numeric(grps)];
     lev_p <- summary(aov(abs(devs) ~ grps))[[1]][1, "Pr(>F)"];
+    
     if (lev_p < 0.05) {
+        # Heteroscedasticity -> Welch ANOVA + Games-Howell
         w_res <- oneway.test(vals ~ grps, var.equal = FALSE);
         f_val <- w_res$statistic; df_b <- w_res$parameter[1]; df_w <- w_res$parameter[2]; p_val <- w_res$p.value;
-        method <- "Welch ANOVA";
+        method <- "Welch ANOVA (Vi pham dong nhat phuong sai)";
+        
         means <- tapply(vals, grps, mean); vars <- tapply(vals, grps, var); ns <- tapply(vals, grps, length);
         k <- length(levels(grps)); comb <- combn(k, 2);
         c_names <- c(); c_diffs <- c(); c_p <- c();
+        
         for(i in 1:ncol(comb)) {
             idx1 <- comb[1,i]; idx2 <- comb[2,i];
-            md <- means[idx1]-means[idx2]; se <- sqrt(vars[idx1]/ns[idx1] + vars[idx2]/ns[idx2]);
-            df_gh <- (vars[idx1]/ns[idx1] + vars[idx2]/ns[idx2])^2 / ((vars[idx1]/ns[idx1])^2/(ns[idx1]-1) + (vars[idx2]/ns[idx2])^2/(ns[idx2]-1));
+            md <- means[idx1]-means[idx2]; 
+            se <- sqrt(vars[idx1]/ns[idx1] + vars[idx2]/ns[idx2]);
+            df_gh <- (vars[idx1]/ns[idx1] + vars[idx2]/ns[idx2])^2 / 
+                     ((vars[idx1]/ns[idx1])^2/(ns[idx1]-1) + (vars[idx2]/ns[idx2])^2/(ns[idx2]-1));
             q <- abs(md)/se * sqrt(2);
-            c_names <- c(c_names, paste0(levels(grps)[idx1], "-", levels(grps)[idx2]));
-            c_diffs <- c(c_diffs, md); c_p <- c(c_p, ptukey(q, k, df_gh, lower.tail=FALSE));
+            c_names <- c(c_names, paste0(levels(grps)[idx1], " vs ", levels(grps)[idx2]));
+            c_diffs <- c(c_diffs, md); 
+            c_p <- c(c_p, ptukey(q, k, df_gh, lower.tail=FALSE));
         }
-        warn <- "Phuong sai khong dong nhat (Welch/GH).";
+        warn <- "Chu y: Phuong sai khong dong nhat, su dung Welch ANOVA va Games-Howell.";
     } else {
+        # Homoscedasticity -> Classic ANOVA + Tukey HSD
         f_val <- res[1, "F value"]; df_b <- res[1, "Df"]; df_w <- res[2, "Df"]; p_val <- res[1, "Pr(>F)"];
-        method <- "Classic ANOVA";
-        tk <- TukeyHSD(mod)$grps;
-        c_names <- rownames(tk); c_diffs <- tk[,"diff"]; c_p <- tk[,"p adj"];
-        warn <- "Phuong sai dong nhat (Tukey).";
+        method <- "Classic ANOVA (Phuong sai dong nhat)";
+        tk <- TukeyHSD(mod);
+        tk_res <- tk[[1]]; # Access first element of list
+        c_names <- rownames(tk_res); 
+        c_diffs <- tk_res[,"diff"]; 
+        c_p <- tk_res[,"p adj"];
+        warn <- "Gia thuyet phuong sai dong nhat duoc dam bao. Su dung Tukey HSD.";
     }
-    sh_res_p <- tryCatch({ if(nrow(mod$model) >= 3) shapiro.test(residuals(mod))$p.value else NA }, error = function(e) NA);
+    
+    # Normality of residuals
+    sh_res_p <- tryCatch({ if(length(residuals(mod)) >= 3) shapiro.test(residuals(mod))$p.value else NA }, error = function(e) NA);
+    ssb <- res[1, "Sum Sq"]; ssw <- res[2, "Sum Sq"];
+    
     list(
-        f = f_val, df_b = df_b, df_w = df_w, p = p_val, ssb = ssb, ssw = ssw, msb = msb, msw = msw,
-        means = as.numeric(tapply(vals, grps, mean)), grand = mean(vals), eta = ssb/(ssb+ssw),
-        lev_p = lev_p, sh_p = sh_res_p, method = method, warn = warn,
+        f = f_val, df_b = df_b, df_w = df_w, p = p_val, ssb = ssb, ssw = ssw, 
+        msb = res[1, "Mean Sq"], msw = res[2, "Mean Sq"],
+        means = as.numeric(tapply(vals, grps, mean)), grand = mean(vals), 
+        eta = ssb/(ssb+ssw), lev_p = lev_p, sh_p = sh_res_p, 
+        method = method, warn = warn,
         comp_names = c_names, comp_diffs = c_diffs, comp_p = c_p
     );
     `;

@@ -33,7 +33,8 @@ export async function runLavaanAnalysis(data: number[][], columns: string[], mod
     colnames(df) <- c({{columns}});
     mod_str <- "{{model}}";
     fit <- tryCatch({
-        sem(model = mod_str, data = df, std.lv = TRUE);
+        # Using missing = "fiml" to handle NA data professionally
+        sem(model = mod_str, data = df, std.lv = TRUE, missing = "fiml");
     }, error = function(e) { stop(paste("Lavaan Error:", e$message)) });
     
     fm <- fitMeasures(fit);

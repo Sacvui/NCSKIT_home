@@ -925,19 +925,22 @@ function AnalyzeContent() {
             )}
 
 
-            <Header
-                user={user}
-                profile={userProfile}
-                hideNav={false}
-            />
+            {/* Header - Hidden on mobile during active analysis to save space */}
+            <div className={step !== 'upload' ? 'hidden md:block' : ''}>
+                <Header
+                    user={user}
+                    profile={userProfile}
+                    hideNav={false}
+                />
+            </div>
 
             {/* Dedicated Analysis Control Bar - Sits below Header */}
-            <div className="sticky top-16 z-30 bg-blue-900 border-b border-blue-800 py-3 shadow-xl">
-                <div className="container mx-auto px-4 md:px-6 flex flex-wrap items-center justify-between gap-3 md:gap-4">
-                    <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2 pr-3 md:pr-4 border-r border-blue-800">
-                            <BarChart3 className="w-5 h-5 text-blue-400" />
-                            <span className="font-black text-[10px] text-white uppercase tracking-widest hidden md:inline">
+            <div className={`sticky top-0 md:top-16 z-30 bg-blue-900 border-b border-blue-800 py-2 md:py-3 shadow-xl transition-all`}>
+                <div className="container mx-auto px-4 md:px-6 flex items-center justify-between gap-2 md:gap-4">
+                    <div className="flex items-center gap-2 md:gap-3">
+                        <div className="flex items-center gap-2 pr-2 md:pr-4 border-r border-blue-800">
+                            <BarChart3 className="w-4 h-4 md:w-5 md:h-5 text-blue-400" />
+                            <span className="font-black text-[9px] md:text-[10px] text-white uppercase tracking-widest hidden sm:inline">
                                 Academic Engine
                             </span>
                         </div>
@@ -972,9 +975,9 @@ function AnalyzeContent() {
                 </div>
             </div>
 
-            {/* Progress Steps */}
-            <div className="container mx-auto px-4 md:px-6 py-4 md:py-8">
-                <div className="flex items-center justify-center gap-2 md:gap-4 mb-4 md:mb-8">
+            {/* Progress Steps - Scrollable on Mobile */}
+            <div className="container mx-auto px-2 md:px-6 py-4 md:py-8 overflow-x-auto no-scrollbar">
+                <div className="flex items-center justify-center gap-2 md:gap-4 mb-2 md:mb-8 min-w-max px-4">
                     {['upload', 'profile', 'analyze', 'results'].map((s, idx) => {
                         const stepOrder = ['upload', 'profile', 'analyze', 'results'];
 
@@ -1302,20 +1305,20 @@ function AnalyzeContent() {
                                 </div>
                             )}
 
-                            {/* Action Buttons */}
-                            <div className="flex gap-4 justify-center">
+                            {/* Action Buttons - Desktop Layout */}
+                            <div className="hidden md:flex gap-4 justify-center py-6">
                                 <button
                                     onClick={() => {
                                         setResults(null);
                                         setStep('analyze');
                                     }}
-                                    className="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold rounded-lg transition-colors"
+                                    className="px-6 py-3 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-xl transition-all shadow-sm active:scale-95"
                                 >
                                     {t(locale, 'analyze.results.back')}
                                 </button>
                                 <button
                                     onClick={handleExportPDF}
-                                    className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors flex items-center gap-2 shadow-sm"
+                                    className="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-emerald-200 active:scale-95"
                                 >
                                     <FileText className="w-5 h-5" />
                                     {t(locale, 'analyze.results.exportPdf')}
@@ -1323,7 +1326,7 @@ function AnalyzeContent() {
                                 <div className="relative group">
                                     <button
                                         disabled
-                                        className="px-6 py-3 bg-blue-400 text-white font-semibold rounded-lg flex items-center gap-2 cursor-not-allowed opacity-70"
+                                        className="px-6 py-3 bg-slate-200 text-slate-400 font-bold rounded-xl flex items-center gap-2 cursor-not-allowed opacity-70"
                                     >
                                         <FileText className="w-5 h-5" />
                                         {t(locale, 'analyze.results.exportWord')}
@@ -1340,9 +1343,42 @@ function AnalyzeContent() {
                                         setResults(null);
                                         setMultipleResults([]);
                                     }}
-                                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors"
+                                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-200 active:scale-95"
                                 >
                                     {t(locale, 'analyze.results.newAnalysis')}
+                                </button>
+                            </div>
+
+                            {/* Mobile Action Bar - Sticky Bottom */}
+                            <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200 p-4 flex gap-3 z-50 shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)]">
+                                <button
+                                    onClick={() => {
+                                        setResults(null);
+                                        setStep('analyze');
+                                    }}
+                                    className="flex-1 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl active:bg-slate-200"
+                                >
+                                    {t(locale, 'analyze.results.back')}
+                                </button>
+                                <button
+                                    onClick={handleExportPDF}
+                                    className="flex-[2] py-3 bg-emerald-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-100 flex items-center justify-center gap-2 active:bg-emerald-700"
+                                >
+                                    <FileText className="w-5 h-5" />
+                                    PDF
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setStep('upload');
+                                        setData([]);
+                                        setProfile(null);
+                                        setResults(null);
+                                        setMultipleResults([]);
+                                    }}
+                                    className="p-3 bg-blue-100 text-blue-600 font-bold rounded-xl active:bg-blue-200"
+                                    title={t(locale, 'analyze.results.newAnalysis')}
+                                >
+                                    <RotateCcw className="w-5 h-5" />
                                 </button>
                             </div>
                         </div>

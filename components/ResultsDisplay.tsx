@@ -130,24 +130,27 @@ export function ResultsDisplay({
     return (
         <div 
             id="analysis-results-container" 
-            className={`space-y-8 ${isFullscreen ? 'fixed inset-0 z-[100] bg-slate-50 p-2 md:p-6 overflow-y-auto w-full h-full' : ''}`}
+            className={`space-y-6 md:space-y-8 ${isFullscreen ? 'fixed inset-0 z-[100] bg-slate-50 p-3 md:p-6 overflow-y-auto w-full h-full' : ''}`}
         >
             {/* Contextual Header for Fullscreen Mode */}
             {isFullscreen ? (
-                <div className="flex justify-between items-center sticky top-0 bg-slate-50/90 backdrop-blur pb-4 pt-2 z-10 border-b border-slate-200 mb-6 px-1">
-                    <h2 className="text-lg font-bold text-slate-800">Kết quả phân tích</h2>
+                <div className="flex justify-between items-center sticky top-0 bg-slate-50/95 backdrop-blur-sm pb-4 pt-2 z-10 border-b border-slate-200 mb-6">
+                    <div className="flex flex-col">
+                        <h2 className="text-sm md:text-lg font-black text-blue-900 uppercase tracking-tight">Kết quả chi tiết</h2>
+                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest italic">NCSKit Academic Engine</span>
+                    </div>
                     <button 
                         onClick={() => setIsFullscreen(false)}
-                        className="flex items-center gap-2 px-3 py-2 bg-indigo-600 border border-indigo-700 rounded-lg shadow font-medium text-white hover:bg-indigo-700 transition"
+                        className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl shadow-lg font-bold text-xs md:text-sm active:scale-95 transition-all"
                     >
-                        <Minimize2 className="w-4 h-4" /> Thu nhỏ
+                        <Minimize2 className="w-4 h-4" /> Đóng
                     </button>
                 </div>
             ) : (
-                <div className="flex justify-end mb-[-1rem]">
+                <div className="flex justify-end mb-[-1.5rem] md:mb-[-1rem]">
                     <button 
                         onClick={() => setIsFullscreen(true)}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-white border border-slate-200 rounded-lg shadow-sm hover:bg-slate-50 text-slate-700 text-sm font-medium relative z-10 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 md:px-3 md:py-1.5 bg-blue-50 text-blue-700 border border-blue-100 rounded-xl shadow-sm hover:bg-blue-100 font-bold text-xs relative z-10 transition-all active:scale-95"
                         title="Hiển thị full bảng"
                     >
                         <Maximize2 className="w-4 h-4" /> Xem toàn màn hình
