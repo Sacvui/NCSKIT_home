@@ -322,21 +322,21 @@ export default function ArticleClient({ initialArticle, fallbackArticles, slug }
                                 ))}
                             </div>
 
-                            <div className="bg-slate-900 p-12 md:p-20 rounded-[5rem] text-white mt-32 relative overflow-hidden shadow-3xl border border-white/10">
-                                <ShieldCheck className="absolute top-0 right-0 w-80 h-80 opacity-5 -mr-20 -mt-20 rotate-12" />
+                            <div className="bg-slate-900 p-8 md:p-12 rounded-[3rem] text-white mt-24 relative overflow-hidden shadow-2xl border border-white/10">
+                                <ShieldCheck className="absolute top-0 right-0 w-64 h-64 opacity-5 -mr-16 -mt-16 rotate-12" />
                                 <div className="relative z-10">
-                                    <h4 className="text-2xl font-black text-indigo-400 uppercase tracking-[0.4em] mb-12 flex items-center gap-5">
-                                        <ShieldCheck className="w-12 h-12" /> ncsStat Expert Strategy
+                                    <h4 className="text-sm font-black text-indigo-400 uppercase tracking-[0.4em] mb-8 flex items-center gap-3">
+                                        <ShieldCheck className="w-5 h-5" /> Expert Strategy
                                     </h4>
                                     {isEditing ? (
-                                        <textarea className="w-full bg-white/10 p-10 rounded-[2.5rem] outline-none text-2xl font-light text-white leading-relaxed border-2 border-white/10" value={isVi ? editedArticle.expert_tip_vi : editedArticle.expert_tip_en} onChange={(e) => setEditedArticle({...editedArticle, [isVi ? 'expert_tip_vi' : 'expert_tip_en']: e.target.value})} />
+                                        <textarea className="w-full bg-white/10 p-6 rounded-2xl outline-none text-lg font-light text-white leading-relaxed border-2 border-white/10" value={isVi ? editedArticle.expert_tip_vi : editedArticle.expert_tip_en} onChange={(e) => setEditedArticle({...editedArticle, [isVi ? 'expert_tip_vi' : 'expert_tip_en']: e.target.value})} />
                                     ) : (
-                                        <p className="text-2xl md:text-4xl italic font-light text-slate-300 leading-relaxed mb-16 border-l-4 border-indigo-500/30 pl-12">
+                                        <p className="text-lg md:text-xl italic font-light text-slate-300 leading-relaxed mb-10 border-l-2 border-indigo-500/30 pl-8">
                                             "{isVi ? displayArticle.expert_tip_vi : displayArticle.expert_tip_en}"
                                         </p>
                                     )}
-                                    <Link href="/analyze" className="inline-flex items-center gap-5 px-14 py-7 bg-indigo-600 text-white rounded-[2.5rem] font-black text-sm uppercase tracking-[0.2em] hover:bg-slate-800 transition-all shadow-3xl shadow-indigo-500/30 group">
-                                        Bắt đầu phân tích ngay <TrendingUp className="w-7 h-7 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                                    <Link href="/analyze" className="inline-flex items-center gap-3 px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-slate-800 transition-all shadow-xl shadow-indigo-500/20 group">
+                                        {isVi ? 'Bắt đầu phân tích ngay' : 'Analyze Now'} <TrendingUp className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                                     </Link>
                                 </div>
                             </div>

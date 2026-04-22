@@ -240,31 +240,31 @@ export default function KnowledgeBase() {
       
       <main className="pt-32 pb-24">
         {/* Hero Section */}
-        <div className="container mx-auto px-6 mb-16">
+        <div className="container mx-auto px-6 mb-8">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-600 rounded-full mb-8 border border-indigo-100 shadow-sm">
-              <ShieldCheck className="w-4 h-4" />
-              <span className="text-[10px] uppercase font-black tracking-widest">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-50 text-indigo-600 rounded-full mb-6 border border-indigo-100 shadow-sm">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span className="text-[9px] uppercase font-black tracking-widest">
                 {isVi ? 'Kiến thức Chuyên sâu' : 'Expert Knowledge Hub'}
               </span>
             </div>
-            <h1 className="text-5xl md:text-7xl font-black text-slate-900 mb-8 tracking-tighter leading-[0.95]">
+            <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-6 tracking-tighter leading-[0.95]">
               {isVi ? 'Học viện Thống kê' : 'Statistics Academy'}
-              <span className="text-indigo-600 block">ncsStat.</span>
+              <span className="text-indigo-600 inline-block ml-3">ncsStat.</span>
             </h1>
-            <p className="text-xl text-slate-500 font-medium mb-12 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-lg text-slate-500 font-medium mb-10 max-w-2xl mx-auto leading-relaxed">
               {isVi 
-                ? 'Thư viện hướng dẫn phân tích dữ liệu chuyên nghiệp, chuẩn hóa theo các tiêu chuẩn học thuật Scopus và ISI.' 
-                : 'Professional data analysis guides, standardized for Scopus and ISI academic requirements.'}
+                ? 'Thư viện hướng dẫn phân tích dữ liệu chuyên nghiệp chuẩn Scopus/ISI.' 
+                : 'Professional data analysis guides for Scopus/ISI requirements.'}
             </p>
             
             {/* Search Bar */}
-            <div className="relative max-w-2xl mx-auto group">
-              <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
+            <div className="relative max-w-xl mx-auto group">
+              <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-indigo-600 transition-colors" />
               <input 
                 type="text"
-                placeholder={isVi ? "Tìm kiếm phép kiểm định hoặc hướng dẫn..." : "Search for tests or guides..."}
-                className="w-full pl-16 pr-8 py-6 bg-white border-2 border-slate-100 rounded-[2rem] text-slate-900 font-bold text-lg focus:outline-none focus:border-indigo-600 focus:ring-4 focus:ring-indigo-50 transition-all shadow-xl shadow-slate-200/50"
+                placeholder={isVi ? "Tìm kiếm hướng dẫn..." : "Search guides..."}
+                className="w-full pl-14 pr-6 py-4 bg-white border-2 border-slate-100 rounded-2xl text-slate-900 font-bold text-base focus:outline-none focus:border-indigo-600 focus:ring-4 focus:ring-indigo-50 transition-all shadow-lg shadow-slate-200/50"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
@@ -273,42 +273,42 @@ export default function KnowledgeBase() {
         </div>
 
         {/* Dashboard Stats Bar */}
-        <div className="container mx-auto px-6 max-w-7xl mb-12">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
-              <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center">
-                <Layers className="w-6 h-6 text-indigo-600" />
+        <div className="container mx-auto px-6 max-w-7xl mb-10">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3">
+              <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center shrink-0">
+                <Layers className="w-5 h-5 text-indigo-600" />
               </div>
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{isVi ? 'Tổng bài viết' : 'Total Articles'}</p>
-                <p className="text-2xl font-black text-slate-900">{articles.length}</p>
+                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{isVi ? 'Bài viết' : 'Articles'}</p>
+                <p className="text-xl font-black text-slate-900 leading-none">{articles.length}</p>
               </div>
             </div>
-            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
-              <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center">
-                <ShieldCheck className="w-6 h-6 text-emerald-600" />
+            <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3">
+              <div className="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-5 h-5 text-emerald-600" />
               </div>
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{isVi ? 'Độ tin cậy' : 'Reliability'}</p>
-                <p className="text-2xl font-black text-slate-900">100%</p>
+                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{isVi ? 'Độ tin cậy' : 'Reliability'}</p>
+                <p className="text-xl font-black text-slate-900 leading-none">100%</p>
               </div>
             </div>
-            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
-              <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center">
-                <Zap className="w-6 h-6 text-amber-600" />
+            <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3">
+              <div className="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center shrink-0">
+                <Zap className="w-5 h-5 text-amber-600" />
               </div>
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{isVi ? 'Lượt xem tháng' : 'Monthly Views'}</p>
-                <p className="text-2xl font-black text-slate-900">12.5K</p>
+                <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{isVi ? 'Lượt xem' : 'Views'}</p>
+                <p className="text-xl font-black text-slate-900 leading-none">12.5K</p>
               </div>
             </div>
-            <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
-              <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center">
-                <Activity className="w-6 h-6 text-white" />
+            <div className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3">
+              <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shrink-0">
+                <Activity className="w-5 h-5 text-white" />
               </div>
               <div>
-                <p className="text-[10px] font-black text-white/60 uppercase tracking-widest">{isVi ? 'Trạng thái' : 'Status'}</p>
-                <p className="text-2xl font-black text-white">Live</p>
+                <p className="text-[8px] font-black text-white/60 uppercase tracking-widest leading-none mb-1">{isVi ? 'Trạng thái' : 'Status'}</p>
+                <p className="text-xl font-black text-white leading-none">Live</p>
               </div>
             </div>
           </div>
