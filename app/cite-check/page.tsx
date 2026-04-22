@@ -159,15 +159,25 @@ export default function CiteCheckPage() {
                 rec: isVi ? "Tài liệu này không được trích dẫn trong bài." : "This entry is not cited in text."
             }));
 
+        // --- Step 5: Final Analytics Calculation ---
+        const apiInvalidCount = verificationResults.filter(v => v.conclusion === 'INVALID').length;
+        
+        // Final Matched count = Present in both AND Valid via API
+        const finalMatchedCount = inTextCitations.filter(cite => 
+            refs.some(ref => ref.toLowerCase().includes(cite.author.toLowerCase())) &&
+            !verificationResults.some(v => v.ref.toLowerCase().includes(cite.author.toLowerCase()) && v.conclusion === 'INVALID')
+        ).length;
+
         setAnalysisResult({
             ghostCitations,
             deadRefs,
-            matchCount: inTextCitations.length - ghostCitations.length,
+            matchCount: finalMatchedCount,
             totalCitations: inTextCitations.length,
             totalRefs: refs.length,
             doiIssues: verificationResults.filter(v => v.conclusion === 'INVALID').map(v => ({ doi: v.ref, rec: v.note })),
-            missingDoi: verificationResults.length,
-            verificationResults // New detailed results
+            missingDoi: verificationResults.filter(r => !r.ref.match(doiRegex)).length,
+            verificationResults,
+            accuracyErrors: apiInvalidCount
         });
         
         setIsAnalyzing(false);
@@ -328,23 +338,27 @@ export default function CiteCheckPage() {
                         <div className="mt-20 space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
                             {/* Summary Cards */}
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                                <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl">
+                                <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl group hover:border-indigo-500 transition-all">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Integrity Score</p>
                                     <div className="text-4xl font-black text-indigo-600 tracking-tighter">
                                         {analysisResult.totalCitations > 0 ? Math.round((analysisResult.matchCount / analysisResult.totalCitations) * 100) : 0}%
                                     </div>
+                                    <p className="text-[10px] text-slate-400 mt-2 font-medium">Overall reliability</p>
                                 </div>
-                                <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Matched</p>
+                                <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl group hover:border-emerald-500 transition-all">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Perfect Matches</p>
                                     <div className="text-4xl font-black text-emerald-500 tracking-tighter">{analysisResult.matchCount}</div>
+                                    <p className="text-[10px] text-slate-400 mt-2 font-medium">Cited & API Validated</p>
                                 </div>
-                                <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Ghost Citations</p>
+                                <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl group hover:border-rose-500 transition-all">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Missing (Ghost)</p>
                                     <div className="text-4xl font-black text-rose-500 tracking-tighter">{analysisResult.ghostCitations.length}</div>
+                                    <p className="text-[10px] text-slate-400 mt-2 font-medium">Not in References</p>
                                 </div>
-                                <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Unused Refs</p>
-                                    <div className="text-4xl font-black text-amber-500 tracking-tighter">{analysisResult.deadRefs.length}</div>
+                                <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl group hover:border-amber-500 transition-all">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Data Errors</p>
+                                    <div className="text-4xl font-black text-amber-500 tracking-tighter">{analysisResult.accuracyErrors || 0}</div>
+                                    <p className="text-[10px] text-slate-400 mt-2 font-medium">Invalid via API</p>
                                 </div>
                             </div>
 
