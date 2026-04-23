@@ -398,6 +398,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
                              if (selectedCols.length < 3) return showToast('Chọn ít nhất 3 biến', 'error');
 
                              setIsAnalyzing(true);
+                             setAnalysisType('efa');
                              try {
                                  const res = await runEFA(data.map(row => selectedCols.map(c => Number(row[c]) || 0)), nfactors, rotation);
                                  setResults({ type: 'efa', data: res, columns: selectedCols });
@@ -424,6 +425,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
                 columns={columns}
                 onRunCFA={async (syntax, factors) => {
                     setIsAnalyzing(true);
+                    setAnalysisType('cfa');
                     try {
                         const neededCols = Array.from(new Set(factors.flatMap((f: any) => f.indicators)));
                         const result = await runCFA(data.map(row => (neededCols as string[]).map(c => Number(row[c]) || 0)), neededCols as string[], syntax);
@@ -445,6 +447,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
                 columns={columns}
                 onRunSEM={async (syntax, factors) => {
                     setIsAnalyzing(true);
+                    setAnalysisType('sem');
                     try {
                         const neededCols = Array.from(new Set(factors.flatMap((f: any) => f.indicators)));
                         const result = await runSEM(data.map(row => (neededCols as string[]).map(c => Number(row[c]) || 0)), neededCols as string[], syntax);
