@@ -64,7 +64,7 @@ export default function AdminKnowledgePage() {
                 expert_tip_vi: '',
                 expert_tip_en: '',
                 content_structure: [
-                    { h2_vi: '', h2_en: '', content_vi: '', content_en: '' }
+                    { h2_vi: '', h2_en: '', content_vi: '', content_en: '', is_html: false }
                 ]
             })
         }
@@ -94,7 +94,7 @@ export default function AdminKnowledgePage() {
         setIsSubmitting(false)
     }
 
-    const updateContentPart = (index: number, field: string, value: string) => {
+    const updateContentPart = (index: number, field: string, value: string | boolean) => {
         const newStructure = [...(editingArticle?.content_structure || [])]
         newStructure[index] = { ...newStructure[index], [field]: value }
         setEditingArticle(prev => ({ ...prev, content_structure: newStructure }))
@@ -103,7 +103,7 @@ export default function AdminKnowledgePage() {
     const addContentPart = () => {
         setEditingArticle(prev => ({
             ...prev,
-            content_structure: [...(prev?.content_structure || []), { h2_vi: '', h2_en: '', content_vi: '', content_en: '' }]
+            content_structure: [...(prev?.content_structure || []), { h2_vi: '', h2_en: '', content_vi: '', content_en: '', is_html: false }]
         }))
     }
 
@@ -372,6 +372,15 @@ export default function AdminKnowledgePage() {
                                             <div className="absolute -left-4 top-10 w-10 h-10 rounded-2xl bg-slate-900 text-white flex items-center justify-center font-black shadow-xl">
                                                 {idx + 1}
                                             </div>
+                                            <div className="absolute top-10 right-36 opacity-0 group-hover:opacity-100 transition-all z-10">
+                                                <button
+                                                    onClick={() => updateContentPart(idx, 'is_html', part.is_html ? false : true)}
+                                                    className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${part.is_html ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+                                                    title="Chuyển đổi giao diện nhập HTML"
+                                                >
+                                                    {part.is_html ? '</> HTML MODE' : '📝 NORMAL'}
+                                                </button>
+                                            </div>
                                             <div className="grid md:grid-cols-2 gap-8">
                                                 <div className="space-y-2">
                                                     <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Tiêu đề Mục (VI)</label>
@@ -398,9 +407,9 @@ export default function AdminKnowledgePage() {
                                                     <textarea
                                                         value={part.content_vi || ''}
                                                         onChange={(e) => updateContentPart(idx, 'content_vi', e.target.value)}
-                                                        rows={6}
-                                                        className="w-full p-6 bg-slate-50 border border-slate-100 rounded-[2rem] outline-none text-sm leading-relaxed text-slate-700 transition-all focus:bg-white focus:ring-4 focus:ring-blue-500/5"
-                                                        placeholder="Nhập nội dung học thuật (hỗ trợ Markdown)..."
+                                                        rows={10}
+                                                        className={`w-full p-6 border rounded-[2rem] outline-none text-sm leading-relaxed transition-all focus:ring-4 focus:ring-blue-500/10 ${part.is_html ? 'bg-slate-900 border-slate-800 text-emerald-400 font-mono focus:bg-slate-900' : 'bg-slate-50 border-slate-100 text-slate-700 focus:bg-white'}`}
+                                                        placeholder={part.is_html ? "<div class=\"grid grid-cols-2 gap-4\">\n  <div>Cột 1</div>\n  <div>Cột 2</div>\n</div>" : "Nhập nội dung học thuật..."}
                                                     />
                                                 </div>
                                                 <div className="space-y-2">
@@ -408,9 +417,9 @@ export default function AdminKnowledgePage() {
                                                     <textarea
                                                         value={part.content_en || ''}
                                                         onChange={(e) => updateContentPart(idx, 'content_en', e.target.value)}
-                                                        rows={6}
-                                                        className="w-full p-6 bg-slate-50 border border-slate-100 rounded-[2rem] outline-none text-sm leading-relaxed text-slate-500 transition-all focus:bg-white focus:ring-4 focus:ring-blue-500/5"
-                                                        placeholder="Scientific content in English..."
+                                                        rows={10}
+                                                        className={`w-full p-6 border rounded-[2rem] outline-none text-sm leading-relaxed transition-all focus:ring-4 focus:ring-blue-500/10 ${part.is_html ? 'bg-slate-900 border-slate-800 text-emerald-400 font-mono focus:bg-slate-900' : 'bg-slate-50 border-slate-100 text-slate-700 focus:bg-white'}`}
+                                                        placeholder={part.is_html ? "<div class=\"grid grid-cols-2 gap-4\">\n  <div>Column 1</div>\n  <div>Column 2</div>\n</div>" : "Scientific content in English..."}
                                                     />
                                                 </div>
                                             </div>

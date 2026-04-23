@@ -16,7 +16,7 @@ import ContentSEOEvaluationCard from '@/components/knowledge/ContentSEOEvaluatio
 const supabase = getSupabase();
 
 interface ArticleSection {
-    h2_vi: string; h2_en: string; content_vi: string; content_en: string;
+    h2_vi: string; h2_en: string; content_vi: string; content_en: string; is_html?: boolean;
 }
 
 interface ArticleData {
@@ -305,12 +305,19 @@ export default function ArticleClient({ initialArticle, fallbackArticles, slug }
                                                 </h2>
                                                 
                                                 {/* Editorial Content Flow */}
-                                                <div className={`text-xl md:text-2xl leading-[1.85] text-slate-600 font-normal space-y-8 ${idx === 0 ? 'first-letter:text-7xl first-letter:font-black first-letter:mr-3 first-letter:float-left first-letter:text-indigo-600 first-letter:mt-2' : ''}`}>
-                                                    {/* Split content by newlines to create natural paragraphs */}
-                                                    {(isVi ? section.content_vi : section.content_en).split('\n').map((para, pIdx) => (
-                                                        para.trim() && <p key={pIdx} className="mb-6">{para.trim()}</p>
-                                                    ))}
-                                                </div>
+                                                {section.is_html ? (
+                                                    <div 
+                                                        className="text-xl md:text-2xl leading-[1.85] text-slate-600 font-normal space-y-8 html-content-container"
+                                                        dangerouslySetInnerHTML={{ __html: isVi ? section.content_vi : section.content_en }} 
+                                                    />
+                                                ) : (
+                                                    <div className={`text-xl md:text-2xl leading-[1.85] text-slate-600 font-normal space-y-8 ${idx === 0 && !section.is_html ? 'first-letter:text-7xl first-letter:font-black first-letter:mr-3 first-letter:float-left first-letter:text-indigo-600 first-letter:mt-2' : ''}`}>
+                                                        {/* Split content by newlines to create natural paragraphs */}
+                                                        {(isVi ? section.content_vi : section.content_en).split('\n').map((para, pIdx) => (
+                                                            para.trim() && <p key={pIdx} className="mb-6">{para.trim()}</p>
+                                                        ))}
+                                                    </div>
+                                                )}
                                                 
                                                 {/* Contextual Accent for key sections */}
                                                 {idx % 2 === 0 && (
