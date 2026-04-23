@@ -47,6 +47,7 @@ supabase/.temp/
 # WebR Binaries (Large files, generated/copied during setup)
 /public/webr_core/
 /public/webr_core_v3/
-/public/webr_repo_v3/
+# NOTE: /public/webr_repo_v3/ MUST be committed - these R packages are required at runtime
+# and cannot be downloaded from external CDNs due to CSP restrictions on Vercel.
 
 scripts/qwen-consultant.mjs
