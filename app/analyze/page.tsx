@@ -77,7 +77,7 @@ function AnalyzeContent() {
     useEffect(() => {
         setIsClient(true);
     }, []);
-    const [locale, setLocale] = useState<Locale>(getStoredLocale());
+    const [locale, setLocale] = useState<Locale>('vi');
     const isVi = locale === 'vi';
 
     // Sync locale with storage
@@ -1155,7 +1155,7 @@ function AnalyzeContent() {
                     )}
 
                     {/* Reliability & Factor Analysis */}
-                    {['cronbach-select', 'cronbach-batch-select', 'omega-select', 'efa-select', 'cfa-select', 'sem-select'].includes(step) && (
+                    {['cronbach-select', 'cronbach-batch-select', 'omega-select', 'efa-select', 'cfa-select', 'sem-select', 'pls-sem-select'].includes(step) && (
                         <ReliabilityView
                             step={step}
                             data={data}

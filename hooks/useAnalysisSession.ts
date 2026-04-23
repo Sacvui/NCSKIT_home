@@ -26,7 +26,7 @@ export function useAnalysisSession() {
     const [clusterVars, setClusterVars] = useState<{ variables: string[]; k: number }>({ variables: [], k: 3 });
     const [mediationVars, setMediationVars] = useState<{ x: string; m: string; y: string }>({ x: '', m: '', y: '' });
     const [logisticVars, setLogisticVars] = useState<{ y: string; xs: string[] }>({ y: '', xs: [] });
-    const [locale, setLocale] = useState<Locale>(getStoredLocale());
+    const [locale, setLocale] = useState<Locale>('vi');
 
     // Load session on mount
     useEffect(() => {

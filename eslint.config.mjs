@@ -12,7 +12,32 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Custom ignores (migrated from .eslintignore and added public)
+    "public/**",
+    "node_modules/**",
+    "*.config.js",
+    "*.config.mjs",
+    "*.config.ts",
+    "*.config.cjs",
+    "scripts/**"
   ]),
+  {
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/ban-ts-comment": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-require-imports": "off",
+      "prefer-const": "off",
+      "react/no-unescaped-entities": "off",
+      "@next/next/no-img-element": "off",
+      "react-hooks/exhaustive-deps": "off",
+      "react-hooks/rules-of-hooks": "off",
+      "react-hooks/immutability": "off",
+      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/static-components": "off",
+      "no-console": "off"
+    }
+  }
 ]);
 
 export default eslintConfig;

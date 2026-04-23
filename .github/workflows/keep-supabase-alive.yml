@@ -22,10 +22,9 @@ jobs:
           echo "Pinging Supabase to keep it alive..."
           
           # Ping the REST API endpoint
-          # Project URL used: https://nflmoaclnyjwuloydmmv.supabase.co
           response=$(curl -s -o /dev/null -w "%{http_code}" \
             -H "apikey: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" \
-            "https://nflmoaclnyjwuloydmmv.supabase.co/rest/v1/")
+            "${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}/rest/v1/")
           
           echo "Response code: $response"
           
@@ -38,7 +37,7 @@ jobs:
         run: |
           # Also ping the auth endpoint to ensure it's warm
           curl -s -o /dev/null \
-            "https://nflmoaclnyjwuloydmmv.supabase.co/auth/v1/health"
+            "${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}/auth/v1/health"
           echo "✅ Auth endpoint pinged"
       - name: Log timestamp
         run: |
