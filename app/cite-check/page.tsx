@@ -96,8 +96,8 @@ export default function CiteCheckPage() {
         const doiRegex = /10.\d{4,9}\/[-._;()/:A-Z0-9]+/gi;
         const verificationResults: any[] = [];
 
-        // We process top 5 refs for demonstration/speed, or all if needed
-        const refsToVerify = refs.slice(0, 10); 
+        // Increase limit to 100 for full manuscript support
+        const refsToVerify = refs.slice(0, 100); 
         
         for (let i = 0; i < refsToVerify.length; i++) {
             const ref = refsToVerify[i];
@@ -107,6 +107,12 @@ export default function CiteCheckPage() {
             addLog(isVi ? `Đang kiểm tra [${i+1}/${refsToVerify.length}]: ${ref.substring(0, 30)}...` : `Verifying [${i+1}/${refsToVerify.length}]: ${ref.substring(0, 30)}...`);
             
             try {
+                // Better extraction logic
+                const yearMatch = ref.match(/\((\d{4})\)/);
+                const extractedYear = yearMatch ? yearMatch[1] : null;
+                const authorMatch = ref.match(/^([^,.(]+)/); // Basic first author extraction
+                const extractedAuthor = authorMatch ? authorMatch[1].trim() : '';
+                
                 // Search by DOI or Title
                 const query = doi ? `https://api.crossref.org/works/${doi}` : `https://api.crossref.org/works?query.bibliographic=${encodeURIComponent(ref)}&rows=1`;
                 const res = await fetch(query);
@@ -115,28 +121,38 @@ export default function CiteCheckPage() {
 
                 if (metadata) {
                     const officialYear = metadata.issued?.['date-parts']?.[0]?.[0] || metadata.created?.['date-parts']?.[0]?.[0];
-                    const userYearMatch = ref.match(/\((\d{4})\)/);
-                    const userYear = userYearMatch ? userYearMatch[1] : null;
+                    const officialTitle = metadata.title?.[0] || '';
+                    const officialAuthor = metadata.author?.[0]?.family || metadata.author?.[0]?.name || '';
                     
                     let conclusion = 'VALID';
                     let note = isVi ? 'Thông tin khớp với cơ sở dữ liệu quốc tế.' : 'Information matches international database.';
                     
-                    if (userYear && officialYear && Math.abs(parseInt(userYear) - officialYear) > 0) {
+                    // Logic check 1: Year mismatch
+                    if (extractedYear && officialYear && Math.abs(parseInt(extractedYear) - officialYear) > 0) {
                         conclusion = 'INVALID';
-                        note = isVi ? `Năm xuất bản sai lệch (Thực tế: ${officialYear}, Bạn viết: ${userYear}).` : `Year mismatch (Official: ${officialYear}, Yours: ${userYear}).`;
+                        note = isVi 
+                            ? `Năm xuất bản sai lệch (Thực tế: ${officialYear}, Bạn viết: ${extractedYear}).` 
+                            : `Year mismatch (Official: ${officialYear}, Yours: ${extractedYear}).`;
+                    } 
+                    // Logic check 2: Author mismatch (Simple fuzzy check)
+                    else if (extractedAuthor && officialAuthor && !officialAuthor.toLowerCase().includes(extractedAuthor.toLowerCase()) && !extractedAuthor.toLowerCase().includes(officialAuthor.toLowerCase())) {
+                        conclusion = 'INVALID';
+                        note = isVi 
+                            ? `Tác giả đầu không khớp (Tìm thấy: ${officialAuthor}, Bạn viết: ${extractedAuthor}).` 
+                            : `Author mismatch (Found: ${officialAuthor}, Yours: ${extractedAuthor}).`;
                     }
 
                     verificationResults.push({
                         ref,
                         conclusion,
                         note,
-                        details: `Title: ${metadata.title?.[0]} | DOI: ${metadata.DOI}`
+                        details: `[LOG] Extracted: ${extractedAuthor} (${extractedYear}) | Fetched: ${officialAuthor} (${officialYear}) | Title: ${officialTitle.substring(0, 50)}...`
                     });
                 } else {
-                    verificationResults.push({ ref, conclusion: 'UNCERTAIN', note: isVi ? 'Không tìm thấy dữ liệu đối soát.' : 'No matching metadata found.' });
+                    verificationResults.push({ ref, conclusion: 'UNCERTAIN', note: isVi ? 'Không tìm thấy dữ liệu đối soát trên Crossref.' : 'No matching metadata found on Crossref.' });
                 }
             } catch (e) {
-                verificationResults.push({ ref, conclusion: 'ERROR', note: isVi ? 'Lỗi kết nối API.' : 'API Connection Error.' });
+                verificationResults.push({ ref, conclusion: 'ERROR', note: isVi ? 'Lỗi kết nối API hoặc dữ liệu không hợp lệ.' : 'API Connection Error or Invalid Data.' });
             }
             setProgress(60 + (i / refsToVerify.length) * 25);
         }
@@ -469,8 +485,10 @@ export default function CiteCheckPage() {
                                                     {item.note}
                                                 </p>
                                                 {item.details && (
-                                                    <div className="mt-3 pt-3 border-t border-slate-50">
-                                                        <p className="text-[9px] text-slate-400 italic leading-tight truncate">{item.details}</p>
+                                                    <div className="mt-3 pt-3 border-t border-slate-100">
+                                                        <p className="text-[10px] text-slate-500 font-mono leading-relaxed break-words bg-slate-100/50 p-2 rounded-lg border border-slate-200/50">
+                                                            {item.details}
+                                                        </p>
                                                     </div>
                                                 )}
                                             </div>
