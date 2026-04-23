@@ -340,36 +340,49 @@ export default function CiteCheckPage() {
                             {/* Summary Cards */}
                             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                                 <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl group hover:border-indigo-500 transition-all">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Integrity Score</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">{isVi ? 'Độ tin cậy trích dẫn' : 'Integrity Score'}</p>
                                     <div className="text-4xl font-black text-indigo-600 tracking-tighter">
                                         {analysisResult.totalCitations > 0 ? Math.round((analysisResult.matchCount / analysisResult.totalCitations) * 100) : 0}%
                                     </div>
-                                    <p className="text-[10px] text-slate-400 mt-2 font-medium">Overall reliability</p>
+                                    <p className="text-[10px] text-slate-400 mt-2 font-medium">{isVi ? 'Tỉ lệ khớp bài & mục lục' : 'Overall reliability'}</p>
                                 </div>
                                 <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl group hover:border-emerald-500 transition-all">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Perfect Matches</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">{isVi ? 'Trích dẫn chuẩn xác' : 'Perfect Matches'}</p>
                                     <div className="text-4xl font-black text-emerald-500 tracking-tighter">{analysisResult.matchCount}</div>
-                                    <p className="text-[10px] text-slate-400 mt-2 font-medium">Cited & API Validated</p>
+                                    <p className="text-[10px] text-slate-400 mt-2 font-medium">{isVi ? 'Khớp nội dung & Quốc tế' : 'Cited & API Validated'}</p>
                                 </div>
                                 <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl group hover:border-rose-500 transition-all">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Missing (Ghost)</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">{isVi ? 'Trích dẫn thiếu nguồn' : 'Missing (Ghost)'}</p>
                                     <div className="text-4xl font-black text-rose-500 tracking-tighter">{analysisResult.ghostCitations.length}</div>
-                                    <p className="text-[10px] text-slate-400 mt-2 font-medium">Not in References</p>
+                                    <p className="text-[10px] text-slate-400 mt-2 font-medium">{isVi ? 'Có trong bài nhưng thiếu ở mục lục' : 'Not in References'}</p>
                                 </div>
                                 <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl group hover:border-amber-500 transition-all">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Data Errors</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">{isVi ? 'Lỗi dữ liệu nguồn' : 'Data Errors'}</p>
                                     <div className="text-4xl font-black text-amber-500 tracking-tighter">{analysisResult.accuracyErrors || 0}</div>
-                                    <p className="text-[10px] text-slate-400 mt-2 font-medium">Invalid via API</p>
+                                    <p className="text-[10px] text-slate-400 mt-2 font-medium">{isVi ? 'Sai lệch thông tin quốc tế' : 'Invalid via API'}</p>
                                 </div>
                             </div>
+
+                            {isVi && analysisResult.totalCitations === 0 && (
+                                <div className="bg-indigo-600 text-white p-6 rounded-3xl flex items-center gap-4 animate-in fade-in zoom-in duration-500 shadow-2xl shadow-indigo-200">
+                                    <Info className="w-8 h-8 shrink-0" />
+                                    <div>
+                                        <p className="font-black text-sm uppercase tracking-widest">Mẹo tối ưu kiểm định:</p>
+                                        <p className="text-xs opacity-90 leading-relaxed">Bạn hiện chỉ mới dán danh mục tham khảo. Hãy dán cả <b>Nội dung bài viết (Manuscript)</b> ở ô bên trái để hệ thống đối soát các lỗi "Trích dẫn ma" và tính điểm tin cậy bài viết.</p>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Detailed Recommendations */}
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                                 {/* Ghost Citations & Recommendations */}
                                 <div className="bg-rose-50 rounded-[4rem] p-12 border border-rose-100">
-                                    <h3 className="text-2xl font-black text-rose-900 mb-8 flex items-center gap-4">
-                                        <ShieldAlert className="w-8 h-8" /> {isVi ? 'Trích dẫn chưa có trong References' : 'Missing from References'}
+                                    <h3 className="text-2xl font-black text-rose-900 mb-2 flex items-center gap-4">
+                                        <ShieldAlert className="w-8 h-8" /> {isVi ? 'Trích dẫn ma (Thiếu nguồn)' : 'Ghost Citations (Missing)'}
                                     </h3>
+                                    <p className="text-xs text-rose-700/60 mb-8 font-medium italic">
+                                        {isVi ? 'Những nguồn bạn nhắc tới trong bài nhưng không tìm thấy ở danh mục tài liệu tham khảo.' : 'Citations found in text but missing from the bibliography.'}
+                                    </p>
                                     {analysisResult.ghostCitations.length > 0 ? (
                                         <div className="space-y-6">
                                             {analysisResult.ghostCitations.map((item, i) => (
@@ -474,9 +487,12 @@ export default function CiteCheckPage() {
 
                             {/* Dead References */}
                             <div className="bg-slate-100 rounded-[4rem] p-12 border border-slate-200">
-                                <h3 className="text-2xl font-black text-slate-900 mb-8 flex items-center gap-4">
-                                    <Layers className="w-8 h-8" /> {isVi ? 'Tài liệu tham khảo chưa được trích dẫn' : 'Unused References'}
+                                <h3 className="text-2xl font-black text-slate-900 mb-2 flex items-center gap-4">
+                                    <Layers className="w-8 h-8" /> {isVi ? 'Nguồn tham khảo dư thừa' : 'Uncited References (Orphans)'}
                                 </h3>
+                                <p className="text-xs text-slate-500 mb-8 font-medium italic">
+                                    {isVi ? 'Những nguồn bạn liệt kê ở mục lục nhưng không hề nhắc tới trong bài viết. Hãy cân nhắc gỡ bỏ.' : 'Entries in your reference list that are not cited anywhere in the manuscript.'}
+                                </p>
                                 {analysisResult.deadRefs.length > 0 ? (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         {analysisResult.deadRefs.map((item, i) => (
