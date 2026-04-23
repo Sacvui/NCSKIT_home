@@ -26,8 +26,9 @@ export async function middleware(request: NextRequest) {
     */
 
     // Block HTML 404 fallbacks for WebR R binary static files
-    // If WebR fetches a missing .rds file, it chokes on the NextJS 404 HTML fallback.
-    if (request.nextUrl.pathname.includes('/webr_repo_v2/') && request.nextUrl.pathname.endsWith('.rds')) {
+    // If WebR fetches a missing file, it chokes on the NextJS 404 HTML fallback.
+    if ((request.nextUrl.pathname.includes('/webr_repo_v2/') || request.nextUrl.pathname.includes('/webr_repo_v3/')) && 
+        /\.(tgz|rds|gz)$/.test(request.nextUrl.pathname)) {
         return new NextResponse(null, { status: 404 })
     }
 
@@ -55,6 +56,6 @@ export const config = {
          * - favicon.ico (favicon file)
          * - public files (files in public folder including images)
          */
-        '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+        '/((?!_next/static|_next/image|favicon.ico|webr_repo_v3|webr_core_v3|.*\\.(?:svg|png|jpg|jpeg|gif|webp|tgz|gz|rds|wasm)$).*)',
     ],
 }
