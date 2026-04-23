@@ -121,7 +121,7 @@ export const VIFResults = React.memo(function VIFResults({
                                             </td>
                                             <td className={`py-3 px-4 text-center font-bold text-lg ${vif >= 10 ? 'text-red-600' : vif >= 5 ? 'text-yellow-600' : 'text-green-600'
                                                 }`}>
-                                                {vif.toFixed(3)}
+                                                {vif?.toFixed(3)}
                                             </td>
                                             <td className="py-3 px-4 text-center">
                                                 <div className={`inline-flex items-center gap-1 px-3 py-1 rounded-full border ${badge.color}`}>
@@ -130,7 +130,7 @@ export const VIFResults = React.memo(function VIFResults({
                                                 </div>
                                             </td>
                                             <td className="py-3 px-4 text-center text-gray-600">
-                                                {tolerance.toFixed(3)}
+                                                {tolerance?.toFixed(3)}
                                             </td>
                                         </tr>
                                     );

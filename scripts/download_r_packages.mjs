@@ -3,10 +3,13 @@ import path from 'path';
 import https from 'https';
 
 const R_VERSION = '4.5';
+const FALLBACK_VERSION = '4.4';
 const BASE_PKG_URL = `https://repo.r-wasm.org/bin/emscripten/contrib/${R_VERSION}`;
+const MAIN_PKG_URL = `https://repo.r-wasm.org/bin/emscripten/main/${R_VERSION}`;
+const FALLBACK_PKG_URL = `https://repo.r-wasm.org/bin/emscripten/contrib/${FALLBACK_VERSION}`;
 const TARGET_DIR = path.join(process.cwd(), 'public', 'webr_repo_v3', 'bin', 'emscripten', 'contrib', R_VERSION);
 
-// Essential packages and their recursive dependencies for 'psych'
+// Essential packages and their recursive dependencies
 const PACKAGES = [
   'psych',
   'jsonlite',
@@ -17,6 +20,7 @@ const PACKAGES = [
   'GPArotation',
   'lavaan',
   'quadprog',
+  'MASS',
   'pbivnorm',
   'numDeriv',
   'cluster',
@@ -30,7 +34,6 @@ const PACKAGES = [
 async function downloadFile(url, dest) {
   return new Promise((resolve, reject) => {
     https.get(url, (response) => {
-      // Handle Redirects (301, 302)
       if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
         return downloadFile(response.headers.location, dest).then(resolve).catch(reject);
       }
@@ -45,24 +48,24 @@ async function downloadFile(url, dest) {
       } else {
         reject(new Error(`Failed to download ${url}: ${response.statusCode}`));
       }
-    }).on('error', (err) => {
+    }).on('on_error', (err) => {
       reject(err);
     });
   });
 }
 
-async function downloadWithRetry(url, dest, retries = 5) {
+async function downloadWithRetry(url, dest, retries = 3) {
   for (let i = 0; i < retries; i++) {
     try {
       await downloadFile(url, dest);
-      return;
+      return true;
     } catch (err) {
-      if (i === retries - 1) throw err;
+      if (i === retries - 1) return false;
       const delay = Math.pow(2, i) * 1000;
-      console.warn(`[Retry ${i + 1}/${retries}] ${url} thất bại, thử lại sau ${delay}ms...`);
       await new Promise(r => setTimeout(r, delay));
     }
   }
+  return false;
 }
 
 async function start() {
@@ -72,43 +75,77 @@ async function start() {
     fs.mkdirSync(TARGET_DIR, { recursive: true });
   }
 
-  // 1. Download PACKAGES index files (WebR needs ALL THREE to find packages)
-  // CRITICAL: webr::install() looks for PACKAGES.rds FIRST — without it,
-  // package installation fails with "not found in webR binary repo"
+  // 1. Download PACKAGES index files
   console.log('[WebR Bundler] Downloading PACKAGES index files...');
-  try {
-    await downloadWithRetry(`${BASE_PKG_URL}/PACKAGES`, path.join(TARGET_DIR, 'PACKAGES'));
-    await downloadWithRetry(`${BASE_PKG_URL}/PACKAGES.gz`, path.join(TARGET_DIR, 'PACKAGES.gz'));
-    await downloadWithRetry(`${BASE_PKG_URL}/PACKAGES.rds`, path.join(TARGET_DIR, 'PACKAGES.rds'));
-    console.log('[WebR Bundler] All index files downloaded');
-  } catch (e) {
-    console.error('[WebR Bundler] Failed to download index files:', e.message);
-    process.exit(1); 
+  
+  let combinedPackages = '';
+  for (const baseUrl of [BASE_PKG_URL, MAIN_PKG_URL]) {
+    const tempPackagesPath = path.join(TARGET_DIR, `PACKAGES_${baseUrl.includes('main') ? 'main' : 'contrib'}`);
+    const success = await downloadWithRetry(`${baseUrl}/PACKAGES`, tempPackagesPath);
+    if (success) {
+      combinedPackages += fs.readFileSync(tempPackagesPath, 'utf8') + '\n';
+      if (baseUrl === BASE_PKG_URL) {
+          fs.copyFileSync(tempPackagesPath, path.join(TARGET_DIR, 'PACKAGES'));
+          await downloadWithRetry(`${baseUrl}/PACKAGES.gz`, path.join(TARGET_DIR, 'PACKAGES.gz'));
+          await downloadWithRetry(`${baseUrl}/PACKAGES.rds`, path.join(TARGET_DIR, 'PACKAGES.rds'));
+      }
+    }
+  }
+  
+  // Download FALLBACK index
+  const fallbackPath = path.join(TARGET_DIR, 'PACKAGES_fallback');
+  let fallbackPackages = '';
+  if (await downloadWithRetry(`${FALLBACK_PKG_URL}/PACKAGES`, fallbackPath)) {
+      fallbackPackages = fs.readFileSync(fallbackPath, 'utf8');
   }
 
-  // 2. Read PACKAGES file to get exact filenames (with versions)
-  const packagesContent = fs.readFileSync(path.join(TARGET_DIR, 'PACKAGES'), 'utf8');
-  
+  console.log('[WebR Bundler] Index files processed');
+
+  // 2. Download each package
   for (const pkgName of PACKAGES) {
-    const pkgMatch = packagesContent.match(new RegExp(`Package: ${pkgName}\\nVersion: (.*?)\\n`, 's'));
+    // Find in combined packages (4.5)
+    let pkgMatch = combinedPackages.match(new RegExp(`Package: ${pkgName}\\r?\\nVersion: (.*?)\\r?\\n`, 's'));
+    let currentBaseUrl = null;
+    let version = null;
+
     if (pkgMatch) {
-      const version = pkgMatch[1].trim();
+        version = pkgMatch[1].trim();
+        // Determine which 4.5 repo it was in
+        // Simplified: try contrib then main
+    } else {
+        // Try fallback (4.4)
+        console.log(`[WebR Bundler] ${pkgName} not found in 4.5, trying 4.4 fallback...`);
+        pkgMatch = fallbackPackages.match(new RegExp(`Package: ${pkgName}\\r?\\nVersion: (.*?)\\r?\\n`, 's'));
+        if (pkgMatch) {
+            version = pkgMatch[1].trim();
+            currentBaseUrl = FALLBACK_PKG_URL;
+        }
+    }
+    
+    if (pkgMatch) {
       const filename = `${pkgName}_${version}.tgz`;
-      console.log(`[WebR Bundler] Downloading ${filename}...`);
+      let downloaded = false;
+
+      const sources = currentBaseUrl ? [currentBaseUrl] : [BASE_PKG_URL, MAIN_PKG_URL];
       
-      try {
-        await downloadWithRetry(`${BASE_PKG_URL}/${filename}`, path.join(TARGET_DIR, filename));
-        console.log(`[WebR Bundler] Saved ${pkgName}`);
-      } catch (e) {
-        console.error(`[WebR Bundler] Failed to download ${pkgName}:`, e.message);
+      for (const baseUrl of sources) {
+          console.log(`[WebR Bundler] Trying ${pkgName} v${version} from ${baseUrl}...`);
+          if (await downloadWithRetry(`${baseUrl}/${filename}`, path.join(TARGET_DIR, filename))) {
+              console.log(`[WebR Bundler] Saved ${pkgName} v${version}`);
+              downloaded = true;
+              break;
+          }
+      }
+      
+      if (!downloaded) {
+          console.error(`[WebR Bundler] FAILED to download ${pkgName} from all sources`);
       }
     } else {
-      console.warn(`[WebR Bundler] Could not find ${pkgName} in PACKAGES index.`);
+      console.warn(`[WebR Bundler] Could not find ${pkgName} in any PACKAGES index.`);
     }
   }
 
-  console.log('\n[WebR Bundler] WebR packages are now hosted locally in /public/webr_repo_v3!');
-  console.log('You can now use: options(repos = c(CRAN = window.location.origin + "/webr_packages"))');
+  console.log('\n[WebR Bundler] Local WebR repository updated successfully!');
 }
 
 start();

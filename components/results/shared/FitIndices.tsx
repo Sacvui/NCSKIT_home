@@ -63,7 +63,7 @@ export function FitIndices({ indices, type = 'cfa' }: FitIndicesProps) {
                     <div className="text-center p-3 bg-gray-50 rounded-lg">
                         <div className="text-xs text-gray-500 uppercase mb-1">CFI</div>
                         <div className={`text-2xl font-bold ${getFitColor(indices.cfi, 'high')}`}>
-                            {indices.cfi.toFixed(3)}
+                            {indices.cfi?.toFixed(3)}
                         </div>
                         <div className="text-[10px] text-gray-400 mt-1">
                             {getInterpretation('CFI', indices.cfi)}
@@ -76,7 +76,7 @@ export function FitIndices({ indices, type = 'cfa' }: FitIndicesProps) {
                     <div className="text-center p-3 bg-gray-50 rounded-lg">
                         <div className="text-xs text-gray-500 uppercase mb-1">TLI</div>
                         <div className={`text-2xl font-bold ${getFitColor(indices.tli, 'high')}`}>
-                            {indices.tli.toFixed(3)}
+                            {indices.tli?.toFixed(3)}
                         </div>
                         <div className="text-[10px] text-gray-400 mt-1">
                             {getInterpretation('TLI', indices.tli)}
@@ -89,7 +89,7 @@ export function FitIndices({ indices, type = 'cfa' }: FitIndicesProps) {
                     <div className="text-center p-3 bg-gray-50 rounded-lg">
                         <div className="text-xs text-gray-500 uppercase mb-1">RMSEA</div>
                         <div className={`text-2xl font-bold ${getFitColor(indices.rmsea, 'low')}`}>
-                            {indices.rmsea.toFixed(3)}
+                            {indices.rmsea?.toFixed(3)}
                         </div>
                         <div className="text-[10px] text-gray-400 mt-1">
                             {getInterpretation('RMSEA', indices.rmsea)}
@@ -102,7 +102,7 @@ export function FitIndices({ indices, type = 'cfa' }: FitIndicesProps) {
                     <div className="text-center p-3 bg-gray-50 rounded-lg">
                         <div className="text-xs text-gray-500 uppercase mb-1">SRMR</div>
                         <div className={`text-2xl font-bold ${getFitColor(indices.srmr, 'low')}`}>
-                            {indices.srmr.toFixed(3)}
+                            {indices.srmr?.toFixed(3)}
                         </div>
                         <div className="text-[10px] text-gray-400 mt-1">
                             {getInterpretation('SRMR', indices.srmr)}
@@ -115,9 +115,9 @@ export function FitIndices({ indices, type = 'cfa' }: FitIndicesProps) {
             {indices.chisq !== undefined && indices.df !== undefined && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
                     <div className="text-xs text-gray-600">
-                        <span className="font-semibold">χ² Test:</span> χ²({indices.df}) = {indices.chisq.toFixed(2)}
+                        <span className="font-semibold">χ² Test:</span> χ²({indices.df}) = {indices.chisq?.toFixed(2)}
                         {indices.pvalue !== undefined && (
-                            <span>, p = {indices.pvalue.toFixed(4)}</span>
+                            <span>, p = {indices.pvalue?.toFixed(4)}</span>
                         )}
                     </div>
                 </div>

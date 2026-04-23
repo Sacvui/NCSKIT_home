@@ -66,7 +66,7 @@ export default function MGAResults({ results }: MGAResultsProps) {
                 <p className="text-sm mb-2">
                     <strong>P-value:</strong>{' '}
                     <span className={`font-bold ${p_value < 0.05 ? 'text-green-700' : 'text-yellow-700'}`}>
-                        {p_value.toFixed(4)}
+                        {p_value?.toFixed(4)}
                     </span>
                     {' '}({p_value < 0.05 ? 'p < 0.05' : 'p ≥ 0.05'})
                 </p>
@@ -114,7 +114,7 @@ export default function MGAResults({ results }: MGAResultsProps) {
                                                     isLowest ? 'text-red-700' :
                                                         'text-slate-900'
                                                 }`}>
-                                                {mean.toFixed(4)}
+                                                {mean?.toFixed(4)}
                                             </span>
                                         </td>
                                         <td className="px-4 py-3 text-center">
