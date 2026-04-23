@@ -19,6 +19,7 @@ const PACKAGES = [
   'foreign',
   'GPArotation',
   'lavaan',
+  'seminr',
   'quadprog',
   'MASS',
   'pbivnorm',
