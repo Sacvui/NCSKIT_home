@@ -42,6 +42,7 @@ export default function CiteCheckPage() {
         verificationResults: any[];
         accuracyErrors: number;
     } | null>(null);
+    const [viewMode, setViewMode] = useState<'list' | 'table'>('list');
 
     const logEndRef = useRef<HTMLDivElement>(null);
 
@@ -129,17 +130,23 @@ export default function CiteCheckPage() {
                     
                     let conclusion = 'VALID';
                     let note = isVi ? 'Thông tin khớp với cơ sở dữ liệu quốc tế.' : 'Information matches international database.';
+                    let yearStatus = 'VALID';
+                    let authorStatus = 'VALID';
+                    let titleStatus = 'VALID';
                     
                     // Logic check 1: Year mismatch
                     if (extractedYear && officialYear && Math.abs(parseInt(extractedYear) - officialYear) > 0) {
                         conclusion = 'INVALID';
+                        yearStatus = 'INVALID';
                         note = isVi 
                             ? `Năm xuất bản sai lệch (Thực tế: ${officialYear}, Bạn viết: ${extractedYear}).` 
                             : `Year mismatch (Official: ${officialYear}, Yours: ${extractedYear}).`;
                     } 
-                    // Logic check 2: Author mismatch (Simple fuzzy check)
-                    else if (extractedAuthor && officialAuthor && !officialAuthor.toLowerCase().includes(extractedAuthor.toLowerCase()) && !extractedAuthor.toLowerCase().includes(officialAuthor.toLowerCase())) {
+                    
+                    // Logic check 2: Author mismatch
+                    if (extractedAuthor && officialAuthor && !officialAuthor.toLowerCase().includes(extractedAuthor.toLowerCase()) && !extractedAuthor.toLowerCase().includes(officialAuthor.toLowerCase())) {
                         conclusion = 'INVALID';
+                        authorStatus = 'INVALID';
                         note = isVi 
                             ? `Tác giả đầu không khớp (Tìm thấy: ${officialAuthor}, Bạn viết: ${extractedAuthor}).` 
                             : `Author mismatch (Found: ${officialAuthor}, Yours: ${extractedAuthor}).`;
@@ -149,6 +156,11 @@ export default function CiteCheckPage() {
                         ref,
                         conclusion,
                         note,
+                        yearStatus,
+                        authorStatus,
+                        titleStatus,
+                        doiStatus: doi ? 'VALID' : 'MISSING',
+                        url: doi ? `https://doi.org/${doi}` : null,
                         details: `[LOG] Extracted: ${extractedAuthor} (${extractedYear}) | Fetched: ${officialAuthor} (${officialYear}) | Title: ${officialTitle.substring(0, 50)}...`
                     });
                 } else {
@@ -451,16 +463,114 @@ export default function CiteCheckPage() {
                                 </div>
                             </div>
 
-                            {/* Database Verification Results (Matches Source Logic) */}
+                            {/* Database Verification Results */}
                             <div className="bg-white rounded-[4rem] p-12 border border-slate-200 shadow-xl overflow-hidden relative">
                                 <div className="absolute top-0 right-0 p-8 opacity-10">
                                     <Database className="w-32 h-32" />
                                 </div>
-                                <h3 className="text-2xl font-black text-slate-900 mb-8 flex items-center gap-4 relative z-10">
-                                    <ShieldCheck className="w-8 h-8 text-emerald-500" /> {isVi ? 'Kết quả xác thực từ Cơ sở dữ liệu Quốc tế (Crossref)' : 'Crossref API Verification Results'}
-                                </h3>
-                                
-                                <div className="space-y-4 relative z-10">
+                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12 relative z-10">
+                                    <h3 className="text-2xl font-black text-slate-900 flex items-center gap-4">
+                                        <ShieldCheck className="w-8 h-8 text-emerald-500" /> 
+                                        {isVi ? 'Kết quả xác thực Quốc tế (Crossref)' : 'Crossref API Verification Results'}
+                                    </h3>
+                                    
+                                    <div className="flex bg-slate-100 p-1.5 rounded-2xl gap-2 shadow-inner">
+                                        <button 
+                                            onClick={() => setViewMode('list')}
+                                            className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'list' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                        >
+                                            <Layers className="w-4 h-4 inline mr-2" /> Standard List
+                                        </button>
+                                        <button 
+                                            onClick={() => setViewMode('table')}
+                                            className={`px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'table' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                                        >
+                                            <List className="w-4 h-4 inline mr-2" /> Report Table
+                                        </button>
+                                    </div>
+                                </div>
+
+                            {viewMode === 'table' && (
+                                <div className="bg-white rounded-[3rem] border border-slate-200 shadow-2xl overflow-hidden mt-8">
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left text-xs border-collapse">
+                                            <thead>
+                                                <tr className="bg-slate-900 text-white font-black uppercase tracking-widest">
+                                                    <th className="p-6 border-r border-slate-800">Reference Entry</th>
+                                                    <th className="p-6 border-r border-slate-800 text-center">Outcome</th>
+                                                    <th className="p-6 border-r border-slate-800 text-center">DOI</th>
+                                                    <th className="p-6 border-r border-slate-800 text-center">Author</th>
+                                                    <th className="p-6 border-r border-slate-800 text-center">Year</th>
+                                                    <th className="p-6 border-r border-slate-800 text-center">Title</th>
+                                                    <th className="p-6">Link</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {analysisResult.verificationResults?.map((item: any, i: number) => (
+                                                    <React.Fragment key={i}>
+                                                        <tr className={`border-b border-slate-100 transition-colors ${item.conclusion === 'INVALID' ? 'bg-rose-50/50' : 'hover:bg-slate-50'}`}>
+                                                            <td className="p-6 font-medium text-slate-800 max-w-md leading-relaxed border-r border-slate-100">
+                                                                {item.ref}
+                                                            </td>
+                                                            <td className="p-6 text-center border-r border-slate-100">
+                                                                <span className={`px-3 py-1 rounded-lg font-black text-[9px] uppercase tracking-tighter ${
+                                                                    item.conclusion === 'VALID' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                                                                }`}>
+                                                                    {item.conclusion === 'VALID' ? 'VALID' : 'CHECK'}
+                                                                </span>
+                                                            </td>
+                                                            <td className="p-6 text-center border-r border-slate-100">
+                                                                <span className={`font-black text-[9px] ${item.doiStatus === 'VALID' ? 'text-emerald-500' : 'text-slate-300'}`}>
+                                                                    {item.doiStatus}
+                                                                </span>
+                                                            </td>
+                                                            <td className="p-6 text-center border-r border-slate-100">
+                                                                <span className={`font-black text-[9px] ${item.authorStatus === 'VALID' ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                                                    {item.authorStatus}
+                                                                </span>
+                                                            </td>
+                                                            <td className="p-6 text-center border-r border-slate-100">
+                                                                <span className={`font-black text-[9px] ${item.yearStatus === 'VALID' ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                                                    {item.yearStatus}
+                                                                </span>
+                                                            </td>
+                                                            <td className="p-6 text-center border-r border-slate-100">
+                                                                <span className={`font-black text-[9px] ${item.titleStatus === 'VALID' ? 'text-emerald-500' : 'text-slate-300'}`}>
+                                                                    {item.titleStatus}
+                                                                </span>
+                                                            </td>
+                                                            <td className="p-6 text-center">
+                                                                {item.url ? (
+                                                                    <a href={item.url} target="_blank" rel="noreferrer" className="text-indigo-600 hover:text-indigo-900">
+                                                                        <Search className="w-4 h-4 mx-auto" />
+                                                                    </a>
+                                                                ) : '-'}
+                                                            </td>
+                                                        </tr>
+                                                        {item.conclusion === 'INVALID' && (
+                                                            <tr className="bg-rose-50/30 border-b border-slate-100">
+                                                                <td colSpan={7} className="p-4 px-12">
+                                                                    <div className="flex items-start gap-3 bg-white p-4 rounded-2xl border border-rose-100 shadow-sm">
+                                                                        <div className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5"></div>
+                                                                        <div>
+                                                                            <p className="text-[10px] font-black text-rose-700 uppercase tracking-widest mb-1">Issue Detected</p>
+                                                                            <p className="text-[10px] text-slate-600 font-mono leading-relaxed">{item.note}</p>
+                                                                            <p className="text-[9px] text-slate-400 font-mono mt-2 italic opacity-60">{item.details}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        )}
+                                                    </React.Fragment>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            )}
+
+                            {viewMode === 'list' && (
+                                <div className="space-y-4 relative z-10 mt-8">
                                     {analysisResult.verificationResults?.map((item: any, i: number) => (
                                         <div key={i} className="flex flex-col md:flex-row gap-4 p-6 bg-slate-50 rounded-3xl border border-slate-100 hover:bg-white hover:shadow-lg transition-all group">
                                             <div className="flex-1">
@@ -504,12 +614,20 @@ export default function CiteCheckPage() {
                                         </div>
                                     )}
                                 </div>
+                            )}
+
+                            <div className="flex justify-center pt-12 relative z-10">
+                                <button className="flex items-center gap-4 px-12 py-6 bg-slate-900 text-white rounded-[2rem] font-black text-sm uppercase tracking-[0.2em] hover:bg-indigo-600 transition-all shadow-4xl shadow-slate-200 group active:scale-95">
+                                    <Download className="w-6 h-6 group-hover:bounce" /> 
+                                    {isVi ? 'Xuất báo cáo kiểm định (PDF)' : 'Export Audit Report (PDF)'}
+                                </button>
                             </div>
+                        </div>
 
                             {/* Dead References */}
-                            <div className="bg-slate-100 rounded-[4rem] p-12 border border-slate-200">
+                            <div className="bg-slate-100 rounded-[4rem] p-12 border border-slate-200 mt-20">
                                 <h3 className="text-2xl font-black text-slate-900 mb-2 flex items-center gap-4">
-                                    <Layers className="w-8 h-8" /> {isVi ? 'Nguồn tham khảo dư thừa' : 'Uncited References (Orphans)'}
+                                    <Layers className="w-8 h-8 text-indigo-500" /> {isVi ? 'Nguồn tham khảo dư thừa' : 'Uncited References (Orphans)'}
                                 </h3>
                                 <p className="text-xs text-slate-500 mb-8 font-medium italic">
                                     {isVi ? 'Những nguồn bạn liệt kê ở mục lục nhưng không hề nhắc tới trong bài viết. Hãy cân nhắc gỡ bỏ.' : 'Entries in your reference list that are not cited anywhere in the manuscript.'}
@@ -528,12 +646,6 @@ export default function CiteCheckPage() {
                                 ) : (
                                     <p className="text-slate-500 font-bold italic opacity-60">Great! Your list is perfectly lean.</p>
                                 )}
-                            </div>
-
-                            <div className="flex justify-center pt-8">
-                                <button className="flex items-center gap-3 px-10 py-5 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-2xl">
-                                    <Download className="w-5 h-5" /> {isVi ? 'Xuất báo cáo kiểm định (PDF)' : 'Export Audit Report (PDF)'}
-                                </button>
                             </div>
                         </div>
                     )}
