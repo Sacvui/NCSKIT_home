@@ -393,24 +393,3 @@ export async function runMGA(
   return result;
 }
 
-/**
- * Blindfolding - Predictive Relevance (Q²)
- */
-export async function runBlindfolding(data: number[][], omissionDistance: number = 7): Promise<any> {
-  const rCode = `
-    data_matrix <- raw_data
-    
-    n <- nrow(data_matrix)
-    omit_indices <- seq(1, n, by=${omissionDistance})
-    
-    list(
-      omission_distance = ${omissionDistance},
-      n_omitted = length(omit_indices),
-      status = "Blindfolding procedure initiated",
-      note = "Q² > 0 indicates predictive relevance"
-    )
-  `;
-
-  const result = await executeRWithRecovery(rCode, undefined, 0, 2, 120000, data);
-  return result;
-}
