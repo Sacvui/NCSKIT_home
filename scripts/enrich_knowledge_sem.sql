@@ -41,6 +41,12 @@ VALUES (
       "h2_en": "5. Reporting SEM Results (APA 7 Standard)",
       "content_vi": "Việc trình bày kết quả SEM đòi hỏi sự tỉ mỉ. Bạn cần cung cấp Ma trận hiệp phương sai, các hệ số hồi quy chuẩn hóa, sai số chuẩn và các chỉ số phù hợp mô hình. ncsStat cung cấp tính năng xuất bảng biểu chuẩn APA giúp bạn tiết kiệm hàng giờ định dạng thủ công.",
       "content_en": "Presenting SEM results requires detail. We provide APA-standard tables for coefficients, standard errors, and fit indices."
+    },
+    {
+      "h2_vi": "6. Thế giới của PLS-SEM: Sức mạnh dự báo và Sự linh hoạt",
+      "h2_en": "6. The World of PLS-SEM: Predictive Power and Flexibility",
+      "content_vi": "Bên cạnh CB-SEM truyền thống, ncsStat tích hợp bộ máy PLS-SEM (Partial Least Squares) đẳng cấp như SmartPLS 4. PLS-SEM không dựa trên ma trận hiệp phương sai mà tập trung vào tối đa hóa biến thiên được giải thích. \n\nChúng tôi hướng dẫn bạn cách đánh giá mô hình đo lường qua HTMT, Fornell-Larcker và mô hình cấu trúc qua Bootstrapping (5000 mẫu) để lấy P-value. Đặc biệt, quy trình Blindfolding giúp bạn tính toán chỉ số Q², khẳng định giá trị dự báo thực tiễn của mô hình. Đây là công cụ không thể thiếu cho các nghiên cứu về Marketing và Quản trị kinh doanh hiện đại.",
+      "content_en": "ncsStat integrates professional PLS-SEM (seminr), offering HTMT, Fornell-Larcker, Bootstrapping, and Blindfolding (Q2) for predictive research."
     }
   ]'::jsonb
 )

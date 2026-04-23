@@ -52,6 +52,12 @@ VALUES (
       "h2_en": "7. From Drawing to Execution: Transitioning to Lavaan/SEM",
       "content_vi": "Mô hình trên giấy chỉ là một ý niệm. Để nó trở thành khoa học, bạn phải chuyển đổi nó thành các biểu thức toán học. ncsStat tự động hóa quy trình này: Sơ đồ của bạn sẽ được dịch sang ngôn ngữ `lavaan` của R. \n\nChúng tôi hướng dẫn bạn cách đọc các chỉ số Model Fit (Độ phù hợp mô hình) như RMSEA, CFI, TLI. Nếu các chỉ số này không đạt, điều đó có nghĩa là cấu trúc lý thuyết của bạn chưa khớp với thực tại dữ liệu. Đây là lúc bạn cần xem xét lại logic của các mũi tên hoặc kiểm tra lại chất lượng thang đo.",
       "content_en": "A paper model is just a concept. To make it scientific, you must convert it into mathematical expressions using ncsStat''s automation."
+    },
+    {
+      "h2_vi": "8. Ngã rẽ Quyết định: CB-SEM (Lavaan) hay PLS-SEM (SmartPLS Style)?",
+      "h2_en": "8. Decision Crossroads: CB-SEM vs. PLS-SEM",
+      "content_vi": "Đây là câu hỏi kinh điển trong giới học thuật. \n- **CB-SEM (Covariance-based)**: Ưu tiên tính chính xác của lý thuyết, đòi hỏi phân phối chuẩn và cỡ mẫu lớn. Phù hợp để kiểm định/xác nhận lý thuyết (Confirmatory). \n- **PLS-SEM (Partial Least Squares)**: Linh hoạt hơn với cỡ mẫu nhỏ, không yêu cầu phân phối chuẩn, và cực kỳ mạnh mẽ trong việc dự báo (Predictive). Phù hợp khi bạn muốn khám phá hoặc mở rộng lý thuyết hiện có. \n\nncsStat cung cấp cả hai bộ máy mạnh mẽ nhất (lavaan & seminr) để bạn không phải đánh đổi giữa tính hàn lâm và tính thực tiễn. Hãy chọn CB-SEM nếu bạn muốn ''chứng minh'' và chọn PLS-SEM nếu bạn muốn ''dự báo''.",
+      "content_en": "Choose CB-SEM (Lavaan) for theory confirmation and PLS-SEM (seminr) for predictive power and complex models with non-normal data."
     }
   ]'::jsonb
 )
