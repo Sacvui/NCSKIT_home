@@ -176,10 +176,23 @@ export async function runPLSSEM(
     pls_model <- estimate_pls(data = df, measurement_model = mm, structural_model = sm)
     summ <- summary(pls_model)
     
+    # Calculate VIF (Collinearity)
+    vif_values <- summ$vif_antecedents
+    
+    # Calculate Q-square (Predictive Relevance)
+    # Using blindfolding if available, or redundant predictive check
+    q_square <- tryCatch({
+        # Simple Q2 calculation for endogenous constructs
+        # seminr uses predict_pls for advanced out-of-sample metrics
+        # but summ$reliability already contains most info
+        summ$reliability[, "R.squared"] # Placeholder for full Q2 logic
+    }, error = function(e) NULL)
+    
     list(
       path_coefficients = summ$paths,
       r_squared = summ$reliability[, "R.squared"],
       f_squared = summ$fSquare,
+      vif = vif_values,
       loadings = summ$loadings,
       total_effects = summ$total_effects,
       validity = list(
@@ -187,7 +200,8 @@ export async function runPLSSEM(
         rho_a = summ$reliability[, "rhoA"],
         composite_reliability = summ$reliability[, "rhoC"],
         ave = summ$reliability[, "AVE"]
-      )
+      ),
+      fornell_larcker = summ$fl_criteria
     )
   `;
 
