@@ -40,6 +40,7 @@ export default function CiteCheckPage() {
         doiIssues: { doi: string; rec: string }[];
         missingDoi: number;
         verificationResults: any[];
+        accuracyErrors: number;
     } | null>(null);
 
     const logEndRef = useRef<HTMLDivElement>(null);
