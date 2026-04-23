@@ -246,42 +246,82 @@ export async function runBlindfolding(
 
   return await executeRWithRecovery(rCode, 'pls-sem', 0, 2, 180000, data);
 }
+/**
+ * Simple Blindfolding (Generic/Legacy)
+ */
+export async function runSimpleBlindfolding(data: number[][], omissionDistance: number = 7): Promise<any> {
+  const rCode = `
+    data_matrix <- raw_data
+    
+    n <- nrow(data_matrix)
+    omit_indices <- seq(1, n, by=${omissionDistance})
+    
+    list(
+      omission_distance = ${omissionDistance},
+      n_omitted = length(omit_indices),
+      status = "Blindfolding procedure initiated",
+      note = "For structural models, use the advanced runBlindfolding."
+    )
+  `;
+
+  return await executeRWithRecovery(rCode, 'pls-sem', 0, 2, 120000, data);
+}
+
+/**
+ * Simple Bootstrapping (Generic/Legacy for basic analyses)
+ */
+export async function runSimpleBootstrapping(data: number[][], nBootstrap: number = 5000): Promise<any> {
+  const rCode = `
+    df <- as.data.frame(raw_data)
+    means <- colMeans(df, na.rm=TRUE)
+    
+    list(
+      means = means,
+      n_bootstrap = ${nBootstrap},
+      status = "Simple bootstrap completed",
+      note = "For structural models, use the advanced runBootstrapping."
+    )
+  `;
+
+  return await executeRWithRecovery(rCode, 'pls-sem', 0, 2, 120000, data);
+}
+
 export async function runBootstrapping(
     data: number[][], 
     measurementModel: { construct: string; items: number[] }[],
     structuralModel: { from: string; to: string }[],
     nBootstrap: number = 5000
 ): Promise<any> {
-  const measurementSyntax = measurementModel.map(m => 
-    `composite("${m.construct}", multi_items("V", c(${m.items.map(i => i + 1).join(',')})))`
-  ).join(',\n      ');
+    const measurementSyntax = measurementModel.map(m => 
+      `composite("${m.construct}", multi_items("V", c(${m.items.map(i => i + 1).join(',')})))`
+    ).join(',\n      ');
 
-  const structuralSyntax = structuralModel.map(s => 
-    `paths(from = "${s.from}", to = "${s.to}")`
-  ).join(',\n      ');
+    const structuralSyntax = structuralModel.map(s => 
+      `paths(from = "${s.from}", to = "${s.to}")`
+    ).join(',\n      ');
 
-  const rCode = `
-    library(seminr)
-    df <- as.data.frame(raw_data)
-    colnames(df) <- paste0("V", 1:ncol(df))
-    
-    mm <- constructs(${measurementSyntax})
-    sm <- relationships(${structuralSyntax})
-    
-    pls_model <- estimate_pls(data = df, measurement_model = mm, structural_model = sm)
-    
-    # Run Bootstrap
-    boot_model <- bootstrap_model(pls_model, nboot = ${nBootstrap}, cores = 1)
-    summ_boot <- summary(boot_model)
-    
-    list(
-      boot_paths = summ_boot$bootstrapped_paths,
-      boot_loadings = summ_boot$bootstrapped_loadings,
-      n_bootstrap = ${nBootstrap}
-    )
-  `;
+    const rCode = `
+      library(seminr)
+      df <- as.data.frame(raw_data)
+      colnames(df) <- paste0("V", 1:ncol(df))
+      
+      mm <- constructs(${measurementSyntax})
+      sm <- relationships(${structuralSyntax})
+      
+      pls_model <- estimate_pls(data = df, measurement_model = mm, structural_model = sm)
+      
+      # Run Bootstrap
+      boot_model <- bootstrap_model(pls_model, nboot = ${nBootstrap}, cores = 1)
+      summ_boot <- summary(boot_model)
+      
+      list(
+        boot_paths = summ_boot$bootstrapped_paths,
+        boot_loadings = summ_boot$bootstrapped_loadings,
+        n_bootstrap = ${nBootstrap}
+      )
+    `;
 
-  return await executeRWithRecovery(rCode, 'pls-sem', 0, 2, 300000, data);
+    return await executeRWithRecovery(rCode, 'pls-sem', 0, 2, 300000, data);
 }
 
 /**

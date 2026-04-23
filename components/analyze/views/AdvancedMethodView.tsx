@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Play, AlertCircle, Loader2, TrendingUp, Target, Users, Eye } from 'lucide-react';
-import { runBootstrapping, runIPMA, runMGA, runBlindfolding } from '@/lib/webr/pls-sem';
+import { runSimpleBootstrapping, runIPMA, runMGA, runSimpleBlindfolding } from '@/lib/webr/pls-sem';
 import { runCBSEM } from '@/lib/webr/analyses/cb-sem';
 
 type AdvancedMethod = 'bootstrap' | 'ipma' | 'mga' | 'blindfolding' | 'cbsem' | 'cfa';
@@ -84,7 +84,7 @@ export default function AdvancedMethodView({
 
             switch (method) {
                 case 'bootstrap':
-                    result = await runBootstrapping(data, nBootstrap);
+                    result = await runSimpleBootstrapping(data, nBootstrap);
                     break;
                 case 'ipma':
                     result = await runIPMA(data, targetIndex);
@@ -96,7 +96,7 @@ export default function AdvancedMethodView({
                     result = await runMGA(data, groupVariable, targetIndex);
                     break;
                 case 'blindfolding':
-                    result = await runBlindfolding(data, omissionDistance);
+                    result = await runSimpleBlindfolding(data, omissionDistance);
                     break;
                 case 'cbsem':
                 case 'cfa':

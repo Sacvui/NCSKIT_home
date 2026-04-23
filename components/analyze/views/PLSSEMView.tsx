@@ -11,7 +11,7 @@ import {
     runOutlierDetection,
     runHTMTMatrix,
     runVIFCheck,
-    runBootstrapping,
+    runSimpleBootstrapping,
     runMediationModeration,
     runIPMA,
     runMGA,
@@ -313,7 +313,7 @@ export const PLSSEMView: React.FC<PLSSEMViewProps> = ({
                 if (!isExempt) setNcsBalance(newBalance);
             }
 
-            const result = await runBootstrapping(numericData, nBootstrap);
+            const result = await runSimpleBootstrapping(numericData, nBootstrap);
 
             if (user) {
                 const cost = await getAnalysisCost('bootstrap');

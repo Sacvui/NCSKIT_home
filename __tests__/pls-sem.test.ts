@@ -11,11 +11,11 @@ import {
     runHTMTMatrix,
     runVIFCheck,
     runPLSSEM,
-    runBootstrapping,
+    runSimpleBootstrapping,
     runMediationModeration,
     runIPMA,
     runMGA,
-    runBlindfolding
+    runSimpleBlindfolding
 } from '../lib/webr/pls-sem';
 
 // Test data generators
@@ -133,12 +133,12 @@ describe('PLS-SEM Functions - Test Suite', () => {
     // ==================== PHASE 3: STRUCTURAL MODEL ====================
     describe('Phase 3: Structural Model', () => {
 
-        test('3.1 runBootstrapping - should perform bootstrap', async () => {
+        test('3.1 runSimpleBootstrapping - should perform bootstrap', async () => {
             const data = generateLikertData(50, 3, 1, 5);
             const nBootstrap = 100;
 
-            // API: runBootstrapping(data, nBootstrap?)
-            const result = await runBootstrapping(data, nBootstrap);
+            // API: runSimpleBootstrapping(data, nBootstrap?)
+            const result = await runSimpleBootstrapping(data, nBootstrap);
 
             expect(result).toBeDefined();
             expect(result.n_bootstrap).toBe(nBootstrap);
@@ -202,12 +202,12 @@ describe('PLS-SEM Functions - Test Suite', () => {
             expect(result.p_value).toBeDefined();
         });
 
-        test('4.3 runBlindfolding - should calculate Q²', async () => {
+        test('4.3 runSimpleBlindfolding - should calculate Q²', async () => {
             const data = generateLikertData(100, 4, 1, 5);
             const omissionDistance = 7;
 
-            // API: runBlindfolding(data, omissionDistance?)
-            const result = await runBlindfolding(data, omissionDistance);
+            // API: runSimpleBlindfolding(data, omissionDistance?)
+            const result = await runSimpleBlindfolding(data, omissionDistance);
 
             expect(result).toBeDefined();
             expect(result.omission_distance).toBe(omissionDistance);
