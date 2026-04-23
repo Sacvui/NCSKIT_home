@@ -128,12 +128,15 @@ export const EFAResults = React.memo(function EFAResults({ results, columns, onP
             {/* Rotated Matrix Card */}
              {results.loadings && (
                 <div className="bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
-                    <div className="px-6 py-4 border-b border-blue-50 bg-slate-50/50 flex items-center justify-between">
+                     <div className="px-6 py-4 border-b border-blue-50 bg-slate-50/50 flex items-center justify-between">
                         <h3 className="text-sm font-bold text-blue-900 uppercase tracking-wider flex items-center gap-2">
                              <LayoutGrid className="w-4 h-4 text-blue-600" />
-                             {results.factorMethod === 'none' ? 'Component Matrix' : 'Rotated Pattern Matrix (Ma trận xoay)'}
+                             {results.extractionMethod === 'pca' ? 'Component Matrix (Ma trận xoay PCA)' : 'Rotated Pattern Matrix (Ma trận xoay PAF)'}
                         </h3>
-                         <span className="text-[9px] font-black bg-blue-900 text-white px-2 py-0.5 rounded uppercase tracking-tighter shadow-sm">Loadings Threshold: 0.5</span>
+                         <div className="flex gap-2">
+                            <span className="text-[9px] font-black bg-slate-200 text-slate-700 px-2 py-0.5 rounded uppercase tracking-tighter">Method: {results.extractionMethod?.toUpperCase() || 'MINRES'}</span>
+                            <span className="text-[9px] font-black bg-blue-900 text-white px-2 py-0.5 rounded uppercase tracking-tighter shadow-sm">Loadings Threshold: 0.5</span>
+                         </div>
                     </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse text-slate-700">

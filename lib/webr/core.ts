@@ -253,11 +253,14 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                             .libPaths(c('${persistentLib}', .libPaths()))
                         }
                         
-                        # Configure repos: local first, then r-wasm.org as fallback
+                        # Configure repos: local first, then r-universe, then r-wasm.org as fallback
                         local_repo <- "${localRepo}"
+                        lavaan_repo <- "https://yrosseel.r-universe.dev"
+                        seminr_repo <- "https://sem-in-r.r-universe.dev"
+                        ropensci_repo <- "https://ropensci.r-universe.dev"
                         fallback_repo <- "https://repo.r-wasm.org/"
                         
-                        options(repos = c(LOCAL = local_repo, CRAN = fallback_repo))
+                        options(repos = c(LOCAL = local_repo, LAVAAN = lavaan_repo, SEMINR = seminr_repo, ROPEN = ropensci_repo, CRAN = fallback_repo))
                         options(pkgType = "binary")
                         options(webr.repo_quiet = FALSE) # Set to FALSE to see errors in console
                         options(timeout = 60)
@@ -348,7 +351,7 @@ export async function loadPackagesForMethod(method: string): Promise<void> {
             await runLocked(async () => {
                 await webR.evalR(`
                     if (!require("${pkg}", character.only = TRUE, quietly = TRUE)) {
-                        webr::install("${pkg}", repos = c("${localRepo}", "${officialRepo}"))
+                        webr::install("${pkg}", repos = c("${localRepo}", "https://yrosseel.r-universe.dev", "https://sem-in-r.r-universe.dev", "https://ropensci.r-universe.dev", "${officialRepo}"))
                         library("${pkg}", character.only = TRUE)
                     }
                 `);

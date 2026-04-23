@@ -162,7 +162,12 @@ export async function runCronbachAlpha(
 /**
  * Run Exploratory Factor Analysis (EFA)
  */
-export async function runEFA(data: number[][], nFactors: number, rotation: string = 'varimax'): Promise<{
+export async function runEFA(
+    data: number[][], 
+    nFactors: number, 
+    rotation: string = 'varimax',
+    method: 'minres' | 'pca' | 'pa' | 'ml' = 'minres'
+): Promise<{
     kmo: number;
     bartlettP: number;
     loadings: number[][];
@@ -172,6 +177,7 @@ export async function runEFA(data: number[][], nFactors: number, rotation: strin
     nFactorsUsed: number;
     nFactorsSuggested: number;
     factorMethod: string;
+    extractionMethod: string;
     rCode: string;
 }> {
     // Lazy load required packages (needs psych and GPArotation)
@@ -180,89 +186,71 @@ export async function runEFA(data: number[][], nFactors: number, rotation: strin
     const defaultRCode = `
     library(psych)
     
-    # Clean Data (Robust approach)
+    # Clean Data
     df <- as.data.frame(raw_data)
     
-    # Remove rows with ANY missing values for functions that require complete data
-    # (KMO, fa.parallel, fa all need complete cases)
-    df_clean <- na.omit(df)
-    
-    # Check if we have enough data after cleaning
-    n_rows_total <- nrow(df)
-    n_complete <- nrow(df_clean)
-    
-    if (n_complete < 3) { 
-        stop("QuÃ¡ Ã­t dá»¯ liá»‡u hoÃ n chá»‰nh (< 3 máº«u). Vui lÃ²ng kiá»ƒm tra dá»¯ liá»‡u khuyáº¿t.") 
-    }
-    
-    # Use pairwise correlation for ALL steps to ensure consistency
-    cor_mat <- tryCatch({
-        cor(df, use = "pairwise.complete.obs")
-    }, error = function(e) {
-        # Fallback to complete cases if pairwise fails (e.g. non-numeric)
-        cor(df_clean)
-    })
+    # Use pairwise correlation for max data retention
+    cor_mat <- cor(df, use = "pairwise.complete.obs")
     
     # Validation: check if correlation matrix is positive definite
     if (any(is.na(cor_mat))) { 
-        stop("Lỗi: Dữ liệu có quá nhiều giá trị khuyết (NA) hoặc biến không đổi (constant), dẫn đến ma trận tương quan không hợp lệ.") 
+        stop("Lỗi: Dữ liệu có giá trị khuyết (NA) hoặc biến không đổi, dẫn đến ma trận tương quan không hợp lệ.") 
     }
     
     eigenvalues <- eigen(cor_mat)$values
 
-    # PARALLEL ANALYSIS (uses the robust correlation matrix)
+    # Determine n for Bartlett and stats
+    # For pairwise, we use the average N or minimum N of the pairs
+    n_obs <- nrow(na.omit(df))
+    if (n_obs < 10) n_obs <- nrow(df) # Fallback if listwise is too small
+
+    # Parallel Analysis
     n_factors_parallel <- tryCatch({
-        pa <- fa.parallel(cor_mat, n.obs = n_complete, fm = "minres", fa = "fa", plot = FALSE, n.iter = 20)
+        pa <- fa.parallel(cor_mat, n.obs = n_obs, fm = "minres", fa = "fa", plot = FALSE, n.iter = 20)
         pa$nfact
     }, error = function(e) NA)
     
     n_factors_kaiser <- sum(eigenvalues > 1)
-    if (n_factors_kaiser < 1) n_factors_kaiser <- 1
-
     n_factors_run <- {{nFactors}}
-    factor_method <- "user"
     
     if (n_factors_run <= 0) {
-        if (!is.na(n_factors_parallel) && n_factors_parallel >= 1) {
-            n_factors_run <- n_factors_parallel
-            factor_method <- "parallel"
-        } else {
-            n_factors_run <- n_factors_kaiser
-            factor_method <- "kaiser"
-        }
+        n_factors_run <- if (!is.na(n_factors_parallel)) n_factors_parallel else n_factors_kaiser
     }
     if (n_factors_run < 1) n_factors_run <- 1
 
     # KMO and Bartlett
     kmo_result <- tryCatch(KMO(cor_mat), error = function(e) list(MSA = 0))
-    bartlett_result <- tryCatch(cortest.bartlett(cor_mat, n = n_complete), error = function(e) list(p.value = 1))
+    # CRITICAL FIX: Bartlett's test needs the correct N for the correlation matrix
+    bartlett_result <- tryCatch(cortest.bartlett(cor_mat, n = n_obs), error = function(e) list(p.value = 1))
     
-    # Run EFA using the SAME correlation matrix
-    rotation_method <- "{{rotation}}"
-    # Use minres (Minimum Residual) as it's more robust and closer to SPSS results than PA in many cases
-    efa_result <- fa(cor_mat, nfactors = n_factors_run, rotate = rotation_method, fm = "minres", n.obs = n_complete)
+    # Run Factor Analysis or PCA
+    ext_method <- "{{method}}"
+    efa_result <- if (ext_method == "pca") {
+        principal(cor_mat, nfactors = n_factors_run, rotate = "{{rotation}}", n.obs = n_obs)
+    } else {
+        fa(cor_mat, nfactors = n_factors_run, rotate = "{{rotation}}", fm = ext_method, n.obs = n_obs)
+    }
 
     list(
         kmo = if (is.numeric(kmo_result$MSA)) kmo_result$MSA[1] else 0,
         bartlett_p = bartlett_result$p.value,
         loadings = efa_result$loadings,
         communalities = efa_result$communalities,
-        structure = efa_result$Structure,
+        structure = if(!is.null(efa_result$Structure)) efa_result$Structure else efa_result$loadings,
         eigenvalues = eigenvalues,
         n_factors_used = n_factors_run,
         n_factors_suggested = if(is.na(n_factors_parallel)) n_factors_kaiser else n_factors_parallel,
-        factor_method = factor_method
+        extraction_method = ext_method
     )
     `;
 
-    // Fetch customized template and render it
     const template = await getAnalysisRTemplate('efa', defaultRCode);
     const rCode = template
         .replace(/\{\{nFactors\}\}/g, String(nFactors))
-        .replace(/\{\{rotation\}\}/g, rotation);
+        .replace(/\{\{rotation\}\}/g, rotation)
+        .replace(/\{\{method\}\}/g, method);
 
     const jsResult = await executeRWithRecovery(rCode, 'efa', 0, 2, WEBR_TIMEOUTS.COMPLEX, data);
-
     const getValue = parseWebRResult(jsResult);
     const nFactorsUsed = getValue('n_factors_used')?.[0] || nFactors || 1;
 
@@ -275,10 +263,13 @@ export async function runEFA(data: number[][], nFactors: number, rotation: strin
         eigenvalues: getValue('eigenvalues') || [],
         nFactorsUsed: nFactorsUsed,
         nFactorsSuggested: getValue('n_factors_suggested')?.[0] || nFactorsUsed,
-        factorMethod: getValue('factor_method')?.[0] || 'user',
+        factorMethod: getValue('extraction_method')?.[0] || method,
+        extractionMethod: getValue('extraction_method')?.[0] || method,
         rCode
     };
 }
+
+
 
 /**
  * Run Confirmatory Factor Analysis (CFA) using lavaan emulation via psych

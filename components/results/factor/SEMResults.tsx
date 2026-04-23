@@ -115,6 +115,27 @@ export const SEMResults = React.memo(function SEMResults({ results }: SEMResults
                             </div>
                             <div className="text-[10px] font-black text-slate-500 mt-1 uppercase tracking-tighter">RMSEA &lt; 0.08 (Good)</div>
                         </div>
+                        <div className="p-5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border-2 border-slate-100 dark:border-slate-800 shadow-sm transition-all hover:border-violet-200">
+                            <div className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400 mb-2 tracking-widest">GFI</div>
+                            <div className={`text-2xl font-black ${getFitColor(fitMeasures.gfi || 0, 'high')}`}>
+                                {(fitMeasures.gfi || 0).toFixed(3)}
+                            </div>
+                            <div className="text-[10px] font-black text-slate-500 mt-1 uppercase tracking-tighter">GFI &gt; 0.9 (Good)</div>
+                        </div>
+                        <div className="p-5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border-2 border-slate-100 dark:border-slate-800 shadow-sm transition-all hover:border-violet-200">
+                            <div className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400 mb-2 tracking-widest">AGFI</div>
+                            <div className={`text-2xl font-black ${getFitColor(fitMeasures.agfi || 0, 'high')}`}>
+                                {(fitMeasures.agfi || 0).toFixed(3)}
+                            </div>
+                            <div className="text-[10px] font-black text-slate-500 mt-1 uppercase tracking-tighter">AGFI &gt; 0.8 (Good)</div>
+                        </div>
+                        <div className="p-5 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border-2 border-slate-100 dark:border-slate-800 shadow-sm transition-all hover:border-violet-200">
+                            <div className="text-[10px] font-black uppercase text-slate-600 dark:text-slate-400 mb-2 tracking-widest">NFI</div>
+                            <div className={`text-2xl font-black ${getFitColor(fitMeasures.nfi || 0, 'high')}`}>
+                                {(fitMeasures.nfi || 0).toFixed(3)}
+                            </div>
+                            <div className="text-[10px] font-black text-slate-500 mt-1 uppercase tracking-tighter">NFI &gt; 0.9 (Good)</div>
+                        </div>
                     </div>
                 </CardContent>
             </Card>

@@ -14,6 +14,9 @@ export interface SEMResult {
         chisq: number;
         df: number;
         pvalue: number;
+        gfi: number;
+        agfi: number;
+        nfi: number;
     };
     estimates: any[];
     rCode: string;
@@ -24,7 +27,12 @@ export interface SEMResult {
 /**
  * Run a true CFA or SEM using lavaan
  */
-export async function runLavaanAnalysis(data: number[][], columns: string[], model: string): Promise<SEMResult> {
+export async function runLavaanAnalysis(
+    data: number[][], 
+    columns: string[], 
+    model: string,
+    estimator: 'ML' | 'MLR' | 'MLM' | 'ULS' = 'MLR'
+): Promise<SEMResult> {
     await loadPackagesForMethod('sem');
 
     const defaultRCode = `
@@ -32,9 +40,10 @@ export async function runLavaanAnalysis(data: number[][], columns: string[], mod
     df <- as.data.frame({{data}});
     colnames(df) <- c({{columns}});
     mod_str <- "{{model}}";
+    
+    # Use robust estimator by default for Likert data
     fit <- tryCatch({
-        # Using missing = "fiml" to handle NA data professionally
-        sem(model = mod_str, data = df, std.lv = TRUE, missing = "fiml");
+        sem(model = mod_str, data = df, std.lv = TRUE, missing = "fiml", estimator = "{{estimator}}");
     }, error = function(e) { stop(paste("Lavaan Error:", e$message)) });
     
     fm <- fitMeasures(fit);
@@ -48,6 +57,9 @@ export async function runLavaanAnalysis(data: number[][], columns: string[], mod
         chisq = as.numeric(fm["chisq"]),
         df = as.numeric(fm["df"]),
         pvalue = as.numeric(fm["pvalue"]),
+        gfi = if("gfi" %in% names(fm)) as.numeric(fm["gfi"]) else 0,
+        agfi = if("agfi" %in% names(fm)) as.numeric(fm["agfi"]) else 0,
+        nfi = if("nfi" %in% names(fm)) as.numeric(fm["nfi"]) else 0,
         est_list = split(est, seq(nrow(est)))
     );
     `;
@@ -59,7 +71,8 @@ export async function runLavaanAnalysis(data: number[][], columns: string[], mod
     const rCode = template
         .replace(/\{\{data\}\}/g, 'raw_data')
         .replace(/\{\{columns\}\}/g, colNames)
-        .replace(/\{\{model\}\}/g, escapeModel);
+        .replace(/\{\{model\}\}/g, escapeModel)
+        .replace(/\{\{estimator\}\}/g, estimator);
 
     try {
         const result = await executeRWithRecovery(rCode, 'sem', 0, 2, 180000, data);
@@ -88,14 +101,17 @@ export async function runLavaanAnalysis(data: number[][], columns: string[], mod
                 srmr: getValue('srmr')?.[0] || 0,
                 chisq: getValue('chisq')?.[0] || 0,
                 df: getValue('df')?.[0] || 0,
-                pvalue: getValue('pvalue')?.[0] || 0
+                pvalue: getValue('pvalue')?.[0] || 0,
+                gfi: getValue('gfi')?.[0] || 0,
+                agfi: getValue('agfi')?.[0] || 0,
+                nfi: getValue('nfi')?.[0] || 0
             },
             estimates,
             rCode
         };
     } catch (e: any) {
         return {
-            fitMeasures: { cfi: 0, tli: 0, rmsea: 0, srmr: 0, chisq: 0, df: 0, pvalue: 0 },
+            fitMeasures: { cfi: 0, tli: 0, rmsea: 0, srmr: 0, chisq: 0, df: 0, pvalue: 0, gfi: 0, agfi: 0, nfi: 0 },
             estimates: [],
             rCode,
             error: e.message || String(e)

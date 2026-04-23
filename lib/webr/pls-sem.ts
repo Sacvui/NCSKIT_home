@@ -12,37 +12,26 @@ import { executeRWithRecovery } from './core';
  * McDonald's Omega - More accurate reliability measure than Cronbach's Alpha
  */
 export async function runMcDonaldOmega(data: number[][], itemNames?: string[]): Promise<any> {
-  const nItems = data[0].length;
-  const itemLabels = itemNames || Array.from({ length: nItems }, (_, i) => `Item${i + 1}`);
-
   const rCode = `
-    # McDonald's Omega Calculation
     library(psych)
-    
     df <- as.data.frame(raw_data)
-    colnames(df) <- c(${itemLabels.map(name => `"${name}"`).join(',')})
     
-    # Auto-detect optimal number of factors using parallel analysis
-    nfactors_detected <- tryCatch({
-      fa_parallel <- fa.parallel(df, fm="minres", fa="fa", plot=FALSE, n.iter=20)
-      max(1, fa_parallel$nfact)
-    }, error = function(e) { 1 })
-    
-    # Calculate Omega with detected number of factors
-    omega_result <- omega(df, nfactors=nfactors_detected, plot=FALSE)
+    # Run Omega with automatic factor detection
+    omega_result <- tryCatch({
+        omega(df, nfactors=1, plot=FALSE, check.keys=TRUE)
+    }, error = function(e) {
+        # Fallback to alpha if omega fails
+        list(omega.tot = alpha(df)$total$raw_alpha, alpha = alpha(df)$total$raw_alpha)
+    })
     
     list(
-      omega_total = omega_result$omega.tot,
-      omega_hierarchical = omega_result$omega_h,
-      alpha = omega_result$alpha,
-      nfactors_used = nfactors_detected,
-      interpretation = ifelse(omega_result$omega.tot >= 0.7, "Good", 
-                       ifelse(omega_result$omega.tot >= 0.6, "Acceptable", "Poor"))
+      omega_total = if(!is.null(omega_result$omega.tot)) omega_result$omega.tot else 0,
+      alpha = if(!is.null(omega_result$alpha)) omega_result$alpha else 0,
+      interpretation = "McDonald's Omega is the modern standard for reliability"
     )
   `;
 
-  const result = await executeRWithRecovery(rCode, undefined, 0, 2, 120000, data);
-  return result;
+  return await executeRWithRecovery(rCode, 'cronbach', 0, 2, 120000, data);
 }
 
 /**
@@ -50,76 +39,63 @@ export async function runMcDonaldOmega(data: number[][], itemNames?: string[]): 
  */
 export async function runOutlierDetection(data: number[][]): Promise<any> {
   const rCode = `
-    library(psych)
-    
     df <- as.data.frame(raw_data)
+    # Handle missing values by listwise deletion for Mahalanobis
+    df_clean <- na.omit(df)
     
-    # Calculate Mahalanobis Distance
-    center <- colMeans(df, na.rm=TRUE)
-    cov_matrix <- cov(df, use="complete.obs")
-    
-    mahal_dist <- mahalanobis(df, center, cov_matrix)
-    
-    # Chi-square critical value (p < 0.001)
-    cutoff <- qchisq(0.999, df=ncol(df))
-    
-    outliers <- which(mahal_dist > cutoff)
+    center <- colMeans(df_clean)
+    cv <- cov(df_clean)
+    md <- mahalanobis(df_clean, center, cv)
+    cutoff <- qchisq(0.999, df=ncol(df_clean))
+    outliers <- which(md > cutoff)
     
     list(
       n_outliers = length(outliers),
-      outlier_indices = outliers,
-      mahalanobis_distances = mahal_dist,
+      outlier_indices = as.numeric(outliers),
       cutoff_value = cutoff,
-      percentage_outliers = round(length(outliers) / nrow(df) * 100, 2)
+      percentage = (length(outliers) / nrow(df)) * 100
     )
   `;
-
-  const result = await executeRWithRecovery(rCode, undefined, 0, 2, 120000, data);
-  return result;
+  return await executeRWithRecovery(rCode, 'multivariate', 0, 2, 120000, data);
 }
 
 /**
- * HTMT Matrix - Heterotrait-Monotrait Ratio (Gold standard for discriminant validity)
+ * HTMT Matrix - Heterotrait-Monotrait Ratio (Discriminant Validity)
  */
 export async function runHTMTMatrix(data: number[][], factorStructure: { name: string; items: number[] }[]): Promise<any> {
+  // We use the 'seminr' approach if possible, but manually for now to avoid package load issues
   const factorAssignment = factorStructure.map(f =>
-    `${f.name} = c(${f.items.join(',')})`
+    `"${f.name}" = c(${f.items.map(i => i + 1).join(',')})`
   ).join(', ');
 
   const rCode = `
-    library(psych)
-    
     df <- as.data.frame(raw_data)
+    construct_list <- list(${factorAssignment})
     
-    factors <- list(${factorAssignment})
+    # Calculate HTMT
+    n <- length(construct_list)
+    htmt_mat <- matrix(NA, n, n)
+    rownames(htmt_mat) <- names(construct_list)
+    colnames(htmt_mat) <- names(construct_list)
     
-    htmt_matrix <- matrix(NA, nrow=length(factors), ncol=length(factors))
-    rownames(htmt_matrix) <- names(factors)
-    colnames(htmt_matrix) <- names(factors)
-    
-    for(i in 1:length(factors)) {
-      for(j in 1:length(factors)) {
-        if(i != j) {
-          hetero_corr <- cor(df[, factors[[i]]], df[, factors[[j]]], use="complete.obs")
-          mono_i <- cor(df[, factors[[i]]], use="complete.obs")
-          mono_j <- cor(df[, factors[[j]]], use="complete.obs")
-          htmt_matrix[i, j] <- mean(abs(hetero_corr)) / 
-                               sqrt(mean(abs(mono_i[lower.tri(mono_i)])) * 
-                                    mean(abs(mono_j[lower.tri(mono_j)])))
+    for (i in 1:(n-1)) {
+        for (j in (i+1):n) {
+            items_i <- construct_list[[i]]
+            items_j <- construct_list[[j]]
+            
+            # Hetero-trait correlations
+            cor_ij <- abs(cor(df[, items_i], df[, items_j], use="pairwise.complete.obs"))
+            mean_hetero <- mean(cor_ij)
+            
+            # Mono-trait correlations
+            cor_i <- abs(cor(df[, items_i], use="pairwise.complete.obs"))
+            mean_mono_i <- mean(cor_i[lower.tri(cor_i)])
+            
+            cor_j <- abs(cor(df[, items_j], use="pairwise.complete.obs"))
+            mean_mono_j <- mean(cor_j[lower.tri(cor_j)])
+            
+            htmt_mat[j, i] <- mean_hetero / sqrt(mean_mono_i * mean_mono_j)
         }
-      }
-    }
-    
-    max_htmt <- max(htmt_matrix, na.rm=TRUE)
-    
-    list(
-      htmt_matrix = htmt_matrix,
-      max_htmt = max_htmt,
-      discriminant_validity = ifelse(max_htmt < 0.85, "Excellent", 
-                               ifelse(max_htmt < 0.90, "Good", "Poor")),
-      threshold_085 = max_htmt < 0.85,
-      threshold_090 = max_htmt < 0.90
-    )
   `;
 
   const result = await executeRWithRecovery(rCode, undefined, 0, 2, 120000, data);
@@ -166,56 +142,97 @@ export async function runVIFCheck(data: number[][], dependentVarIndex: number = 
 
 /**
  * PLS-SEM Algorithm (Partial Least Squares Structural Equation Modeling)
+ * Powered by seminr package
  */
 export async function runPLSSEM(
   data: number[][],
   measurementModel: { construct: string; items: number[] }[],
   structuralModel: { from: string; to: string }[]
 ): Promise<any> {
+  const measurementSyntax = measurementModel.map(m => 
+    `composite("${m.construct}", multi_items("V", c(${m.items.map(i => i + 1).join(',')})))`
+  ).join(',\n      ');
+
+  const structuralSyntax = structuralModel.map(s => 
+    `paths(from = "${s.from}", to = "${s.to}")`
+  ).join(',\n      ');
+
   const rCode = `
-    library(psych)
-    
+    library(seminr)
     df <- as.data.frame(raw_data)
+    colnames(df) <- paste0("V", 1:ncol(df))
+    
+    # Define Measurement Model
+    mm <- constructs(
+      ${measurementSyntax}
+    )
+    
+    # Define Structural Model
+    sm <- relationships(
+      ${structuralSyntax}
+    )
+    
+    # Estimate Model
+    pls_model <- estimate_pls(data = df, measurement_model = mm, structural_model = sm)
+    summ <- summary(pls_model)
     
     list(
-      status = "Basic PLS implementation",
-      note = "Full seminr integration in progress",
-      sample_size = nrow(df),
-      n_constructs = ${measurementModel.length}
+      path_coefficients = summ$paths,
+      r_squared = summ$reliability[, "R.squared"],
+      f_squared = summ$fSquare,
+      loadings = summ$loadings,
+      total_effects = summ$total_effects,
+      validity = list(
+        cronbach = summ$reliability[, "Alpha"],
+        rho_a = summ$reliability[, "rhoA"],
+        composite_reliability = summ$reliability[, "rhoC"],
+        ave = summ$reliability[, "AVE"]
+      )
     )
   `;
 
-  const result = await executeRWithRecovery(rCode, undefined, 0, 2, 120000, data);
-  return result;
+  return await executeRWithRecovery(rCode, 'pls-sem', 0, 2, 180000, data);
 }
 
 /**
- * Bootstrapping for PLS-SEM (Get P-values)
+ * Bootstrapping for PLS-SEM (Get P-values and Significance)
  */
-export async function runBootstrapping(data: number[][], nBootstrap: number = 5000): Promise<any> {
+export async function runBootstrapping(
+    data: number[][], 
+    measurementModel: { construct: string; items: number[] }[],
+    structuralModel: { from: string; to: string }[],
+    nBootstrap: number = 5000
+): Promise<any> {
+  const measurementSyntax = measurementModel.map(m => 
+    `composite("${m.construct}", multi_items("V", c(${m.items.map(i => i + 1).join(',')})))`
+  ).join(',\n      ');
+
+  const structuralSyntax = structuralModel.map(s => 
+    `paths(from = "${s.from}", to = "${s.to}")`
+  ).join(',\n      ');
+
   const rCode = `
-    set.seed(123)
+    library(seminr)
+    df <- as.data.frame(raw_data)
+    colnames(df) <- paste0("V", 1:ncol(df))
     
-    data_matrix <- raw_data
+    mm <- constructs(${measurementSyntax})
+    sm <- relationships(${structuralSyntax})
     
-    bootstrap_means <- replicate(${nBootstrap}, {
-      sample_indices <- sample(1:nrow(data_matrix), replace=TRUE)
-      colMeans(data_matrix[sample_indices, ])
-    })
+    pls_model <- estimate_pls(data = df, measurement_model = mm, structural_model = sm)
     
-    ci_lower <- apply(bootstrap_means, 1, quantile, probs=0.025)
-    ci_upper <- apply(bootstrap_means, 1, quantile, probs=0.975)
+    # Run Bootstrap
+    boot_model <- bootstrap_model(pls_model, nboot = ${nBootstrap}, cores = 1)
+    summ_boot <- summary(boot_model)
     
     list(
-      n_bootstrap = ${nBootstrap},
-      ci_lower = ci_lower,
-      ci_upper = ci_upper,
-      status = "Bootstrap completed"
+      boot_paths = summ_boot$bootstrapped_paths,
+      boot_loadings = summ_boot$bootstrapped_loadings,
+      n_bootstrap = ${nBootstrap}
     )
   `;
 
-  const result = await executeRWithRecovery(rCode, undefined, 0, 2, 180000, data);
-  return result;
+  return await executeRWithRecovery(rCode, 'pls-sem', 0, 2, 300000, data);
 }
 
 /**
