@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { getSupabase } from '@/utils/supabase/client'
-import { BookOpen, Search, Eye, Edit, Trash2, Plus, ExternalLink, Loader2, Info } from 'lucide-react'
+import { BookOpen, Search, Eye, Edit, Trash2, Plus, ExternalLink, Loader2, Info, Code } from 'lucide-react'
 
 interface KnowledgeArticle {
     id: string
@@ -29,6 +29,7 @@ export default function AdminKnowledgePage() {
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingArticle, setEditingArticle] = useState<Partial<KnowledgeArticle> | null>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [isHtmlEditorOpen, setIsHtmlEditorOpen] = useState(false)
 
     useEffect(() => {
         loadArticles()
@@ -71,6 +72,32 @@ export default function AdminKnowledgePage() {
         setIsModalOpen(true)
     }
 
+    const openHtmlEditor = (article: Partial<KnowledgeArticle> | null = null) => {
+        if (article) {
+            // Gộp tất cả các đoạn nội dung cũ thành 1 khối HTML duy nhất
+            const combinedVi = article.content_structure?.map(s => s.content_vi).join('\n') || '';
+            const combinedEn = article.content_structure?.map(s => s.content_en).join('\n') || '';
+            setEditingArticle({
+                ...article,
+                content_structure: [{ h2_vi: '', h2_en: '', content_vi: combinedVi, content_en: combinedEn, is_html: true }]
+            })
+        } else {
+            setEditingArticle({
+                slug: '',
+                title_vi: '',
+                title_en: '',
+                category: 'General',
+                icon_name: 'Code',
+                expert_tip_vi: '',
+                expert_tip_en: '',
+                content_structure: [
+                    { h2_vi: '', h2_en: '', content_vi: '', content_en: '', is_html: true }
+                ]
+            })
+        }
+        setIsHtmlEditorOpen(true)
+    }
+
     const handleSave = async () => {
         if (!editingArticle?.slug || !editingArticle?.title_vi) {
             alert('Vui lòng điền Slug và Tiêu đề (VI)')
@@ -88,6 +115,7 @@ export default function AdminKnowledgePage() {
         if (!error) {
             await loadArticles()
             setIsModalOpen(false)
+            setIsHtmlEditorOpen(false)
         } else {
             alert('Lỗi khi lưu bài viết: ' + error.message)
         }
@@ -148,12 +176,20 @@ export default function AdminKnowledgePage() {
                         {articles.length} bài viết học thuật trong hệ thống
                     </p>
                 </div>
-                <button
-                    onClick={() => openEditor()}
-                    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
-                >
-                    <Plus className="w-4 h-4" /> Thêm bài viết
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => openHtmlEditor()}
+                        className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200"
+                    >
+                        <Code className="w-4 h-4" /> Raw HTML
+                    </button>
+                    <button
+                        onClick={() => openEditor()}
+                        className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
+                    >
+                        <Plus className="w-4 h-4" /> Thêm bài viết
+                    </button>
+                </div>
             </div>
 
             {/* Search & Filter */}
@@ -224,6 +260,13 @@ export default function AdminKnowledgePage() {
                                             title="Sửa bài viết"
                                         >
                                             <Edit className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={() => openHtmlEditor(article)}
+                                            className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
+                                            title="Sửa bài viết bằng Raw HTML"
+                                        >
+                                            <Code className="w-4 h-4" />
                                         </button>
                                         <button
                                             onClick={() => deleteArticle(article.id)}
@@ -452,6 +495,102 @@ export default function AdminKnowledgePage() {
                                 className="px-12 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-blue-600 transition-all shadow-xl shadow-slate-200 disabled:opacity-50"
                             >
                                 {isSubmitting ? 'Đang lưu hệ thống...' : 'Cập nhật Academy'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Raw HTML Editor Modal */}
+            {isHtmlEditorOpen && editingArticle && (
+                <div className="fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-slate-950 rounded-[2rem] shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-hidden flex flex-col border border-slate-800">
+                        <div className="p-6 border-b border-slate-800 flex items-center justify-between bg-slate-900">
+                            <div>
+                                <h3 className="font-black text-emerald-400 uppercase tracking-tighter text-xl flex items-center gap-3">
+                                    <Code className="w-6 h-6" /> Raw HTML Editor
+                                </h3>
+                                <p className="text-[10px] text-slate-500 font-mono mt-1">Chế độ tối ưu layout toàn trang dành cho chuyên gia.</p>
+                            </div>
+                            <button onClick={() => setIsHtmlEditorOpen(false)} className="w-10 h-10 rounded-full hover:bg-slate-800 flex items-center justify-center transition-all text-slate-400 text-2xl">&times;</button>
+                        </div>
+
+                        <div className="p-8 overflow-y-auto space-y-8 no-scrollbar">
+                            {/* Basic Info */}
+                            <div className="grid md:grid-cols-4 gap-6">
+                                <div className="col-span-1">
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Slug</label>
+                                    <input
+                                        type="text"
+                                        value={editingArticle.slug || ''}
+                                        onChange={(e) => setEditingArticle(prev => ({ ...prev, slug: e.target.value }))}
+                                        className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl outline-none font-mono text-sm text-emerald-400 focus:border-emerald-500"
+                                    />
+                                </div>
+                                <div className="col-span-1">
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Category</label>
+                                    <input
+                                        type="text"
+                                        value={editingArticle.category || ''}
+                                        onChange={(e) => setEditingArticle(prev => ({ ...prev, category: e.target.value }))}
+                                        className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl outline-none text-sm text-slate-200 focus:border-emerald-500"
+                                    />
+                                </div>
+                                <div className="col-span-2">
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Tiêu đề (VI)</label>
+                                    <input
+                                        type="text"
+                                        value={editingArticle.title_vi || ''}
+                                        onChange={(e) => setEditingArticle(prev => ({ ...prev, title_vi: e.target.value }))}
+                                        className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl outline-none font-bold text-slate-200 focus:border-emerald-500"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Massive Code Editors */}
+                            <div className="grid md:grid-cols-2 gap-8">
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Mã HTML (Tiếng Việt)</label>
+                                    </div>
+                                    <textarea
+                                        value={editingArticle.content_structure?.[0]?.content_vi || ''}
+                                        onChange={(e) => updateContentPart(0, 'content_vi', e.target.value)}
+                                        rows={20}
+                                        className="w-full p-6 bg-[#0d1117] border border-slate-800 rounded-2xl outline-none text-sm leading-relaxed text-emerald-400 font-mono focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/10"
+                                        placeholder="<div class='container'>...</div>"
+                                        spellCheck="false"
+                                    />
+                                </div>
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <label className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Mã HTML (English)</label>
+                                    </div>
+                                    <textarea
+                                        value={editingArticle.content_structure?.[0]?.content_en || ''}
+                                        onChange={(e) => updateContentPart(0, 'content_en', e.target.value)}
+                                        rows={20}
+                                        className="w-full p-6 bg-[#0d1117] border border-slate-800 rounded-2xl outline-none text-sm leading-relaxed text-emerald-400 font-mono focus:border-emerald-500/50 focus:ring-4 focus:ring-emerald-500/10"
+                                        placeholder="<div class='container'>...</div>"
+                                        spellCheck="false"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-6 bg-slate-900 border-t border-slate-800 flex items-center justify-end gap-4">
+                            <button
+                                onClick={() => setIsHtmlEditorOpen(false)}
+                                className="px-8 py-3 text-xs font-black text-slate-500 uppercase tracking-widest hover:text-slate-300 transition-all"
+                            >
+                                Hủy bỏ
+                            </button>
+                            <button
+                                onClick={handleSave}
+                                disabled={isSubmitting}
+                                className="px-10 py-3 bg-emerald-600 text-white rounded-xl font-black text-xs uppercase tracking-[0.2em] hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-900 disabled:opacity-50 flex items-center gap-2"
+                            >
+                                <Code className="w-4 h-4" /> {isSubmitting ? 'Đang lưu...' : 'Lưu HTML'}
                             </button>
                         </div>
                     </div>
