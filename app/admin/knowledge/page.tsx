@@ -74,9 +74,32 @@ export default function AdminKnowledgePage() {
 
     const openHtmlEditor = (article: Partial<KnowledgeArticle> | null = null) => {
         if (article) {
-            // Gộp tất cả các đoạn nội dung cũ thành 1 khối HTML duy nhất
-            const combinedVi = article.content_structure?.map(s => s.content_vi).join('\n') || '';
-            const combinedEn = article.content_structure?.map(s => s.content_en).join('\n') || '';
+            // Tự động chuyển đổi các đoạn text cũ thành cấu trúc HTML chuẩn
+            const combinedVi = article.content_structure?.map(s => {
+                if (s.is_html) return s.h2_vi ? `<h2>${s.h2_vi}</h2>\n${s.content_vi}` : s.content_vi;
+                let html = '';
+                if (s.h2_vi) html += `<h2 class="text-4xl md:text-5xl font-black text-slate-900 mb-8 tracking-tighter leading-tight hover:text-indigo-600 transition-colors">${s.h2_vi}</h2>\n`;
+                if (s.content_vi) {
+                    const paragraphs = s.content_vi.split('\n').filter((p: string) => p.trim());
+                    html += `<div class="text-xl md:text-2xl leading-[1.85] text-slate-600 font-normal space-y-8">\n`;
+                    paragraphs.forEach((p: string) => html += `  <p class="mb-6">${p.trim()}</p>\n`);
+                    html += `</div>\n`;
+                }
+                return html;
+            }).join('\n<!-- Chuyển đoạn -->\n\n') || '';
+
+            const combinedEn = article.content_structure?.map(s => {
+                if (s.is_html) return s.h2_en ? `<h2>${s.h2_en}</h2>\n${s.content_en}` : s.content_en;
+                let html = '';
+                if (s.h2_en) html += `<h2 class="text-4xl md:text-5xl font-black text-slate-900 mb-8 tracking-tighter leading-tight hover:text-indigo-600 transition-colors">${s.h2_en}</h2>\n`;
+                if (s.content_en) {
+                    const paragraphs = s.content_en.split('\n').filter((p: string) => p.trim());
+                    html += `<div class="text-xl md:text-2xl leading-[1.85] text-slate-600 font-normal space-y-8">\n`;
+                    paragraphs.forEach((p: string) => html += `  <p class="mb-6">${p.trim()}</p>\n`);
+                    html += `</div>\n`;
+                }
+                return html;
+            }).join('\n<!-- Section Break -->\n\n') || '';
             setEditingArticle({
                 ...article,
                 content_structure: [{ h2_vi: '', h2_en: '', content_vi: combinedVi, content_en: combinedEn, is_html: true }]
