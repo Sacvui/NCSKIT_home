@@ -107,14 +107,17 @@ export default function CiteCheckPage() {
             addLog(isVi ? `Đang kiểm tra [${i+1}/${refsToVerify.length}]: ${ref.substring(0, 30)}...` : `Verifying [${i+1}/${refsToVerify.length}]: ${ref.substring(0, 30)}...`);
             
             try {
-                // Better extraction logic
-                const yearMatch = ref.match(/\((\d{4})\)/);
+                // Clean reference from leading numbers like "1. ", "[1] ", etc.
+                const cleanRef = ref.replace(/^(\d+[\.\-\s]+|\[\d+\]\s*)/, '').trim();
+                
+                // Better extraction logic on cleaned string
+                const yearMatch = cleanRef.match(/\((\d{4})\)/);
                 const extractedYear = yearMatch ? yearMatch[1] : null;
-                const authorMatch = ref.match(/^([^,.(]+)/); // Basic first author extraction
+                const authorMatch = cleanRef.match(/^([^,.(]+)/); // Extraction from cleaned string
                 const extractedAuthor = authorMatch ? authorMatch[1].trim() : '';
                 
                 // Search by DOI or Title
-                const query = doi ? `https://api.crossref.org/works/${doi}` : `https://api.crossref.org/works?query.bibliographic=${encodeURIComponent(ref)}&rows=1`;
+                const query = doi ? `https://api.crossref.org/works/${doi}` : `https://api.crossref.org/works?query.bibliographic=${encodeURIComponent(cleanRef)}&rows=1`;
                 const res = await fetch(query);
                 const data = await res.json();
                 const metadata = doi ? data.message : data.message.items[0];
