@@ -176,32 +176,31 @@ export async function runPLSSEM(
     pls_model <- estimate_pls(data = df, measurement_model = mm, structural_model = sm)
     summ <- summary(pls_model)
     
-    # Calculate VIF (Collinearity)
-    vif_values <- summ$vif_antecedents
+    # Calculate HTMT explicitly using seminr
+    htmt_res <- HTMT(pls_model)
     
-    # Calculate Q-square (Predictive Relevance)
-    # Using blindfolding if available, or redundant predictive check
-    q_square <- tryCatch({
-        # Simple Q2 calculation for endogenous constructs
-        # seminr uses predict_pls for advanced out-of-sample metrics
-        # but summ$reliability already contains most info
-        summ$reliability[, "R.squared"] # Placeholder for full Q2 logic
-    }, error = function(e) NULL)
+    # Fornell-Larcker Criterion
+    # Square root of AVE on diagonal, correlations on off-diagonal
+    ave <- summ$reliability[, "AVE"]
+    cor_matrix <- summ$descriptive$correlations$constructs
+    fornell_larcker <- cor_matrix
+    diag(fornell_larcker) <- sqrt(ave)
     
     list(
       path_coefficients = summ$paths,
       r_squared = summ$reliability[, "R.squared"],
       f_squared = summ$fSquare,
-      vif = vif_values,
       loadings = summ$loadings,
       total_effects = summ$total_effects,
+      cross_loadings = summ$loadings, # seminr uses loadings for both in summary
+      fornell_larcker = fornell_larcker,
+      htmt = htmt_res,
       validity = list(
         cronbach = summ$reliability[, "Alpha"],
         rho_a = summ$reliability[, "rhoA"],
         composite_reliability = summ$reliability[, "rhoC"],
         ave = summ$reliability[, "AVE"]
-      ),
-      fornell_larcker = summ$fl_criteria
+      )
     )
   `;
 
@@ -209,8 +208,44 @@ export async function runPLSSEM(
 }
 
 /**
- * Bootstrapping for PLS-SEM (Get P-values and Significance)
+ * Blindfolding - Predictive Relevance (Q²)
+ * Critical for Structural Model Evaluation
  */
+export async function runBlindfolding(
+  data: number[][],
+  measurementModel: { construct: string; items: number[] }[],
+  structuralModel: { from: string; to: string }[]
+): Promise<any> {
+  const measurementSyntax = measurementModel.map(m => 
+    `composite("${m.construct}", multi_items("V", c(${m.items.map(i => i + 1).join(',')})))`
+  ).join(',\n      ');
+
+  const structuralSyntax = structuralModel.map(s => 
+    `paths(from = "${s.from}", to = "${s.to}")`
+  ).join(',\n      ');
+
+  const rCode = `
+    library(seminr)
+    df <- as.data.frame(raw_data)
+    colnames(df) <- paste0("V", 1:ncol(df))
+    
+    mm <- constructs(${measurementSyntax})
+    sm <- relationships(${structuralSyntax})
+    
+    pls_model <- estimate_pls(data = df, measurement_model = mm, structural_model = sm)
+    
+    # Run Blindfolding
+    q2_result <- predict_pls(pls_model, noFolds = 10)
+    
+    list(
+      q2 = q2_result$predictive_relevance,
+      it_criteria = q2_result$it_criteria,
+      status = "Blindfolding (Q²) calculation completed"
+    )
+  `;
+
+  return await executeRWithRecovery(rCode, 'pls-sem', 0, 2, 180000, data);
+}
 export async function runBootstrapping(
     data: number[][], 
     measurementModel: { construct: string; items: number[] }[],

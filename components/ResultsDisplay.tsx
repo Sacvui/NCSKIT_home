@@ -31,6 +31,7 @@ const MannWhitneyResults = lazy(() => import('./results/nonparametric/MannWhitne
 const KruskalWallisResults = lazy(() => import('./results/nonparametric/KruskalWallisResults').then(m => ({ default: m.KruskalWallisResults })));
 const WilcoxonResults = lazy(() => import('./results/nonparametric/WilcoxonResults').then(m => ({ default: m.WilcoxonResults })));
 const ClusterResults = lazy(() => import('./results/cluster/ClusterResults').then(m => ({ default: m.ClusterResults })));
+const PLSResults = lazy(() => import('./results/factor/PLSResults').then(m => ({ default: m.PLSResults })));
 
 
 interface ResultsDisplayProps {
@@ -111,6 +112,8 @@ export function ResultsDisplay({
                 return <TwoWayANOVAResults results={results} columns={results.columns || []} />;
             case 'cluster':
                 return <ClusterResults results={results} columns={results.columns || []} />;
+            case 'pls-sem':
+                return <PLSResults results={results} columns={results.columns || []} />;
             default:
                 return (
                     <Card>

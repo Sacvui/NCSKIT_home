@@ -5,10 +5,11 @@ import { AnalysisStep } from '@/types/analysis';
 import { Locale, t } from '@/lib/i18n';
 import { getAnalysisCost, checkBalance, deductCreditsAtomic } from '@/lib/ncs-credits';
 import { logAnalysisUsage } from '@/lib/activity-logger';
-import { runCronbachAlpha, runEFA, runCFA, runSEM } from '@/lib/webr-wrapper';
+import { runCronbachAlpha, runEFA, runCFA, runSEM, runPLSSEM, runBootstrapping, runBlindfolding } from '@/lib/webr-wrapper';
 import { SmartGroupSelector } from '@/components/VariableSelector';
 import CFASelection from '@/components/CFASelection';
 import SEMSelection from '@/components/SEMSelection';
+import PLSSEMSelection from '@/components/PLSSEMSelection';
 import { ChevronLeft, Play, Shield, Grid3x3, Network, Layers } from 'lucide-react';
 import { useAnalysisError } from '@/hooks/useAnalysisError';
 import { useWebRGuard } from '@/hooks/useWebRGuard';
@@ -241,6 +242,47 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
         }
     };
 
+    const runPLSWithSelection = async (measurementModel: any[], structuralModel: any[], options: any) => {
+        if (!checkWebRReady()) return;
+        setIsAnalyzing(true);
+        setAnalysisType('pls-sem');
+
+        try {
+            const numericData = data.map(row => columns.map(col => Number(row[col]) || 0));
+            
+            // 1. Initial PLS-SEM
+            let results = await runPLSSEM(numericData, measurementModel, structuralModel);
+            
+            // 2. Optional Bootstrap
+            if (options.useBootstrap) {
+                showToast('Đang chạy Bootstrapping (5000 samples)...', 'info');
+                const bootResults = await runBootstrapping(numericData, measurementModel, structuralModel, 5000);
+                results.bootstrapped_paths = bootResults.boot_paths;
+                results.bootstrapped_loadings = bootResults.boot_loadings;
+            }
+            
+            // 3. Optional Blindfolding
+            if (options.useBlindfolding) {
+                showToast('Đang tính toán Q² (Blindfolding)...', 'info');
+                const blindResults = await runBlindfolding(numericData, measurementModel, structuralModel);
+                results.q2 = blindResults.q2;
+            }
+
+            if (user) {
+                const cost = await getAnalysisCost('sem');
+                await logAnalysisUsage(user.id, 'pls-sem', cost);
+            }
+
+            setResults({ type: 'pls-sem', data: results, columns: columns });
+            setStep('results');
+            showToast('Phân tích PLS-SEM hoàn tất!', 'success');
+        } catch (error) {
+            handleAnalysisError(error);
+        } finally {
+            setIsAnalyzing(false);
+        }
+    };
+
     // --- Render ---
 
     if (step === 'cronbach-select') {
@@ -412,6 +454,17 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
                     } catch (err) { handleAnalysisError(err); } 
                     finally { setIsAnalyzing(false); }
                 }}
+                isAnalyzing={isAnalyzing}
+                onBack={() => setStep('analyze')}
+            />
+        );
+    }
+
+    if (step === 'pls-sem-select') {
+        return (
+            <PLSSEMSelection
+                columns={columns}
+                onRunPLS={runPLSWithSelection}
                 isAnalyzing={isAnalyzing}
                 onBack={() => setStep('analyze')}
             />

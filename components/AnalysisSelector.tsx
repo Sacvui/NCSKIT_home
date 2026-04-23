@@ -101,7 +101,8 @@ export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing, mode, l
             options: [
                 { id: 'efa-select', title: t(locale, 'analyze.methods.efa'), desc: locale === 'vi' ? 'Phân tích nhân tố khám phá (Parallel Analysis)' : 'Exploratory Factor Analysis with Parallel Test', icon: Grid3x3, action: 'select', recommended: true, costType: 'efa' },
                 { id: 'cfa-select', title: t(locale, 'analyze.methods.cfa'), desc: locale === 'vi' ? 'Phân tích nhân tố khẳng định (Measurement Model)' : 'Confirmatory Factor Analysis (Validation)', icon: Network, action: 'select', badge: 'Elite', costType: 'cfa' },
-                { id: 'sem-select', title: t(locale, 'analyze.methods.sem'), desc: locale === 'vi' ? 'Mô hình cấu trúc tuyến tính (Structural Model)' : 'Structural Equation Modeling (High-End)', icon: Layers, action: 'select', badge: 'Elite', costType: 'sem' },
+                { id: 'sem-select', title: t(locale, 'analyze.methods.sem'), desc: locale === 'vi' ? 'Mô hình cấu trúc tuyến tính (Structural Model CB-SEM)' : 'Structural Equation Modeling (High-End CB-SEM)', icon: Layers, action: 'select', badge: 'Elite', costType: 'sem' },
+                { id: 'pls-sem-select', title: 'PLS-SEM (SmartPLS Style)', desc: locale === 'vi' ? 'Mô hình cấu trúc bình phương tối thiểu riêng phần (PLS-SEM)' : 'Partial Least Squares SEM (for complex predictive models)', icon: Network, action: 'select', badge: 'Popular', costType: 'sem' },
             ]
         },
         {

@@ -14,4 +14,5 @@ export * from './analyses/reliability';
 export * from './analyses/mediation';
 export * from './analyses/multivariate';
 export * from './analyses/sem';
+export * from './pls-sem';
 export * from './analyses/upcoming';
