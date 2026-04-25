@@ -78,10 +78,13 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
 
     const runCronbachWithSelection = async (selectedColumns: string[], name: string) => {
         if (selectedColumns.length < 2) {
-            showToast('Thang đo cần ít nhất 2 biến cho Cronbach Alpha', 'error');
+            showToast('Thang đo cần ít nhất 2 biến cho phân tích độ tin cậy', 'error');
             return;
         }
         if (!checkWebRReady()) return;
+
+        const isOmega = step === 'omega-select';
+        const analysisMethod = isOmega ? 'omega' : 'cronbach';
 
         if (user) {
             const cost = await getAnalysisCost('cronbach');
@@ -95,7 +98,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
         }
 
         setIsAnalyzing(true);
-        setAnalysisType('cronbach');
+        setAnalysisType(analysisMethod);
         setScaleName(name);
         setMultipleResults([]);
 
@@ -105,7 +108,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
             // Deduct BEFORE running — atomic via RPC (prevents race conditions)
             if (user) {
                 const cost = await getAnalysisCost('cronbach');
-                const { success, isExempt, newBalance, error: deductError } = await deductCreditsAtomic(user.id, cost, `Cronbach Alpha: ${name}`);
+                const { success, isExempt, newBalance, error: deductError } = await deductCreditsAtomic(user.id, cost, `${isOmega ? 'McDonald Omega' : 'Cronbach Alpha'}: ${name}`);
                 if (!success) {
                     showToast(deductError || 'Không đủ NCS để thực hiện phân tích', 'error');
                     setIsAnalyzing(false);
@@ -118,10 +121,10 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
 
             if (user) {
                 const cost = await getAnalysisCost('cronbach');
-                await logAnalysisUsage(user.id, 'cronbach', cost);
+                await logAnalysisUsage(user.id, analysisMethod, cost);
             }
 
-            setResults({ type: 'cronbach', data: analysisResults, columns: selectedColumns, scaleName: name });
+            setResults({ type: analysisMethod, data: analysisResults, columns: selectedColumns, scaleName: name });
             setStep('results');
             showToast('Phân tích hoàn tất!', 'success');
         } catch (error) {
@@ -133,6 +136,10 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
 
     const runCronbachBatch = async (groups: { name: string; columns: string[] }[]) => {
         if (!checkWebRReady()) return;
+        
+        const isOmega = step === 'omega-select';
+        const batchMethod = isOmega ? 'omega-batch' : 'cronbach-batch';
+
         if (user) {
             const singleCost = await getAnalysisCost('cronbach');
             const totalCost = singleCost * groups.length;
@@ -146,7 +153,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
         }
 
         setIsAnalyzing(true);
-        setAnalysisType('cronbach-batch');
+        setAnalysisType(batchMethod);
         setResults(null);
         setMultipleResults([]);
 
@@ -155,7 +162,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
             if (user) {
                 const singleCost = await getAnalysisCost('cronbach');
                 const totalCost = singleCost * groups.length;
-                const { success, isExempt, newBalance, error: deductError } = await deductCreditsAtomic(user.id, totalCost, `Batch Cronbach: ${groups.length} scales`);
+                const { success, isExempt, newBalance, error: deductError } = await deductCreditsAtomic(user.id, totalCost, `Batch ${isOmega ? 'Omega' : 'Cronbach'}: ${groups.length} scales`);
                 if (!success) {
                     showToast(deductError || 'Không đủ NCS để thực hiện phân tích', 'error');
                     setIsAnalyzing(false);
@@ -168,13 +175,13 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
             for (const group of groups) {
                 const groupData = data.map(row => group.columns.map(col => Number(row[col]) || 0));
                 const result = await runCronbachAlpha(groupData);
-                allResults.push({ scaleName: group.name, columns: group.columns, data: result });
+                allResults.push({ scaleName: group.name, columns: group.columns, data: result, type: isOmega ? 'omega' : 'cronbach' });
             }
 
             if (user) {
                 const singleCost = await getAnalysisCost('cronbach');
                 const totalCost = singleCost * groups.length;
-                await logAnalysisUsage(user.id, 'cronbach-batch', totalCost);
+                await logAnalysisUsage(user.id, batchMethod, totalCost);
             }
 
             setMultipleResults(allResults);
