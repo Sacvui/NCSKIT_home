@@ -23,6 +23,76 @@ const STATIC_ARTICLES = [
         title_en: 'Cronbach\'s Alpha Masterclass: From Basics to Expert'
     },
     {
+        slug: 'technology-acceptance-model-tam',
+        category: 'Research Models',
+        icon_name: 'TrendingUp',
+        title_vi: 'Mô hình Chấp nhận Công nghệ (TAM): Hướng dẫn Chuyên sâu',
+        title_en: 'Technology Acceptance Model (TAM): The Ultimate Guide'
+    },
+    {
+        slug: 'theory-of-planned-behavior-tpb',
+        category: 'Behavioral Research',
+        icon_name: 'Brain',
+        title_vi: 'Thuyết Hành vi Dự định (TPB): Chìa khóa giải mã Ý định',
+        title_en: 'Theory of Planned Behavior (TPB): Decoding Intentions'
+    },
+    {
+        slug: 'servqual-service-quality-model',
+        category: 'Marketing Research',
+        icon_name: 'Layers',
+        title_vi: 'Mô hình SERVQUAL: Đo lường Chất lượng Dịch vụ',
+        title_en: 'SERVQUAL: Measuring Service Quality'
+    },
+    {
+        slug: 'utaut-technology-adoption',
+        category: 'Research Models',
+        icon_name: 'Zap',
+        title_vi: 'Thuyết Hợp nhất Chấp nhận Công nghệ (UTAUT)',
+        title_en: 'UTAUT: Unified Technology Acceptance'
+    },
+    {
+        slug: 'porter-five-forces-analysis',
+        category: 'Market Strategy',
+        icon_name: 'ShieldCheck',
+        title_vi: 'Mô hình 5 Áp lực Cạnh tranh (Michael Porter)',
+        title_en: 'Porter\'s Five Forces Analysis'
+    },
+    {
+        slug: 'vrio-framework-strategy',
+        category: 'Market Strategy',
+        icon_name: 'Layers',
+        title_vi: 'Khung VRIO: Đánh giá Nguồn lực nội tại',
+        title_en: 'VRIO Framework: Assessing Internal Resources'
+    },
+    {
+        slug: 'expectation-confirmation-theory-ect',
+        category: 'Marketing Research',
+        icon_name: 'BookOpen',
+        title_vi: 'Thuyết Kỳ vọng - Xác nhận (ECT)',
+        title_en: 'Expectation-Confirmation Theory (ECT)'
+    },
+    {
+        slug: 'sor-model-marketing-behavior',
+        category: 'Behavioral Research',
+        icon_name: 'Zap',
+        title_vi: 'Mô hình S-O-R: Kích thích - Cơ thể - Phản hồi',
+        title_en: 'S-O-R Model: Stimulus-Organism-Response'
+    },
+    {
+        slug: 'perceived-value-marketing-strategy',
+        category: 'Marketing Research',
+        icon_name: 'TrendingUp',
+        title_vi: 'Mô hình Giá trị Cảm nhận (Perceived Value)',
+        title_en: 'Perceived Value in Marketing Strategy'
+    },
+    {
+        slug: 'tce-transaction-cost-economics-strategy',
+        category: 'Advanced Research',
+        icon_name: 'Hash',
+        title_vi: 'Kinh tế học Chi phí Giao dịch (TCE)',
+        title_en: 'Transaction Cost Economics (TCE)'
+    },
+    {
         slug: 'descriptive-statistics-interpretation',
         category: 'Preliminary Analysis',
         icon_name: 'BarChart3',
@@ -98,20 +168,6 @@ const STATIC_ARTICLES = [
         icon_name: 'FileSearch',
         title_vi: 'Làm sạch dữ liệu & Outliers: Vệ sinh Khoa học',
         title_en: 'Data Cleaning & Outliers: Scientific Scrubbing'
-    },
-    {
-        slug: 'technology-acceptance-model-tam',
-        category: 'Research Models',
-        icon_name: 'TrendingUp',
-        title_vi: 'Mô hình Chấp nhận Công nghệ (TAM): Hướng dẫn Chuyên sâu',
-        title_en: 'Technology Acceptance Model (TAM): The Ultimate Guide'
-    },
-    {
-        slug: 'theory-of-planned-behavior-tpb',
-        category: 'Behavioral Research',
-        icon_name: 'Brain',
-        title_vi: 'Thuyết Hành vi Dự định (TPB): Chìa khóa giải mã Ý định',
-        title_en: 'Theory of Planned Behavior (TPB): Decoding Intentions'
     },
     {
         slug: 'signaling-theory-research',
