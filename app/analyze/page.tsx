@@ -729,15 +729,19 @@ function AnalyzeContent() {
                 });
             }
 
-            // Handle batch Cronbach export - SINGLE FILE with all scales
-            if (analysisType === 'cronbach-batch' && multipleResults.length > 0) {
+            // Handle batch Cronbach/Omega export - SINGLE FILE with all scales
+            if ((analysisType === 'cronbach-batch' || analysisType === 'omega-batch') && multipleResults.length > 0) {
+                const isOmegaBatch = analysisType === 'omega-batch';
                 // Combine all results into single PDF
-                const combinedTitle = `Cronbach's Alpha - Phân tích ${multipleResults.length} thang đo`;
+                const combinedTitle = isOmegaBatch
+                    ? `McDonald's Omega - Phân tích ${multipleResults.length} thang đo`
+                    : `Cronbach's Alpha - Phân tích ${multipleResults.length} thang đo`;
                 const combinedResults = {
                     batchResults: multipleResults.map(r => ({
                         scaleName: r.scaleName,
                         alpha: r.data.alpha || r.data.rawAlpha,
                         rawAlpha: r.data.rawAlpha,
+                        omega: r.data.omega,
                         standardizedAlpha: r.data.standardizedAlpha,
                         nItems: r.data.nItems,
                         itemTotalStats: r.data.itemTotalStats,
@@ -748,14 +752,14 @@ function AnalyzeContent() {
                 const name = userProfile?.full_name || user?.email?.split('@')[0] || 'Researcher';
                 await exportToPDF({
                     title: combinedTitle,
-                    analysisType: 'cronbach-batch',
+                    analysisType: analysisType,
                     results: combinedResults,
                     columns: [],
                     userName: name,
                     chartImages: []
                 });
                 if (user) {
-                    await logExport(user.id, 'PDF: cronbach-batch');
+                    await logExport(user.id, `PDF: ${analysisType}`);
                 }
                 showToast(`Đã xuất 1 file PDF tổng hợp ${multipleResults.length} thang đo!`, 'success');
             } else {

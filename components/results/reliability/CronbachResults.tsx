@@ -30,11 +30,12 @@ export const CronbachResults = React.memo(function CronbachResults({
         setLocale(getStoredLocale());
     }, []);
 
-    const alpha = parseFloat(String(results.alpha || results.rawAlpha || 0)) || 0;
+    const isOmega = analysisType === 'omega';
+    const alpha = isOmega 
+        ? parseFloat(String(results.omega || results.alpha || results.rawAlpha || 0)) || 0
+        : parseFloat(String(results.alpha || results.rawAlpha || 0)) || 0;
     const nItems = results.nItems || 'N/A';
     const itemTotalStats = results.itemTotalStats || [];
-
-    const isOmega = analysisType === 'omega';
     
     // Robust formatting helper to prevent .toFixed errors
     const formatNum = (val: any, digits: number = 3) => {

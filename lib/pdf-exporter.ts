@@ -179,8 +179,12 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
 
         // --- CONTENT GENERATION ---
 
-         if (analysisType === 'cronbach') {
+         if (analysisType === 'cronbach' || analysisType === 'omega') {
+            const isOmega = analysisType === 'omega';
             const alpha = results.alpha ?? results.rawAlpha ?? 0;
+            const omega = results.omega ?? 0;
+            const primaryScore = isOmega && omega > 0 ? omega : alpha;
+            const primaryLabel = isOmega ? "McDonald's Omega (\u03c9)" : "Cronbach's Alpha (\u03b1)";
             const nItems = results.nItems ?? 0;
             
             // Reliability Overview Card
@@ -190,23 +194,23 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
             doc.setFont('NotoSans', 'bold');
             doc.setFontSize(11);
             doc.setTextColor(30, 58, 138);
-            doc.text("KẾT QUẢ ĐỘ TIN CẬY (RELIABILITY OVERVIEW)", 22, yPos + 10);
+            doc.text(isOmega ? "K\u1EBET QU\u1EA2 \u0110\u1ED8 TIN C\u1EACY - McDONALD'S OMEGA" : "K\u1EBET QU\u1EA2 \u0110\u1ED8 TIN C\u1EACY (RELIABILITY OVERVIEW)", 22, yPos + 10);
             
             doc.setFontSize(10);
             doc.setTextColor(50);
             doc.setFont('NotoSans', 'normal');
-            doc.text(`• Hệ số Cronbach's Alpha: ${(alpha || 0).toFixed(3)}`, 22, yPos + 18);
-            doc.text(`• Số lượng biến quan sát: ${nItems || 0}`, 100, yPos + 18);
+            doc.text(`\u2022 H\u1EC7 s\u1ED1 ${primaryLabel}: ${(primaryScore || 0).toFixed(3)}`, 22, yPos + 18);
+            doc.text(`\u2022 S\u1ED1 l\u01B0\u1EE3ng bi\u1EBFn quan s\u00E1t: ${nItems || 0}`, 100, yPos + 18);
             
             yPos += 35;
 
             if (results.itemTotalStats && Array.isArray(results.itemTotalStats) && results.itemTotalStats.length > 0) {
                 checkPageBreak(50);
                 doc.setFont('NotoSans', 'bold');
-                doc.text('1. Phân tích Tương quan biến - tổng (Item-Total Statistics)', 15, yPos);
+                doc.text('1. Ph\u00E2n t\u00EDch T\u01B0\u01A1ng quan bi\u1EBFn - t\u1ED5ng (Item-Total Statistics)', 15, yPos);
                 yPos += 7;
 
-                const headers = [['Biến quan sát', 'Trung bình thang đo', 'Phương sai thang đo', 'Tương quan biến - tổng', 'Alpha nếu loại biến']];
+                const headers = [['Bi\u1EBFn quan s\u00E1t', 'Trung b\u00ECnh thang \u0111o', 'Ph\u01B0\u01A1ng sai thang \u0111o', 'T\u01B0\u01A1ng quan bi\u1EBFn - t\u1ED5ng', 'Alpha n\u1EBFu lo\u1EA1i bi\u1EBFn']];
                 const data = results.itemTotalStats.map((item: any, idx: number) => {
                     const corr = (item.correctedItemTotalCorrelation ?? 0);
                     const isLow = corr < 0.3;
@@ -243,31 +247,35 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
             doc.setFont('NotoSans', 'bold');
             doc.setFontSize(9);
             doc.setTextColor(30, 58, 138);
-            doc.text("NHẬN ĐỊNH HỌC THUẬT (ACADEMIC INTERPRETATION):", 20, yPos + 8);
+            doc.text("NH\u1EACN \u0110\u1ECBNH H\u1ECCC THU\u1EACT (ACADEMIC INTERPRETATION):", 20, yPos + 8);
             
             doc.setFont('NotoSans', 'normal');
             doc.setTextColor(30, 41, 59);
-            const evalText = alpha >= 0.9 ? 'Rất tốt (Excellent)' : alpha >= 0.7 ? 'Tốt/Chấp nhận được (Acceptable)' : 'Kém (Poor)';
-            const interpretation = `Kết quả phân tích độ tin cậy cho thấy thang đo đạt hệ số Cronbach's Alpha là ${(alpha || 0).toFixed(3)} (> 0.700), đạt mức độ tin cậy ${evalText}. Điều này khẳng định thang đo có tính nhất quán nội tại cao, các biến quan sát đo lường tốt cho cùng một khái niệm nghiên cứu và đủ điều kiện để thực hiện các bước phân tích tiếp theo.`;
+            const evalText = primaryScore >= 0.9 ? 'R\u1EA5t t\u1ED1t (Excellent)' : primaryScore >= 0.7 ? 'T\u1ED1t/Ch\u1EA5p nh\u1EADn \u0111\u01B0\u1EE3c (Acceptable)' : 'K\u00E9m (Poor)';
+            const interpretation = isOmega
+                ? `K\u1EBFt qu\u1EA3 ph\u00E2n t\u00EDch \u0111\u1ED9 tin c\u1EADy cho th\u1EA5y thang \u0111o \u0111\u1EA1t h\u1EC7 s\u1ED1 McDonald's Omega l\u00E0 ${(primaryScore || 0).toFixed(3)}, \u0111\u1EA1t m\u1EE9c \u0111\u1ED9 tin c\u1EADy ${evalText}. McDonald's Omega \u0111\u01B0\u1EE3c s\u1EED d\u1EE5ng thay cho Cronbach's Alpha \u0111\u1EC3 v\u01B0\u1EE3t qua gi\u1EDBi h\u1EA1n c\u1EE7a gi\u1EA3 \u0111\u1ECBnh tau-equivalent, mang l\u1EA1i \u01B0\u1EDBc l\u01B0\u1EE3ng \u0111\u1ED9 tin c\u1EADy ch\u00EDnh x\u00E1c h\u01A1n. H\u1EC7 s\u1ED1 Cronbach's Alpha tham kh\u1EA3o: ${(alpha || 0).toFixed(3)}.`
+                : `K\u1EBFt qu\u1EA3 ph\u00E2n t\u00EDch \u0111\u1ED9 tin c\u1EADy cho th\u1EA5y thang \u0111o \u0111\u1EA1t h\u1EC7 s\u1ED1 Cronbach's Alpha l\u00E0 ${(alpha || 0).toFixed(3)} (> 0.700), \u0111\u1EA1t m\u1EE9c \u0111\u1ED9 tin c\u1EADy ${evalText}. \u0110i\u1EC1u n\u00E0y kh\u1EB3ng \u0111\u1ECBnh thang \u0111o c\u00F3 t\u00EDnh nh\u1EA5t qu\u00E1n n\u1ED9i t\u1EA1i cao, c\u00E1c bi\u1EBFn quan s\u00E1t \u0111o l\u01B0\u1EDDng t\u1ED1t cho c\u00F9ng m\u1ED9t kh\u00E1i ni\u1EC7m nghi\u00EAn c\u1EE9u v\u00E0 \u0111\u1EE7 \u0111i\u1EC1u ki\u1EC7n \u0111\u1EC3 th\u1EF1c hi\u1EC7n c\u00E1c b\u01B0\u1EDBc ph\u00E2n t\u00EDch ti\u1EBFp theo.`;
             const splitInter = doc.splitTextToSize(interpretation, 170);
             doc.text(splitInter, 20, yPos + 15);
             
             yPos += 45;
         }
-        else if (analysisType === 'cronbach-batch') {
-            // BATCH CRONBACH - All scales in one PDF
+        else if (analysisType === 'cronbach-batch' || analysisType === 'omega-batch') {
+            const isOmegaBatch = analysisType === 'omega-batch';
+            // BATCH CRONBACH/OMEGA - All scales in one PDF
             const batchResults = results.batchResults || [];
 
-            // Summary Table (Using English headers for PDF compatibility)
+            // Summary Table
             doc.setFontSize(14);
             doc.text(`Summary of ${batchResults.length} Scales`, 15, yPos);
             yPos += 10;
 
-            const summaryHeaders = [['Scale Name', 'Items', "Cronbach's Alpha", 'Evaluation']];
+            const metricHeader = isOmegaBatch ? "McDonald's Omega" : "Cronbach's Alpha";
+            const summaryHeaders = [['Scale Name', 'Items', metricHeader, 'Evaluation']];
             const summaryData = batchResults.map((r: any) => {
-                const alpha = r.alpha || r.rawAlpha || 0;
-                const evalText = alpha >= 0.9 ? 'Excellent' : alpha >= 0.8 ? 'Good' : alpha >= 0.7 ? 'Acceptable' : alpha >= 0.6 ? 'Questionable' : 'Poor';
-                return [r.scaleName, r.nItems || '-', (alpha || 0).toFixed(3), evalText];
+                const score = isOmegaBatch ? (r.omega || 0) : (r.alpha || r.rawAlpha || 0);
+                const evalText = score >= 0.9 ? 'Excellent' : score >= 0.8 ? 'Good' : score >= 0.7 ? 'Acceptable' : score >= 0.6 ? 'Questionable' : 'Poor';
+                return [r.scaleName, r.nItems || '-', (score || 0).toFixed(3), evalText];
             });
 
             autoTable(doc, {
@@ -292,8 +300,9 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
                 doc.setFont('NotoSans', 'normal');
                 yPos += 7;
 
-                const alpha = r.alpha || r.rawAlpha || 0;
-                doc.text(`Alpha: ${(alpha || 0).toFixed(3)}`, 15, yPos);
+                const score = isOmegaBatch ? (r.omega || 0) : (r.alpha || r.rawAlpha || 0);
+                const scoreLabel = isOmegaBatch ? 'Omega' : 'Alpha';
+                doc.text(`${scoreLabel}: ${(score || 0).toFixed(3)}`, 15, yPos);
                 yPos += 7;
 
                 if (r.itemTotalStats && r.itemTotalStats.length > 0) {
@@ -322,7 +331,10 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
             checkPageBreak(30);
             doc.setFontSize(8);
             doc.setTextColor(100);
-            doc.text('• α ≥ 0.9: Rất tốt | α ≥ 0.8: Tốt | α ≥ 0.7: Chấp nhận được | α ≥ 0.6: Cần xem xét | α < 0.6: Kém', 15, yPos);
+            const scaleNote = isOmegaBatch
+                ? '\u2022 \u03c9 \u2265 0.9: R\u1EA5t t\u1ED1t | \u03c9 \u2265 0.8: T\u1ED1t | \u03c9 \u2265 0.7: Ch\u1EA5p nh\u1EADn \u0111\u01B0\u1EE3c | \u03c9 \u2265 0.6: C\u1EA7n xem x\u00E9t | \u03c9 < 0.6: K\u00E9m'
+                : '\u2022 \u03b1 \u2265 0.9: R\u1EA5t t\u1ED1t | \u03b1 \u2265 0.8: T\u1ED1t | \u03b1 \u2265 0.7: Ch\u1EA5p nh\u1EADn \u0111\u01B0\u1EE3c | \u03b1 \u2265 0.6: C\u1EA7n xem x\u00E9t | \u03b1 < 0.6: K\u00E9m';
+            doc.text(scaleNote, 15, yPos);
             doc.setTextColor(0);
             doc.setFontSize(10);
             yPos += 10;

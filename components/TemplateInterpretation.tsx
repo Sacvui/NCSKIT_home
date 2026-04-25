@@ -70,6 +70,7 @@ export function TemplateInterpretation({
                         alpha: results.rawAlpha || results.alpha || 0,
                         // Only show Omega if specifically requested (analysisType is omega)
                         omega: (analysisType.includes('omega')) ? results.omega : undefined,
+                        isOmegaPrimary: analysisType.includes('omega'),
                         badItems: results.itemStats
                             ?.filter((item: any) => item.correctedItemTotal < 0.3)
                             ?.map((item: any) => item.variable) || []

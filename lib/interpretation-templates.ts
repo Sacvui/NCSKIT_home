@@ -79,29 +79,43 @@ export function interpretCronbachAlpha(params: {
     alpha: number;
     omega?: number;
     badItems?: string[];
+    isOmegaPrimary?: boolean;
 }): InterpretationResult {
-    const { scaleName, nItems, alpha, omega, badItems } = params;
+    const { scaleName, nItems, alpha, omega, badItems, isOmegaPrimary } = params;
     const alphaStr = formatCoef(alpha);
+    const omegaStr = omega ? formatCoef(omega) : '';
 
     let summary = '';
     const details: string[] = [];
     const warnings: string[] = [];
-    const citations = ['Nunnally, J. C. (1978). Psychometric theory (2nd ed.). McGraw-Hill.'];
+    const citations = isOmegaPrimary 
+        ? ['Hayes, A. F., & Coutts, J. J. (2020). Use Omega Rather than Cronbach’s Alpha for Estimating Reliability.'] 
+        : ['Nunnally, J. C. (1978). Psychometric theory (2nd ed.). McGraw-Hill.'];
 
-    if (alpha >= 0.7) {
-        summary = `Kết quả kiểm định độ tin cậy cho thấy thang đo "${scaleName}" (gồm ${nItems} biến quan sát) đạt hệ số Cronbach's Alpha α = ${alphaStr}${omega && omega > 0 ? ` và McDonald's Omega ω = ${formatCoef(omega)}` : ''}. Các chỉ số này đều vượt ngưỡng khuyến nghị (.700), khẳng định thang đo có tính nhất quán nội tại cao, đủ độ tin cậy để thực hiện các phân tích đa biến tiếp theo.`;
-    } else if (alpha >= 0.6) {
-        summary = `Hệ số Cronbach's Alpha của thang đo "${scaleName}" đạt α = ${alphaStr}. Mặc dù chưa đạt ngưỡng lý tưởng (.700) nhưng giá trị này vẫn nằm trong mức chấp nhận được đối với các nghiên cứu mang tính khám phá (Exploratory Research).`;
-        if (omega) summary += ` Hệ số McDonald's Omega đạt ω = ${formatCoef(omega)}.`;
+    const primaryCoef = isOmegaPrimary && omega ? omega : alpha;
+    const primaryStr = isOmegaPrimary && omega ? omegaStr : alphaStr;
+    const primaryName = isOmegaPrimary && omega ? "McDonald's Omega (ω)" : "Cronbach's Alpha (α)";
+
+    if (primaryCoef >= 0.7) {
+        summary = `Kết quả kiểm định độ tin cậy cho thấy thang đo "${scaleName}" (gồm ${nItems} biến quan sát) đạt hệ số ${primaryName} = ${primaryStr}. Chỉ số này vượt ngưỡng khuyến nghị (.700), khẳng định thang đo có tính nhất quán nội tại cao, đủ độ tin cậy để thực hiện các phân tích đa biến tiếp theo.`;
+        if (isOmegaPrimary) {
+            summary += ` McDonald's Omega được sử dụng thay cho Cronbach's Alpha để vượt qua giới hạn của giả định tau-equivalent, mang lại ước lượng độ tin cậy chính xác hơn.`;
+        } else if (omega && omega > 0) {
+            summary += ` McDonald's Omega ω = ${formatCoef(omega)}.`;
+        }
+    } else if (primaryCoef >= 0.6) {
+        summary = `Hệ số ${primaryName} của thang đo "${scaleName}" đạt = ${primaryStr}. Mặc dù chưa đạt ngưỡng lý tưởng (.700) nhưng giá trị này vẫn nằm trong mức chấp nhận được đối với các nghiên cứu mang tính khám phá (Exploratory Research).`;
+        if (!isOmegaPrimary && omega) summary += ` Hệ số McDonald's Omega đạt ω = ${formatCoef(omega)}.`;
         citations.push('Hair, J. F., et al. (2010). Multivariate data analysis (7th ed.). Pearson.');
     } else {
-        summary = `Thang đo "${scaleName}" có hệ số Cronbach's Alpha α = ${alphaStr} (< .600), không đảm bảo độ tin cậy cần thiết cho các phân tích khoa học.`;
+        summary = `Thang đo "${scaleName}" có hệ số ${primaryName} = ${primaryStr} (< .600), không đảm bảo độ tin cậy cần thiết cho các phân tích khoa học.`;
         warnings.push('Độ tin cậy không đạt yêu cầu quy chuẩn. Cần xem xét điều chỉnh cấu trúc thang đo.');
     }
 
-    // McDonald's Omega
-    if (omega && omega > 0) {
+    if (!isOmegaPrimary && omega && omega > 0) {
         details.push(`Chỉ số McDonald's Omega (ω) = ${formatCoef(omega)} bổ trợ thêm bằng chứng về tính nhất quán tổng thể của cấu trúc.`);
+    } else if (isOmegaPrimary) {
+        details.push(`Chỉ số Cronbach's Alpha tham khảo (α) = ${alphaStr}.`);
     }
 
     // Bad items
