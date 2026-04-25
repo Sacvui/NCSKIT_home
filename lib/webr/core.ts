@@ -345,11 +345,12 @@ export async function loadPackagesForMethod(method: string): Promise<void> {
             await runLocked(async () => {
                 await webR.evalR(`
                     if (!require("${pkg}", character.only = TRUE, quietly = TRUE)) {
-                        tryCatch(webr::install("${pkg}", repos = "${localRepo}"), error = function(e) {})
-                        if (!require("${pkg}", character.only = TRUE, quietly = TRUE)) {
-                            message("Local install failed for ", "${pkg}", ", trying remote repos...")
-                            tryCatch(webr::install("${pkg}", repos = c("https://yrosseel.r-universe.dev", "https://sem-in-r.r-universe.dev", "https://ropensci.r-universe.dev", "${officialRepo}")), error = function(e) {})
-                        }
+                        # CDN First - Much faster for deployment and ensures latest stable WASM binaries
+                        .repos <- c("https://yrosseel.r-universe.dev", "https://sem-in-r.r-universe.dev", "https://ropensci.r-universe.dev", "${officialRepo}")
+                        tryCatch(webr::install("${pkg}", repos = .repos), error = function(e) {
+                             # Local Fallback
+                             tryCatch(webr::install("${pkg}", repos = "${localRepo}"), error = function(e) {})
+                        })
                         library("${pkg}", character.only = TRUE)
                     }
                 `);
