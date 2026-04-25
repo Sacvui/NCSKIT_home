@@ -269,17 +269,11 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         install_if_missing <- function(pkg) {
                             if (!require(pkg, character.only = TRUE, quietly = TRUE)) {
                                 message("Installing missing package: ", pkg)
-                                tryCatch({
-                                    # Try local first by setting repos temporarily
-                                    webr::install(pkg, repos = local_repo)
-                                }, error = function(e) {
+                                tryCatch(webr::install(pkg, repos = local_repo), error = function(e) {})
+                                if (!require(pkg, character.only = TRUE, quietly = TRUE)) {
                                     message("Local install failed for ", pkg, ", trying CRAN...")
-                                    tryCatch({
-                                        webr::install(pkg, repos = fallback_repo)
-                                    }, error = function(e2) {
-                                        stop("Failed to install ", pkg, ": ", e2$message)
-                                    })
-                                })
+                                    tryCatch(webr::install(pkg, repos = fallback_repo), error = function(e) {})
+                                }
                                 library(pkg, character.only = TRUE)
                             }
                         }
@@ -351,12 +345,11 @@ export async function loadPackagesForMethod(method: string): Promise<void> {
             await runLocked(async () => {
                 await webR.evalR(`
                     if (!require("${pkg}", character.only = TRUE, quietly = TRUE)) {
-                        tryCatch({
-                            webr::install("${pkg}", repos = "${localRepo}")
-                        }, error = function(e) {
+                        tryCatch(webr::install("${pkg}", repos = "${localRepo}"), error = function(e) {})
+                        if (!require("${pkg}", character.only = TRUE, quietly = TRUE)) {
                             message("Local install failed for ", "${pkg}", ", trying remote repos...")
-                            webr::install("${pkg}", repos = c("https://yrosseel.r-universe.dev", "https://sem-in-r.r-universe.dev", "https://ropensci.r-universe.dev", "${officialRepo}"))
-                        })
+                            tryCatch(webr::install("${pkg}", repos = c("https://yrosseel.r-universe.dev", "https://sem-in-r.r-universe.dev", "https://ropensci.r-universe.dev", "${officialRepo}")), error = function(e) {})
+                        }
                         library("${pkg}", character.only = TRUE)
                     }
                 `);
@@ -531,12 +524,11 @@ export async function executeRWithRecovery(
                 await runLocked(async () => {
                     await webR.evalR(`
                         if (!require("${missingPkg}", character.only = TRUE, quietly = TRUE)) {
-                            tryCatch({
-                                webr::install("${missingPkg}", repos = "${localRepo}")
-                            }, error = function(e) {
+                            tryCatch(webr::install("${missingPkg}", repos = "${localRepo}"), error = function(e) {})
+                            if (!require("${missingPkg}", character.only = TRUE, quietly = TRUE)) {
                                 message("Local install failed for ", "${missingPkg}", ", trying official repo...")
-                                webr::install("${missingPkg}", repos = "${officialRepo}")
-                            })
+                                tryCatch(webr::install("${missingPkg}", repos = "${officialRepo}"), error = function(e) {})
+                            }
                             library("${missingPkg}", character.only = TRUE)
                         }
                     `);
