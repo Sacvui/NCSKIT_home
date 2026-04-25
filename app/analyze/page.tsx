@@ -82,7 +82,7 @@ function AnalyzeContent() {
 
     // Aggressive Cache Buster - Forces reload if version mismatch
     useEffect(() => {
-        const CURRENT_DEPLOY_VERSION = "20260425_1455"; // Updated on each major fix
+        const CURRENT_DEPLOY_VERSION = "20260425_1557"; // Updated on each major fix
         const savedVersion = localStorage.getItem('ncs_deploy_version');
         
         if (savedVersion && savedVersion !== CURRENT_DEPLOY_VERSION) {
