@@ -88,7 +88,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
         }
         if (!checkWebRReady()) return;
 
-        const isOmega = step === 'omega-select';
+        const isOmega = localStep === 'omega-select';
         const analysisMethod = isOmega ? 'omega' : 'cronbach';
 
         if (user) {
@@ -130,7 +130,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
             }
 
             setResults({ type: analysisMethod, data: analysisResults, columns: selectedColumns, scaleName: name });
-            setStep('results');
+            setParentStep('results');
             showToast('Phân tích hoàn tất!', 'success');
         } catch (error) {
             handleAnalysisError(error);
@@ -142,7 +142,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
     const runCronbachBatch = async (groups: { name: string; columns: string[] }[]) => {
         if (!checkWebRReady()) return;
         
-        const isOmega = step === 'omega-select';
+        const isOmega = localStep === 'omega-select';
         const batchMethod = isOmega ? 'omega-batch' : 'cronbach-batch';
 
         if (user) {
@@ -190,7 +190,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
             }
 
             setMultipleResults(allResults);
-            setStep('results');
+            setParentStep('results');
             showToast(`Phân tích ${allResults.length} thang đo hoàn thành!`, 'success');
         } catch (error) {
             handleAnalysisError(error);
@@ -245,7 +245,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
             }
 
             setResults({ type: 'omega', data: analysisResults, columns: selectedColumns, scaleName: name });
-            setStep('results');
+            setParentStep('results');
             showToast('Phân tích Omega hoàn thành!', 'success');
         } catch (error) {
             handleAnalysisError(error);
@@ -286,7 +286,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
             }
 
             setResults({ type: 'pls-sem', data: results, columns: columns });
-            setStep('results');
+            setParentStep('results');
             showToast('Phân tích PLS-SEM hoàn tất!', 'success');
         } catch (error) {
             handleAnalysisError(error);
@@ -297,7 +297,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
 
     // --- Render ---
 
-    if (step === 'cronbach-select') {
+    if (localStep === 'cronbach-select') {
         return (
             <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <ViewHeader title="Cronbach's Alpha (α)" subtitle="Phân tích độ tin cậy nhất quán nội tại của thang đo. Hệ thống hỗ trợ tự động nhận diện và gom nhóm biến." icon={Shield} />
@@ -318,7 +318,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
         );
     }
 
-    if (step === 'omega-select') {
+    if (localStep === 'omega-select') {
         return (
             <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <ViewHeader title="McDonald's Omega (ω)" subtitle="Đánh giá độ tin cậy hiện đại, chính xác hơn Cronbach Alpha khi các giả định về sự tuân thủ đơn chiều bị vi phạm." icon={Shield} />
@@ -337,7 +337,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
                                      allResults.push({ scaleName: group.name, columns: group.columns, data: result });
                                  }
                                  setMultipleResults(allResults);
-                                 setStep('results');
+                                 setParentStep('results');
                              } catch (e) { handleAnalysisError(e); }
                              finally { setIsAnalyzing(false); }
                         }}
@@ -354,7 +354,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
         );
     }
 
-    if (step === 'efa-select') {
+    if (localStep === 'efa-select') {
         return (
             <div className="max-w-3xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <ViewHeader title="Exploratory Factor Analysis (EFA)" subtitle="Phân tích nhân tố khám phá nhằm rút gọn dữ liệu và xác định cấu trúc các nhân tố tiềm ẩn." icon={Grid3x3} />
@@ -414,7 +414,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
                              try {
                                  const res = await runEFA(data.map(row => selectedCols.map(c => Number(row[c]) || 0)), nfactors, rotation);
                                  setResults({ type: 'efa', data: res, columns: selectedCols });
-                                 setStep('results');
+                                 setParentStep('results');
                                  showToast('EFA hoàn tất!', 'success');
                              } catch (e) { handleAnalysisError(e); }
                              finally { setIsAnalyzing(false); }
@@ -431,7 +431,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
         );
     }
 
-    if (step === 'cfa-select') {
+    if (localStep === 'cfa-select') {
         return (
             <CFASelection
                 columns={columns}
@@ -442,7 +442,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
                         const neededCols = Array.from(new Set(factors.flatMap((f: any) => f.indicators)));
                         const result = await runCFA(data.map(row => (neededCols as string[]).map(c => Number(row[c]) || 0)), neededCols as string[], syntax);
                         setResults({ type: 'cfa', data: result, columns: neededCols });
-                        setStep('results');
+                        setParentStep('results');
                         showToast('CFA thành công!', 'success');
                     } catch (err) { handleAnalysisError(err); } 
                     finally { setIsAnalyzing(false); }
@@ -453,7 +453,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
         );
     }
 
-    if (step === 'sem-select') {
+    if (localStep === 'sem-select') {
         return (
             <SEMSelection
                 columns={columns}
@@ -464,7 +464,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
                         const neededCols = Array.from(new Set(factors.flatMap((f: any) => f.indicators)));
                         const result = await runSEM(data.map(row => (neededCols as string[]).map(c => Number(row[c]) || 0)), neededCols as string[], syntax);
                         setResults({ type: 'sem', data: result, columns: neededCols });
-                        setStep('results');
+                        setParentStep('results');
                         showToast('SEM thành công!', 'success');
                     } catch (err) { handleAnalysisError(err); } 
                     finally { setIsAnalyzing(false); }
@@ -475,7 +475,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
         );
     }
 
-    if (step === 'pls-sem-select') {
+    if (localStep === 'pls-sem-select') {
         return (
             <PLSSEMSelection
                 columns={columns}
