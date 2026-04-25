@@ -927,8 +927,8 @@ function AnalyzeContent() {
             )}
 
 
-            {/* Header - Hidden on mobile during active analysis to save space */}
-            <div className={step !== 'upload' ? 'hidden md:block' : ''}>
+            {/* Header */}
+            <div>
                 <Header
                     user={user}
                     profile={userProfile}
@@ -937,7 +937,7 @@ function AnalyzeContent() {
             </div>
 
             {/* Dedicated Analysis Control Bar - Sits below Header */}
-            <div className={`sticky top-0 md:top-16 z-30 bg-blue-900 border-b border-blue-800 py-2 md:py-3 shadow-xl transition-all`}>
+            <div className={`sticky top-16 z-30 bg-blue-900 border-b border-blue-800 py-2 md:py-3 shadow-xl transition-all`}>
                 <div className="container mx-auto px-4 md:px-6 flex items-center justify-between gap-2 md:gap-4">
                     <div className="flex items-center gap-2 md:gap-3">
                         <div className="flex items-center gap-2 pr-2 md:pr-4 border-r border-blue-800">

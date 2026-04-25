@@ -142,7 +142,7 @@ function HeaderContent({ centerContent, rightActions, hideNav = false, user: pro
                     </div>
 
                     {/* Global Language Switcher */}
-                    <div className="flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200" role="group" aria-label="Chọn ngôn ngữ">
+                    <div className="hidden sm:flex items-center bg-slate-100 rounded-lg p-0.5 border border-slate-200" role="group" aria-label="Chọn ngôn ngữ">
                         <button
                             onClick={() => {
                                 setLocale('vi');

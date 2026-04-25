@@ -154,8 +154,8 @@ export const SEMResults = React.memo(function SEMResults({ results }: SEMResults
                                         <th className="py-4 px-6 text-left font-black uppercase tracking-widest text-[10px] border-b-2 border-slate-300 dark:border-slate-700">Tác động lên (DV)</th>
                                         <th className="py-4 px-6 text-center border-b-2 border-slate-300 dark:border-slate-700"></th>
                                         <th className="py-4 px-6 text-left font-black uppercase tracking-widest text-[10px] border-b-2 border-slate-300 dark:border-slate-700">Nguyên nhân (IV)</th>
-                                        <th className="py-4 px-6 text-right font-black uppercase tracking-widest text-[10px] border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700 whitespace-normal w-24">Beta</th>
-                                        <th className="py-4 px-6 text-right font-black uppercase tracking-widest text-[10px] border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700 whitespace-normal w-24">P-value</th>
+                                        <th className="py-4 px-6 text-right font-black uppercase tracking-widest text-[10px] border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700 whitespace-nowrap">Beta</th>
+                                        <th className="py-4 px-6 text-right font-black uppercase tracking-widest text-[10px] border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700 whitespace-nowrap">P-value</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -195,8 +195,8 @@ export const SEMResults = React.memo(function SEMResults({ results }: SEMResults
                                         <th className="py-4 px-6 text-left font-black uppercase tracking-widest text-[10px] border-b-2 border-slate-300 dark:border-slate-700">Nhân tố (Latent)</th>
                                         <th className="py-4 px-6 text-center border-b-2 border-slate-300 dark:border-slate-700"></th>
                                         <th className="py-4 px-6 text-left font-black uppercase tracking-widest text-[10px] border-b-2 border-slate-300 dark:border-slate-700">Biến quan sát</th>
-                                        <th className="py-4 px-6 text-right font-black uppercase tracking-widest text-[10px] border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700 whitespace-normal w-24">Std. Est</th>
-                                        <th className="py-4 px-6 text-right font-black uppercase tracking-widest text-[10px] border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700 whitespace-normal w-24">P-value</th>
+                                        <th className="py-4 px-6 text-right font-black uppercase tracking-widest text-[10px] border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700 whitespace-nowrap">Std. Est</th>
+                                        <th className="py-4 px-6 text-right font-black uppercase tracking-widest text-[10px] border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700 whitespace-nowrap">P-value</th>
                                     </tr>
                                 </thead>
                                 <tbody>

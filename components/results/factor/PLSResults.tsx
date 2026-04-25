@@ -179,11 +179,11 @@ export const PLSResults: React.FC<PLSResultsProps> = ({ results }) => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50">
-                                {Object.entries(htmt).map(([rowName, rowData]: [string, any]) => (
+                                {Object.keys(htmt[Object.keys(htmt)[0]] || {}).map((rowName: string) => (
                                     <tr key={rowName} className="hover:bg-blue-50/30">
                                         <td className="py-3 px-4 font-black text-blue-900 bg-slate-50/30">{rowName}</td>
                                         {Object.keys(htmt).map(colName => {
-                                            const val = rowData[colName];
+                                            const val = htmt[colName][rowName];
                                             if (val === undefined || val === null) return <td key={colName} className="py-3 px-4 text-slate-200">-</td>;
                                             return (
                                                 <td key={colName} className={`py-3 px-4 font-bold ${getStatusColor(val, 'htmt')}`}>
@@ -220,11 +220,11 @@ export const PLSResults: React.FC<PLSResultsProps> = ({ results }) => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50">
-                                {Object.entries(fornell_larcker).map(([rowName, rowData]: [string, any]) => (
+                                {Object.keys(fornell_larcker[Object.keys(fornell_larcker)[0]] || {}).map((rowName: string) => (
                                     <tr key={rowName} className="hover:bg-blue-50/30">
                                         <td className="py-3 px-4 font-black text-blue-900 bg-slate-50/30">{rowName}</td>
                                         {Object.keys(fornell_larcker).map(colName => {
-                                            const val = rowData[colName];
+                                            const val = fornell_larcker[colName][rowName];
                                             const isDiagonal = rowName === colName;
                                             return (
                                                 <td key={colName} className={`py-3 px-4 ${isDiagonal ? 'font-black text-blue-600 bg-blue-50/50' : 'text-slate-500'}`}>

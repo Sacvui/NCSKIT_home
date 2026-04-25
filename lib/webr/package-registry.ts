@@ -34,6 +34,7 @@ export const PACKAGE_REGISTRY = {
     'cbsem-select': ['lavaan', 'quadprog'],
     'cfa-select': ['lavaan', 'quadprog'],
     'omega-select': ['psych'],
+    'pls-sem': ['seminr'],
 
     // Multivariate
     'cluster': ['cluster'],

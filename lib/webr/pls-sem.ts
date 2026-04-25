@@ -186,20 +186,30 @@ export async function runPLSSEM(
     fornell_larcker <- cor_matrix
     diag(fornell_larcker) <- sqrt(ave)
     
+    # Helper to convert matrix to list of lists (preserving row/col names)
+    matrix_to_list <- function(mat) {
+      if (is.null(mat) || nrow(mat) == 0 || ncol(mat) == 0) return(list())
+      res <- lapply(as.data.frame(mat), function(x) {
+        names(x) <- rownames(mat)
+        as.list(x)
+      })
+      return(res)
+    }
+
     list(
-      path_coefficients = summ$paths,
-      r_squared = summ$reliability[, "R.squared"],
-      f_squared = summ$fSquare,
-      loadings = summ$loadings,
-      total_effects = summ$total_effects,
-      cross_loadings = summ$loadings, # seminr uses loadings for both in summary
-      fornell_larcker = fornell_larcker,
-      htmt = htmt_res,
+      path_coefficients = matrix_to_list(summ$paths),
+      r_squared = as.list(summ$reliability[, "R.squared"]),
+      f_squared = matrix_to_list(summ$fSquare),
+      loadings = matrix_to_list(summ$loadings),
+      total_effects = matrix_to_list(summ$total_effects),
+      cross_loadings = matrix_to_list(summ$loadings),
+      fornell_larcker = matrix_to_list(fornell_larcker),
+      htmt = matrix_to_list(htmt_res),
       validity = list(
-        cronbach = summ$reliability[, "Alpha"],
-        rho_a = summ$reliability[, "rhoA"],
-        composite_reliability = summ$reliability[, "rhoC"],
-        ave = summ$reliability[, "AVE"]
+        cronbach = as.list(summ$reliability[, "Alpha"]),
+        rho_a = as.list(summ$reliability[, "rhoA"]),
+        composite_reliability = as.list(summ$reliability[, "rhoC"]),
+        ave = as.list(summ$reliability[, "AVE"])
       )
     )
   `;
@@ -237,9 +247,25 @@ export async function runBlindfolding(
     # Run Blindfolding
     q2_result <- predict_pls(pls_model, noFolds = 10)
     
+    matrix_to_list <- function(mat) {
+      if (is.null(mat) || nrow(mat) == 0 || ncol(mat) == 0) return(list())
+      res <- lapply(as.data.frame(mat), function(x) {
+        names(x) <- rownames(mat)
+        as.list(x)
+      })
+      return(res)
+    }
+
+    q2_val <- q2_result$predictive_relevance
+    if (is.matrix(q2_val)) {
+       q2_export <- matrix_to_list(q2_val)
+    } else {
+       q2_export <- as.list(q2_val)
+    }
+
     list(
-      q2 = q2_result$predictive_relevance,
-      it_criteria = q2_result$it_criteria,
+      q2 = q2_export,
+      it_criteria = matrix_to_list(q2_result$it_criteria),
       status = "Blindfolding (Q²) calculation completed"
     )
   `;
@@ -314,9 +340,18 @@ export async function runBootstrapping(
       boot_model <- bootstrap_model(pls_model, nboot = ${nBootstrap}, cores = 1)
       summ_boot <- summary(boot_model)
       
+      matrix_to_list <- function(mat) {
+        if (is.null(mat) || nrow(mat) == 0 || ncol(mat) == 0) return(list())
+        res <- lapply(as.data.frame(mat), function(x) {
+          names(x) <- rownames(mat)
+          as.list(x)
+        })
+        return(res)
+      }
+
       list(
-        boot_paths = summ_boot$bootstrapped_paths,
-        boot_loadings = summ_boot$bootstrapped_loadings,
+        boot_paths = matrix_to_list(summ_boot$bootstrapped_paths),
+        boot_loadings = matrix_to_list(summ_boot$bootstrapped_loadings),
         n_bootstrap = ${nBootstrap}
       )
     `;
