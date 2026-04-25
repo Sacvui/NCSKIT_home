@@ -66,6 +66,7 @@ export const CronbachResults = React.memo(function CronbachResults({
                     <h3 className="text-sm font-bold text-blue-900 uppercase tracking-wider flex items-center gap-2">
                         <Activity className="w-4 h-4 text-blue-600" />
                         {isOmega ? 'McDonald\'s Omega Reliability' : 'Cronbach\'s Alpha Reliability Statistics'}
+                        <span className="text-[9px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded ml-2 font-black">V1.2-OMEGA</span>
                     </h3>
                 </div>
                 <div className="p-8 flex items-center justify-around bg-gradient-to-r from-white to-blue-50/30">

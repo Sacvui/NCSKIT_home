@@ -324,19 +324,23 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
                 <ViewHeader title="McDonald's Omega (ω)" subtitle="Đánh giá độ tin cậy hiện đại, chính xác hơn Cronbach Alpha khi các giả định về sự tuân thủ đơn chiều bị vi phạm." icon={Shield} />
                 
                 <div className="bg-white rounded-2xl border border-blue-100 shadow-xl p-2 md:p-6 overflow-hidden">
+                    <h3 className="text-[10px] font-black uppercase text-blue-900 mb-4 px-2 flex items-center">
+                        {isAnalyzing ? 'Processing...' : 'McDonald\'s Omega Reliability'}
+                        <span className="text-[9px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded ml-2 font-black">V1.2-OMEGA</span>
+                    </h3>
                     <SmartGroupSelector
                         columns={columns}
                         onAnalyzeGroup={runOmegaWithSelection}
                         onAnalyzeAllGroups={async (groups) => {
-                             // Batch logic same as Cronbach for now as placeholder
                              setIsAnalyzing(true);
                              try {
                                  const allResults = [];
                                  for (const group of groups) {
                                      const result = await runCronbachAlpha(data.map(row => group.columns.map(col => Number(row[col]) || 0)));
-                                     allResults.push({ scaleName: group.name, columns: group.columns, data: result });
+                                     allResults.push({ scaleName: group.name, columns: group.columns, data: result, type: 'omega' });
                                  }
                                  setMultipleResults(allResults);
+                                 setAnalysisType('omega-batch');
                                  setParentStep('results');
                              } catch (e) { handleAnalysisError(e); }
                              finally { setIsAnalyzing(false); }
