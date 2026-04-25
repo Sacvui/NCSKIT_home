@@ -84,6 +84,11 @@ const nextConfig = {
                         key: 'Content-Security-Policy',
                         value: CSP_DIRECTIVES,
                     },
+                    // AGGRESSIVE CACHE BUSTING for main application routes
+                    {
+                        key: 'Cache-Control',
+                        value: 'no-cache, no-store, must-revalidate',
+                    },
                 ],
             },
             // WebR core binaries

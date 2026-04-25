@@ -80,6 +80,29 @@ function AnalyzeContent() {
     const [locale, setLocale] = useState<Locale>('vi');
     const isVi = locale === 'vi';
 
+    // Aggressive Cache Buster - Forces reload if version mismatch
+    useEffect(() => {
+        const CURRENT_DEPLOY_VERSION = "20260425_1443"; // Updated on each major fix
+        const savedVersion = localStorage.getItem('ncs_deploy_version');
+        
+        if (savedVersion && savedVersion !== CURRENT_DEPLOY_VERSION) {
+            console.log('[CacheBuster] New version detected, clearing site data and reloading...');
+            localStorage.setItem('ncs_deploy_version', CURRENT_DEPLOY_VERSION);
+            
+            // Clear only essential caches to force re-fetch from server
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(registrations => {
+                    for (let registration of registrations) registration.unregister();
+                });
+            }
+            
+            // Hard reload
+            window.location.reload();
+        } else {
+            localStorage.setItem('ncs_deploy_version', CURRENT_DEPLOY_VERSION);
+        }
+    }, []);
+
     // Sync locale with storage
     useEffect(() => {
         setLocale(getStoredLocale());
