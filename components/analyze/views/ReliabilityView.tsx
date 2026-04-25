@@ -49,8 +49,10 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
     setShowInsufficientCredits,
     locale
 }) => {
-    const [step, setStep] = useState<'select' | 'cronbach-select' | 'omega-select' | 'cronbach-batch' | 'omega-batch' | 'results'>(
-        initialStep === 'cronbach-select' || initialStep === 'omega-select' ? initialStep : 'select'
+    const [step, setStep] = useState<'select' | 'cronbach-select' | 'omega-select' | 'cronbach-batch' | 'omega-batch' | 'efa-select' | 'cfa-select' | 'sem-select' | 'pls-sem-select' | 'results'>(
+        ['cronbach-select', 'omega-select', 'efa-select', 'cfa-select', 'sem-select', 'pls-sem-select'].includes(initialStep) 
+            ? initialStep as any 
+            : 'select'
     );
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const handleAnalysisError = useAnalysisError(showToast);
