@@ -32,12 +32,9 @@ export default function CiteCheckPage() {
     const [refContent, setRefContent] = useState('');
     const [logs, setLogs] = useState<LogLine[]>([]);
     const [analysisResult, setAnalysisResult] = useState<{
-        ghostCitations: { cite: string; rec: string }[]; 
-        deadRefs: { ref: string; rec: string }[];      
         matchCount: number;
         totalCitations: number;
         totalRefs: number;
-        doiIssues: { doi: string; rec: string }[];
         missingDoi: number;
         verificationResults: any[];
         accuracyErrors: number;
@@ -218,38 +215,7 @@ export default function CiteCheckPage() {
             setProgress(60 + (i / refsToVerify.length) * 25);
         }
 
-        // --- Step 4: Cross-Reference Matching ---
-        await new Promise(r => setTimeout(r, 800));
-        setProgress(90);
-        addLog(isVi ? "Đang đối soát trích dẫn chéo (Cross-matching)..." : "Running Cross-matching algorithm...", "info");
-        
-        const ghostCitations = uniqueCites
-            .filter(cite => {
-                const citeAuthorLast = extractFirstAuthor(cite.author).toLowerCase();
-                return !refs.some(ref => {
-                    const refLower = ref.toLowerCase();
-                    return refLower.includes(citeAuthorLast) && refLower.includes(cite.year.toLowerCase());
-                });
-            })
-            .map(c => ({ 
-                cite: `${c.author} (${c.year})`, 
-                rec: isVi ? `Không tìm thấy tài liệu nào của tác giả "${c.author}" năm ${c.year} trong mục lục.` : `No reference found for author "${c.author}" year ${c.year}.`
-            }));
-
-        const deadRefs = refs
-            .filter(ref => {
-                const refLower = ref.toLowerCase();
-                return !uniqueCites.some(cite => {
-                    const citeAuthorLast = extractFirstAuthor(cite.author).toLowerCase();
-                    return refLower.includes(citeAuthorLast) && refLower.includes(cite.year.toLowerCase());
-                });
-            })
-            .map(r => ({
-                ref: r,
-                rec: isVi ? "Tài liệu này không được trích dẫn trong bài." : "This entry is not cited in text."
-            }));
-
-        // --- Step 5: Final Analytics Calculation ---
+        // --- Step 4: Final Analytics Calculation ---
         const apiInvalidCount = verificationResults.filter(v => v.conclusion === 'INVALID').length;
         
         // Final Matched count = Present in both AND Valid via API
@@ -264,17 +230,15 @@ export default function CiteCheckPage() {
         }).length;
 
         setAnalysisResult({
-            ghostCitations,
-            deadRefs,
             matchCount: finalMatchedCount,
             totalCitations: uniqueCites.length,
             totalRefs: refs.length,
-            doiIssues: verificationResults.filter(v => v.conclusion === 'INVALID').map(v => ({ doi: v.ref, rec: v.note })),
             missingDoi: verificationResults.filter(r => !r.ref.match(doiRegex)).length,
             verificationResults,
             accuracyErrors: apiInvalidCount
         });
         
+        setProgress(100);
         setIsAnalyzing(false);
         setShowResults(true);
     };
@@ -432,7 +396,7 @@ export default function CiteCheckPage() {
                     {showResults && analysisResult && (
                         <div className="mt-20 space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
                             {/* Summary Cards */}
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl group hover:border-indigo-500 transition-all">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">{isVi ? 'Độ tin cậy trích dẫn' : 'Integrity Score'}</p>
                                     <div className="text-4xl font-black text-indigo-600 tracking-tighter">
@@ -445,87 +409,12 @@ export default function CiteCheckPage() {
                                     <div className="text-4xl font-black text-emerald-500 tracking-tighter">{analysisResult.matchCount}</div>
                                     <p className="text-[10px] text-slate-400 mt-2 font-medium">{isVi ? 'Khớp nội dung & Quốc tế' : 'Cited & API Validated'}</p>
                                 </div>
-                                <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl group hover:border-rose-500 transition-all">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">{isVi ? 'Trích dẫn thiếu nguồn' : 'Missing (Ghost)'}</p>
-                                    <div className="text-4xl font-black text-rose-500 tracking-tighter">{analysisResult.ghostCitations.length}</div>
-                                    <p className="text-[10px] text-slate-400 mt-2 font-medium">{isVi ? 'Có trong bài nhưng thiếu ở mục lục' : 'Not in References'}</p>
-                                </div>
                                 <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl group hover:border-amber-500 transition-all">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">{isVi ? 'Lỗi dữ liệu nguồn' : 'Data Errors'}</p>
                                     <div className="text-4xl font-black text-amber-500 tracking-tighter">{analysisResult.accuracyErrors || 0}</div>
                                     <p className="text-[10px] text-slate-400 mt-2 font-medium">{isVi ? 'Sai lệch thông tin quốc tế' : 'Invalid via API'}</p>
                                 </div>
                             </div>
-
-                            {isVi && analysisResult.totalCitations === 0 && (
-                                <div className="bg-indigo-600 text-white p-6 rounded-3xl flex items-center gap-4 animate-in fade-in zoom-in duration-500 shadow-2xl shadow-indigo-200">
-                                    <Info className="w-8 h-8 shrink-0" />
-                                    <div>
-                                        <p className="font-black text-sm uppercase tracking-widest">Mẹo tối ưu kiểm định:</p>
-                                        <p className="text-xs opacity-90 leading-relaxed">Bạn hiện chỉ mới dán danh mục tham khảo. Hãy dán cả <b>Nội dung bài viết (Manuscript)</b> ở ô bên trái để hệ thống đối soát các lỗi "Trích dẫn ma" và tính điểm tin cậy bài viết.</p>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Detailed Recommendations */}
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-                                {/* Ghost Citations & Recommendations */}
-                                <div className="bg-rose-50 rounded-[4rem] p-12 border border-rose-100">
-                                    <h3 className="text-2xl font-black text-rose-900 mb-2 flex items-center gap-4">
-                                        <ShieldAlert className="w-8 h-8" /> {isVi ? 'Trích dẫn ma (Thiếu nguồn)' : 'Ghost Citations (Missing)'}
-                                    </h3>
-                                    <p className="text-xs text-rose-700/60 mb-8 font-medium italic">
-                                        {isVi ? 'Những nguồn bạn nhắc tới trong bài nhưng không tìm thấy ở danh mục tài liệu tham khảo.' : 'Citations found in text but missing from the bibliography.'}
-                                    </p>
-                                    {analysisResult.ghostCitations.length > 0 ? (
-                                        <div className="space-y-6">
-                                            {analysisResult.ghostCitations.map((item, i) => (
-                                                <div key={i} className="p-6 bg-white rounded-3xl shadow-sm border border-rose-100 group">
-                                                    <div className="flex items-center gap-3 mb-3">
-                                                        <span className="px-3 py-1 bg-rose-100 text-rose-600 text-[10px] font-black rounded-lg">IN-TEXT CITE</span>
-                                                        <span className="text-rose-900 font-black">{item.cite}</span>
-                                                    </div>
-                                                    <p className="text-sm text-slate-600 leading-relaxed pl-4 border-l-2 border-rose-500/30">
-                                                        <span className="font-bold text-rose-600 uppercase text-[9px] tracking-widest block mb-1">Recommendation</span>
-                                                        {item.rec}
-                                                    </p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <p className="text-rose-700 font-bold italic opacity-60">Clean! All cited authors are in your list.</p>
-                                    )}
-                                </div>
-
-                                {/* DOI Health & Recommendations */}
-                                <div className="bg-indigo-50 rounded-[4rem] p-12 border border-indigo-100">
-                                    <h3 className="text-2xl font-black text-indigo-900 mb-8 flex items-center gap-4">
-                                        <RefreshCw className="w-8 h-8" /> {isVi ? 'Khuyến nghị định dạng DOI' : 'DOI Recommendations'}
-                                    </h3>
-                                    {analysisResult.doiIssues.length > 0 ? (
-                                        <div className="space-y-6">
-                                            {analysisResult.doiIssues.map((item, i) => (
-                                                <div key={i} className="p-6 bg-white rounded-3xl shadow-sm border border-indigo-100">
-                                                    <div className="flex items-center gap-3 mb-3">
-                                                        <span className="px-3 py-1 bg-indigo-100 text-indigo-600 text-[10px] font-black rounded-lg">DOI ISSUE</span>
-                                                        <code className="text-slate-900 font-mono text-xs">{item.doi}</code>
-                                                    </div>
-                                                    <p className="text-sm text-slate-600 leading-relaxed pl-4 border-l-2 border-indigo-500/30">
-                                                        <span className="font-bold text-indigo-600 uppercase text-[9px] tracking-widest block mb-1">Fix Suggestion</span>
-                                                        {item.rec}
-                                                    </p>
-                                                    <button className="mt-4 text-[10px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2 hover:translate-x-1 transition-transform">
-                                                        <CheckCircle2 className="w-3 h-3" /> Auto-Apply Fix
-                                                    </button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <p className="text-indigo-700 font-bold italic opacity-60">Excellent! Your DOIs are perfectly formatted.</p>
-                                    )}
-                                </div>
-                            </div>
-
                             {/* Database Verification Results */}
                             <div className="bg-white rounded-[4rem] p-12 border border-slate-200 shadow-xl overflow-hidden relative">
                                 <div className="absolute top-0 right-0 p-8 opacity-10">
@@ -687,29 +576,6 @@ export default function CiteCheckPage() {
                             </div>
                         </div>
 
-                            {/* Dead References */}
-                            <div className="bg-slate-100 rounded-[4rem] p-12 border border-slate-200 mt-20">
-                                <h3 className="text-2xl font-black text-slate-900 mb-2 flex items-center gap-4">
-                                    <Layers className="w-8 h-8 text-indigo-500" /> {isVi ? 'Nguồn tham khảo dư thừa' : 'Uncited References (Orphans)'}
-                                </h3>
-                                <p className="text-xs text-slate-500 mb-8 font-medium italic">
-                                    {isVi ? 'Những nguồn bạn liệt kê ở mục lục nhưng không hề nhắc tới trong bài viết. Hãy cân nhắc gỡ bỏ.' : 'Entries in your reference list that are not cited anywhere in the manuscript.'}
-                                </p>
-                                {analysisResult.deadRefs.length > 0 ? (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        {analysisResult.deadRefs.map((item, i) => (
-                                            <div key={i} className="p-6 bg-white rounded-3xl shadow-sm border border-slate-200">
-                                                <p className="text-sm text-slate-700 font-medium leading-relaxed mb-4">{item.ref}</p>
-                                                <p className="text-[10px] text-amber-600 font-black uppercase tracking-widest flex items-center gap-2">
-                                                    <Info className="w-3 h-3" /> {item.rec}
-                                                </p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <p className="text-slate-500 font-bold italic opacity-60">Great! Your list is perfectly lean.</p>
-                                )}
-                            </div>
                         </div>
                     )}
                 </section>
