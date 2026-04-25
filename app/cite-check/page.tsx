@@ -216,17 +216,23 @@ export default function CiteCheckPage() {
         }
 
         // --- Step 4: Final Analytics Calculation ---
-        const apiInvalidCount = verificationResults.filter(v => v.conclusion === 'INVALID').length;
+        // Count everything that is NOT 'VALID' (includes INVALID, ERROR, UNCERTAIN)
+        const totalIssuesCount = verificationResults.filter(v => v.conclusion !== 'VALID').length;
         
-        // Final Matched count = Present in both AND Valid via API
+        // Final Matched count = Present in both AND strictly Valid via API
         const finalMatchedCount = uniqueCites.filter(cite => {
             const citeAuthorLast = extractFirstAuthor(cite.author).toLowerCase();
             const hasRef = refs.some(ref => {
                 const refLower = ref.toLowerCase();
                 return refLower.includes(citeAuthorLast) && refLower.includes(cite.year.toLowerCase());
             });
-            const isInvalidInApi = verificationResults.some(v => v.ref.toLowerCase().includes(citeAuthorLast) && v.conclusion === 'INVALID');
-            return hasRef && !isInvalidInApi;
+            // We only count it as a perfect match if it's found in refs AND the API confirmed it as VALID
+            const isValidInApi = verificationResults.some(v => 
+                v.ref.toLowerCase().includes(citeAuthorLast) && 
+                v.ref.toLowerCase().includes(cite.year.toLowerCase()) &&
+                v.conclusion === 'VALID'
+            );
+            return hasRef && isValidInApi;
         }).length;
 
         setAnalysisResult({
@@ -235,7 +241,7 @@ export default function CiteCheckPage() {
             totalRefs: refs.length,
             missingDoi: verificationResults.filter(r => !r.ref.match(doiRegex)).length,
             verificationResults,
-            accuracyErrors: apiInvalidCount
+            accuracyErrors: totalIssuesCount
         });
         
         setProgress(100);
