@@ -33,6 +33,7 @@ export default function CiteCheckPage() {
     const [logs, setLogs] = useState<LogLine[]>([]);
     const [analysisResult, setAnalysisResult] = useState<{
         matchCount: number;
+        validRefsCount: number;
         totalCitations: number;
         totalRefs: number;
         missingDoi: number;
@@ -216,32 +217,28 @@ export default function CiteCheckPage() {
         }
 
         // --- Step 4: Final Analytics Calculation ---
-        // Count everything that is NOT 'VALID' (includes INVALID, ERROR, UNCERTAIN)
-        const totalIssuesCount = verificationResults.filter(v => v.conclusion !== 'VALID').length;
         
-        // Final Matched count = Present in both AND strictly Valid via API
-        const finalMatchedCount = uniqueCites.filter(cite => {
+        // 1. Cross-matching (Manuscript vs Reference List) - regardless of API
+        const citedInListCount = uniqueCites.filter(cite => {
             const citeAuthorLast = extractFirstAuthor(cite.author).toLowerCase();
-            const hasRef = refs.some(ref => {
+            return refs.some(ref => {
                 const refLower = ref.toLowerCase();
                 return refLower.includes(citeAuthorLast) && refLower.includes(cite.year.toLowerCase());
             });
-            // We only count it as a perfect match if it's found in refs AND the API confirmed it as VALID
-            const isValidInApi = verificationResults.some(v => 
-                v.ref.toLowerCase().includes(citeAuthorLast) && 
-                v.ref.toLowerCase().includes(cite.year.toLowerCase()) &&
-                v.conclusion === 'VALID'
-            );
-            return hasRef && isValidInApi;
         }).length;
 
+        // 2. API Validation (Reference List vs Global Database)
+        const apiValidCount = verificationResults.filter(v => v.conclusion === 'VALID').length;
+        const apiIssueCount = verificationResults.filter(v => v.conclusion === 'INVALID' || v.conclusion === 'ERROR').length;
+
         setAnalysisResult({
-            matchCount: finalMatchedCount,
+            matchCount: citedInListCount,
             totalCitations: uniqueCites.length,
             totalRefs: refs.length,
             missingDoi: verificationResults.filter(r => !r.ref.match(doiRegex)).length,
             verificationResults,
-            accuracyErrors: totalIssuesCount
+            accuracyErrors: apiIssueCount,
+            validRefsCount: apiValidCount
         });
         
         setProgress(100);
@@ -404,21 +401,21 @@ export default function CiteCheckPage() {
                             {/* Summary Cards */}
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl group hover:border-indigo-500 transition-all">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">{isVi ? 'Độ tin cậy trích dẫn' : 'Integrity Score'}</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">{isVi ? 'Khớp bài & Mục lục' : 'Manuscript Sync'}</p>
                                     <div className="text-4xl font-black text-indigo-600 tracking-tighter">
                                         {analysisResult.totalCitations > 0 ? Math.round((analysisResult.matchCount / analysisResult.totalCitations) * 100) : 0}%
                                     </div>
-                                    <p className="text-[10px] text-slate-400 mt-2 font-medium">{isVi ? 'Tỉ lệ khớp bài & mục lục' : 'Overall reliability'}</p>
+                                    <p className="text-[10px] text-slate-400 mt-2 font-medium">{isVi ? 'Tỉ lệ trích dẫn có nguồn' : 'Citations found in refs'}</p>
                                 </div>
                                 <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl group hover:border-emerald-500 transition-all">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">{isVi ? 'Trích dẫn chuẩn xác' : 'Perfect Matches'}</p>
-                                    <div className="text-4xl font-black text-emerald-500 tracking-tighter">{analysisResult.matchCount}</div>
-                                    <p className="text-[10px] text-slate-400 mt-2 font-medium">{isVi ? 'Khớp nội dung & Quốc tế' : 'Cited & API Validated'}</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">{isVi ? 'Xác thực Quốc tế' : 'Global Validation'}</p>
+                                    <div className="text-4xl font-black text-emerald-500 tracking-tighter">{analysisResult.validRefsCount || 0}</div>
+                                    <p className="text-[10px] text-slate-400 mt-2 font-medium">{isVi ? 'Tài liệu khớp Crossref' : 'References verified'}</p>
                                 </div>
-                                <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl group hover:border-amber-500 transition-all">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">{isVi ? 'Lỗi dữ liệu nguồn' : 'Data Errors'}</p>
-                                    <div className="text-4xl font-black text-amber-500 tracking-tighter">{analysisResult.accuracyErrors || 0}</div>
-                                    <p className="text-[10px] text-slate-400 mt-2 font-medium">{isVi ? 'Sai lệch thông tin quốc tế' : 'Invalid via API'}</p>
+                                <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl group hover:border-rose-500 transition-all">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">{isVi ? 'Vấn đề phát hiện' : 'Issues Found'}</p>
+                                    <div className="text-4xl font-black text-rose-500 tracking-tighter">{analysisResult.accuracyErrors || 0}</div>
+                                    <p className="text-[10px] text-slate-400 mt-2 font-medium">{isVi ? 'Sai lệch hoặc lỗi dữ liệu' : 'Confirmed mismatches'}</p>
                                 </div>
                             </div>
                             {/* Database Verification Results */}
