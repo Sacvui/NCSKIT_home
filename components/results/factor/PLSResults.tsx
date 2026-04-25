@@ -62,13 +62,13 @@ export const PLSResults: React.FC<PLSResultsProps> = ({ results }) => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50">
-                                {Object.keys(validity.cronbach).map((construct) => (
+                                {validity && validity.cronbach && Object.keys(validity.cronbach).map((construct) => (
                                     <tr key={construct} className="hover:bg-blue-50/30 transition-colors">
                                         <td className="py-3 px-4 font-bold text-blue-900">{construct}</td>
-                                        <td className={`py-3 px-4 font-medium ${getStatusColor(validity.cronbach[construct], 'high')}`}>{validity.cronbach[construct].toFixed(3)}</td>
-                                        <td className={`py-3 px-4 font-medium ${getStatusColor(validity.rho_a[construct], 'high')}`}>{validity.rho_a[construct].toFixed(3)}</td>
-                                        <td className={`py-3 px-4 font-medium ${getStatusColor(validity.composite_reliability[construct], 'high')}`}>{validity.composite_reliability[construct].toFixed(3)}</td>
-                                        <td className={`py-3 px-4 font-medium ${getStatusColor(validity.ave[construct], 'high')}`}>{validity.ave[construct].toFixed(3)}</td>
+                                        <td className={`py-3 px-4 font-medium ${getStatusColor(validity.cronbach[construct], 'high')}`}>{validity.cronbach[construct]?.toFixed(3)}</td>
+                                        <td className={`py-3 px-4 font-medium ${getStatusColor(validity.rho_a[construct], 'high')}`}>{validity.rho_a[construct]?.toFixed(3)}</td>
+                                        <td className={`py-3 px-4 font-medium ${getStatusColor(validity.composite_reliability[construct], 'high')}`}>{validity.composite_reliability[construct]?.toFixed(3)}</td>
+                                        <td className={`py-3 px-4 font-medium ${getStatusColor(validity.ave[construct], 'high')}`}>{validity.ave[construct]?.toFixed(3)}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -98,8 +98,8 @@ export const PLSResults: React.FC<PLSResultsProps> = ({ results }) => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-50">
-                                    {Object.entries(path_coefficients).flatMap(([to, froms]: [string, any]) => 
-                                        Object.entries(froms).filter(([_, val]: [any, any]) => val !== 0).map(([from, val]: [string, any]) => (
+                                    {Object.entries(path_coefficients || {}).flatMap(([to, froms]: [string, any]) => 
+                                        Object.entries(froms || {}).filter(([_, val]: [any, any]) => val !== 0).map(([from, val]: [string, any]) => (
                                             <tr key={`${from}-${to}`} className="hover:bg-blue-50/30">
                                                 <td className="py-3 px-4 font-bold text-slate-700">{from} <span className="text-blue-400 mx-1">→</span> {to}</td>
                                                 <td className="py-3 px-4 font-black text-blue-900">{val.toFixed(3)}</td>
@@ -136,7 +136,7 @@ export const PLSResults: React.FC<PLSResultsProps> = ({ results }) => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-50">
-                                    {Object.keys(r_squared).map((construct) => (
+                                    {Object.keys(r_squared || {}).map((construct) => (
                                         <tr key={construct} className="hover:bg-blue-50/30">
                                             <td className="py-3 px-4 font-bold text-blue-900">{construct}</td>
                                             <td className="py-3 px-4">
@@ -175,14 +175,14 @@ export const PLSResults: React.FC<PLSResultsProps> = ({ results }) => {
                             <thead>
                                 <tr>
                                     <TableHeader>-</TableHeader>
-                                    {Object.keys(htmt).map(c => <TableHeader key={c}>{c}</TableHeader>)}
+                                    {Object.keys(htmt || {}).map(c => <TableHeader key={c}>{c}</TableHeader>)}
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50">
-                                {Object.keys(htmt[Object.keys(htmt)[0]] || {}).map((rowName: string) => (
+                                {Object.keys((htmt && htmt[Object.keys(htmt)[0]]) || {}).map((rowName: string) => (
                                     <tr key={rowName} className="hover:bg-blue-50/30">
                                         <td className="py-3 px-4 font-black text-blue-900 bg-slate-50/30">{rowName}</td>
-                                        {Object.keys(htmt).map(colName => {
+                                        {Object.keys(htmt || {}).map(colName => {
                                             const val = htmt[colName][rowName];
                                             if (val === undefined || val === null) return <td key={colName} className="py-3 px-4 text-slate-200">-</td>;
                                             return (
