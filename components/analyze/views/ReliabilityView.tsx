@@ -309,7 +309,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
                     />
                 </div>
 
-                <button onClick={() => setStep('analyze')} className="w-full py-4 text-slate-400 font-black uppercase text-[10px] tracking-widest hover:text-blue-600 transition-colors flex items-center justify-center gap-2">
+                <button onClick={() => setParentStep('analyze')} className="w-full py-4 text-slate-400 font-black uppercase text-[10px] tracking-widest hover:text-blue-600 transition-colors flex items-center justify-center gap-2">
                     <ChevronLeft className="w-3 h-3" /> Quay lại chọn phương pháp
                 </button>
             </div>
@@ -345,7 +345,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
                     />
                 </div>
 
-                <button onClick={() => setStep('analyze')} className="w-full py-4 text-slate-400 font-black uppercase text-[10px] tracking-widest hover:text-blue-600 transition-colors flex items-center justify-center gap-2">
+                <button onClick={() => setParentStep('analyze')} className="w-full py-4 text-slate-400 font-black uppercase text-[10px] tracking-widest hover:text-blue-600 transition-colors flex items-center justify-center gap-2">
                     <ChevronLeft className="w-3 h-3" /> Quay lại chọn phương pháp
                 </button>
             </div>
@@ -422,7 +422,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
                     </ActionButton>
                 </div>
 
-                <button onClick={() => setStep('analyze')} className="w-full py-4 text-slate-400 font-black uppercase text-[10px] tracking-widest hover:text-blue-600 transition-colors flex items-center justify-center gap-2">
+                <button onClick={() => setParentStep('analyze')} className="w-full py-4 text-slate-400 font-black uppercase text-[10px] tracking-widest hover:text-blue-600 transition-colors flex items-center justify-center gap-2">
                     <ChevronLeft className="w-3 h-3" /> Quay lại
                 </button>
             </div>
@@ -446,7 +446,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
                     finally { setIsAnalyzing(false); }
                 }}
                 isAnalyzing={isAnalyzing}
-                onBack={() => setStep('analyze')}
+                onBack={() => setParentStep('analyze')}
             />
         );
     }
@@ -468,7 +468,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
                     finally { setIsAnalyzing(false); }
                 }}
                 isAnalyzing={isAnalyzing}
-                onBack={() => setStep('analyze')}
+                onBack={() => setParentStep('analyze')}
             />
         );
     }
@@ -479,7 +479,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
                 columns={columns}
                 onRunPLS={runPLSWithSelection}
                 isAnalyzing={isAnalyzing}
-                onBack={() => setStep('analyze')}
+                onBack={() => setParentStep('analyze')}
             />
         );
     }
