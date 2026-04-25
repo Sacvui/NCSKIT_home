@@ -33,12 +33,12 @@ interface ReliabilityViewProps {
 }
 
 export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
-    step,
+    step: initialStep,
     data,
     columns,
     user,
     setResults,
-    setStep,
+    setStep: setParentStep,
     setNcsBalance,
     showToast,
     setScaleName,
@@ -49,6 +49,9 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
     setShowInsufficientCredits,
     locale
 }) => {
+    const [step, setStep] = useState<'select' | 'cronbach-select' | 'omega-select' | 'cronbach-batch' | 'omega-batch' | 'results'>(
+        initialStep === 'cronbach-select' || initialStep === 'omega-select' ? initialStep : 'select'
+    );
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const handleAnalysisError = useAnalysisError(showToast);
     const checkWebRReady = useWebRGuard(showToast);

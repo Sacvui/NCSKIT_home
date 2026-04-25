@@ -1256,26 +1256,26 @@ function AnalyzeContent() {
                                                     <tr className="border-b-2 border-slate-300">
                                                         <th className="py-3 px-4 font-semibold rounded-tl-lg">{locale === 'vi' ? 'Thang đo' : 'Scale'}</th>
                                                         <th className="py-3 px-4 font-semibold text-center">{locale === 'vi' ? 'Số biến' : 'Items'}</th>
-                                                        <th className="py-3 px-4 font-semibold text-center">Cronbach&apos;s Alpha</th>
+                                                        <th className="py-3 px-4 font-semibold text-center">{multipleResults[0]?.type === 'omega' ? "McDonald's Omega" : "Cronbach's Alpha"}</th>
                                                         <th className="py-3 px-4 font-semibold text-center rounded-tr-lg">{locale === 'vi' ? 'Đánh giá' : 'Evaluation'}</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     {multipleResults.map((r, idx) => {
-                                                        const alpha = r.data?.alpha || r.data?.rawAlpha || 0;
+                                                        const score = r.type === 'omega' ? (r.data?.omega || 0) : (r.data?.alpha || r.data?.rawAlpha || 0);
                                                         let evaluation = '';
                                                         let evalColor = '';
-                                                        if (alpha >= 0.9) { evaluation = locale === 'vi' ? 'Xuất sắc' : 'Excellent'; evalColor = 'text-green-800 bg-green-100 ring-1 ring-green-200'; }
-                                                        else if (alpha >= 0.8) { evaluation = locale === 'vi' ? 'Tốt' : 'Good'; evalColor = 'text-green-700 bg-emerald-50 ring-1 ring-emerald-200'; }
-                                                        else if (alpha >= 0.7) { evaluation = locale === 'vi' ? 'Chấp nhận' : 'Acceptable'; evalColor = 'text-blue-700 bg-blue-50 ring-1 ring-blue-200'; }
-                                                        else if (alpha >= 0.6) { evaluation = locale === 'vi' ? 'Khá' : 'Fair'; evalColor = 'text-amber-700 bg-amber-50 ring-1 ring-amber-200'; }
+                                                        if (score >= 0.9) { evaluation = locale === 'vi' ? 'Xuất sắc' : 'Excellent'; evalColor = 'text-green-800 bg-green-100 ring-1 ring-green-200'; }
+                                                        else if (score >= 0.8) { evaluation = locale === 'vi' ? 'Tốt' : 'Good'; evalColor = 'text-green-700 bg-emerald-50 ring-1 ring-emerald-200'; }
+                                                        else if (score >= 0.7) { evaluation = locale === 'vi' ? 'Chấp nhận' : 'Acceptable'; evalColor = 'text-blue-700 bg-blue-50 ring-1 ring-blue-200'; }
+                                                        else if (score >= 0.6) { evaluation = locale === 'vi' ? 'Khá' : 'Fair'; evalColor = 'text-amber-700 bg-amber-50 ring-1 ring-amber-200'; }
                                                         else { evaluation = locale === 'vi' ? 'Kém' : 'Poor'; evalColor = 'text-red-700 bg-red-50 ring-1 ring-red-200'; }
 
                                                         return (
                                                             <tr key={idx} className="border-b border-slate-200 hover:bg-slate-50 transition-colors">
                                                                 <td className="py-3 px-4 font-bold text-slate-700">{r.scaleName}</td>
                                                                 <td className="py-3 px-4 text-center font-medium text-slate-600">{r.columns.length}</td>
-                                                                <td className="py-3 px-4 text-center font-bold text-slate-900">{alpha.toFixed(3)}</td>
+                                                                <td className="py-3 px-4 text-center font-bold text-slate-900">{score.toFixed(3)}</td>
                                                                 <td className="py-3 px-4 text-center">
                                                                     <span className={`px-2.5 py-1 rounded-md text-sm font-semibold shadow-sm ${evalColor}`}>
                                                                         {evaluation}
@@ -1296,7 +1296,7 @@ function AnalyzeContent() {
                                                 {locale === 'vi' ? 'Chi tiết' : 'Details'}: {r.scaleName} ({r.columns.join(', ')})
                                             </h4>
                                             <ResultsDisplay
-                                                analysisType="cronbach"
+                                                analysisType={r.type || "cronbach"}
                                                 results={r.data}
                                                 columns={r.columns}
                                                 userProfile={userProfile}
