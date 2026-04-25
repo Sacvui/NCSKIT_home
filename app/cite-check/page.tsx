@@ -78,9 +78,55 @@ export default function CiteCheckPage() {
         await new Promise(r => setTimeout(r, 800));
         setProgress(20);
         addLog(isVi ? "Đang quét nội dung văn bản để tìm In-text Citations..." : "Scanning manuscript for In-text Citations...", "info");
-        const citeRegex = /\(([^)]+),\s*(\d{4})\)/g;
-        const inTextCitations = Array.from(textContent.matchAll(citeRegex)).map(m => ({ full: m[0], author: m[1], year: m[2] }));
-        addLog(isVi ? `Tìm thấy ${inTextCitations.length} trích dẫn trong bài.` : `Found ${inTextCitations.length} in-text citations.`, "success");
+        
+        const inTextCitations: { full: string, author: string, year: string }[] = [];
+        const uniqueCites: { full: string, author: string, year: string }[] = [];
+        
+        // Helper to extract last name robustly
+        const extractFirstAuthor = (authorStr: string) => {
+            let clean = authorStr.replace(/et al\.?/ig, '').trim();
+            clean = clean.split(/&| and |,/i)[0].trim();
+            return clean;
+        };
+
+        // 1. Parenthetical citations: (Smith, 2020) or (Smith & Jones, 2020; Doe, 2021)
+        const parensRegex = /\(([^)]+)\)/g;
+        for (const match of Array.from(textContent.matchAll(parensRegex))) {
+            const innerText = match[1];
+            const segments = innerText.split(';');
+            for (const segment of segments) {
+                const citeMatch = segment.trim().match(/^([A-Za-zÀ-ỹ\s\-\.&]+(?:et al\.?)?),\s*(\d{4}[a-z]?)/i);
+                if (citeMatch) {
+                    inTextCitations.push({
+                        full: segment.trim(),
+                        author: citeMatch[1].trim(),
+                        year: citeMatch[2].trim()
+                    });
+                }
+            }
+        }
+
+        // 2. Narrative citations: Smith (2020) or Smith et al. (2020)
+        const narrativeRegex = /((?:[A-Z][A-Za-zÀ-ỹ\-']+\s*)+(?:et al\.?)?)\s*\((\d{4}[a-z]?)\)/g;
+        for (const match of Array.from(textContent.matchAll(narrativeRegex))) {
+            inTextCitations.push({
+                full: match[0].trim(),
+                author: match[1].trim(),
+                year: match[2].trim()
+            });
+        }
+
+        // Deduplicate
+        const seen = new Set();
+        inTextCitations.forEach(c => {
+             const key = c.author.toLowerCase() + c.year;
+             if (!seen.has(key)) {
+                 seen.add(key);
+                 uniqueCites.push(c);
+             }
+        });
+        
+        addLog(isVi ? `Tìm thấy ${uniqueCites.length} trích dẫn độc lập trong bài.` : `Found ${uniqueCites.length} unique in-text citations.`, "success");
 
         // --- Step 2: References Analysis ---
         await new Promise(r => setTimeout(r, 1000));
@@ -112,7 +158,7 @@ export default function CiteCheckPage() {
                 const cleanRef = ref.replace(/^(\d+[\.\-\s]+|\[\d+\]\s*)/, '').trim();
                 
                 // Better extraction logic on cleaned string
-                const yearMatch = cleanRef.match(/\((\d{4})\)/);
+                const yearMatch = cleanRef.match(/\((\d{4})\)/) || cleanRef.match(/(?:^|\s)(\d{4})(?:\.|\s)/);
                 const extractedYear = yearMatch ? yearMatch[1] : null;
                 const authorMatch = cleanRef.match(/^([^,.(]+)/); // Extraction from cleaned string
                 const extractedAuthor = authorMatch ? authorMatch[1].trim() : '';
@@ -177,15 +223,27 @@ export default function CiteCheckPage() {
         setProgress(90);
         addLog(isVi ? "Đang đối soát trích dẫn chéo (Cross-matching)..." : "Running Cross-matching algorithm...", "info");
         
-        const ghostCitations = inTextCitations
-            .filter(cite => !refs.some(ref => ref.toLowerCase().includes(cite.author.toLowerCase())))
+        const ghostCitations = uniqueCites
+            .filter(cite => {
+                const citeAuthorLast = extractFirstAuthor(cite.author).toLowerCase();
+                return !refs.some(ref => {
+                    const refLower = ref.toLowerCase();
+                    return refLower.includes(citeAuthorLast) && refLower.includes(cite.year.toLowerCase());
+                });
+            })
             .map(c => ({ 
-                cite: c.full, 
-                rec: isVi ? `Tác giả "${c.author}" không có trong danh mục tham khảo.` : `Author "${c.author}" is missing from references.`
+                cite: `${c.author} (${c.year})`, 
+                rec: isVi ? `Không tìm thấy tài liệu nào của tác giả "${c.author}" năm ${c.year} trong mục lục.` : `No reference found for author "${c.author}" year ${c.year}.`
             }));
 
         const deadRefs = refs
-            .filter(ref => !inTextCitations.some(cite => ref.toLowerCase().includes(cite.author.toLowerCase())))
+            .filter(ref => {
+                const refLower = ref.toLowerCase();
+                return !uniqueCites.some(cite => {
+                    const citeAuthorLast = extractFirstAuthor(cite.author).toLowerCase();
+                    return refLower.includes(citeAuthorLast) && refLower.includes(cite.year.toLowerCase());
+                });
+            })
             .map(r => ({
                 ref: r,
                 rec: isVi ? "Tài liệu này không được trích dẫn trong bài." : "This entry is not cited in text."
@@ -195,16 +253,21 @@ export default function CiteCheckPage() {
         const apiInvalidCount = verificationResults.filter(v => v.conclusion === 'INVALID').length;
         
         // Final Matched count = Present in both AND Valid via API
-        const finalMatchedCount = inTextCitations.filter(cite => 
-            refs.some(ref => ref.toLowerCase().includes(cite.author.toLowerCase())) &&
-            !verificationResults.some(v => v.ref.toLowerCase().includes(cite.author.toLowerCase()) && v.conclusion === 'INVALID')
-        ).length;
+        const finalMatchedCount = uniqueCites.filter(cite => {
+            const citeAuthorLast = extractFirstAuthor(cite.author).toLowerCase();
+            const hasRef = refs.some(ref => {
+                const refLower = ref.toLowerCase();
+                return refLower.includes(citeAuthorLast) && refLower.includes(cite.year.toLowerCase());
+            });
+            const isInvalidInApi = verificationResults.some(v => v.ref.toLowerCase().includes(citeAuthorLast) && v.conclusion === 'INVALID');
+            return hasRef && !isInvalidInApi;
+        }).length;
 
         setAnalysisResult({
             ghostCitations,
             deadRefs,
             matchCount: finalMatchedCount,
-            totalCitations: inTextCitations.length,
+            totalCitations: uniqueCites.length,
             totalRefs: refs.length,
             doiIssues: verificationResults.filter(v => v.conclusion === 'INVALID').map(v => ({ doi: v.ref, rec: v.note })),
             missingDoi: verificationResults.filter(r => !r.ref.match(doiRegex)).length,
