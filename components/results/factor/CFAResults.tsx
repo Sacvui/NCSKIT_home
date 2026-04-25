@@ -107,9 +107,9 @@ export const CFAResults = React.memo(function CFAResults({ results, onProceedToS
                                     <th className="py-4 px-6 text-left font-black uppercase tracking-widest text-[10px] border-b-2 border-slate-300 dark:border-slate-700">Nhân tố (Latent)</th>
                                     <th className="py-4 px-6 text-center border-b-2 border-slate-300 dark:border-slate-700"></th>
                                     <th className="py-4 px-6 text-left font-black uppercase tracking-widest text-[10px] border-b-2 border-slate-300 dark:border-slate-700">Biến quan sát</th>
-                                    <th className="py-4 px-6 text-right font-black uppercase tracking-widest text-[10px] border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700 whitespace-normal w-24">Est.</th>
-                                    <th className="py-4 px-6 text-right font-black uppercase tracking-widest text-[10px] border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700 whitespace-normal w-24">Std. Est</th>
-                                    <th className="py-4 px-6 text-right font-black uppercase tracking-widest text-[10px] border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700 whitespace-normal w-24">P-value</th>
+                                    <th className="py-4 px-6 text-right font-black uppercase tracking-widest text-[10px] border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700 whitespace-nowrap">Est.</th>
+                                    <th className="py-4 px-6 text-right font-black uppercase tracking-widest text-[10px] border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700 whitespace-nowrap">Std. Est</th>
+                                    <th className="py-4 px-6 text-right font-black uppercase tracking-widest text-[10px] border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700 whitespace-nowrap">P-value</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -147,9 +147,9 @@ export const CFAResults = React.memo(function CFAResults({ results, onProceedToS
                                 <thead>
                                     <tr className="bg-slate-100 dark:bg-slate-800 text-slate-950 dark:text-slate-100">
                                         <th className="py-4 px-6 text-left font-black uppercase tracking-widest text-[10px] border-b-2 border-slate-300 dark:border-slate-700">Mối quan hệ</th>
-                                        <th className="py-4 px-6 text-right font-black uppercase tracking-widest text-[10px] border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700 whitespace-normal w-24">Est.</th>
-                                        <th className="py-4 px-6 text-right font-black uppercase tracking-widest text-[10px] border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700 whitespace-normal w-32">Std. Est (Corr.)</th>
-                                        <th className="py-4 px-6 text-right font-black uppercase tracking-widest text-[10px] border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700 whitespace-normal w-24">P-value</th>
+                                        <th className="py-4 px-6 text-right font-black uppercase tracking-widest text-[10px] border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700 whitespace-nowrap">Est.</th>
+                                        <th className="py-4 px-6 text-right font-black uppercase tracking-widest text-[10px] border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700 whitespace-nowrap">Std. Est (Corr.)</th>
+                                        <th className="py-4 px-6 text-right font-black uppercase tracking-widest text-[10px] border-l border-slate-200 dark:border-slate-700 border-b-2 border-slate-300 dark:border-slate-700 whitespace-nowrap">P-value</th>
                                     </tr>
                                 </thead>
                                 <tbody>
