@@ -42,10 +42,11 @@ const BASE_URL = typeof window !== 'undefined'
 
 const getOptimalChannelType = (): 0 | 1 | 3 => {
     if (typeof window === 'undefined') return 3;
-    // WebR 0.5.x: channelType 0 = SharedArrayBuffer, 1 = ServiceWorker, 3 = PostMessage
-    // SharedArrayBuffer (0) is fastest and most stable when crossOriginIsolated is true
+    // We prioritize ServiceWorker (1) for maximum compatibility with IDBFS persistence
+    // while still maintaining near-native performance.
+    // SharedArrayBuffer (0) is fast but often blocks persistent storage access.
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) return 1;
     if (typeof SharedArrayBuffer !== 'undefined' && window.crossOriginIsolated) return 0;
-    // PostMessage (3) as universal fallback — works everywhere
     return 3;
 };
 
@@ -355,6 +356,18 @@ export async function loadPackagesForMethod(method: string): Promise<void> {
                     }
                 `);
             });
+            
+            // CRITICAL: Sync filesystem after installation to ensure persistence across F5/Reloads
+            const channelType = getOptimalChannelType();
+            if (channelType !== 0) {
+                try {
+                    logger.info(`[WebR] Persisting ${pkg} to storage...`);
+                    await webR.FS.syncfs(false); 
+                } catch (e) {
+                    logger.warn(`[WebR] Failed to persist ${pkg}:`, e);
+                }
+            }
+            
             markPackageLoaded(pkg);
         } catch (error) {
             logger.error(`Failed to load ${pkg}:`, error);
