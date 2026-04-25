@@ -505,13 +505,23 @@ export default function CiteCheckPage() {
                                                         {item.conclusion === 'INVALID' && (
                                                             <tr className="bg-rose-50/30 border-b border-slate-100">
                                                                 <td colSpan={7} className="p-4 px-12">
-                                                                    <div className="flex items-start gap-3 bg-white p-4 rounded-2xl border border-rose-100 shadow-sm">
-                                                                        <div className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5"></div>
-                                                                        <div>
-                                                                            <p className="text-[10px] font-black text-rose-700 uppercase tracking-widest mb-1">Issue Detected</p>
-                                                                            <p className="text-[10px] text-slate-600 font-mono leading-relaxed">{item.note}</p>
-                                                                            <p className="text-[9px] text-slate-400 font-mono mt-2 italic opacity-60">{item.details}</p>
+                                                                    <div className="flex items-start justify-between gap-3 bg-white p-6 rounded-3xl border border-rose-100 shadow-sm">
+                                                                        <div className="flex items-start gap-3">
+                                                                            <div className="w-1.5 h-1.5 rounded-full bg-rose-500 mt-1.5"></div>
+                                                                            <div>
+                                                                                <p className="text-[10px] font-black text-rose-700 uppercase tracking-widest mb-1">Issue Detected</p>
+                                                                                <p className="text-[10px] text-slate-600 font-mono leading-relaxed">{item.note}</p>
+                                                                                <p className="text-[9px] text-slate-400 font-mono mt-2 italic opacity-60">{item.details}</p>
+                                                                            </div>
                                                                         </div>
+                                                                        <a 
+                                                                            href={`https://scholar.google.com/scholar?q=${encodeURIComponent(item.ref)}`} 
+                                                                            target="_blank" 
+                                                                            rel="noreferrer"
+                                                                            className="shrink-0 flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-lg"
+                                                                        >
+                                                                            <Search className="w-3 h-3" /> {isVi ? 'Kiểm tra thủ công' : 'Manual Verify'}
+                                                                        </a>
                                                                     </div>
                                                                 </td>
                                                             </tr>
@@ -558,6 +568,16 @@ export default function CiteCheckPage() {
                                                             {item.details}
                                                         </p>
                                                     </div>
+                                                )}
+                                                {item.conclusion === 'INVALID' && (
+                                                    <a 
+                                                        href={`https://scholar.google.com/scholar?q=${encodeURIComponent(item.ref)}`} 
+                                                        target="_blank" 
+                                                        rel="noreferrer"
+                                                        className="mt-4 flex items-center justify-center gap-2 px-4 py-2 bg-rose-50 text-rose-600 border border-rose-100 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all"
+                                                    >
+                                                        <Search className="w-3 h-3" /> {isVi ? 'Kiểm tra thủ công (Google Scholar)' : 'Manual Verify'}
+                                                    </a>
                                                 )}
                                             </div>
                                         </div>
