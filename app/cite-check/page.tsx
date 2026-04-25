@@ -43,6 +43,8 @@ export default function CiteCheckPage() {
     const [viewMode, setViewMode] = useState<'list' | 'table'>('list');
 
     const logEndRef = useRef<HTMLDivElement>(null);
+    const consoleRef = useRef<HTMLDivElement>(null);
+    const resultsRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         setLocale(getStoredLocale());
@@ -69,6 +71,11 @@ export default function CiteCheckPage() {
         setShowResults(false);
         setProgress(0);
         setLogs([]);
+
+        // Scroll to progress console
+        setTimeout(() => {
+            consoleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
         
         addLog(isVi ? "Bắt đầu quy trình kiểm định ncsStat Engine v2.0..." : "Initializing ncsStat Engine v2.0...", "info");
         
@@ -244,6 +251,11 @@ export default function CiteCheckPage() {
         setProgress(100);
         setIsAnalyzing(false);
         setShowResults(true);
+
+        // Scroll to results section after a short delay for rendering
+        setTimeout(() => {
+            resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 500);
     };
 
     return (
@@ -273,7 +285,7 @@ export default function CiteCheckPage() {
 
                 {/* Status Console (Wow Factor) */}
                 {isAnalyzing && (
-                    <section className="container mx-auto px-6 max-w-7xl mb-12 animate-in zoom-in-95 duration-500">
+                    <section ref={consoleRef} className="container mx-auto px-6 max-w-7xl mb-12 animate-in zoom-in-95 duration-500">
                         <div className="bg-slate-900 rounded-[3rem] p-8 shadow-4xl shadow-slate-200 border border-slate-800 relative overflow-hidden">
                             <div className="flex items-center justify-between mb-8">
                                 <div className="flex items-center gap-4">
@@ -397,7 +409,7 @@ export default function CiteCheckPage() {
 
                     {/* Results Display */}
                     {showResults && analysisResult && (
-                        <div className="mt-20 space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+                        <div ref={resultsRef} className="mt-20 space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">
                             {/* Summary Cards */}
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                 <div className="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl group hover:border-indigo-500 transition-all">
