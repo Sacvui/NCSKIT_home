@@ -100,7 +100,7 @@ export const PLSSEMView: React.FC<PLSSEMViewProps> = ({
                 if (!isExempt) setNcsBalance(newBalance);
             }
 
-            const result = await runMcDonaldOmega(selectedData, cols);
+            const result = await runMcDonaldOmega(selectedData as number[][], cols);
 
             if (user) {
                 const cost = await getAnalysisCost('omega');
@@ -155,7 +155,7 @@ export const PLSSEMView: React.FC<PLSSEMViewProps> = ({
                 if (!isExempt) setNcsBalance(newBalance);
             }
 
-            const result = await runOutlierDetection(numericData);
+            const result = await runOutlierDetection(numericData as number[][]);
 
             if (user) {
                 const cost = await getAnalysisCost('outlier');
@@ -201,7 +201,7 @@ export const PLSSEMView: React.FC<PLSSEMViewProps> = ({
                 columns.map(col => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[col]))
             );
 
-            const result = await runHTMTMatrix(numericData, factorStructure);
+            const result = await runHTMTMatrix(numericData as number[][], factorStructure);
 
             // Deduct AFTER running (HTMT is read-only, low risk — kept post for UX)
             if (user) {
@@ -259,7 +259,7 @@ export const PLSSEMView: React.FC<PLSSEMViewProps> = ({
                 if (!isExempt) setNcsBalance(newBalance);
             }
 
-            const result = await runVIFCheck(numericData, dependentVarIndex);
+            const result = await runVIFCheck(numericData as number[][], dependentVarIndex);
 
             if (user) {
                 const cost = await getAnalysisCost('vif');
@@ -313,7 +313,7 @@ export const PLSSEMView: React.FC<PLSSEMViewProps> = ({
                 if (!isExempt) setNcsBalance(newBalance);
             }
 
-            const result = await runSimpleBootstrapping(numericData, nBootstrap);
+            const result = await runSimpleBootstrapping(numericData as number[][], nBootstrap);
 
             if (user) {
                 const cost = await getAnalysisCost('bootstrap');

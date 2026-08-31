@@ -173,7 +173,7 @@ export const MediationView: React.FC<MediationViewProps> = ({
                             const cols = [mediationVars.x, mediationVars.m, mediationVars.y];
                             handleAnalysisWrapper(
                                 'mediation', 'regression',
-                                () => runMediationAnalysis(data.map(row => cols.map(c => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[c]))), cols, mediationVars.x, mediationVars.m, mediationVars.y),
+                                () => runMediationAnalysis(data.map(row => cols.map(c => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[c]))) as number[][], cols, mediationVars.x, mediationVars.m, mediationVars.y),
                                 cols, 'Phân tích Mediation hoàn tất!', `Mediation: ${mediationVars.x}->${mediationVars.m}->${mediationVars.y}`
                             );
                         }}
@@ -241,7 +241,7 @@ export const MediationView: React.FC<MediationViewProps> = ({
                             const cols = [moderationVars.y, moderationVars.x, moderationVars.w];
                             handleAnalysisWrapper(
                                 'moderation', 'regression',
-                                () => runModerationAnalysis(data.map(row => cols.map(c => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[c]))), cols, moderationVars.x, moderationVars.w, moderationVars.y),
+                                () => runModerationAnalysis(data.map(row => cols.map(c => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[c]))) as number[][], cols, moderationVars.x, moderationVars.w, moderationVars.y),
                                 cols, 'Phân tích Moderation hoàn tất!', `Moderation: ${moderationVars.y} ~ ${moderationVars.x} * ${moderationVars.w}`
                             );
                         }}

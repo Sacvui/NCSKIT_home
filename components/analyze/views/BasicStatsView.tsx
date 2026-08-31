@@ -231,7 +231,7 @@ export function BasicStatsView({
                             if (selectedCols.length === 0) return showToast('Vui lòng chọn ít nhất 1 biến', 'error');
                             handleAnalysisWrapper(
                                 'descriptive', 'descriptive',
-                                () => runDescriptiveStats(data.map(row => selectedCols.map(col => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[col])))),
+                                () => runDescriptiveStats(data.map(row => selectedCols.map(col => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[col]))) as number[][]),
                                 selectedCols, 'Phân tích hoàn tất!', `Descriptive Stats: ${selectedCols.length} variables`
                             );
                         }}
@@ -289,19 +289,19 @@ export function BasicStatsView({
                             if (step === 'ttest-select') {
                                 handleAnalysisWrapper(
                                     'ttest-indep', 'ttest-indep',
-                                    () => runTTestIndependent(data.map(row => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[v1])), data.map(row => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[v2]))),
+                                    () => runTTestIndependent(data.map(row => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[v1])) as number[], data.map(row => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[v2])) as number[]),
                                     [v1, v2], 'Phân tích hoàn tất!', `T-Test Indep: ${v1} vs ${v2}`
                                 );
                             } else if (step === 'ttest-paired-select') {
                                 handleAnalysisWrapper(
                                     'ttest-paired', 'ttest-paired',
-                                    () => runTTestPaired(data.map(row => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[v1])), data.map(row => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[v2]))),
+                                    () => runTTestPaired(data.map(row => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[v1])) as number[], data.map(row => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[v2])) as number[]),
                                     [v1, v2], 'Phân tích hoàn tất!', `T-Test Paired: ${v1} vs ${v2}`
                                 );
                             } else {
                                 handleAnalysisWrapper(
                                     'wilcoxon', 'wilcoxon',
-                                    () => runWilcoxonSignedRank(data.map(row => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[v1])), data.map(row => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[v2]))),
+                                    () => runWilcoxonSignedRank(data.map(row => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[v1])) as number[], data.map(row => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[v2])) as number[]),
                                     [v1, v2], 'Phân tích hoàn tất!', `Wilcoxon: ${v1} vs ${v2}`
                                 );
                             }
@@ -349,13 +349,13 @@ export function BasicStatsView({
                             if (isNonParam) {
                                 handleAnalysisWrapper(
                                     'kruskal-wallis', 'kruskal-wallis',
-                                    () => runKruskalWallis(selectedCols.map(col => data.map(row => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[col])))),
+                                    () => runKruskalWallis(selectedCols.map(col => data.map(row => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[col]))) as number[][]),
                                     selectedCols, 'Phân tích hoàn tất!', `Kruskal-Wallis: ${selectedCols.length} groups`
                                 );
                             } else {
                                 handleAnalysisWrapper(
                                     'anova', 'anova',
-                                    () => runOneWayANOVA(selectedCols.map(col => data.map(row => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[col])))),
+                                    () => runOneWayANOVA(selectedCols.map(col => data.map(row => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[col]))) as number[][]),
                                     selectedCols, 'Phân tích hoàn tất!', `ANOVA: ${selectedCols.length} groups`
                                 );
                             }
@@ -445,7 +445,7 @@ export function BasicStatsView({
                             
                             handleAnalysisWrapper(
                                 'mann-whitney', 'mann-whitney',
-                                () => runMannWhitneyU(data.map(row => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[v1])), data.map(row => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[v2]))),
+                                () => runMannWhitneyU(data.map(row => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[v1])) as number[], data.map(row => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[v2])) as number[]),
                                 [v1, v2], 'Phân tích hoàn tất!', `Mann-Whitney U: ${v1} vs ${v2}`
                             );
                         }}

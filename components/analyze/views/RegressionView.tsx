@@ -159,7 +159,7 @@ export const RegressionView: React.FC<RegressionViewProps> = ({
                             const cols = [regressionVars.y, ...regressionVars.xs];
                             handleAnalysisWrapper(
                                 'regression', 'regression',
-                                () => runLinearRegression(data.map(row => cols.map(c => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[c]))), cols),
+                                () => runLinearRegression(data.map(row => cols.map(c => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[c]))) as number[][], cols),
                                 cols, 'Phân tích hoàn tất!', `Regression: Y=${regressionVars.y} (${regressionVars.xs.length} predictors)`
                             );
                         }}
@@ -230,7 +230,7 @@ export const RegressionView: React.FC<RegressionViewProps> = ({
                             const cols = [logisticVars.y, ...logisticVars.xs];
                             handleAnalysisWrapper(
                                 'logistic', 'regression',
-                                () => runLogisticRegression(data.map(row => cols.map(c => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[c]))), cols),
+                                () => runLogisticRegression(data.map(row => cols.map(c => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[c]))) as number[][], cols),
                                 cols, 'Phân tích hoàn tất!', `Logistic Regression: Y=${logisticVars.y}`
                             );
                         }}

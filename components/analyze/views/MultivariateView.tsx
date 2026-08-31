@@ -182,7 +182,7 @@ export const MultivariateView: React.FC<MultivariateViewProps> = ({
                             const cols = clusterVars.variables;
                             handleAnalysisWrapper(
                                 'cluster', 'regression',
-                                () => runClusterAnalysis(data.map(row => cols.map(c => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[c]))), clusterVars.k, 'kmeans', cols),
+                                () => runClusterAnalysis(data.map(row => cols.map(c => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[c]))) as number[][], clusterVars.k, 'kmeans', cols),
                                 cols, 'Phân tích Cluster hoàn tất!', `Cluster Analysis (k=${clusterVars.k})`
                             );
                         }}
@@ -239,7 +239,7 @@ export const MultivariateView: React.FC<MultivariateViewProps> = ({
                         disabled={isAnalyzing}
                         onClick={() => {
                             if (!twoWayAnovaVars.y || !twoWayAnovaVars.factor1 || !twoWayAnovaVars.factor2) return showToast('Cần chọn đủ 3 biến', 'error');
-                            const yData = data.map(row => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[twoWayAnovaVars.y]));
+                            const yData = data.map(row => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[twoWayAnovaVars.y])) as number[];
                             const f1Data = data.map(row => String(row[twoWayAnovaVars.factor1]));
                             const f2Data = data.map(row => String(row[twoWayAnovaVars.factor2]));
 
