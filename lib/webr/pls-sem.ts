@@ -180,7 +180,7 @@ export async function runPLSSEM(
     summ <- summary(pls_model)
     
     # Calculate HTMT explicitly using seminr
-    htmt_res <- HTMT(pls_model)
+    htmt_res <- if (!is.null(summ$validity$htmt)) summ$validity$htmt else matrix(NA)
     
     # Fornell-Larcker Criterion
     # Square root of AVE on diagonal, correlations on off-diagonal
