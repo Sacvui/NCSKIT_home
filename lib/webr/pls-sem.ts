@@ -182,9 +182,15 @@ export async function runPLSSEM(
     # Calculate HTMT explicitly using seminr
     htmt_res <- if (!is.null(summ$validity$htmt)) summ$validity$htmt else matrix(NA)
     
+    # Helper for safe column extraction (case-insensitive)
+    safe_col <- function(mat, cname) {
+      idx <- grep(paste0("^", cname, "$"), colnames(mat), ignore.case = TRUE)
+      if (length(idx) > 0) return(mat[, idx[1]])
+      return(rep(NA, nrow(mat)))
+    }
+    
     # Fornell-Larcker Criterion
-    # Square root of AVE on diagonal, correlations on off-diagonal
-    ave <- summ$reliability[, "AVE"]
+    ave <- safe_col(summ$reliability, "AVE")
     cor_matrix <- summ$descriptive$correlations$constructs
     fornell_larcker <- cor_matrix
     diag(fornell_larcker) <- sqrt(ave)
@@ -209,10 +215,10 @@ export async function runPLSSEM(
       fornell_larcker = matrix_to_list(fornell_larcker),
       htmt = matrix_to_list(htmt_res),
       validity = list(
-        cronbach = as.list(summ$reliability[, "Alpha"]),
-        rho_a = as.list(summ$reliability[, "rhoA"]),
-        composite_reliability = as.list(summ$reliability[, "rhoC"]),
-        ave = as.list(summ$reliability[, "AVE"])
+        cronbach = as.list(safe_col(summ$reliability, "alpha")),
+        rho_a = as.list(safe_col(summ$reliability, "rhoA")),
+        composite_reliability = as.list(safe_col(summ$reliability, "rhoC")),
+        ave = as.list(safe_col(summ$reliability, "ave"))
       )
     )
   `;

@@ -22,14 +22,10 @@ export default function CiteCheckPage() {
     const isVi = locale === 'vi';
     
     // UI State
-    const [activeTab, setActiveTab] = useState<'paste' | 'upload'>('paste');
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [showResults, setShowResults] = useState(false);
     const [progress, setProgress] = useState(0);
-
-    // Data State
-    const [textContent, setTextContent] = useState('');
-    const [refContent, setRefContent] = useState('');
+    const [fullContent, setFullContent] = useState('');
     const [logs, setLogs] = useState<LogLine[]>([]);
     const [analysisResult, setAnalysisResult] = useState<{
         matchCount: number;
@@ -59,26 +55,73 @@ export default function CiteCheckPage() {
         }
     }, [logs]);
 
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        
+        if (file.name.endsWith('.docx')) {
+            try {
+                const mammoth = (await import('mammoth')).default;
+                const arrayBuffer = await file.arrayBuffer();
+                const result = await mammoth.extractRawText({ arrayBuffer });
+                setFullContent(result.value);
+                addLog(isVi ? `Đã trích xuất thành công ${file.name}` : `Successfully extracted ${file.name}`, 'success');
+            } catch (err) {
+                addLog(isVi ? `Lỗi đọc file Word: ${err}` : `Error reading Word file: ${err}`, 'error');
+            }
+        } else if (file.name.endsWith('.txt')) {
+            const text = await file.text();
+            setFullContent(text);
+        } else {
+            addLog(isVi ? 'Chỉ hỗ trợ file .docx hoặc .txt' : 'Only .docx or .txt files are supported', 'warn');
+        }
+    };
     const addLog = (msg: string, type: LogLine['type'] = 'info', detail?: string) => {
         const ts = new Date().toLocaleTimeString();
         setLogs(prev => [...prev, { ts, msg, type, detail }]);
     };
 
+
     const handleRunAudit = async () => {
-        if (!textContent.trim() && !refContent.trim()) return;
+        if (!fullContent.trim()) return;
         
         setIsAnalyzing(true);
         setShowResults(false);
         setProgress(0);
         setLogs([]);
 
-        // Scroll to progress console
         setTimeout(() => {
             consoleRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 100);
         
         addLog(isVi ? "Bắt đầu quy trình kiểm định ncsStat Engine v2.0..." : "Initializing ncsStat Engine v2.0...", "info");
         
+        // --- Step 0: Auto Split ---
+        await new Promise(r => setTimeout(r, 400));
+        let manuscript = '';
+        let references = '';
+        const lines = fullContent.split('\n');
+        let splitIndex = -1;
+        
+        for (let i = lines.length - 1; i >= Math.max(0, lines.length - 500); i--) {
+            const cleanLine = lines[i].replace(/[^\w\sà-ỹ]/gi, '').trim().toLowerCase();
+            if (['references', 'tài liệu tham khảo', 'tham khảo', 'bibliography'].includes(cleanLine)) {
+                splitIndex = i;
+                break;
+            }
+        }
+        
+        if (splitIndex !== -1) {
+            manuscript = lines.slice(0, splitIndex).join('\n');
+            references = lines.slice(splitIndex + 1).join('\n');
+            addLog(isVi ? `Đã tự động tách thân bài và danh mục tại dòng ${splitIndex + 1}` : `Auto-split detected references at line ${splitIndex + 1}`, 'success');
+        } else {
+            manuscript = fullContent;
+            references = fullContent; // Fallback, scan everything
+            addLog(isVi ? "Không tìm thấy tiêu đề 'References'. Hệ thống sẽ quét toàn bộ văn bản." : "Could not detect 'References' heading. Scanning entire text.", 'warn');
+        }
+
         // --- Step 1: Text Extraction ---
         await new Promise(r => setTimeout(r, 800));
         setProgress(20);
@@ -87,16 +130,14 @@ export default function CiteCheckPage() {
         const inTextCitations: { full: string, author: string, year: string }[] = [];
         const uniqueCites: { full: string, author: string, year: string }[] = [];
         
-        // Helper to extract last name robustly
         const extractFirstAuthor = (authorStr: string) => {
             let clean = authorStr.replace(/et al\.?/ig, '').trim();
             clean = clean.split(/&| and |,/i)[0].trim();
             return clean;
         };
 
-        // 1. Parenthetical citations: (Smith, 2020) or (Smith & Jones, 2020; Doe, 2021)
         const parensRegex = /\(([^)]+)\)/g;
-        for (const match of Array.from(textContent.matchAll(parensRegex))) {
+        for (const match of Array.from(manuscript.matchAll(parensRegex))) {
             const innerText = match[1];
             const segments = innerText.split(';');
             for (const segment of segments) {
@@ -111,17 +152,24 @@ export default function CiteCheckPage() {
             }
         }
 
-        // 2. Narrative citations: Smith (2020) or Smith et al. (2020)
         const narrativeRegex = /((?:[A-Z][A-Za-zÀ-ỹ\-']+\s*)+(?:et al\.?)?)\s*\((\d{4}[a-z]?)\)/g;
-        for (const match of Array.from(textContent.matchAll(narrativeRegex))) {
+        for (const match of Array.from(manuscript.matchAll(narrativeRegex))) {
             inTextCitations.push({
                 full: match[0].trim(),
                 author: match[1].trim(),
                 year: match[2].trim()
             });
         }
+        
+        const ieeeRegex = /\[(\d+(?:\s*,\s*\d+|\s*-\s*\d+)*)\]/g;
+        for (const match of Array.from(manuscript.matchAll(ieeeRegex))) {
+             inTextCitations.push({
+                full: match[0].trim(),
+                author: 'IEEE Format',
+                year: match[1].trim()
+            });
+        }
 
-        // Deduplicate
         const seen = new Set();
         inTextCitations.forEach(c => {
              const key = c.author.toLowerCase() + c.year;
@@ -133,23 +181,17 @@ export default function CiteCheckPage() {
         
         addLog(isVi ? `Tìm thấy ${uniqueCites.length} trích dẫn độc lập trong bài.` : `Found ${uniqueCites.length} unique in-text citations.`, "success");
 
-        // --- Step 2: References Analysis ---
-        await new Promise(r => setTimeout(r, 1000));
         setProgress(40);
-        addLog(isVi ? "Đang phân tích cấu trúc danh mục References..." : "Analyzing Reference list structure...", "info");
-        const refs = refContent.split('\n').filter(line => line.trim().length > 10);
+        const refs = references.split('\n').filter(line => line.trim().length > 10);
         addLog(isVi ? `Đã bóc tách ${refs.length} tài liệu tham khảo.` : `Extracted ${refs.length} reference entries.`, "success");
 
-        // --- Step 3: DOI & Metadata Verification (Crossref API) ---
-        await new Promise(r => setTimeout(r, 1200));
         setProgress(60);
-        addLog(isVi ? "Đang kết nối với cơ sở dữ liệu Crossref để xác minh tài liệu..." : "Connecting to Crossref database for metadata verification...", "info");
         
         const doiRegex = /10.\d{4,9}\/[-._;()/:A-Z0-9]+/gi;
         const verificationResults: any[] = [];
-
-        // Increase limit to 100 for full manuscript support
         const refsToVerify = refs.slice(0, 100); 
+        
+        const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
         
         for (let i = 0; i < refsToVerify.length; i++) {
             const ref = refsToVerify[i];
@@ -159,18 +201,24 @@ export default function CiteCheckPage() {
             addLog(isVi ? `Đang kiểm tra [${i+1}/${refsToVerify.length}]: ${ref.substring(0, 30)}...` : `Verifying [${i+1}/${refsToVerify.length}]: ${ref.substring(0, 30)}...`);
             
             try {
-                // Clean reference from leading numbers like "1. ", "[1] ", etc.
                 const cleanRef = ref.replace(/^(\d+[\.\-\s]+|\[\d+\]\s*)/, '').trim();
-                
-                // Better extraction logic on cleaned string
                 const yearMatch = cleanRef.match(/\((\d{4})\)/) || cleanRef.match(/(?:^|\s)(\d{4})(?:\.|\s)/);
                 const extractedYear = yearMatch ? yearMatch[1] : null;
-                const authorMatch = cleanRef.match(/^([^,.(]+)/); // Extraction from cleaned string
+                const authorMatch = cleanRef.match(/^([^,.(]+)/); 
                 const extractedAuthor = authorMatch ? authorMatch[1].trim() : '';
                 
-                // Search by DOI or Title
                 const query = doi ? `https://api.crossref.org/works/${doi}` : `https://api.crossref.org/works?query.bibliographic=${encodeURIComponent(cleanRef)}&rows=1`;
+                
                 const res = await fetch(query);
+                if (!res.ok) {
+                    if (res.status === 429) {
+                        addLog('Rate limit exceeded (429). Retrying after 2s...', 'warn');
+                        await delay(2000);
+                        i--; 
+                        continue;
+                    }
+                    throw new Error(`HTTP ${res.status}`);
+                }
                 const data = await res.json();
                 const metadata = doi ? data.message : data.message.items[0];
 
@@ -185,7 +233,6 @@ export default function CiteCheckPage() {
                     let authorStatus = 'VALID';
                     let titleStatus = 'VALID';
                     
-                    // Logic check 1: Year mismatch
                     if (extractedYear && officialYear && Math.abs(parseInt(extractedYear) - officialYear) > 0) {
                         conclusion = 'INVALID';
                         yearStatus = 'INVALID';
@@ -194,7 +241,6 @@ export default function CiteCheckPage() {
                             : `Year mismatch (Official: ${officialYear}, Yours: ${extractedYear}).`;
                     } 
                     
-                    // Logic check 2: Author mismatch
                     if (extractedAuthor && officialAuthor && !officialAuthor.toLowerCase().includes(extractedAuthor.toLowerCase()) && !extractedAuthor.toLowerCase().includes(officialAuthor.toLowerCase())) {
                         conclusion = 'INVALID';
                         authorStatus = 'INVALID';
@@ -217,24 +263,29 @@ export default function CiteCheckPage() {
                 } else {
                     verificationResults.push({ ref, conclusion: 'UNCERTAIN', note: isVi ? 'Không tìm thấy dữ liệu đối soát trên Crossref.' : 'No matching metadata found on Crossref.' });
                 }
+                
+                await delay(350);
+
             } catch (e) {
                 verificationResults.push({ ref, conclusion: 'ERROR', note: isVi ? 'Lỗi kết nối API hoặc dữ liệu không hợp lệ.' : 'API Connection Error or Invalid Data.' });
+                await delay(1000);
             }
             setProgress(60 + (i / refsToVerify.length) * 25);
         }
 
-        // --- Step 4: Final Analytics Calculation ---
-        
-        // 1. Cross-matching (Manuscript vs Reference List) - regardless of API
         const citedInListCount = uniqueCites.filter(cite => {
+            if (cite.author === 'IEEE Format') {
+                return true; 
+            }
             const citeAuthorLast = extractFirstAuthor(cite.author).toLowerCase();
+            const authorRegex = new RegExp(`\\b${citeAuthorLast}\\b`, 'i');
+            
             return refs.some(ref => {
                 const refLower = ref.toLowerCase();
-                return refLower.includes(citeAuthorLast) && refLower.includes(cite.year.toLowerCase());
+                return authorRegex.test(refLower) && refLower.includes(cite.year.toLowerCase());
             });
         }).length;
 
-        // 2. API Validation (Reference List vs Global Database)
         const apiValidCount = verificationResults.filter(v => v.conclusion === 'VALID').length;
         const apiIssueCount = verificationResults.filter(v => v.conclusion === 'INVALID' || v.conclusion === 'ERROR').length;
 
@@ -252,7 +303,6 @@ export default function CiteCheckPage() {
         setIsAnalyzing(false);
         setShowResults(true);
 
-        // Scroll to results section after a short delay for rendering
         setTimeout(() => {
             resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 500);
@@ -326,66 +376,38 @@ export default function CiteCheckPage() {
                 <section className="container mx-auto px-6 max-w-7xl">
                     <div className="bg-white rounded-[4rem] p-4 md:p-8 shadow-4xl shadow-indigo-100 border border-indigo-50/50 backdrop-blur-xl">
                         {/* Tab Switcher */}
-                        <div className="flex justify-center mb-12">
-                            <div className="inline-flex p-2 bg-slate-100 rounded-3xl gap-2">
-                                <button 
-                                    onClick={() => setActiveTab('paste')}
-                                    className={`flex items-center gap-3 px-8 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === 'paste' ? 'bg-white text-indigo-600 shadow-xl' : 'text-slate-500 hover:text-slate-700'}`}
-                                >
-                                    <Layers className="w-5 h-5" /> {isVi ? 'Dán văn bản' : 'Paste Text'}
-                                </button>
-                                <button 
-                                    onClick={() => setActiveTab('upload')}
-                                    className={`flex items-center gap-3 px-8 py-4 rounded-2xl text-sm font-black transition-all ${activeTab === 'upload' ? 'bg-white text-indigo-600 shadow-xl' : 'text-slate-500 hover:text-slate-700'}`}
-                                >
-                                    <Upload className="w-5 h-5" /> {isVi ? 'Tải tệp lên (.docx)' : 'Upload File (.docx)'}
-                                </button>
-                            </div>
-                        </div>
 
-                        {/* Input Fields */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-                            <div className="space-y-4">
-                                <label className="flex items-center gap-3 px-4 text-sm font-black text-slate-400 uppercase tracking-widest">
-                                    <FileText className="w-4 h-4" /> {isVi ? 'Nội dung bài viết (Manuscript)' : 'Manuscript Body'}
-                                </label>
-                                <div className="relative group">
-                                    <textarea 
-                                        className="w-full min-h-[450px] p-8 bg-slate-50 border-2 border-transparent focus:border-indigo-100 focus:bg-white rounded-[3rem] outline-none text-slate-700 text-lg leading-relaxed transition-all placeholder:text-slate-300"
-                                        style={{
-                                            backgroundImage: 'linear-gradient(#e2e8f0 1px, transparent 1px)',
-                                            backgroundSize: '100% 2rem',
-                                            lineHeight: '2rem'
-                                        }}
-                                        placeholder={isVi ? "Dán nội dung bản thảo tại đây (có chứa các trích dẫn dạng (Author, Year))..." : "Paste your manuscript body here (containing citations like (Author, Year))..."}
-                                        value={textContent}
-                                        onChange={(e) => setTextContent(e.target.value)}
-                                    />
-                                    <div className="absolute bottom-6 right-8 text-[10px] font-black text-slate-300 uppercase tracking-widest group-focus-within:text-indigo-300">
-                                        Word count: {textContent.split(/\s+/).filter(Boolean).length}
+                        <div className="flex flex-col gap-8 mb-12">
+                            <div className="bg-slate-50 border-2 border-dashed border-indigo-200 rounded-[3rem] p-8 text-center hover:bg-indigo-50 transition-colors relative overflow-hidden group">
+                                <input type="file" accept=".docx,.txt" onChange={handleFileUpload} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                                <div className="flex flex-col items-center gap-4">
+                                    <div className="w-16 h-16 bg-white rounded-full shadow-lg flex items-center justify-center text-indigo-500 group-hover:scale-110 transition-transform">
+                                        <Upload className="w-8 h-8" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-black text-slate-800">{isVi ? 'Kéo thả file Word (.docx) vào đây' : 'Drag & Drop Word File (.docx)'}</h3>
+                                        <p className="text-sm font-medium text-slate-500 mt-2">{isVi ? 'Hệ thống sẽ tự động đọc, bóc tách bài viết & danh mục tham khảo' : 'Auto-extracts manuscript & references'}</p>
                                     </div>
                                 </div>
                             </div>
-
-                            <div className="space-y-4">
-                                <label className="flex items-center gap-3 px-4 text-sm font-black text-slate-400 uppercase tracking-widest">
-                                    <List className="w-4 h-4" /> {isVi ? 'Danh mục Tham khảo (References)' : 'References List'}
-                                </label>
-                                <div className="relative group">
-                                    <textarea 
-                                        className="w-full min-h-[450px] p-8 bg-slate-900 border-2 border-slate-800 focus:border-indigo-500 rounded-[3rem] outline-none text-indigo-50 text-base font-mono leading-relaxed transition-all placeholder:text-slate-600 shadow-2xl"
-                                        style={{
-                                            backgroundImage: 'linear-gradient(rgba(99, 102, 241, 0.1) 1px, transparent 1px)',
-                                            backgroundSize: '100% 1.5rem',
-                                            lineHeight: '1.5rem'
-                                        }}
-                                        placeholder={isVi ? "Dán danh mục tài liệu tham khảo (References) tại đây..." : "Paste your reference list here..."}
-                                        value={refContent}
-                                        onChange={(e) => setRefContent(e.target.value)}
-                                    />
-                                    <div className="absolute bottom-6 right-8 text-[10px] font-black text-slate-600 uppercase tracking-widest group-focus-within:text-indigo-400">
-                                        Lines: {refContent.split('\n').filter(Boolean).length}
-                                    </div>
+                            
+                            <div className="relative group flex-1">
+                                <div className="absolute -top-3 left-8 bg-indigo-600 text-white px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-md z-10">
+                                    {isVi ? 'Hoặc dán toàn bộ bài viết vào đây' : 'Or Paste Full Manuscript Here'}
+                                </div>
+                                <textarea 
+                                    className="w-full min-h-[450px] p-8 pt-10 bg-white border-2 border-slate-100 focus:border-indigo-500 rounded-[3rem] outline-none text-slate-700 text-lg leading-relaxed transition-all placeholder:text-slate-300 shadow-inner"
+                                    style={{
+                                        backgroundImage: 'linear-gradient(#f1f5f9 1px, transparent 1px)',
+                                        backgroundSize: '100% 2rem',
+                                        lineHeight: '2rem'
+                                    }}
+                                    placeholder={isVi ? "Dán toàn bộ bài viết (bao gồm cả danh mục Tài liệu tham khảo ở cuối bài). AI sẽ tự động phân tách 2 phần..." : "Paste full manuscript including references at the bottom..."}
+                                    value={fullContent}
+                                    onChange={(e) => setFullContent(e.target.value)}
+                                />
+                                <div className="absolute bottom-6 right-8 text-[10px] font-black text-slate-300 uppercase tracking-widest group-focus-within:text-indigo-400">
+                                    Word count: {fullContent.split(/\s+/).filter(Boolean).length}
                                 </div>
                             </div>
                         </div>
@@ -394,7 +416,7 @@ export default function CiteCheckPage() {
                         <div className="flex flex-col items-center gap-6">
                             <button 
                                 onClick={handleRunAudit}
-                                disabled={isAnalyzing || (!textContent && !refContent)}
+                                disabled={isAnalyzing || !fullContent.trim()}
                                 className="group relative flex items-center gap-4 px-16 py-8 bg-indigo-600 hover:bg-slate-900 disabled:bg-slate-200 text-white rounded-[3rem] font-black text-xl tracking-tighter transition-all shadow-4xl shadow-indigo-200 active:scale-95 overflow-hidden"
                             >
                                 {isAnalyzing ? (
