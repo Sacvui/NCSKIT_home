@@ -134,7 +134,7 @@ export function AutoPilotView({
             for (const group of activeGroups) {
                 const groupIndices = group.columns.map(c => columns.indexOf(c));
                 const groupData = numericData.map(row => groupIndices.map(idx => row[idx]));
-                const res = await runCronbachAlpha(groupData, group.columns);
+                const res = await runCronbachAlpha(groupData);
                 fullReport.cronbach[group.name] = { columns: group.columns, data: res };
             }
 
