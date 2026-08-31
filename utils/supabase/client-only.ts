@@ -8,7 +8,9 @@ export function createClientOnly() {
             auth: {
                 getSession: async () => ({ data: { session: null }, error: null }),
                 getUser: async () => ({ data: { user: null }, error: null }),
-                onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
+                onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+                signOut: async () => ({ error: null }),
+                exchangeCodeForSession: async () => ({ data: { session: null }, error: null })
             },
             from: () => ({ select: () => ({ eq: () => ({ single: async () => ({ data: null, error: null }) }) }) })
         } as any;
