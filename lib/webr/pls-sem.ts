@@ -427,7 +427,11 @@ export async function runBootstrapping(
         return {
             data: data,
             code: `
-                library(seminr)
+                if (!require("seminr", character.only = TRUE, quietly = TRUE)) {
+                    options(repos = c(CRAN = "https://repo.r-wasm.org/", SEMINR = "https://sem-in-r.r-universe.dev", LAVAAN = "https://yrosseel.r-universe.dev"))
+                    tryCatch(webr::install("seminr"), error = function(e) {})
+                    library(seminr)
+                }
                 df <- as.data.frame(raw_data)
                 colnames(df) <- paste0("V", 1:ncol(df))
                 

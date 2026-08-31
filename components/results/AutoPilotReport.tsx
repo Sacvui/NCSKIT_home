@@ -96,7 +96,7 @@ export function AutoPilotReport({ results, columns }: AutoPilotReportProps) {
                                         <th className="py-3 px-4 text-xs font-black text-blue-900 uppercase text-center">Số biến</th>
                                         <th className="py-3 px-4 text-xs font-black text-blue-900 uppercase text-center bg-blue-100/30">Cronbach's Alpha</th>
                                         <th className="py-3 px-4 text-xs font-black text-blue-900 uppercase">Đánh giá</th>
-                                        <th className="py-3 px-4 text-xs font-black text-blue-900 uppercase">Biến không đạt (<0.3)</th>
+                                        <th className="py-3 px-4 text-xs font-black text-blue-900 uppercase">Biến không đạt (&lt;0.3)</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-blue-50">
