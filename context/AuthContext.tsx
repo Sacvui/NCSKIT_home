@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { createContext, useContext, useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { getSupabase } from '@/utils/supabase/client';
@@ -94,6 +94,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 
                 if (session?.user) {
                     logger.debug('[Auth] Session successfully recovered for:', session.user.email);
+                    
+                    // Clear lingering code to prevent redirect guard lock
+                    if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('code')) {
+                        window.history.replaceState({}, '', window.location.pathname);
+                        isExchangingCode.current = false;
+                    }
+                    
                     handleUser(session.user);
                     setLoading(false);
                 } else {
@@ -111,9 +118,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                                 window.history.replaceState({}, '', window.location.pathname);
                             } else {
                                 logger.error('[Auth] Exchange failed:', exchangeError);
+                                window.history.replaceState({}, '', window.location.pathname);
                             }
                         } catch (e) {
                             logger.error('[Auth] Exchange exception:', e);
+                            window.history.replaceState({}, '', window.location.pathname);
                         }
                         isExchangingCode.current = false;
                         setLoading(false);
