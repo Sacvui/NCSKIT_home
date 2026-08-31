@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Target, Layers, Play, Rocket, AlertTriangle, CheckCircle2 } from 'lucide-react';
-import { runMcDonaldOmega, runEFA, runPLSSEM } from '@/lib/webr-wrapper';
+import { runEFA, runPLSSEM, runCronbachAlpha } from '@/lib/webr-wrapper';
 
 interface AutoPilotViewProps {
     step: string;
@@ -134,7 +134,7 @@ export function AutoPilotView({
             for (const group of activeGroups) {
                 const groupIndices = group.columns.map(c => columns.indexOf(c));
                 const groupData = numericData.map(row => groupIndices.map(idx => row[idx]));
-                const res = await runMcDonaldOmega(groupData, group.columns);
+                const res = await runCronbachAlpha(groupData, group.columns);
                 fullReport.cronbach[group.name] = { columns: group.columns, data: res };
             }
 

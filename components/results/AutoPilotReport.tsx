@@ -4,11 +4,79 @@ import { CronbachResults } from './reliability/CronbachResults';
 import { EFAResults } from './factor/EFAResults';
 import { PLSResults } from './factor/PLSResults';
 import { ResearchModelDiagram } from './shared/ResearchModelDiagram';
-import { Rocket, Target, Shield, Grid3x3, Network, Workflow, CheckCircle2 } from 'lucide-react';
+import { Rocket, Target, Shield, Grid3x3, Network, Workflow, CheckCircle2, Plus, Minus } from 'lucide-react';
 
 interface AutoPilotReportProps {
     results: any;
     columns: string[];
+}
+
+function CronbachSummaryRow({ scaleName, cronData }: { scaleName: string; cronData: any }) {
+    const [expanded, setExpanded] = React.useState(false);
+    
+    const rawAlpha = parseFloat(String(cronData.data.alpha || cronData.data.rawAlpha || 0)) || 0;
+    const nItems = cronData.data.nItems || 'N/A';
+    
+    const itemTotalStats = cronData.data.itemTotalStats || [];
+    const badItems = itemTotalStats
+        .filter((item: any) => parseFloat(String(item.correctedItemTotalCorrelation)) < 0.3)
+        .map((item: any, idx: number) => cronData.columns?.[idx] || item.itemName);
+
+    return (
+        <React.Fragment>
+            <tr className="hover:bg-blue-50/30 transition-colors cursor-pointer group" onClick={() => setExpanded(!expanded)}>
+                <td className="py-3 px-6 text-sm font-bold text-blue-800 flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-md bg-blue-100 text-blue-700 flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                        {expanded ? <Minus className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
+                    </div>
+                    {scaleName}
+                </td>
+                <td className="py-3 px-4 text-sm text-center font-mono text-slate-800">{nItems}</td>
+                <td className="py-3 px-4 text-sm text-center font-black text-blue-950 bg-blue-50/20">{rawAlpha.toFixed(3)}</td>
+                <td className="py-3 px-4 text-sm font-bold">
+                    {rawAlpha >= 0.8 ? <span className="text-blue-700 bg-blue-100 px-2 py-1 rounded">Rất Tốt</span> 
+                    : rawAlpha >= 0.7 ? <span className="text-emerald-700 bg-emerald-100 px-2 py-1 rounded">Tốt</span> 
+                    : rawAlpha >= 0.6 ? <span className="text-amber-700 bg-amber-100 px-2 py-1 rounded">Chấp nhận được</span> 
+                    : <span className="text-red-700 bg-red-100 px-2 py-1 rounded">Kém</span>}
+                </td>
+                <td className="py-3 px-4 text-sm font-bold text-red-600">
+                    {badItems.length > 0 ? badItems.join(', ') : <span className="text-emerald-600 font-normal"><CheckCircle2 className="w-4 h-4 inline mr-1" />Không có</span>}
+                </td>
+            </tr>
+            {expanded && itemTotalStats.length > 0 && (
+                <tr className="bg-slate-50 border-b border-blue-100">
+                    <td colSpan={5} className="p-4 pl-12">
+                        <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden text-sm">
+                            <table className="w-full text-left">
+                                <thead className="bg-slate-100 border-b border-slate-200">
+                                    <tr>
+                                        <th className="py-2 px-4 font-bold text-slate-600 text-xs uppercase tracking-wider">Biến quan sát</th>
+                                        <th className="py-2 px-4 font-bold text-slate-600 text-xs uppercase tracking-wider text-right">Tương quan biến-tổng (CITC)</th>
+                                        <th className="py-2 px-4 font-bold text-slate-600 text-xs uppercase tracking-wider text-right">Alpha nếu loại biến</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {itemTotalStats.map((item: any, idx: number) => {
+                                        const corr = parseFloat(String(item.correctedItemTotalCorrelation)) || 0;
+                                        const devAlpha = parseFloat(String(item.alphaIfItemDeleted)) || 0;
+                                        const isLow = corr < 0.3;
+                                        const isKiller = devAlpha > rawAlpha;
+                                        return (
+                                            <tr key={idx} className={isLow ? 'bg-red-50/30' : ''}>
+                                                <td className="py-2 px-4 font-semibold text-slate-700">{cronData.columns?.[idx] || item.itemName}</td>
+                                                <td className={`py-2 px-4 text-right font-mono ${isLow ? 'text-red-600 font-bold underline decoration-red-300 decoration-2 underline-offset-2' : 'text-slate-600 font-medium'}`}>{corr.toFixed(3)}</td>
+                                                <td className={`py-2 px-4 text-right font-mono ${isKiller ? 'text-amber-600 font-bold' : 'text-slate-600'}`}>{devAlpha.toFixed(3)}</td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+            )}
+        </React.Fragment>
+    );
 }
 
 export function AutoPilotReport({ results, columns }: AutoPilotReportProps) {
@@ -100,33 +168,9 @@ export function AutoPilotReport({ results, columns }: AutoPilotReportProps) {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-blue-50">
-                                    {Object.keys(results.cronbach || {}).map((scaleName) => {
-                                        const cronData = results.cronbach[scaleName];
-                                        const rawAlpha = parseFloat(String(cronData.data.alpha || cronData.data.rawAlpha || 0)) || 0;
-                                        const nItems = cronData.data.nItems || 'N/A';
-                                        
-                                        const itemTotalStats = cronData.data.itemTotalStats || [];
-                                        const badItems = itemTotalStats
-                                            .filter((item: any) => parseFloat(String(item.correctedItemTotalCorrelation)) < 0.3)
-                                            .map((item: any, idx: number) => cronData.columns?.[idx] || item.itemName);
-                                            
-                                        return (
-                                            <tr key={scaleName} className="hover:bg-blue-50/30 transition-colors">
-                                                <td className="py-3 px-6 text-sm font-bold text-blue-800">{scaleName}</td>
-                                                <td className="py-3 px-4 text-sm text-center font-mono text-slate-800">{nItems}</td>
-                                                <td className="py-3 px-4 text-sm text-center font-black text-blue-950 bg-blue-50/20">{rawAlpha.toFixed(3)}</td>
-                                                <td className="py-3 px-4 text-sm font-bold">
-                                                    {rawAlpha >= 0.8 ? <span className="text-blue-700 bg-blue-100 px-2 py-1 rounded">Rất Tốt</span> 
-                                                    : rawAlpha >= 0.7 ? <span className="text-emerald-700 bg-emerald-100 px-2 py-1 rounded">Tốt</span> 
-                                                    : rawAlpha >= 0.6 ? <span className="text-amber-700 bg-amber-100 px-2 py-1 rounded">Chấp nhận được</span> 
-                                                    : <span className="text-red-700 bg-red-100 px-2 py-1 rounded">Kém</span>}
-                                                </td>
-                                                <td className="py-3 px-4 text-sm font-bold text-red-600">
-                                                    {badItems.length > 0 ? badItems.join(', ') : <span className="text-emerald-600 font-normal"><CheckCircle2 className="w-4 h-4 inline mr-1" />Không có</span>}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
+                                    {Object.keys(results.cronbach || {}).map((scaleName) => (
+                                        <CronbachSummaryRow key={scaleName} scaleName={scaleName} cronData={results.cronbach[scaleName]} />
+                                    ))}
                                 </tbody>
                             </table>
                         </div>
