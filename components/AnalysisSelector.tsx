@@ -63,6 +63,7 @@ export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing, mode, l
                 { id: 'descriptive-select', title: t(locale, 'analyze.methods.descriptive'), desc: locale === 'vi' ? 'Mean, SD, Min, Max, Median, Độ lệch, Độ nhọn' : 'Mean, SD, Min, Max, Median, Skewness, Kurtosis', icon: BarChart2, action: 'select', costType: 'descriptive' },
                 { id: 'cronbach-select', title: t(locale, 'analyze.methods.cronbach'), desc: locale === 'vi' ? 'Độ tin cậy thang đo cổ điển (Cronbach Alpha)' : 'Classic scale reliability (Standard α)', icon: Shield, action: 'select', recommended: true, costType: 'cronbach' },
                 { id: 'omega-select', title: t(locale, 'analyze.methods.omega'), desc: locale === 'vi' ? 'Độ tin cậy hiện đại (McDonald’s Omega) độ chính xác cao' : 'Modern reliability coefficient (ω) for precision', icon: Shield, action: 'select', costType: 'cronbach' },
+                { id: 'frequency-select', title: locale === 'vi' ? 'Thống kê nhân khẩu học' : 'Demographics / Frequency', desc: locale === 'vi' ? 'Phân tích tần suất, tỷ lệ % (Giới tính, Thu nhập...)' : 'Frequency and percentage for categorical data', icon: Users, action: 'select', costType: 'descriptive' },
             ]
         },
         {
@@ -113,7 +114,6 @@ export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing, mode, l
             options: [
                 { id: 'chisq-select', title: t(locale, 'analyze.methods.chisq'), desc: locale === 'vi' ? 'Kiểm định Chi-bình phương (Tính độc lập)' : 'Pearson’s Chi-Square Test for Independence', icon: Grid3x3, action: 'select', costType: 'chisquare' },
                 { id: 'fisher-select', title: 'Fisher’s Exact', desc: locale === 'vi' ? 'Kiểm định chính xác cho mẫu nhỏ (< 5)' : 'Small sample exact test for contingency', icon: Grid3x3, action: 'select', costType: 'chisquare' },
-                { id: 'frequency-select', title: locale === 'vi' ? 'Thống kê nhân khẩu học' : 'Demographics / Frequency', desc: locale === 'vi' ? 'Phân tích tần suất, tỷ lệ % (Giới tính, Thu nhập...)' : 'Frequency and percentage for categorical data', icon: Users, action: 'select', costType: 'descriptive' },
             ]
         },
         {
