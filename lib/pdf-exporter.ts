@@ -90,7 +90,7 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
             doc.setFont('NotoSans', 'bold');
             doc.setFontSize(24);
             doc.setTextColor(30, 58, 138);
-            doc.text('ncsStat', 15, 22);
+            doc.text('NCSKIT.org', 15, 22);
 
             doc.setFontSize(8);
             doc.setTextColor(100, 116, 139); // Slate-500
@@ -133,7 +133,7 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
             
             doc.setFontSize(7);
             doc.setTextColor(148, 163, 184);
-            doc.text(`© 2026 NCSSTAT ENGINE - BÁO CÁO PHÂN TÍCH TỰ ĐỘNG`, 15, pageHeight - 10);
+            doc.text(`© 2026 NCSKIT.org - BÁO CÁO PHÂN TÍCH TỰ ĐỘNG`, 15, pageHeight - 10);
             doc.text(`TRANG ${currentPage} / ${total}`, pageWidth / 2, pageHeight - 10, { align: 'center' });
             doc.text(`XÁC THỰC TẠI: WWW.NCSKIT.ORG`, pageWidth - 15, pageHeight - 10, { align: 'right' });
         };
@@ -1059,8 +1059,8 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
         doc.setFont("times", "italic");
         doc.setTextColor(80);
 
-        const citation1 = "Data analyzed using R (R Core Team, 2023) via ncsStat platform (Le, 2026). Reliability and factor analyses performed using psych (Revelle, 2023) and lavaan (Rosseel, 2012) packages.";
-        const citation2 = "Le, P. H. (2026). ncsStat: A Web-Based Statistical Analysis Platform for Psychometric Analysis. Available at https://ncsstat.ncskit.org";
+        const citation1 = "Data analyzed using R (R Core Team, 2023) via NCSKIT.org platform (Le, 2026). Reliability and factor analyses performed using psych (Revelle, 2023) and lavaan (Rosseel, 2012) packages.";
+        const citation2 = "Le, P. H. (2026). NCSKIT.org: A Web-Based Statistical Analysis Platform for Psychometric Analysis. Available at https://ncsstat.ncskit.org";
 
         // Split text to fit width
         const splitText1 = doc.splitTextToSize(citation1, 180);

@@ -744,6 +744,12 @@ function AnalyzeContent() {
 
             showToast('Đang tạo PDF, vui lòng đợi...', 'info');
 
+            if (analysisType === 'auto-pilot') {
+                showToast('Báo cáo Auto Pilot chứa nhiều biểu đồ phức tạp. Hệ thống đang mở hộp thoại In, vui lòng chọn "Lưu dưới dạng PDF" (Save as PDF) để xuất báo cáo đẹp nhất!', 'info');
+                setTimeout(() => window.print(), 1500);
+                return;
+            }
+
             // Capture charts if any
             const chartImages: string[] = [];
             const container = document.getElementById('analysis-results-container');
