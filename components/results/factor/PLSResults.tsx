@@ -16,6 +16,11 @@ interface PLSResultsProps {
 export const PLSResults: React.FC<PLSResultsProps> = ({ results }) => {
     if (!results) return null;
 
+    const safeToFixed = (val: any, decimals = 3) => {
+        if (val === undefined || val === null || isNaN(Number(val))) return '-';
+        return Number(val).toFixed(decimals);
+    };
+
     const { 
         path_coefficients, 
         r_squared, 
@@ -65,10 +70,10 @@ export const PLSResults: React.FC<PLSResultsProps> = ({ results }) => {
                                 {validity && validity.cronbach && Object.keys(validity.cronbach).map((construct) => (
                                     <tr key={construct} className="hover:bg-blue-50/30 transition-colors">
                                         <td className="py-3 px-4 font-bold text-blue-900">{construct}</td>
-                                        <td className={`py-3 px-4 font-medium ${getStatusColor(validity.cronbach[construct], 'high')}`}>{validity.cronbach[construct]?.toFixed(3)}</td>
-                                        <td className={`py-3 px-4 font-medium ${getStatusColor(validity.rho_a[construct], 'high')}`}>{validity.rho_a[construct]?.toFixed(3)}</td>
-                                        <td className={`py-3 px-4 font-medium ${getStatusColor(validity.composite_reliability[construct], 'high')}`}>{validity.composite_reliability[construct]?.toFixed(3)}</td>
-                                        <td className={`py-3 px-4 font-medium ${getStatusColor(validity.ave[construct], 'high')}`}>{validity.ave[construct]?.toFixed(3)}</td>
+                                        <td className={`py-3 px-4 font-medium ${getStatusColor(validity.cronbach[construct], 'high')}`}>{safeToFixed(validity.cronbach[construct])}</td>
+                                        <td className={`py-3 px-4 font-medium ${getStatusColor(validity.rho_a[construct], 'high')}`}>{safeToFixed(validity.rho_a[construct])}</td>
+                                        <td className={`py-3 px-4 font-medium ${getStatusColor(validity.composite_reliability[construct], 'high')}`}>{safeToFixed(validity.composite_reliability[construct])}</td>
+                                        <td className={`py-3 px-4 font-medium ${getStatusColor(validity.ave[construct], 'high')}`}>{safeToFixed(validity.ave[construct])}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -102,7 +107,7 @@ export const PLSResults: React.FC<PLSResultsProps> = ({ results }) => {
                                         Object.entries(froms || {}).filter(([_, val]: [any, any]) => val !== 0).map(([from, val]: [string, any]) => (
                                             <tr key={`${from}-${to}`} className="hover:bg-blue-50/30">
                                                 <td className="py-3 px-4 font-bold text-slate-700">{from} <span className="text-blue-400 mx-1">→</span> {to}</td>
-                                                <td className="py-3 px-4 font-black text-blue-900">{val.toFixed(3)}</td>
+                                                <td className="py-3 px-4 font-black text-blue-900">{safeToFixed(val)}</td>
                                                 <td className="py-3 px-4">
                                                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${val > 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
                                                         {val > 0 ? 'Positive' : 'Negative'}
@@ -141,7 +146,7 @@ export const PLSResults: React.FC<PLSResultsProps> = ({ results }) => {
                                             <td className="py-3 px-4 font-bold text-blue-900">{construct}</td>
                                             <td className="py-3 px-4">
                                                 <div className="flex items-center gap-3">
-                                                    <span className="font-black text-slate-900">{r_squared[construct].toFixed(3)}</span>
+                                                    <span className="font-black text-slate-900">{safeToFixed(r_squared[construct])}</span>
                                                     <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                                                         <div className="h-full bg-blue-600" style={{ width: `${r_squared[construct] * 100}%` }} />
                                                     </div>
@@ -149,7 +154,7 @@ export const PLSResults: React.FC<PLSResultsProps> = ({ results }) => {
                                             </td>
                                             {q2 && (
                                                 <td className="py-3 px-4 font-black text-emerald-600">
-                                                    {q2[construct]?.toFixed(3) || '-'}
+                                                    {safeToFixed(q2[construct])}
                                                 </td>
                                             )}
                                         </tr>
@@ -187,7 +192,7 @@ export const PLSResults: React.FC<PLSResultsProps> = ({ results }) => {
                                             if (val === undefined || val === null) return <td key={colName} className="py-3 px-4 text-slate-200">-</td>;
                                             return (
                                                 <td key={colName} className={`py-3 px-4 font-bold ${getStatusColor(val, 'htmt')}`}>
-                                                    {val.toFixed(3)}
+                                                    {safeToFixed(val)}
                                                 </td>
                                             );
                                         })}
@@ -228,7 +233,7 @@ export const PLSResults: React.FC<PLSResultsProps> = ({ results }) => {
                                             const isDiagonal = rowName === colName;
                                             return (
                                                 <td key={colName} className={`py-3 px-4 ${isDiagonal ? 'font-black text-blue-600 bg-blue-50/50' : 'text-slate-500'}`}>
-                                                    {val?.toFixed(3) || '-'}
+                                                    {safeToFixed(val)}
                                                 </td>
                                             );
                                         })}

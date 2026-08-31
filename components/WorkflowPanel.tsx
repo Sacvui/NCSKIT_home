@@ -79,32 +79,37 @@ export function WorkflowPanel({
         return 'pending';
     };
 
+    const safeToFixed = (val: any, decimals = 3) => {
+        if (val === undefined || val === null || isNaN(Number(val))) return 'N/A';
+        return Number(val).toFixed(decimals);
+    };
+
     const getStepResult = (stepId: string): WorkflowStep['result'] | undefined => {
         switch (stepId) {
             case 'cronbach':
-                if (cronbachAlpha !== undefined) {
+                if (cronbachAlpha !== undefined && cronbachAlpha !== null) {
                     return {
-                        value: cronbachAlpha.toFixed(3),
+                        value: safeToFixed(cronbachAlpha, 3),
                         label: 'α',
-                        passed: cronbachAlpha >= 0.7
+                        passed: Number(cronbachAlpha) >= 0.7
                     };
                 }
                 break;
             case 'efa':
-                if (kmo !== undefined) {
+                if (kmo !== undefined && kmo !== null) {
                     return {
-                        value: kmo.toFixed(3),
+                        value: safeToFixed(kmo, 3),
                         label: 'KMO',
-                        passed: kmo >= 0.6
+                        passed: Number(kmo) >= 0.6
                     };
                 }
                 break;
             case 'cfa':
-                if (cfiFit !== undefined) {
+                if (cfiFit !== undefined && cfiFit !== null) {
                     return {
-                        value: cfiFit.toFixed(3),
+                        value: safeToFixed(cfiFit, 3),
                         label: 'CFI',
-                        passed: cfiFit >= 0.9
+                        passed: Number(cfiFit) >= 0.9
                     };
                 }
                 break;
