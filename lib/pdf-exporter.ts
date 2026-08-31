@@ -1009,6 +1009,158 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
             doc.text(doc.splitTextToSize(interpretCorr, 170), 20, yPos + 18);
             yPos += 50;
         }
+        else if (analysisType === 'auto-pilot') {
+            doc.setFontSize(16);
+            doc.setFont('NotoSans', 'bold');
+            doc.text('BÁO CÁO PHÂN TÍCH TỰ ĐỘNG ĐA BƯỚC (AUTO-PILOT)', 15, yPos);
+            yPos += 15;
+            
+            // 1. Cronbach's Alpha
+            if (results.cronbach) {
+                checkPageBreak(30);
+                doc.setFontSize(14);
+                doc.setFont('NotoSans', 'bold');
+                doc.text('Phần 1: Kiểm định Độ tin cậy thang đo (Cronbach\'s Alpha)', 15, yPos);
+                yPos += 10;
+                
+                for (const [scale, info] of Object.entries(results.cronbach)) {
+                    checkPageBreak(50);
+                    doc.setFontSize(12);
+                    doc.setFont('NotoSans', 'bold');
+                    doc.text(`Thang đo: ${scale}`, 15, yPos);
+                    yPos += 8;
+                    const res = (info as any).data;
+                    const alpha = res.alpha ?? res.rawAlpha ?? 0;
+                    doc.setFontSize(10);
+                    doc.setFont('NotoSans', 'normal');
+                    doc.text(`Hệ số Cronbach's Alpha: ${alpha.toFixed(3)}`, 15, yPos);
+                    yPos += 10;
+                    
+                    if (res.itemTotalStats && Array.isArray(res.itemTotalStats) && res.itemTotalStats.length > 0) {
+                        const headers = [['Biến quan sát', 'Trung bình thang đo', 'Phương sai', 'Tương quan biến - tổng', 'Alpha nếu loại biến']];
+                        const data = res.itemTotalStats.map((item: any, idx: number) => {
+                            const corr = (item.correctedItemTotalCorrelation ?? 0);
+                            return [
+                                (info as any).columns[idx] || `Item ${idx+1}`,
+                                (item.scaleMeanIfDeleted ?? 0).toFixed(3),
+                                (item.scaleVarianceIfDeleted ?? 0).toFixed(3),
+                                corr.toFixed(3),
+                                (item.alphaIfItemDeleted ?? 0).toFixed(3)
+                            ];
+                        });
+                        autoTable(doc, {
+                            ...commonTableOptions,
+                            startY: yPos,
+                            head: headers,
+                            body: data
+                        });
+                        yPos = (doc as any).lastAutoTable.finalY + 15;
+                    }
+                }
+            }
+            
+            // 2. EFA
+            if (results.efa && results.efa.data) {
+                checkPageBreak(40);
+                doc.setFontSize(14);
+                doc.setFont('NotoSans', 'bold');
+                doc.text('Phần 2: Phân tích Nhân tố Khám phá (EFA)', 15, yPos);
+                yPos += 10;
+                
+                const efaRes = results.efa.data;
+                doc.setFontSize(10);
+                doc.setFont('NotoSans', 'normal');
+                if (efaRes.kmo) doc.text(`KMO Measure of Sampling Adequacy: ${(efaRes.kmo.MSA || 0).toFixed(3)}`, 15, yPos);
+                yPos += 7;
+                if (efaRes.bartlett) doc.text(`Bartlett's Test of Sphericity - p-value: ${(efaRes.bartlett.p_value || 0).toFixed(4)}`, 15, yPos);
+                yPos += 10;
+                
+                if (efaRes.loadings && efaRes.loadings.length > 0) {
+                    const factors = efaRes.loadings[0]?.loadings?.length || 0;
+                    const headerRow = ['Biến quan sát'];
+                    for (let i = 1; i <= factors; i++) headerRow.push(`Nhân tố ${i}`);
+                    const headers = [headerRow];
+                    
+                    const data = efaRes.loadings.map((row: any) => {
+                        const rowData = [row.variable];
+                        row.loadings.forEach((v: number) => rowData.push(v === null ? '' : v.toFixed(3)));
+                        return rowData;
+                    });
+                    
+                    autoTable(doc, {
+                        ...commonTableOptions,
+                        startY: yPos,
+                        head: headers,
+                        body: data
+                    });
+                    yPos = (doc as any).lastAutoTable.finalY + 15;
+                }
+            }
+            
+            // 3. SEM
+            if (results.sem) {
+                checkPageBreak(40);
+                doc.setFontSize(14);
+                doc.setFont('NotoSans', 'bold');
+                doc.text('Phần 3: Mô hình Cấu trúc Tuyến tính (PLS-SEM)', 15, yPos);
+                yPos += 10;
+                
+                const semRes = results.sem;
+                
+                if (semRes.path_coefficients && semRes.path_coefficients.length > 0) {
+                    doc.setFontSize(12);
+                    doc.setFont('NotoSans', 'bold');
+                    doc.text('Hệ số tác động (Path Coefficients)', 15, yPos);
+                    yPos += 8;
+                    
+                    const headers = [['Đường dẫn (Path)', 'Estimate', 'T-Value', 'P-Value', 'Kết luận']];
+                    const data = semRes.path_coefficients.map((p: any) => {
+                        const isSig = p.p_value < 0.05;
+                        return [
+                            p.path,
+                            p.estimate.toFixed(3),
+                            p.t_value ? p.t_value.toFixed(3) : '-',
+                            p.p_value ? p.p_value.toFixed(3) : '-',
+                            isSig ? 'Chấp nhận' : 'Bác bỏ'
+                        ];
+                    });
+                    
+                    autoTable(doc, {
+                        ...commonTableOptions,
+                        startY: yPos,
+                        head: headers,
+                        body: data
+                    });
+                    yPos = (doc as any).lastAutoTable.finalY + 15;
+                }
+                
+                if (semRes.construct_reliability && semRes.construct_reliability.length > 0) {
+                    checkPageBreak(40);
+                    doc.setFontSize(12);
+                    doc.setFont('NotoSans', 'bold');
+                    doc.text('Độ tin cậy cấu trúc & AVE', 15, yPos);
+                    yPos += 8;
+                    
+                    const headers = [['Biến tiềm ẩn', 'Cronbach\'s Alpha', 'Composite Reliability', 'AVE']];
+                    const data = semRes.construct_reliability.map((c: any) => {
+                        return [
+                            c.construct,
+                            c.alpha ? c.alpha.toFixed(3) : '-',
+                            c.rho_c ? c.rho_c.toFixed(3) : '-',
+                            c.ave ? c.ave.toFixed(3) : '-'
+                        ];
+                    });
+                    
+                    autoTable(doc, {
+                        ...commonTableOptions,
+                        startY: yPos,
+                        head: headers,
+                        body: data
+                    });
+                    yPos = (doc as any).lastAutoTable.finalY + 15;
+                }
+            }
+        }
         else if (results && typeof results === 'object') {
             const keys = Object.keys(results).filter(k => typeof results[k] === 'number' || typeof results[k] === 'string');
             const data = keys.map(k => [k, String(results[k])]);
