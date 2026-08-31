@@ -111,7 +111,13 @@ export function AutoPilotView({
         setIsAnalyzing(true);
         setAnalysisType('auto-pilot');
         try {
-            const numericData = data.map(row => columns.map(col => Number(row[col]) || 0));
+            // Chuẩn hóa dữ liệu: Chuyển chuỗi rỗng/NA thành null để R hiểu là missing data (NA)
+            const numericData = data.map(row => columns.map(col => {
+                const val = row[col];
+                if (val === null || val === undefined || val === '' || val === 'NA') return null;
+                const num = Number(val);
+                return isNaN(num) ? null : num;
+            }));
             const fullReport: any = {
                 model: {
                     paths: paths,
