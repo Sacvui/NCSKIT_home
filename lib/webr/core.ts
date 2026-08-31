@@ -36,11 +36,11 @@ async function runLocked<T>(task: () => Promise<T>): Promise<T> {
     }
 }
 
-const BASE_URL = typeof window !== 'undefined' 
+export const BASE_URL = typeof window !== 'undefined' 
     ? window.location.origin + '/webr_core_v3/' 
     : '/webr_core_v3/';
 
-const getOptimalChannelType = (): 0 | 1 | 3 => {
+export const getOptimalChannelType = (): 0 | 1 | 3 => {
     if (typeof window === 'undefined') return 3;
     // We prioritize ServiceWorker (1) for maximum compatibility with IDBFS persistence
     // while still maintaining near-native performance.
