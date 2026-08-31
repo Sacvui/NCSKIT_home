@@ -14,5 +14,8 @@ module.exports = {
             useESM: true,
         },
     },
+    transformIgnorePatterns: [
+        '/node_modules/(?!(webr)/)'
+    ],
     testRunner: 'jest-circus/runner',
 };

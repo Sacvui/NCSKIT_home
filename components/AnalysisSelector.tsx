@@ -56,8 +56,8 @@ export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing, mode, l
     const categories: AnalysisCategory[] = [
         {
             id: 'reliability',
-            name: locale === 'vi' ? 'Độ tin cậy & Mô tả' : 'Reliability & Descriptive',
-            description: locale === 'vi' ? 'Thống kê cơ bản và kiểm định thang đo' : 'Basic stats and scale validation',
+            name: locale === 'vi' ? 'Thống kê Mô tả & Thang đo' : 'Descriptive & Scale',
+            description: locale === 'vi' ? 'Thống kê cơ bản và kiểm định độ tin cậy' : 'Basic stats and scale validation',
             icon: Shield,
             options: [
                 { id: 'descriptive-select', title: t(locale, 'analyze.methods.descriptive'), desc: locale === 'vi' ? 'Mean, SD, Min, Max, Median, Độ lệch, Độ nhọn' : 'Mean, SD, Min, Max, Median, Skewness, Kurtosis', icon: BarChart2, action: 'select', costType: 'descriptive' },
@@ -113,6 +113,7 @@ export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing, mode, l
             options: [
                 { id: 'chisq-select', title: t(locale, 'analyze.methods.chisq'), desc: locale === 'vi' ? 'Kiểm định Chi-bình phương (Tính độc lập)' : 'Pearson’s Chi-Square Test for Independence', icon: Grid3x3, action: 'select', costType: 'chisquare' },
                 { id: 'fisher-select', title: 'Fisher’s Exact', desc: locale === 'vi' ? 'Kiểm định chính xác cho mẫu nhỏ (< 5)' : 'Small sample exact test for contingency', icon: Grid3x3, action: 'select', costType: 'chisquare' },
+                { id: 'frequency-select', title: locale === 'vi' ? 'Thống kê nhân khẩu học' : 'Demographics / Frequency', desc: locale === 'vi' ? 'Phân tích tần suất, tỷ lệ % (Giới tính, Thu nhập...)' : 'Frequency and percentage for categorical data', icon: Users, action: 'select', costType: 'descriptive' },
             ]
         },
         {

@@ -18,6 +18,7 @@ const ANOVAResults = lazy(() => import('./results/basic/ANOVAResults').then(m =>
 const TwoWayANOVAResults = lazy(() => import('./results/basic/TwoWayANOVAResults').then(m => ({ default: m.TwoWayANOVAResults })));
 const CorrelationResults = lazy(() => import('./results/basic/CorrelationResults').then(m => ({ default: m.CorrelationResults })));
 const DescriptiveResults = lazy(() => import('./results/basic/DescriptiveResults').then(m => ({ default: m.DescriptiveResults })));
+const FrequencyResults = lazy(() => import('./results/basic/FrequencyResults').then(m => ({ default: m.FrequencyResults })));
 const CronbachResults = lazy(() => import('./results/reliability/CronbachResults').then(m => ({ default: m.CronbachResults })));
 const EFAResults = lazy(() => import('./results/factor/EFAResults').then(m => ({ default: m.EFAResults })));
 const CFAResults = lazy(() => import('./results/factor/CFAResults').then(m => ({ default: m.CFAResults })));
@@ -100,6 +101,8 @@ export function ResultsDisplay({
                 return <WilcoxonResults results={results} columns={results.columns || []} />;
             case 'chisquare':
                 return <ChiSquareResults results={results} columns={results.columns || []} />;
+            case 'frequency':
+                return <FrequencyResults results={results} columns={results.columns || []} />;
             case 'descriptive':
                 return <DescriptiveResults results={results} columns={columns || []} />;
             case 'moderation':

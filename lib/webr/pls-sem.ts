@@ -565,32 +565,67 @@ export async function runIPMA(data: number[][], targetIndex: number): Promise<an
 
 /**
  * MGA - Multi-Group Analysis
+ * Uses Henseler's MGA via seminr::estimate_pls_mga
  */
 export async function runMGA(
   data: number[][],
-  groupVariable: number[],
-  dependentVarIndex: number
+  measurementModel: { construct: string; items: number[] }[],
+  structuralModel: { from: string; to: string }[],
+  groupVariable: number[], // Array of 0s and 1s indicating group membership
+  nBootstrap: number = 1000
 ): Promise<any> {
+  const measurementSyntax = measurementModel.map(m => 
+    `composite("${m.construct}", multi_items("V", c(${m.items.map(i => i + 1).join(',')})))`
+  ).join(',\\n      ');
+
+  const structuralSyntax = structuralModel.map(s => 
+    `paths(from = "${s.from}", to = "${s.to}")`
+  ).join(',\\n      ');
+
+  // groupVariable is expected to be an array of numbers (e.g., 0 for Group A, 1 for Group B).
+  // We treat the first unique value as Group 1 (condition = TRUE)
+  const group1Val = groupVariable[0];
+
   const rCode = `
+    library(seminr)
     df <- as.data.frame(raw_data)
     colnames(df) <- paste0("V", 1:ncol(df))
-    df$group <- c(${groupVariable.join(',')})
     
-    groups <- unique(df$group)
+    # Define Measurement and Structural Models
+    mm <- constructs(${measurementSyntax})
+    sm <- relationships(${structuralSyntax})
     
-    group_means <- tapply(df[, ${dependentVarIndex + 1}], df$group, mean, na.rm=TRUE)
+    # Estimate full PLS model
+    pls_model <- estimate_pls(data = df, measurement_model = mm, structural_model = sm)
     
-    anova_result <- aov(df[, ${dependentVarIndex + 1}] ~ df$group)
-    p_value <- summary(anova_result)[[1]][["Pr(>F)"]][1]
+    # Define condition for Group 1 (TRUE) vs Group 2 (FALSE)
+    # Passed groupVariable array
+    group_var <- c(${groupVariable.join(',')})
+    condition_mask <- group_var == ${group1Val}
+    
+    # Run PLS-MGA (Henseler's MGA)
+    mga_res <- estimate_pls_mga(pls_model, condition = condition_mask, nboot = ${nBootstrap})
+    
+    # Helper to convert matrix to list
+    matrix_to_list <- function(mat) {
+      if (is.null(mat) || nrow(mat) == 0 || ncol(mat) == 0) return(list())
+      res <- lapply(as.data.frame(mat), function(x) {
+        names(x) <- rownames(mat)
+        as.list(x)
+      })
+      return(res)
+    }
+
+    # Extract MGA paths
+    mga_paths <- mga_res$pls_mga_path
     
     list(
-      group_means = group_means,
-      p_value = p_value,
-      significant_difference = p_value < 0.05
+      mga_paths = matrix_to_list(mga_paths),
+      n_bootstrap = ${nBootstrap},
+      status = "Henseler's MGA completed successfully"
     )
   `;
 
-  const result = await executeRWithRecovery(rCode, undefined, 0, 2, 120000, data);
-  return result;
+  return await executeRWithRecovery(rCode, 'pls-sem', 0, 2, 600000, data);
 }
 

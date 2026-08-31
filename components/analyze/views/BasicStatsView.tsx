@@ -9,7 +9,7 @@ import {
 import { getAnalysisCost, checkBalance, deductCreditsAtomic } from '@/lib/ncs-credits';
 import { logAnalysisUsage } from '@/lib/activity-logger';
 import type { DataProfile } from '@/lib/data-profiler';
-import { Check, ChevronLeft, Play, BarChart2, Users, Database } from 'lucide-react';
+import { Check, ChevronLeft, Play, BarChart2, Users, Database, AlertCircle } from 'lucide-react';
 import { useAnalysisError } from '@/hooks/useAnalysisError';
 import { useWebRGuard } from '@/hooks/useWebRGuard';
 
@@ -130,7 +130,6 @@ export function BasicStatsView({
         }
     };
 
-    // Shared Header Component for selection views
     const ViewHeader = ({ title, subtitle, icon: Icon }: { title: string, subtitle: string, icon: any }) => (
         <div className="flex flex-col items-center text-center mb-8">
             <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mb-4 border border-blue-100 shadow-sm">
@@ -140,6 +139,21 @@ export function BasicStatsView({
             <p className="text-sm text-slate-500 mt-2 font-medium max-w-md">{subtitle}</p>
         </div>
     );
+
+    const AssumptionWarning = ({ isParametric }: { isParametric: boolean }) => {
+        if (!isParametric) return null;
+        return (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex gap-3 mb-6">
+                <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0" />
+                <div className="text-sm text-amber-900">
+                    <p className="font-bold mb-1">Cảnh báo Tiền đề (Assumption Check)</p>
+                    <p className="opacity-90 text-[13px] leading-relaxed">
+                        Các kiểm định tham số yêu cầu dữ liệu có <b>Phân phối chuẩn (Normality)</b> và <b>Đồng nhất phương sai (Homogeneity of Variance)</b>. Nếu dữ liệu vi phạm, hãy cân nhắc sử dụng phiên bản Phi tham số (Non-parametric) như Mann-Whitney hoặc Kruskal-Wallis.
+                    </p>
+                </div>
+            </div>
+        );
+    };
 
     // Shared Checkbox Group
     const CheckboxGroup = ({ items, name, selectedCount, onToggleAll, onClearAll }: { items: string[], name: string, selectedCount?: number, onToggleAll: () => void, onClearAll: () => void }) => (
@@ -256,7 +270,8 @@ export function BasicStatsView({
             <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <ViewHeader title={title} subtitle={subtitle} icon={icon} />
                 
-                <div className="bg-white rounded-2xl border border-blue-100 shadow-xl p-8 space-y-8">
+                <div className="bg-white rounded-2xl border border-blue-100 shadow-xl p-8 space-y-6">
+                    <AssumptionWarning isParametric={!isNonParam} />
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <SelectField id="compare-1" label={isPaired ? "Before variable" : "Group A (DV)"} options={columns} />
                         <SelectField id="compare-2" label={isPaired ? "After variable" : "Group B (DV)"} options={columns} />
@@ -315,7 +330,8 @@ export function BasicStatsView({
             <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <ViewHeader title={title} subtitle={subtitle} icon={Database} />
                 
-                <div className="bg-white rounded-2xl border border-blue-100 shadow-xl p-8 space-y-8">
+                <div className="bg-white rounded-2xl border border-blue-100 shadow-xl p-8 space-y-6">
+                    <AssumptionWarning isParametric={!isNonParam} />
                     <CheckboxGroup 
                         items={columns} 
                         name="anova-col" 
@@ -435,6 +451,68 @@ export function BasicStatsView({
                         }}
                     >
                         {isAnalyzing ? 'Analyzing...' : 'Run Mann-Whitney U'}
+                    </ActionButton>
+                </div>
+                
+                <button 
+                    onClick={() => setStep('analyze')} 
+                    className="w-full py-4 text-slate-400 font-black uppercase text-[10px] tracking-widest hover:text-blue-600 transition-colors flex items-center justify-center gap-2"
+                >
+                    <ChevronLeft className="w-3 h-3" /> Back to methods
+                </button>
+            </div>
+        );
+    }
+
+    if (step === 'frequency-select') {
+        const title = locale === 'vi' ? "Thống kê nhân khẩu học" : "Demographic Frequencies";
+        const subtitle = locale === 'vi' ? "Tính toán số lượng và tỷ lệ % cho các biến định tính." : "Counts and percentages for categorical variables.";
+
+        return (
+            <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <ViewHeader title={title} subtitle={subtitle} icon={Users} />
+                
+                <div className="bg-white rounded-2xl border border-blue-100 shadow-xl p-8 space-y-8">
+                    <CheckboxGroup 
+                        items={allColumns} 
+                        name="freq-col" 
+                        onToggleAll={() => document.querySelectorAll('input[name="freq-col"]').forEach((el: any) => el.checked = true)}
+                        onClearAll={() => document.querySelectorAll('input[name="freq-col"]').forEach((el: any) => el.checked = false)}
+                    />
+
+                    <ActionButton 
+                        icon={Play}
+                        disabled={isAnalyzing}
+                        onClick={() => {
+                            const selectedCols = Array.from(document.querySelectorAll('input[name="freq-col"]:checked')).map(cb => (cb as HTMLInputElement).value);
+                            if (selectedCols.length === 0) return showToast('Vui lòng chọn ít nhất 1 biến', 'error');
+                            
+                            setIsAnalyzing(true);
+                            setTimeout(() => {
+                                const results: any = {};
+                                selectedCols.forEach(col => {
+                                    const counts: Record<string, number> = {};
+                                    let total = 0;
+                                    data.forEach(row => {
+                                        const val = String(row[col] ?? '').trim();
+                                        if (val !== '') {
+                                            counts[val] = (counts[val] || 0) + 1;
+                                            total++;
+                                        }
+                                    });
+                                    const sortedCounts: Record<string, number> = {};
+                                    Object.keys(counts).sort().forEach(k => sortedCounts[k] = counts[k]);
+                                    results[col] = { counts: sortedCounts, total };
+                                });
+
+                                setResults({ type: 'frequency', data: results, columns: selectedCols });
+                                setStep('results');
+                                showToast('Phân tích hoàn tất!', 'success');
+                                setIsAnalyzing(false);
+                            }, 300);
+                        }}
+                    >
+                        {isAnalyzing ? 'Processing...' : 'Run Frequencies'}
                     </ActionButton>
                 </div>
                 

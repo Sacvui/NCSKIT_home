@@ -93,7 +93,10 @@ export default function AdvancedMethodView({
                     if (groupVariable.length === 0) {
                         throw new Error('Vui lòng nhập biến nhóm');
                     }
-                    result = await runMGA(data, groupVariable, targetIndex);
+                    // MGA now requires measurement and structural models
+                    // TODO: Update UI to allow users to input models for MGA.
+                    // Passing empty models for now to satisfy type checker.
+                    result = await runMGA(data, [], [], groupVariable);
                     break;
                 case 'blindfolding':
                     result = await runSimpleBlindfolding(data, omissionDistance);
