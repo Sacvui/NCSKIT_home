@@ -1030,7 +1030,7 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
                     doc.text(`Thang đo: ${scale}`, 15, yPos);
                     yPos += 8;
                     const res = (info as any).data;
-                    const alpha = res.alpha ?? res.rawAlpha ?? 0;
+                    const alpha = Number(res.alpha ?? res.rawAlpha ?? 0);
                     doc.setFontSize(10);
                     doc.setFont('NotoSans', 'normal');
                     doc.text(`Hệ số Cronbach's Alpha: ${alpha.toFixed(3)}`, 15, yPos);
@@ -1039,13 +1039,13 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
                     if (res.itemTotalStats && Array.isArray(res.itemTotalStats) && res.itemTotalStats.length > 0) {
                         const headers = [['Biến quan sát', 'Trung bình thang đo', 'Phương sai', 'Tương quan biến - tổng', 'Alpha nếu loại biến']];
                         const data = res.itemTotalStats.map((item: any, idx: number) => {
-                            const corr = (item.correctedItemTotalCorrelation ?? 0);
+                            const corr = Number(item.correctedItemTotalCorrelation ?? 0);
                             return [
                                 (info as any).columns[idx] || `Item ${idx+1}`,
-                                (item.scaleMeanIfDeleted ?? 0).toFixed(3),
-                                (item.scaleVarianceIfDeleted ?? 0).toFixed(3),
+                                Number(item.scaleMeanIfDeleted ?? 0).toFixed(3),
+                                Number(item.scaleVarianceIfDeleted ?? 0).toFixed(3),
                                 corr.toFixed(3),
-                                (item.alphaIfItemDeleted ?? 0).toFixed(3)
+                                Number(item.alphaIfItemDeleted ?? 0).toFixed(3)
                             ];
                         });
                         autoTable(doc, {
@@ -1070,9 +1070,9 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
                 const efaRes = results.efa.data;
                 doc.setFontSize(10);
                 doc.setFont('NotoSans', 'normal');
-                if (efaRes.kmo) doc.text(`KMO Measure of Sampling Adequacy: ${(efaRes.kmo.MSA || 0).toFixed(3)}`, 15, yPos);
+                if (efaRes.kmo) doc.text(`KMO Measure of Sampling Adequacy: ${Number(efaRes.kmo.MSA || 0).toFixed(3)}`, 15, yPos);
                 yPos += 7;
-                if (efaRes.bartlett) doc.text(`Bartlett's Test of Sphericity - p-value: ${(efaRes.bartlett.p_value || 0).toFixed(4)}`, 15, yPos);
+                if (efaRes.bartlett) doc.text(`Bartlett's Test of Sphericity - p-value: ${Number(efaRes.bartlett.p_value || 0).toFixed(4)}`, 15, yPos);
                 yPos += 10;
                 
                 if (efaRes.loadings && efaRes.loadings.length > 0) {
@@ -1083,7 +1083,7 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
                     
                     const data = efaRes.loadings.map((row: any) => {
                         const rowData = [row.variable];
-                        row.loadings.forEach((v: number) => rowData.push(v === null ? '' : v.toFixed(3)));
+                        row.loadings.forEach((v: any) => rowData.push(v === null ? '' : Number(v).toFixed(3)));
                         return rowData;
                     });
                     
@@ -1115,12 +1115,12 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
                     
                     const headers = [['Đường dẫn (Path)', 'Estimate', 'T-Value', 'P-Value', 'Kết luận']];
                     const data = semRes.path_coefficients.map((p: any) => {
-                        const isSig = p.p_value < 0.05;
+                        const isSig = Number(p.p_value) < 0.05;
                         return [
                             p.path,
-                            p.estimate.toFixed(3),
-                            p.t_value ? p.t_value.toFixed(3) : '-',
-                            p.p_value ? p.p_value.toFixed(3) : '-',
+                            Number(p.estimate).toFixed(3),
+                            p.t_value ? Number(p.t_value).toFixed(3) : '-',
+                            p.p_value ? Number(p.p_value).toFixed(3) : '-',
                             isSig ? 'Chấp nhận' : 'Bác bỏ'
                         ];
                     });
@@ -1145,9 +1145,9 @@ export async function exportToPDF(options: PDFExportOptions): Promise<void> {
                     const data = semRes.construct_reliability.map((c: any) => {
                         return [
                             c.construct,
-                            c.alpha ? c.alpha.toFixed(3) : '-',
-                            c.rho_c ? c.rho_c.toFixed(3) : '-',
-                            c.ave ? c.ave.toFixed(3) : '-'
+                            c.alpha ? Number(c.alpha).toFixed(3) : '-',
+                            c.rho_c ? Number(c.rho_c).toFixed(3) : '-',
+                            c.ave ? Number(c.ave).toFixed(3) : '-'
                         ];
                     });
                     
