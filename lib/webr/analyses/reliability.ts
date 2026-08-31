@@ -231,28 +231,12 @@ export async function runEFA(
         fa(cor_mat, nfactors = n_factors_run, rotate = "{{rotation}}", fm = ext_method, n.obs = n_obs)
     }
 
-    matrix_to_list <- function(mat) {
-        if (is.null(mat)) return(list())
-        res <- list()
-        if (!is.matrix(mat) && !is.data.frame(mat)) return(as.list(mat))
-        rnames <- rownames(mat)
-        cnames <- colnames(mat)
-        for (r in rnames) {
-            row_list <- list()
-            for (c in cnames) {
-                row_list[[c]] <- mat[r, c]
-            }
-            res[[r]] <- row_list
-        }
-        return(res)
-    }
-
     list(
         kmo = if (is.numeric(kmo_result$MSA)) kmo_result$MSA[1] else 0,
         bartlett_p = bartlett_result$p.value,
-        loadings = matrix_to_list(unclass(efa_result$loadings)),
+        loadings = as.vector(t(unclass(efa_result$loadings))),
         communalities = efa_result$communalities,
-        structure = matrix_to_list(if(!is.null(efa_result$Structure)) unclass(efa_result$Structure) else unclass(efa_result$loadings)),
+        structure = as.vector(t(if(!is.null(efa_result$Structure)) unclass(efa_result$Structure) else unclass(efa_result$loadings))),
         eigenvalues = eigenvalues,
         n_factors_used = n_factors_run,
         n_factors_suggested = if(is.na(n_factors_parallel)) n_factors_kaiser else n_factors_parallel,

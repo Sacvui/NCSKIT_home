@@ -228,11 +228,12 @@ export function parseWebRResult(jsResult: any) {
 /**
  * Helper to parse flat array to matrix
  */
-export function parseMatrix(val: any, dim: number): number[][] {
-    if (!val || !Array.isArray(val)) return [];
+export function parseMatrix(val: any, cols: number): number[][] {
+    if (!val || !Array.isArray(val) || cols <= 0) return [];
     const matrix: number[][] = [];
-    for (let i = 0; i < dim; i++) {
-        matrix.push(val.slice(i * dim, (i + 1) * dim));
+    const rows = Math.ceil(val.length / cols);
+    for (let i = 0; i < rows; i++) {
+        matrix.push(val.slice(i * cols, (i + 1) * cols));
     }
     return matrix;
 }
