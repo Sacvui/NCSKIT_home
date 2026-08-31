@@ -56,7 +56,15 @@ export async function runCronbachAlpha(
     data <- pmax(pmin(raw_data, valid_max), valid_min);
     
     # Run Cronbach's Alpha
-    result <- alpha(data, check.keys = TRUE);
+    result <- tryCatch({
+        alpha(data, check.keys = TRUE)
+    }, error = function(e) {
+        list(
+            total = list(raw_alpha = NA, std.alpha = NA, average_r = NA),
+            item.stats = list(r.drop = rep(NA, ncol(data))),
+            alpha.drop = list(mean = rep(NA, ncol(data)), sd = rep(NA, ncol(data)), raw_alpha = rep(NA, ncol(data)))
+        )
+    });
     
     # === McDonald's Omega (Robust) ===
     # Factor detection using parallel analysis

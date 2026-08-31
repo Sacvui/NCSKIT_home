@@ -104,7 +104,7 @@ export const PLSResults: React.FC<PLSResultsProps> = ({ results }) => {
                                 </thead>
                                 <tbody className="divide-y divide-slate-50">
                                     {Object.entries(path_coefficients || {}).flatMap(([to, froms]: [string, any]) => 
-                                        Object.entries(froms || {}).filter(([_, val]: [any, any]) => val !== 0).map(([from, val]: [string, any]) => (
+                                        Object.entries(froms || {}).filter(([from, val]: [any, any]) => val !== 0 && from !== 'R^2' && from !== 'AdjR^2').map(([from, val]: [string, any]) => (
                                             <tr key={`${from}-${to}`} className="hover:bg-blue-50/30">
                                                 <td className="py-3 px-4 font-bold text-slate-700">{from} <span className="text-blue-400 mx-1">→</span> {to}</td>
                                                 <td className="py-3 px-4 font-black text-blue-900">{safeToFixed(val)}</td>

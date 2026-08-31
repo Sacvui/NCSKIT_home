@@ -85,7 +85,7 @@ export const CronbachResults = React.memo(function CronbachResults({
                         <div className="text-5xl font-black text-blue-900">
                             {nItems}
                         </div>
-                        <div className="text-[10px] font-black mt-2 uppercase text-slate-400 tracking-tighter">Variables in scale</div>
+                        <div className="text-[10px] font-black mt-2 uppercase text-slate-400 tracking-tighter">Số biến trong thang đo (Items)</div>
                     </div>
                 </div>
             </div>
