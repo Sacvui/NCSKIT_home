@@ -194,7 +194,7 @@ export function parseWebRResult(jsResult: any) {
     return (name: string): any => {
         let val: any = null;
 
-        // Case 1: Plain JS object (unpacked)
+        // Case 1: Plain JS object (unpacked via jsonlite::toJSON)
         if (jsResult && typeof jsResult === 'object' && jsResult[name] !== undefined) {
             val = jsResult[name];
         } 
@@ -217,10 +217,10 @@ export function parseWebRResult(jsResult: any) {
         
         // Handle TypedArrays (Float64Array, etc.) which are common in WebR
         if (val && typeof val === 'object' && typeof val.length === 'number' && (val.buffer instanceof ArrayBuffer || val.buffer instanceof SharedArrayBuffer)) {
-            return Array.from(val);
+            return Array.from(val as any);
         }
 
-        // Single value (force to array for consistency)
+        // Single value (force to array for consistency because all existing analysis components expect ?.[0])
         return [val];
     };
 }
