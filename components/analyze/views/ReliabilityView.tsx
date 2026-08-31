@@ -445,6 +445,11 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
                     try {
                         const neededCols = Array.from(new Set(factors.flatMap((f: any) => f.indicators)));
                         const result = await runCFA(data.map(row => (neededCols as string[]).map(c => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[c]))), neededCols as string[], syntax);
+                        
+                        if (result.error) {
+                            throw new Error(result.error);
+                        }
+
                         setResults({ type: 'cfa', data: result, columns: neededCols });
                         setParentStep('results');
                         showToast('CFA thành công!', 'success');
@@ -467,10 +472,16 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
                     try {
                         const neededCols = Array.from(new Set(factors.flatMap((f: any) => f.indicators)));
                         const result = await runSEM(data.map(row => (neededCols as string[]).map(c => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[c]))), neededCols as string[], syntax);
+                        
+                        if (result.error) {
+                            throw new Error(result.error);
+                        }
+                        
                         setResults({ type: 'sem', data: result, columns: neededCols });
                         setParentStep('results');
                         showToast('SEM thành công!', 'success');
                     } catch (err) { handleAnalysisError(err); } 
+
                     finally { setIsAnalyzing(false); }
                 }}
                 isAnalyzing={isAnalyzing}

@@ -49,9 +49,14 @@ export async function runLavaanAnalysis(
         sem(model = mod_str, data = df, std.lv = TRUE, missing = "listwise", estimator = "{{estimator}}")
     })
     
+    if (!lavInspect(fit, "converged")) {
+        stop("Mô hình không hội tụ (Model did not converge). Có thể do ma trận hiệp phương sai không xác định dương hoặc mô hình không hợp lệ.")
+    }
+    
     # Extract fit measures safely
-    fm <- tryCatch({ fitMeasures(fit) }, error = function(e) { c(cfi=0, tli=0, rmsea=0, srmr=0, chisq=0, df=1, pvalue=0) })
+    fm <- tryCatch({ fitMeasures(fit) }, error = function(e) { stop("Không thể tính toán chỉ số phù hợp (Fit Measures). Mô hình có thể chưa xác định (Underidentified).") })
     est <- tryCatch({ parameterEstimates(fit, standardized = TRUE) }, error = function(e) { data.frame() })
+
     
     list(
         cfi = if("cfi" %in% names(fm) && !is.na(fm["cfi"])) as.numeric(fm["cfi"]) else 0,
