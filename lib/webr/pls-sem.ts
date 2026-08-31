@@ -218,7 +218,30 @@ export async function runPLSSEM(
 
     # Safe extractions for all summary components
     paths_res <- tryCatch(matrix_to_list(summ$paths), error = function(e) list())
-    r_sq <- tryCatch(as.list(safe_col(summ$reliability, "R.squared")), error = function(e) list())
+    
+    # R-squared extraction (try seminr paths$Rsq first, else manual calc)
+    r_sq <- tryCatch({
+      if (is.list(summ$paths) && !is.null(summ$paths$Rsq)) {
+        as.list(summ$paths$Rsq)
+      } else if (!is.null(summ$paths) && is.list(summ$paths) && !is.null(summ$paths$rSquared)) {
+        as.list(summ$paths$rSquared)
+      } else {
+        # Manual fallback
+        scores <- pls_model$construct_scores
+        sm_mat <- pls_model$smMatrix
+        endogenous <- unique(sm_mat[, "target"])
+        r2_list <- list()
+        for (endo in endogenous) {
+          preds <- sm_mat[sm_mat[, "target"] == endo, "source"]
+          if (length(preds) > 0) {
+            lm_res <- lm(scores[, endo] ~ scores[, preds, drop=FALSE])
+            r2_list[[endo]] <- summary(lm_res)$r.squared
+          }
+        }
+        r2_list
+      }
+    }, error = function(e) list())
+
     f_sq <- tryCatch(matrix_to_list(summ$fSquare), error = function(e) list())
     load_res <- tryCatch(matrix_to_list(summ$loadings), error = function(e) list())
     total_eff <- tryCatch(matrix_to_list(summ$total_effects), error = function(e) list())
