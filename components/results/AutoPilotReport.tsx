@@ -61,7 +61,7 @@ export function AutoPilotReport({ results, columns }: AutoPilotReportProps) {
                         Biểu đồ này sẽ tự động cập nhật hệ số đường dẫn (Path Coefficients) và mức độ ý nghĩa sau khi hoàn tất PLS-SEM.
                     </p>
                     <ResearchModelDiagram 
-                        paths={results.model.paths.map((p: any) => {
+                        paths={(results.model.paths || (results.model.ivs ? results.model.ivs.map((iv: string) => ({ from: iv, to: results.model.dv })) : [])).map((p: any) => {
                             if (!results.sem || !results.sem.path_coefficients) return p;
                             const coefData = results.sem.path_coefficients[p.from]?.[p.to];
                             if (!coefData) return p;
