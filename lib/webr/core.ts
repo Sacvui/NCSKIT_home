@@ -256,7 +256,7 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         
                         # Configure repos: local first, then r-universe, then r-wasm.org as fallback
                         local_repo <- "${localRepo}"
-                        lavaan_repo <- "https://yrosseel.r-universe.dev"
+                        lavaan_repo <- "https://repo.r-wasm.org/"
                         seminr_repo <- "https://sem-in-r.r-universe.dev"
                         ropensci_repo <- "https://ropensci.r-universe.dev"
                         fallback_repo <- "https://repo.r-wasm.org/"
@@ -347,7 +347,7 @@ export async function loadPackagesForMethod(method: string): Promise<void> {
                 await webR.evalR(`
                     if (!require("${pkg}", character.only = TRUE, quietly = TRUE)) {
                         # CDN First - Much faster for deployment and ensures latest stable WASM binaries
-                        .repos <- c("https://yrosseel.r-universe.dev", "https://sem-in-r.r-universe.dev", "https://ropensci.r-universe.dev", "${officialRepo}")
+                        .repos <- c("https://sem-in-r.r-universe.dev", "https://ropensci.r-universe.dev", "${officialRepo}")
                         tryCatch(webr::install("${pkg}", repos = .repos), error = function(e) {
                              # Local Fallback
                              tryCatch(webr::install("${pkg}", repos = "${localRepo}"), error = function(e) {})

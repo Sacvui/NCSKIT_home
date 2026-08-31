@@ -428,7 +428,7 @@ export async function runBootstrapping(
             data: data,
             code: `
                 if (!require("seminr", character.only = TRUE, quietly = TRUE)) {
-                    options(repos = c(CRAN = "https://repo.r-wasm.org/", SEMINR = "https://sem-in-r.r-universe.dev", LAVAAN = "https://yrosseel.r-universe.dev"))
+                    options(repos = c(CRAN = "https://repo.r-wasm.org/", SEMINR = "https://sem-in-r.r-universe.dev"))
                     tryCatch(webr::install("seminr"), error = function(e) {})
                     library(seminr)
                 }
