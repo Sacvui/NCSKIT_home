@@ -13,7 +13,7 @@ export async function createClient() {
                 getSession: async () => ({ data: { session: null }, error: null }),
                 getUser: async () => ({ data: { user: null }, error: null }),
             },
-            from: () => ({ select: () => ({ eq: () => ({ single: async () => ({ data: null, error: null }) }) }) })
+            from: () => ({ select: () => ({ eq: () => ({ single: async () => ({ data: null, error: null }), maybeSingle: async () => ({ data: null, error: null }) }) }) })
         } as any;
     }
 

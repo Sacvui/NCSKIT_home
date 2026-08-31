@@ -19,7 +19,7 @@ export const getSupabase = () => {
               signOut: async () => ({ error: null }),
               exchangeCodeForSession: async () => ({ data: { session: null }, error: null })
           },
-          from: () => ({ select: () => ({ eq: () => ({ single: async () => ({ data: null, error: null }) }) }) })
+          from: () => ({ select: () => ({ eq: () => ({ single: async () => ({ data: null, error: null }), maybeSingle: async () => ({ data: null, error: null }) }) }) })
       } as any;
       return supabaseInstance as any;
   }
