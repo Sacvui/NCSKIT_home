@@ -108,7 +108,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
         setMultipleResults([]);
 
         try {
-            const selectedData = data.map(row => selectedColumns.map(col => Number(row[col]) || 0));
+            const selectedData = data.map(row => selectedColumns.map(col => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[col])));
 
             // Deduct BEFORE running — atomic via RPC (prevents race conditions)
             if (user) {
@@ -178,7 +178,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
 
             const allResults = [];
             for (const group of groups) {
-                const groupData = data.map(row => group.columns.map(col => Number(row[col]) || 0));
+                const groupData = data.map(row => group.columns.map(col => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[col])));
                 const result = await runCronbachAlpha(groupData);
                 allResults.push({ scaleName: group.name, columns: group.columns, data: result, type: isOmega ? 'omega' : 'cronbach' });
             }
@@ -223,7 +223,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
         setMultipleResults([]);
 
         try {
-            const selectedData = data.map(row => selectedColumns.map(col => Number(row[col]) || 0));
+            const selectedData = data.map(row => selectedColumns.map(col => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[col])));
 
             // Deduct BEFORE running — atomic via RPC
             if (user) {
@@ -260,7 +260,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
         setAnalysisType('pls-sem');
 
         try {
-            const numericData = data.map(row => columns.map(col => Number(row[col]) || 0));
+            const numericData = data.map(row => columns.map(col => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[col])));
             
             // 1. Initial PLS-SEM
             let results = await runPLSSEM(numericData, measurementModel, structuralModel);
@@ -336,7 +336,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
                              try {
                                  const allResults = [];
                                  for (const group of groups) {
-                                     const result = await runCronbachAlpha(data.map(row => group.columns.map(col => Number(row[col]) || 0)));
+                                     const result = await runCronbachAlpha(data.map(row => group.columns.map(col => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[col]))));
                                      allResults.push({ scaleName: group.name, columns: group.columns, data: result, type: 'omega' });
                                  }
                                  setMultipleResults(allResults);
@@ -416,7 +416,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
                              setIsAnalyzing(true);
                              setAnalysisType('efa');
                              try {
-                                 const res = await runEFA(data.map(row => selectedCols.map(c => Number(row[c]) || 0)), nfactors, rotation);
+                                 const res = await runEFA(data.map(row => selectedCols.map(c => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[c]))), nfactors, rotation);
                                  setResults({ type: 'efa', data: res, columns: selectedCols });
                                  setParentStep('results');
                                  showToast('EFA hoàn tất!', 'success');
@@ -444,7 +444,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
                     setAnalysisType('cfa');
                     try {
                         const neededCols = Array.from(new Set(factors.flatMap((f: any) => f.indicators)));
-                        const result = await runCFA(data.map(row => (neededCols as string[]).map(c => Number(row[c]) || 0)), neededCols as string[], syntax);
+                        const result = await runCFA(data.map(row => (neededCols as string[]).map(c => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[c]))), neededCols as string[], syntax);
                         setResults({ type: 'cfa', data: result, columns: neededCols });
                         setParentStep('results');
                         showToast('CFA thành công!', 'success');
@@ -466,7 +466,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
                     setAnalysisType('sem');
                     try {
                         const neededCols = Array.from(new Set(factors.flatMap((f: any) => f.indicators)));
-                        const result = await runSEM(data.map(row => (neededCols as string[]).map(c => Number(row[c]) || 0)), neededCols as string[], syntax);
+                        const result = await runSEM(data.map(row => (neededCols as string[]).map(c => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[c]))), neededCols as string[], syntax);
                         setResults({ type: 'sem', data: result, columns: neededCols });
                         setParentStep('results');
                         showToast('SEM thành công!', 'success');

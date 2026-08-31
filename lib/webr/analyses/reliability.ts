@@ -40,6 +40,7 @@ export async function runCronbachAlpha(
         minRows: 10,
         minCols: 2,
         analysisName: "Cronbach's Alpha",
+        allowPartialRows: true, // Allow NA so R can handle them
     });
     if (!validation.valid) {
         throw new Error(validation.warnings[validation.warnings.length - 1]);

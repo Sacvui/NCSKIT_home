@@ -106,13 +106,14 @@ export function validateAndCleanData(
 
         if (hasInvalid) {
             if (allowPartialRows) {
-                // Replace invalid values with 0 (not recommended, but available)
+                // Keep invalid values as null so WebR translates them to NA
                 const cleanRow = row.map(v =>
                     (v === null || v === undefined || (typeof v === 'number' && (isNaN(v) || !isFinite(v))))
-                        ? 0
+                        ? null
                         : (v as number)
                 );
-                cleanData.push(cleanRow);
+                cleanData.push(cleanRow as any);
+
             } else {
                 rowsRemoved++;
             }

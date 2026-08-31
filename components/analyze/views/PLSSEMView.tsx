@@ -89,7 +89,7 @@ export const PLSSEMView: React.FC<PLSSEMViewProps> = ({
 
         try {
             const selectedData = data.map(row =>
-                cols.map(col => Number(row[col]) || 0)
+                cols.map(col => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[col]))
             );
 
             // Deduct BEFORE running — atomic via RPC
@@ -144,7 +144,7 @@ export const PLSSEMView: React.FC<PLSSEMViewProps> = ({
 
         try {
             const numericData = data.map(row =>
-                columns.map(col => Number(row[col]) || 0)
+                columns.map(col => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[col]))
             );
 
             // Deduct BEFORE running — atomic via RPC
@@ -198,7 +198,7 @@ export const PLSSEMView: React.FC<PLSSEMViewProps> = ({
 
         try {
             const numericData = data.map(row =>
-                columns.map(col => Number(row[col]) || 0)
+                columns.map(col => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[col]))
             );
 
             const result = await runHTMTMatrix(numericData, factorStructure);
@@ -248,7 +248,7 @@ export const PLSSEMView: React.FC<PLSSEMViewProps> = ({
 
         try {
             const numericData = data.map(row =>
-                columns.map(col => Number(row[col]) || 0)
+                columns.map(col => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[col]))
             );
 
             // Deduct BEFORE running — atomic via RPC
@@ -302,7 +302,7 @@ export const PLSSEMView: React.FC<PLSSEMViewProps> = ({
 
         try {
             const numericData = data.map(row =>
-                columns.map(col => Number(row[col]) || 0)
+                columns.map(col => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[col]))
             );
 
             // Deduct BEFORE running — atomic via RPC
