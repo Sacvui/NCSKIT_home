@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CronbachResults } from './reliability/CronbachResults';
 import { EFAResults } from './factor/EFAResults';
 import { PLSResults } from './factor/PLSResults';
-import { Rocket, Target, Shield, Grid3x3, Network } from 'lucide-react';
+import { ResearchModelDiagram } from './shared/ResearchModelDiagram';
+import { Rocket, Target, Shield, Grid3x3, Network, Workflow } from 'lucide-react';
 
 interface AutoPilotReportProps {
     results: any;
@@ -44,36 +45,34 @@ export function AutoPilotReport({ results, columns }: AutoPilotReportProps) {
                 </div>
             </div>
 
-            {/* Model Summary */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="border-2 border-indigo-100 shadow-xl shadow-indigo-50/50">
-                    <CardHeader className="bg-indigo-50/50 border-b border-indigo-100 pb-4">
-                        <CardTitle className="text-base font-black text-indigo-900 uppercase tracking-tight flex items-center gap-2">
-                            <Target className="w-5 h-5 text-indigo-600" /> Biến Độc lập (IVs)
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-6">
-                        <div className="flex flex-wrap gap-2">
-                            {results.model.ivs.map((iv: string) => (
-                                <span key={iv} className="px-3 py-1.5 bg-indigo-100 text-indigo-900 font-bold rounded-lg shadow-sm border border-indigo-200">
-                                    {iv}
-                                </span>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card className="border-2 border-rose-100 shadow-xl shadow-rose-50/50">
-                    <CardHeader className="bg-rose-50/50 border-b border-rose-100 pb-4">
-                        <CardTitle className="text-base font-black text-rose-900 uppercase tracking-tight flex items-center gap-2">
-                            <Target className="w-5 h-5 text-rose-600" /> Biến Phụ thuộc (DV)
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-6">
-                        <div className="inline-flex px-4 py-2 bg-rose-100 text-rose-900 font-black rounded-lg shadow-sm border border-rose-200 text-lg">
-                            {results.model.dv}
-                        </div>
-                    </CardContent>
-                </Card>
+            {/* Model Summary / Research Model Diagram */}
+            <div className="space-y-6">
+                <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center font-black shadow-lg">
+                        <Workflow className="w-5 h-5" />
+                    </div>
+                    <h3 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-3">
+                        Mô hình Nghiên cứu (Research Model)
+                    </h3>
+                </div>
+                <div className="pl-4 md:pl-14 ml-5">
+                    <p className="text-slate-500 mb-6 max-w-2xl">
+                        Mô hình nghiên cứu dưới đây được xây dựng dựa trên các đường dẫn mà bạn đã thiết lập.
+                        Biểu đồ này sẽ tự động cập nhật hệ số đường dẫn (Path Coefficients) và mức độ ý nghĩa sau khi hoàn tất PLS-SEM.
+                    </p>
+                    <ResearchModelDiagram 
+                        paths={results.model.paths.map((p: any) => {
+                            if (!results.sem || !results.sem.path_coefficients) return p;
+                            const coefData = results.sem.path_coefficients[p.from]?.[p.to];
+                            if (!coefData) return p;
+                            return {
+                                ...p,
+                                coef: coefData['Original Est.'],
+                                pVal: coefData['P Value']
+                            };
+                        })} 
+                    />
+                </div>
             </div>
 
             {/* Section 1: Reliability */}

@@ -54,7 +54,9 @@ export function AutoPilotView({
     locale
 }: AutoPilotViewProps) {
     const [groups, setGroups] = useState<VariableGroup[]>([]);
-    const [dependentVar, setDependentVar] = useState<string | null>(null);
+    const [paths, setPaths] = useState<{from: string, to: string}[]>([]);
+    const [newPathFrom, setNewPathFrom] = useState<string>('');
+    const [newPathTo, setNewPathTo] = useState<string>('');
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [progress, setProgress] = useState(0);
     const [statusText, setStatusText] = useState('');
@@ -62,21 +64,47 @@ export function AutoPilotView({
     useEffect(() => {
         const autoGroups = autoGroupColumns(columns);
         setGroups(autoGroups);
-        if (autoGroups.length > 0) {
-            // Auto guess DV (often the last one)
-            setDependentVar(autoGroups[autoGroups.length - 1].name);
+        if (autoGroups.length > 1) {
+            // Auto guess initial paths: all others -> last one
+            const dv = autoGroups[autoGroups.length - 1].name;
+            const ivs = autoGroups.slice(0, -1).map(g => g.name);
+            setPaths(ivs.map(iv => ({ from: iv, to: dv })));
         }
     }, [columns]);
 
+    const handleAddPath = () => {
+        if (!newPathFrom || !newPathTo) {
+            showToast('Vui lòng chọn cả hai biến', 'error');
+            return;
+        }
+        if (newPathFrom === newPathTo) {
+            showToast('Biến tác động và bị tác động không thể trùng nhau', 'error');
+            return;
+        }
+        if (paths.some(p => p.from === newPathFrom && p.to === newPathTo)) {
+            showToast('Đường dẫn này đã tồn tại', 'error');
+            return;
+        }
+        setPaths([...paths, { from: newPathFrom, to: newPathTo }]);
+        setNewPathFrom('');
+        setNewPathTo('');
+    };
+
+    const handleRemovePath = (index: number) => {
+        setPaths(paths.filter((_, i) => i !== index));
+    };
+
     const handleRunAutoPilot = async () => {
-        if (!dependentVar) {
-            showToast('Vui lòng chọn Biến phụ thuộc (Dependent Variable)', 'error');
+        if (paths.length === 0) {
+            showToast('Vui lòng thêm ít nhất 1 giả thuyết (đường dẫn)', 'error');
             return;
         }
 
-        const independentGroups = groups.filter(g => g.name !== dependentVar && g.selected);
-        if (independentGroups.length === 0) {
-            showToast('Cần ít nhất 1 biến độc lập', 'error');
+        const uniqueConstructs = Array.from(new Set(paths.flatMap(p => [p.from, p.to])));
+        const activeGroups = uniqueConstructs.map(c => groups.find(g => g.name === c)).filter(Boolean) as VariableGroup[];
+
+        if (activeGroups.length < 2) {
+            showToast('Cần ít nhất 2 biến để chạy mô hình', 'error');
             return;
         }
 
@@ -86,8 +114,8 @@ export function AutoPilotView({
             const numericData = data.map(row => columns.map(col => Number(row[col]) || 0));
             const fullReport: any = {
                 model: {
-                    ivs: independentGroups.map(g => g.name),
-                    dv: dependentVar
+                    paths: paths,
+                    constructs: activeGroups.map(g => g.name)
                 },
                 cronbach: {},
                 efa: null,
@@ -97,7 +125,7 @@ export function AutoPilotView({
             // 1. Reliability
             setStatusText('Đang kiểm tra độ tin cậy thang đo (Cronbach Alpha)...');
             setProgress(20);
-            for (const group of [...independentGroups, groups.find(g => g.name === dependentVar)!]) {
+            for (const group of activeGroups) {
                 const groupIndices = group.columns.map(c => columns.indexOf(c));
                 const groupData = numericData.map(row => groupIndices.map(idx => row[idx]));
                 const res = await runMcDonaldOmega(groupData, group.columns);
@@ -107,21 +135,21 @@ export function AutoPilotView({
             // 2. EFA
             setStatusText('Đang chạy phân tích nhân tố khám phá (EFA)...');
             setProgress(50);
-            const allItems = [...independentGroups.flatMap(g => g.columns), ...groups.find(g => g.name === dependentVar)!.columns];
+            const allItems = activeGroups.flatMap(g => g.columns);
             const efaIndices = allItems.map(c => columns.indexOf(c));
             const efaData = numericData.map(row => efaIndices.map(idx => row[idx]));
-            const expectedFactors = independentGroups.length + 1; // IVs + 1 DV
+            const expectedFactors = activeGroups.length;
             const efaRes = await runEFA(efaData, expectedFactors, 'oblimin', 'minres');
             fullReport.efa = { columns: allItems, data: efaRes };
 
             // 3. SEM
             setStatusText('Đang chạy mô hình cấu trúc tuyến tính (PLS-SEM)...');
             setProgress(80);
-            const measurementModel = [
-                ...independentGroups.map(g => ({ construct: g.name, items: g.columns.map(c => columns.indexOf(c)) })),
-                { construct: dependentVar, items: groups.find(g => g.name === dependentVar)!.columns.map(c => columns.indexOf(c)) }
-            ];
-            const structuralModel = independentGroups.map(g => ({ from: g.name, to: dependentVar }));
+            const measurementModel = activeGroups.map(g => ({ 
+                construct: g.name, 
+                items: g.columns.map(c => columns.indexOf(c)) 
+            }));
+            const structuralModel = paths;
             
             const semRes = await runPLSSEM(numericData, measurementModel, structuralModel);
             fullReport.sem = semRes;
@@ -167,55 +195,76 @@ export function AutoPilotView({
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Independent Variables */}
-                    <div className="space-y-4">
+                    {/* Path Builder */}
+                    <div className="space-y-4 md:col-span-2">
                         <div className="flex items-center justify-between">
-                            <h4 className="font-bold text-slate-700">Các Biến độc lập (IVs)</h4>
-                            <span className="text-xs font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg">Tác động</span>
+                            <h4 className="font-bold text-slate-700">Thiết lập Giả thuyết (Đường dẫn)</h4>
+                            <span className="text-xs font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg">Path Builder</span>
                         </div>
-                        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 min-h-[200px] flex flex-col gap-3">
-                            {groups.filter(g => g.name !== dependentVar).map(group => (
-                                <div key={group.name} className="bg-white border border-slate-200 p-3 rounded-xl flex items-center justify-between shadow-sm">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 font-black flex items-center justify-center">
-                                            {group.name}
-                                        </div>
-                                        <div>
-                                            <div className="font-bold text-slate-800 text-sm">{group.name}</div>
-                                            <div className="text-[10px] text-slate-400 font-medium">{group.columns.length} items</div>
-                                        </div>
-                                    </div>
-                                    <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                        
+                        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6">
+                            <div className="flex flex-col md:flex-row items-center gap-4 mb-6">
+                                <select 
+                                    value={newPathFrom}
+                                    onChange={(e) => setNewPathFrom(e.target.value)}
+                                    className="flex-1 p-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-indigo-400"
+                                >
+                                    <option value="" disabled>-- Biến Tác Động --</option>
+                                    {groups.map(g => (
+                                        <option key={g.name} value={g.name}>{g.name} ({g.columns.length} items)</option>
+                                    ))}
+                                </select>
+                                
+                                <div className="text-slate-400 shrink-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                                 </div>
-                            ))}
-                        </div>
-                    </div>
 
-                    {/* Dependent Variable */}
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <h4 className="font-bold text-slate-700">Biến phụ thuộc (DV)</h4>
-                            <span className="text-xs font-black text-rose-600 bg-rose-50 px-2 py-1 rounded-lg">Bị tác động</span>
-                        </div>
-                        <div className="bg-slate-50 border border-rose-100 rounded-2xl p-4 min-h-[200px]">
-                            <select 
-                                value={dependentVar || ''}
-                                onChange={(e) => setDependentVar(e.target.value)}
-                                className="w-full p-4 bg-white border-2 border-rose-200 rounded-xl font-black text-rose-900 outline-none focus:border-rose-400 transition-colors shadow-sm cursor-pointer"
-                            >
-                                <option value="" disabled>-- Chọn Biến Phụ Thuộc --</option>
-                                {groups.map(group => (
-                                    <option key={group.name} value={group.name}>
-                                        {group.name} ({group.columns.length} items)
-                                    </option>
-                                ))}
-                            </select>
+                                <select 
+                                    value={newPathTo}
+                                    onChange={(e) => setNewPathTo(e.target.value)}
+                                    className="flex-1 p-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-indigo-400"
+                                >
+                                    <option value="" disabled>-- Biến Bị Tác Động --</option>
+                                    {groups.map(g => (
+                                        <option key={g.name} value={g.name}>{g.name} ({g.columns.length} items)</option>
+                                    ))}
+                                </select>
 
-                            <div className="mt-8 flex flex-col items-center justify-center text-slate-400">
-                                <Target className="w-12 h-12 mb-3 opacity-20" />
-                                <p className="text-xs text-center font-medium max-w-[200px]">
-                                    Biến này sẽ chịu tác động từ tất cả các biến độc lập bên trái.
-                                </p>
+                                <button
+                                    onClick={handleAddPath}
+                                    className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-colors shrink-0"
+                                >
+                                    Thêm
+                                </button>
+                            </div>
+
+                            <div className="space-y-3">
+                                {paths.length === 0 ? (
+                                    <div className="text-center text-slate-400 text-sm py-4 italic">
+                                        Chưa có giả thuyết nào. Hãy thêm đường dẫn ở trên.
+                                    </div>
+                                ) : (
+                                    paths.map((path, idx) => (
+                                        <div key={idx} className="flex items-center justify-between bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
+                                            <div className="flex items-center gap-4 flex-1">
+                                                <div className="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-700 font-black flex items-center justify-center shrink-0">
+                                                    H{idx + 1}
+                                                </div>
+                                                <div className="flex items-center gap-3 font-bold text-slate-700 text-lg">
+                                                    <span>{path.from}</span>
+                                                    <span className="text-slate-300">→</span>
+                                                    <span>{path.to}</span>
+                                                </div>
+                                            </div>
+                                            <button 
+                                                onClick={() => handleRemovePath(idx)}
+                                                className="p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                                            </button>
+                                        </div>
+                                    ))
+                                )}
                             </div>
                         </div>
                     </div>
@@ -224,7 +273,7 @@ export function AutoPilotView({
                 <div className="mt-10">
                     <button
                         onClick={handleRunAutoPilot}
-                        disabled={isAnalyzing || !dependentVar}
+                        disabled={isAnalyzing || paths.length === 0}
                         className="w-full relative overflow-hidden group bg-gradient-to-r from-blue-900 to-indigo-900 text-white p-5 rounded-2xl font-black text-lg uppercase tracking-widest shadow-xl transition-all hover:shadow-blue-900/40 hover:-translate-y-1 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
                     >
                         {isAnalyzing ? (
