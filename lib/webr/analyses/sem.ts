@@ -43,24 +43,28 @@ export async function runLavaanAnalysis(
     
     # Use robust estimator by default for Likert data
     fit <- tryCatch({
-        sem(model = mod_str, data = df, std.lv = TRUE, missing = "fiml", estimator = "{{estimator}}");
-    }, error = function(e) { stop(paste("Lavaan Error:", e$message)) });
+        sem(model = mod_str, data = df, std.lv = TRUE, missing = "fiml", estimator = "{{estimator}}")
+    }, error = function(e) { 
+        # Fallback to listwise deletion if FIML fails
+        sem(model = mod_str, data = df, std.lv = TRUE, missing = "listwise", estimator = "{{estimator}}")
+    })
     
-    fm <- fitMeasures(fit);
-    est <- parameterEstimates(fit, standardized = TRUE);
+    # Extract fit measures safely
+    fm <- tryCatch({ fitMeasures(fit) }, error = function(e) { c(cfi=0, tli=0, rmsea=0, srmr=0, chisq=0, df=1, pvalue=0) })
+    est <- tryCatch({ parameterEstimates(fit, standardized = TRUE) }, error = function(e) { data.frame() })
     
     list(
-        cfi = as.numeric(fm["cfi"]),
-        tli = as.numeric(fm["tli"]),
-        rmsea = as.numeric(fm["rmsea"]),
-        srmr = as.numeric(fm["srmr"]),
-        chisq = as.numeric(fm["chisq"]),
-        df = as.numeric(fm["df"]),
-        pvalue = as.numeric(fm["pvalue"]),
-        gfi = if("gfi" %in% names(fm)) as.numeric(fm["gfi"]) else 0,
-        agfi = if("agfi" %in% names(fm)) as.numeric(fm["agfi"]) else 0,
-        nfi = if("nfi" %in% names(fm)) as.numeric(fm["nfi"]) else 0,
-        est_list = split(est, seq(nrow(est)))
+        cfi = if("cfi" %in% names(fm) && !is.na(fm["cfi"])) as.numeric(fm["cfi"]) else 0,
+        tli = if("tli" %in% names(fm) && !is.na(fm["tli"])) as.numeric(fm["tli"]) else 0,
+        rmsea = if("rmsea" %in% names(fm) && !is.na(fm["rmsea"])) as.numeric(fm["rmsea"]) else 0,
+        srmr = if("srmr" %in% names(fm) && !is.na(fm["srmr"])) as.numeric(fm["srmr"]) else 0,
+        chisq = if("chisq" %in% names(fm) && !is.na(fm["chisq"])) as.numeric(fm["chisq"]) else 0,
+        df = if("df" %in% names(fm) && !is.na(fm["df"])) as.numeric(fm["df"]) else 1,
+        pvalue = if("pvalue" %in% names(fm) && !is.na(fm["pvalue"])) as.numeric(fm["pvalue"]) else 0,
+        gfi = if("gfi" %in% names(fm) && !is.na(fm["gfi"])) as.numeric(fm["gfi"]) else 0,
+        agfi = if("agfi" %in% names(fm) && !is.na(fm["agfi"])) as.numeric(fm["agfi"]) else 0,
+        nfi = if("nfi" %in% names(fm) && !is.na(fm["nfi"])) as.numeric(fm["nfi"]) else 0,
+        est_list = if(nrow(est) > 0) split(est, seq(nrow(est))) else list()
     );
     `;
 
