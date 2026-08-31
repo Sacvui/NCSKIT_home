@@ -234,13 +234,14 @@ export async function runPLSSEM(
         for (endo in endogenous) {
           preds <- sm_mat[sm_mat[, "target"] == endo, "source"]
           if (length(preds) > 0) {
-            lm_res <- lm(scores[, endo] ~ scores[, preds, drop=FALSE])
+            df_lm <- data.frame(y = as.numeric(scores[, endo]), as.matrix(scores[, preds, drop=FALSE]))
+            lm_res <- lm(y ~ ., data = df_lm)
             r2_list[[endo]] <- summary(lm_res)$r.squared
           }
         }
         r2_list
       }
-    }, error = function(e) list())
+    }, error = function(e) list(Error = as.character(e)))
 
     f_sq <- tryCatch(matrix_to_list(summ$fSquare), error = function(e) list())
     load_res <- tryCatch(matrix_to_list(summ$loadings), error = function(e) list())
