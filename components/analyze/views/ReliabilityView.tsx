@@ -122,7 +122,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
                 if (!isExempt) setNcsBalance(newBalance);
             }
 
-            const analysisResults = await runCronbachAlpha(selectedData);
+            const analysisResults = await runCronbachAlpha(selectedData as number[][]);
 
             if (user) {
                 const cost = await getAnalysisCost('cronbach');
@@ -179,7 +179,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
             const allResults = [];
             for (const group of groups) {
                 const groupData = data.map(row => group.columns.map(col => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[col])));
-                const result = await runCronbachAlpha(groupData);
+                const result = await runCronbachAlpha(groupData as number[][]);
                 allResults.push({ scaleName: group.name, columns: group.columns, data: result, type: isOmega ? 'omega' : 'cronbach' });
             }
 
@@ -237,7 +237,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
                 if (!isExempt) setNcsBalance(newBalance);
             }
 
-            const analysisResults = await runCronbachAlpha(selectedData); // Note: Should be runOmega in future, matching current behavior for now
+            const analysisResults = await runCronbachAlpha(selectedData as number[][]); // Note: Should be runOmega in future, matching current behavior for now
 
             if (user) {
                 const cost = await getAnalysisCost('omega');
@@ -263,12 +263,12 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
             const numericData = data.map(row => columns.map(col => ((v) => (v === null || v === undefined || v === '' || v === 'NA' ? null : (isNaN(Number(v)) ? null : Number(v))))(row[col])));
             
             // 1. Initial PLS-SEM
-            let results = await runPLSSEM(numericData, measurementModel, structuralModel);
+            let results = await runPLSSEM(numericData as number[][], measurementModel, structuralModel);
             
             // 2. Optional Bootstrap
             if (options.useBootstrap) {
                 showToast('Đang chạy Bootstrapping (5000 samples)...', 'info');
-                const bootResults = await runBootstrapping(numericData, measurementModel, structuralModel, 5000);
+                const bootResults = await runBootstrapping(numericData as number[][], measurementModel, structuralModel, 5000);
                 results.bootstrapped_paths = bootResults.boot_paths;
                 results.bootstrapped_loadings = bootResults.boot_loadings;
             }
@@ -276,7 +276,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
             // 3. Optional Blindfolding
             if (options.useBlindfolding) {
                 showToast('Đang tính toán Q² (Blindfolding)...', 'info');
-                const blindResults = await runBlindfolding(numericData, measurementModel, structuralModel);
+                const blindResults = await runBlindfolding(numericData as number[][], measurementModel, structuralModel);
                 results.q2 = blindResults.q2;
             }
 
