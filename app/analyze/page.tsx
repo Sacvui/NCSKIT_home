@@ -35,6 +35,7 @@ import { MediationView } from '@/components/analyze/views/MediationView';
 import { MultivariateView } from '@/components/analyze/views/MultivariateView';
 import { ReliabilityView } from '@/components/analyze/views/ReliabilityView';
 import { BasicStatsView } from '@/components/analyze/views/BasicStatsView';
+import { AutoPilotView } from '@/components/analyze/views/AutoPilotView';
 import type { PreviousAnalysisData } from '@/types/analysis';
 import { DemographicSurvey } from '@/components/feedback/DemographicSurvey';
 import { ApplicabilitySurvey } from '@/components/feedback/ApplicabilitySurvey';
@@ -646,6 +647,11 @@ function AnalyzeContent() {
                     setIsAnalyzing(false);
                     setStep('cluster-select' as any);
                     return;
+                case 'auto-pilot':
+                    clearInterval(progressInterval);
+                    setIsAnalyzing(false);
+                    setStep('auto-pilot' as any);
+                    return;
 
                 default:
                     // Unknown type — log and show user-friendly message instead of crashing
@@ -1221,11 +1227,25 @@ function AnalyzeContent() {
                         />
                     )}
 
-
-
-
-
-
+                    {/* Auto-Pilot Analysis */}
+                    {step === 'auto-pilot' && (
+                        <AutoPilotView
+                            step={step}
+                            data={data}
+                            columns={getNumericColumns()}
+                            allColumns={getAllColumns()}
+                            user={user}
+                            setResults={setResults}
+                            setStep={setStep}
+                            setNcsBalance={setNcsBalance}
+                            showToast={showToast}
+                            setAnalysisType={setAnalysisType}
+                            setRequiredCredits={setRequiredCredits}
+                            setCurrentAnalysisCost={setCurrentAnalysisCost}
+                            setShowInsufficientCredits={setShowInsufficientCredits}
+                            locale={locale}
+                        />
+                    )}
 
                     {step === 'results' && (results || multipleResults.length > 0) && (
 

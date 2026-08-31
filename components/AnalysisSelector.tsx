@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { BarChart2, Shield, Network, Users, GitCompare, Layers, TrendingUp, Grid3x3, Activity, ChevronDown, ChevronRight, Star, Binary, FlaskConical, ArrowRightLeft, Target, CircleDot, Shuffle, Search, Bookmark } from 'lucide-react';
+import { BarChart2, Shield, Network, Users, GitCompare, Layers, TrendingUp, Grid3x3, Activity, ChevronDown, ChevronRight, Star, Binary, FlaskConical, ArrowRightLeft, Target, CircleDot, Shuffle, Search, Bookmark, Rocket } from 'lucide-react';
 import { PointBadge } from '@/components/ui/PointBadge';
 import { Locale, t } from '@/lib/i18n';
 
@@ -137,6 +137,39 @@ export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing, mode, l
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
+            {/* 1-Click Auto Pilot Banner */}
+            <button
+                onClick={() => onSelect('auto-pilot')}
+                disabled={isAnalyzing}
+                className="w-full relative overflow-hidden group rounded-3xl p-8 bg-gradient-to-br from-indigo-900 via-blue-900 to-indigo-800 border-2 border-indigo-400/30 shadow-2xl hover:shadow-indigo-900/40 transition-all hover:-translate-y-1 text-left flex flex-col md:flex-row items-center gap-6"
+            >
+                <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 mix-blend-overlay"></div>
+                <div className="absolute -right-10 -top-10 w-40 h-40 bg-blue-500/20 blur-3xl rounded-full group-hover:bg-blue-400/30 transition-all"></div>
+                
+                <div className="w-20 h-20 shrink-0 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/20 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
+                    <Rocket className="w-10 h-10 text-white" />
+                </div>
+                
+                <div className="flex-1 z-10 text-center md:text-left">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-indigo-500/30 rounded-full border border-indigo-300/30 mb-3">
+                        <Star className="w-3 h-3 text-amber-300 fill-amber-300" />
+                        <span className="text-[10px] font-black text-indigo-100 uppercase tracking-widest">Premium Feature</span>
+                    </div>
+                    <h2 className="text-2xl md:text-3xl font-black text-white tracking-tight mb-2">
+                        {locale === 'vi' ? 'Phân Tích 1-Chạm (Auto Pilot)' : '1-Click Auto Pilot'}
+                    </h2>
+                    <p className="text-indigo-200 text-sm font-medium leading-relaxed max-w-2xl">
+                        {locale === 'vi' 
+                            ? 'Hệ thống tự động gom nhóm thang đo, loại biến rác và chạy toàn bộ quy trình (Cronbach, EFA, SEM) để xuất ra một báo cáo chuẩn luận văn.' 
+                            : 'Auto-groups scales, cleans data, and runs the entire pipeline (Cronbach, EFA, SEM) to generate a publication-ready report.'}
+                    </p>
+                </div>
+                
+                <div className="hidden md:flex shrink-0 w-12 h-12 rounded-full bg-white/10 items-center justify-center group-hover:bg-white group-hover:text-blue-900 text-white transition-colors z-10">
+                    <ChevronRight className="w-6 h-6" />
+                </div>
+            </button>
+
             {/* Search Bar */}
             <div className="relative group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-900 transition-colors" />

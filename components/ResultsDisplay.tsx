@@ -33,6 +33,7 @@ const KruskalWallisResults = lazy(() => import('./results/nonparametric/KruskalW
 const WilcoxonResults = lazy(() => import('./results/nonparametric/WilcoxonResults').then(m => ({ default: m.WilcoxonResults })));
 const ClusterResults = lazy(() => import('./results/cluster/ClusterResults').then(m => ({ default: m.ClusterResults })));
 const PLSResults = lazy(() => import('./results/factor/PLSResults').then(m => ({ default: m.PLSResults })));
+const AutoPilotReport = lazy(() => import('./results/AutoPilotReport').then(m => ({ default: m.AutoPilotReport })));
 
 
 interface ResultsDisplayProps {
@@ -117,6 +118,8 @@ export function ResultsDisplay({
                 return <ClusterResults results={results} columns={results.columns || []} />;
             case 'pls-sem':
                 return <PLSResults results={results} columns={results.columns || []} />;
+            case 'auto-pilot':
+                return <AutoPilotReport results={results} columns={columns || []} />;
             default:
                 return (
                     <Card>
