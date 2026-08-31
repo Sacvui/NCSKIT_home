@@ -160,7 +160,7 @@ export const EFAResults = React.memo(function EFAResults({ results, columns, onP
                                                     key={colIdx}
                                                     className={`py-4 px-4 text-right border-l border-blue-50 text-sm transition-all ${isStrong ? 'font-black text-blue-900 bg-blue-600/10 scale-[1.02] shadow-sm' : isSuppressed ? 'text-slate-300 opacity-30 select-none' : 'text-blue-900 font-bold font-mono'}`}
                                                 >
-                                                    {isSuppressed ? '' : val?.toFixed(3)}
+                                                    {isSuppressed ? '' : (typeof val === 'number' && !isNaN(val) ? val.toFixed(3) : '-')}
                                                 </td>
                                             );
                                         })}
