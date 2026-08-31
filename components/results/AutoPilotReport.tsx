@@ -4,7 +4,7 @@ import { CronbachResults } from './reliability/CronbachResults';
 import { EFAResults } from './factor/EFAResults';
 import { PLSResults } from './factor/PLSResults';
 import { ResearchModelDiagram } from './shared/ResearchModelDiagram';
-import { Rocket, Target, Shield, Grid3x3, Network, Workflow } from 'lucide-react';
+import { Rocket, Target, Shield, Grid3x3, Network, Workflow, CheckCircle2 } from 'lucide-react';
 
 interface AutoPilotReportProps {
     results: any;
@@ -83,23 +83,54 @@ export function AutoPilotReport({ results, columns }: AutoPilotReportProps) {
                         <Shield className="w-6 h-6 text-blue-600" /> Đánh giá Độ tin cậy Thang đo
                     </h3>
                 </div>
-                <div className="space-y-8 pl-4 md:pl-14 border-l-4 border-slate-100 ml-5 py-4">
-                    {Object.keys(results.cronbach || {}).map((scaleName) => {
-                        const cronData = results.cronbach[scaleName];
-                        return (
-                            <div key={scaleName} className="relative">
-                                <h4 className="text-lg font-black text-slate-700 mb-4 bg-slate-100 inline-block px-4 py-1.5 rounded-lg border border-slate-200">
-                                    Thang đo: {scaleName}
-                                </h4>
-                                <CronbachResults 
-                                    analysisType="omega" 
-                                    results={cronData.data} 
-                                    columns={cronData.columns} 
-                                    scaleName={scaleName} 
-                                />
-                            </div>
-                        );
-                    })}
+                <div className="space-y-4 pl-4 md:pl-14 border-l-4 border-slate-100 ml-5 py-4">
+                    <div className="bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
+                        <div className="px-6 py-4 border-b border-blue-50 bg-slate-50/50">
+                            <h3 className="text-sm font-bold text-blue-900 uppercase tracking-wider">Tổng hợp Độ tin cậy các Thang đo</h3>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse text-slate-700">
+                                <thead className="bg-blue-50/50 border-y border-blue-100">
+                                    <tr>
+                                        <th className="py-3 px-6 text-xs font-black text-blue-900 uppercase">Thang đo</th>
+                                        <th className="py-3 px-4 text-xs font-black text-blue-900 uppercase text-center">Số biến</th>
+                                        <th className="py-3 px-4 text-xs font-black text-blue-900 uppercase text-center bg-blue-100/30">Cronbach's Alpha</th>
+                                        <th className="py-3 px-4 text-xs font-black text-blue-900 uppercase">Đánh giá</th>
+                                        <th className="py-3 px-4 text-xs font-black text-blue-900 uppercase">Biến không đạt (<0.3)</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-blue-50">
+                                    {Object.keys(results.cronbach || {}).map((scaleName) => {
+                                        const cronData = results.cronbach[scaleName];
+                                        const rawAlpha = parseFloat(String(cronData.data.alpha || cronData.data.rawAlpha || 0)) || 0;
+                                        const nItems = cronData.data.nItems || 'N/A';
+                                        
+                                        const itemTotalStats = cronData.data.itemTotalStats || [];
+                                        const badItems = itemTotalStats
+                                            .filter((item: any) => parseFloat(String(item.correctedItemTotalCorrelation)) < 0.3)
+                                            .map((item: any, idx: number) => cronData.columns?.[idx] || item.itemName);
+                                            
+                                        return (
+                                            <tr key={scaleName} className="hover:bg-blue-50/30 transition-colors">
+                                                <td className="py-3 px-6 text-sm font-bold text-blue-800">{scaleName}</td>
+                                                <td className="py-3 px-4 text-sm text-center font-mono text-slate-800">{nItems}</td>
+                                                <td className="py-3 px-4 text-sm text-center font-black text-blue-950 bg-blue-50/20">{rawAlpha.toFixed(3)}</td>
+                                                <td className="py-3 px-4 text-sm font-bold">
+                                                    {rawAlpha >= 0.8 ? <span className="text-blue-700 bg-blue-100 px-2 py-1 rounded">Rất Tốt</span> 
+                                                    : rawAlpha >= 0.7 ? <span className="text-emerald-700 bg-emerald-100 px-2 py-1 rounded">Tốt</span> 
+                                                    : rawAlpha >= 0.6 ? <span className="text-amber-700 bg-amber-100 px-2 py-1 rounded">Chấp nhận được</span> 
+                                                    : <span className="text-red-700 bg-red-100 px-2 py-1 rounded">Kém</span>}
+                                                </td>
+                                                <td className="py-3 px-4 text-sm font-bold text-red-600">
+                                                    {badItems.length > 0 ? badItems.join(', ') : <span className="text-emerald-600 font-normal"><CheckCircle2 className="w-4 h-4 inline mr-1" />Không có</span>}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
 
