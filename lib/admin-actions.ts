@@ -233,8 +233,8 @@ export async function getInvitationStats() {
     }
 
     const total = data.length;
-    const pending = data.filter(i => i.status === 'pending').length;
-    const accepted = data.filter(i => i.status === 'accepted').length;
+    const pending = data.filter((i: any) => i.status === 'pending').length;
+    const accepted = data.filter((i: any) => i.status === 'accepted').length;
 
     return {
         total,
@@ -257,7 +257,7 @@ export async function getTopInviters(limit = 10) {
 
     // Count invites per user
     const inviteCounts: Record<string, number> = {};
-    data.forEach(inv => {
+    data.forEach((inv: any) => {
         inviteCounts[inv.inviter_id] = (inviteCounts[inv.inviter_id] || 0) + 1;
     });
 
@@ -276,7 +276,7 @@ export async function getTopInviters(limit = 10) {
         .in('id', topIds);
 
     return topIds.map(id => {
-        const user = users?.find(u => u.id === id);
+        const user = users?.find((u: any) => u.id === id);
         return {
             id,
             email: user?.email || 'Unknown',
@@ -301,7 +301,7 @@ export async function getActivityBreakdown(days = 30) {
 
     // Count by action type
     const counts: Record<string, number> = {};
-    data.forEach(log => {
+    data.forEach((log: any) => {
         counts[log.action_type] = (counts[log.action_type] || 0) + 1;
     });
 
