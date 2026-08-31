@@ -87,18 +87,12 @@ export function ResearchModelDiagram({ paths, className = "" }: ResearchModelDia
 
                     {/* Draw connections first so they are under nodes */}
                     {connections.map((c, idx) => {
-                        // Create a curved path
-                        const cp1x = c.x1 + (c.x2 - c.x1) / 3;
-                        const cp1y = c.y1;
-                        const cp2x = c.x1 + 2 * (c.x2 - c.x1) / 3;
-                        const cp2y = c.y2;
-                        
                         const isSig = c.pVal === undefined || c.pVal <= 0.05;
 
                         return (
                             <g key={`conn-${idx}`}>
                                 <path
-                                    d={`M ${c.x1} ${c.y1} C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${c.x2} ${c.y2}`}
+                                    d={`M ${c.x1} ${c.y1} L ${c.x2} ${c.y2}`}
                                     fill="none"
                                     stroke={isSig ? "#6366f1" : "#cbd5e1"}
                                     strokeWidth="2"
