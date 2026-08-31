@@ -180,40 +180,60 @@ export async function runPLSSEM(
     summ <- summary(pls_model)
     
     # Calculate HTMT explicitly using seminr
-    htmt_res <- if (!is.null(summ$validity$htmt)) summ$validity$htmt else matrix(NA)
+    htmt_res <- tryCatch({
+      if (!is.null(summ$validity$htmt)) summ$validity$htmt else matrix(NA)
+    }, error = function(e) matrix(NA))
     
     # Helper for safe column extraction (case-insensitive)
     safe_col <- function(mat, cname) {
-      idx <- grep(paste0("^", cname, "$"), colnames(mat), ignore.case = TRUE)
-      if (length(idx) > 0) return(mat[, idx[1]])
-      return(rep(NA, nrow(mat)))
+      tryCatch({
+        idx <- grep(paste0("^", cname, "$"), colnames(mat), ignore.case = TRUE)
+        if (length(idx) > 0) return(mat[, idx[1]])
+        return(rep(NA, nrow(mat)))
+      }, error = function(e) NA)
     }
     
     # Fornell-Larcker Criterion
-    ave <- safe_col(summ$reliability, "AVE")
-    cor_matrix <- summ$descriptive$correlations$constructs
-    fornell_larcker <- cor_matrix
-    diag(fornell_larcker) <- sqrt(ave)
+    fornell_larcker <- tryCatch({
+      ave <- safe_col(summ$reliability, "AVE")
+      cor_matrix <- summ$descriptive$correlations$constructs
+      fl <- cor_matrix
+      diag(fl) <- sqrt(ave)
+      fl
+    }, error = function(e) matrix(NA))
     
     # Helper to convert matrix to list of lists (preserving row/col names)
     matrix_to_list <- function(mat) {
-      if (is.null(mat) || nrow(mat) == 0 || ncol(mat) == 0) return(list())
-      res <- lapply(as.data.frame(mat), function(x) {
-        names(x) <- rownames(mat)
-        as.list(x)
-      })
-      return(res)
+      tryCatch({
+        if (is.null(mat)) return(list())
+        if (!is.matrix(mat) && !is.data.frame(mat)) return(list(value = as.list(mat)))
+        if (nrow(mat) == 0 || ncol(mat) == 0) return(list())
+        res <- lapply(as.data.frame(mat), function(x) {
+          names(x) <- rownames(mat)
+          as.list(x)
+        })
+        return(res)
+      }, error = function(e) list())
     }
 
+    # Safe extractions for all summary components
+    paths_res <- tryCatch(matrix_to_list(summ$paths), error = function(e) list())
+    r_sq <- tryCatch(as.list(safe_col(summ$reliability, "R.squared")), error = function(e) list())
+    f_sq <- tryCatch(matrix_to_list(summ$fSquare), error = function(e) list())
+    load_res <- tryCatch(matrix_to_list(summ$loadings), error = function(e) list())
+    total_eff <- tryCatch(matrix_to_list(summ$total_effects), error = function(e) list())
+    fl_res <- tryCatch(matrix_to_list(fornell_larcker), error = function(e) list())
+    htmt_out <- tryCatch(matrix_to_list(htmt_res), error = function(e) list())
+
     list(
-      path_coefficients = matrix_to_list(summ$paths),
-      r_squared = as.list(summ$reliability[, "R.squared"]),
-      f_squared = matrix_to_list(summ$fSquare),
-      loadings = matrix_to_list(summ$loadings),
-      total_effects = matrix_to_list(summ$total_effects),
-      cross_loadings = matrix_to_list(summ$loadings),
-      fornell_larcker = matrix_to_list(fornell_larcker),
-      htmt = matrix_to_list(htmt_res),
+      path_coefficients = paths_res,
+      r_squared = r_sq,
+      f_squared = f_sq,
+      loadings = load_res,
+      total_effects = total_eff,
+      cross_loadings = load_res,
+      fornell_larcker = fl_res,
+      htmt = htmt_out,
       validity = list(
         cronbach = as.list(safe_col(summ$reliability, "alpha")),
         rho_a = as.list(safe_col(summ$reliability, "rhoA")),
