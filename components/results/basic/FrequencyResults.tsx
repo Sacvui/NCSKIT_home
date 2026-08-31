@@ -2,12 +2,12 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 export function FrequencyResults({ results, columns }: { results: any; columns: string[] }) {
-    if (!results || !results.data) return null;
+    if (!results) return null;
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
             {columns.map(col => {
-                const item = results.data[col];
+                const item = results[col];
                 if (!item) return null;
                 
                 const { counts, total } = item;

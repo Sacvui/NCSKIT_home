@@ -99,13 +99,12 @@ export function ResultsDisplay({
             case 'kruskal-wallis':
                 return <KruskalWallisResults results={results} columns={results.columns || []} />;
             case 'frequency':
-                return <FrequencyResults results={results} columns={results.columns || []} />;
+                return <FrequencyResults results={results} columns={columns || []} />;
             case 'wilcoxon':
                 return <WilcoxonResults results={results} columns={results.columns || []} />;
             case 'chisquare':
                 return <ChiSquareResults results={results} columns={results.columns || []} />;
-            case 'frequency':
-                return <FrequencyResults results={results} columns={results.columns || []} />;
+
             case 'descriptive':
                 return <DescriptiveResults results={results} columns={columns || []} />;
             case 'moderation':
