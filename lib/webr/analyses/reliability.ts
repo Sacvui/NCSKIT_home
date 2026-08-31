@@ -234,9 +234,9 @@ export async function runEFA(
     list(
         kmo = if (is.numeric(kmo_result$MSA)) kmo_result$MSA[1] else 0,
         bartlett_p = bartlett_result$p.value,
-        loadings = efa_result$loadings,
+        loadings = unclass(efa_result$loadings),
         communalities = efa_result$communalities,
-        structure = if(!is.null(efa_result$Structure)) efa_result$Structure else efa_result$loadings,
+        structure = if(!is.null(efa_result$Structure)) unclass(efa_result$Structure) else unclass(efa_result$loadings),
         eigenvalues = eigenvalues,
         n_factors_used = n_factors_run,
         n_factors_suggested = if(is.na(n_factors_parallel)) n_factors_kaiser else n_factors_parallel,
