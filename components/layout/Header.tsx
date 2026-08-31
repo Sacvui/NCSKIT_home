@@ -194,7 +194,7 @@ function HeaderContent({ centerContent, rightActions, hideNav = false, user: pro
 
             {/* Mobile Navigation Drawer */}
             {isMobileMenuOpen && (
-                <div id="mobile-nav" className="md:hidden border-t border-slate-100 bg-white p-4 space-y-2 animate-in slide-in-from-top duration-300" role="navigation" aria-label="Menu di động">
+                <div id="mobile-nav" className="md:hidden border-t border-slate-100 bg-white p-4 space-y-2 animate-in slide-in-from-top duration-300 max-h-[calc(100vh-4rem)] overflow-y-auto" role="navigation" aria-label="Menu di động">
                     <div className="flex flex-col gap-1 pb-4 border-b border-slate-50">
                         <Link 
                             href="/analyze" 

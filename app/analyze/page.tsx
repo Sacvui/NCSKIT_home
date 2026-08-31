@@ -961,13 +961,11 @@ function AnalyzeContent() {
 
 
             {/* Header */}
-            <div>
-                <Header
-                    user={user}
-                    profile={userProfile}
-                    hideNav={false}
-                />
-            </div>
+            <Header
+                user={user}
+                profile={userProfile}
+                hideNav={false}
+            />
 
             {/* Dedicated Analysis Control Bar - Sits below Header */}
             <div className={`md:sticky md:top-16 z-30 bg-blue-900 border-b border-blue-800 py-2 md:py-3 shadow-xl transition-all`}>
