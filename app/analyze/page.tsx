@@ -1126,8 +1126,8 @@ function AnalyzeContent() {
                         </div>
                     )}
 
-                    {/* Basic Analysis Forms (Descriptive, T-Test, ANOVA, Chi-Square, Non-Parametric) */}
-                    {['descriptive-select', 'ttest-select', 'ttest-paired-select', 'anova-select', 'chisq-select', 'fisher-select', 'mannwhitney-select', 'kruskalwallis-select', 'wilcoxon-select'].includes(step) && (
+                    {/* Basic Analysis Forms (Descriptive, Frequency, T-Test, ANOVA, Chi-Square, Non-Parametric) */}
+                    {['descriptive-select', 'frequency-select', 'ttest-select', 'ttest-paired-select', 'anova-select', 'chisq-select', 'fisher-select', 'mannwhitney-select', 'kruskalwallis-select', 'wilcoxon-select'].includes(step) && (
                         <BasicStatsView
                             step={step}
                             data={data}
@@ -1261,6 +1261,7 @@ function AnalyzeContent() {
                                     {analysisType === 'omega-batch' && `McDonald's Omega - ${multipleResults.length} ${locale === 'vi' ? 'thang đo' : 'scales'}`}
                                     {analysisType === 'correlation' && (locale === 'vi' ? "Ma trận tương quan" : "Correlation Matrix")}
                                     {analysisType === 'descriptive' && (locale === 'vi' ? "Thống kê mô tả" : "Descriptive Statistics")}
+                                    {analysisType === 'frequency' && (locale === 'vi' ? "Thống kê nhân khẩu học" : "Demographic Frequencies")}
                                     {analysisType === 'ttest' && "Independent Samples T-test"}
                                     {analysisType === 'ttest-paired' && "Paired Samples T-test"}
                                     {analysisType === 'anova' && "One-Way ANOVA"}

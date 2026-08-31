@@ -98,6 +98,8 @@ export function ResultsDisplay({
                 return <MannWhitneyResults results={results} columns={results.columns || []} />;
             case 'kruskal-wallis':
                 return <KruskalWallisResults results={results} columns={results.columns || []} />;
+            case 'frequency':
+                return <FrequencyResults results={results} columns={results.columns || []} />;
             case 'wilcoxon':
                 return <WilcoxonResults results={results} columns={results.columns || []} />;
             case 'chisquare':

@@ -504,8 +504,8 @@ export function BasicStatsView({
                                     Object.keys(counts).sort().forEach(k => sortedCounts[k] = counts[k]);
                                     results[col] = { counts: sortedCounts, total };
                                 });
-
                                 setResults({ type: 'frequency', data: results, columns: selectedCols });
+                                setAnalysisType('frequency');
                                 setStep('results');
                                 showToast('Phân tích hoàn tất!', 'success');
                                 setIsAnalyzing(false);
