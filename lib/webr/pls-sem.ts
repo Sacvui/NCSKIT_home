@@ -440,7 +440,7 @@ export async function runBootstrapping(
                 
                 # Set L'Ecuyer-CMRG internal state
                 RNGkind("L'Ecuyer-CMRG")
-                .Random.seed <- c(${seedStr})
+                .Random.seed <- as.integer(c(${seedStr}))
                 
                 pls_model <- estimate_pls(data = df, measurement_model = mm, structural_model = sm)
                 
