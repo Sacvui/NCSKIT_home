@@ -65,7 +65,7 @@ export async function getUserActivityChart(days = 30) {
 
     // Group by date
     const groupedData: Record<string, number> = {};
-    data?.forEach(session => {
+    data?.forEach((session: any) => {
         const date = new Date(session.login_at).toISOString().split('T')[0];
         groupedData[date] = (groupedData[date] || 0) + 1;
     });
