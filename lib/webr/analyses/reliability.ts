@@ -54,7 +54,12 @@ export async function runCronbachAlpha(
     # DATA CLEANING
     valid_min <- {{likertMin}};
     valid_max <- {{likertMax}};
-    data <- pmax(pmin(raw_data, valid_max), valid_min);
+    
+    # Preserve structure (matrix or data.frame)
+    data <- raw_data
+    data[data > valid_max] <- valid_max
+    data[data < valid_min] <- valid_min
+    data <- as.data.frame(data)
     
     # Run Cronbach's Alpha
     result <- tryCatch({
