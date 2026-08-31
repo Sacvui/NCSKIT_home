@@ -145,7 +145,7 @@ export function AutoPilotView({
             const efaIndices = allItems.map(c => columns.indexOf(c));
             const efaData = numericData.map(row => efaIndices.map(idx => row[idx]));
             const expectedFactors = activeGroups.length;
-            const efaRes = await runEFA(efaData, expectedFactors, 'oblimin', 'minres');
+            const efaRes = await runEFA(efaData as number[][], expectedFactors, 'oblimin', 'minres');
             fullReport.efa = { columns: allItems, data: efaRes };
 
             // 3. SEM
@@ -157,7 +157,7 @@ export function AutoPilotView({
             }));
             const structuralModel = paths;
             
-            const semRes = await runPLSSEM(numericData, measurementModel, structuralModel);
+            const semRes = await runPLSSEM(numericData as number[][], measurementModel, structuralModel);
             fullReport.sem = semRes;
 
             setProgress(100);
