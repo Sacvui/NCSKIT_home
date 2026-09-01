@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { Play, AlertCircle, Loader2, TrendingUp, Target, Users, Eye } from 'lucide-react';
-import { runSimpleBootstrapping, runIPMA, runMGA, runSimpleBlindfolding } from '@/lib/webr/pls-sem';
+import { Play, AlertCircle, Loader2, TrendingUp, Target, Users, Eye, Zap } from 'lucide-react';
+import { runSimpleBootstrapping, runIPMA, runMGA, runSimpleBlindfolding, runPLSSEM } from '@/lib/webr/pls-sem';
 import { runCBSEM } from '@/lib/webr/analyses/cb-sem';
 
-type AdvancedMethod = 'bootstrap' | 'ipma' | 'mga' | 'blindfolding' | 'cbsem' | 'cfa';
+type AdvancedMethod = 'bootstrap' | 'ipma' | 'mga' | 'blindfolding' | 'cbsem' | 'cfa' | 'plssem';
 
 interface AdvancedMethodViewProps {
     method: AdvancedMethod;
@@ -69,6 +69,12 @@ export default function AdvancedMethodView({
             icon: Target,
             color: 'blue',
             description: 'Phân tích nhân tố khẳng định'
+        },
+        plssem: {
+            title: 'PLS-SEM Algorithm',
+            icon: Zap,
+            color: 'green',
+            description: 'Thuật toán bình phương tối thiểu riêng phần (seminr)'
         }
     };
 
@@ -93,10 +99,46 @@ export default function AdvancedMethodView({
                     if (groupVariable.length === 0) {
                         throw new Error('Vui lòng nhập biến nhóm');
                     }
-                    // MGA now requires measurement and structural models
-                    // TODO: Update UI to allow users to input models for MGA.
-                    // Passing empty models for now to satisfy type checker.
-                    result = await runMGA(data, [], [], groupVariable);
+                    
+                    if (!modelSyntax.trim()) {
+                        throw new Error('Vui lòng nhập Model Syntax cho MGA');
+                    }
+
+                    // Parse MGA Syntax
+                    const measurementModel = [];
+                    const structuralModel = [];
+                    const lines = modelSyntax.split('\n');
+                    
+                    for (const line of lines) {
+                        const cleanLine = line.split('#')[0].trim();
+                        if (!cleanLine) continue;
+                        
+                        if (cleanLine.includes('=~')) {
+                            const [construct, itemsStr] = cleanLine.split('=~').map(s => s.trim());
+                            const items = itemsStr.split('+').map(s => s.trim());
+                            const itemIndices = items.map(item => columnNames.indexOf(item)).filter(idx => idx !== -1);
+                            
+                            if (itemIndices.length > 0) {
+                                measurementModel.push({ construct, items: itemIndices });
+                            }
+                        } else if (cleanLine.includes('~') || cleanLine.includes('->')) {
+                            let from, to;
+                            if (cleanLine.includes('->')) {
+                                [from, to] = cleanLine.split('->').map(s => s.trim());
+                            } else {
+                                [to, from] = cleanLine.split('~').map(s => s.trim()); // Lavaan style: Y ~ X means X -> Y
+                            }
+                            if (from && to) {
+                                structuralModel.push({ from, to });
+                            }
+                        }
+                    }
+
+                    if (measurementModel.length === 0) {
+                        throw new Error('Không tìm thấy Measurement Model hợp lệ. Vui lòng kiểm tra lại cú pháp hoặc tên biến.');
+                    }
+                    
+                    result = await runMGA(data, measurementModel, structuralModel, groupVariable);
                     break;
                 case 'blindfolding':
                     result = await runSimpleBlindfolding(data, omissionDistance);
@@ -104,6 +146,46 @@ export default function AdvancedMethodView({
                 case 'cbsem':
                 case 'cfa':
                     result = await runCBSEM(data, columnNames, modelSyntax, method === 'cfa' ? 'cfa' : 'sem');
+                    break;
+                case 'plssem':
+                    if (!modelSyntax.trim()) {
+                        throw new Error('Vui lòng nhập Model Syntax cho PLS-SEM');
+                    }
+
+                    const measurementModelPls = [];
+                    const structuralModelPls = [];
+                    const linesPls = modelSyntax.split('\n');
+                    
+                    for (const line of linesPls) {
+                        const cleanLine = line.split('#')[0].trim();
+                        if (!cleanLine) continue;
+                        
+                        if (cleanLine.includes('=~')) {
+                            const [construct, itemsStr] = cleanLine.split('=~').map(s => s.trim());
+                            const items = itemsStr.split('+').map(s => s.trim());
+                            const itemIndices = items.map(item => columnNames.indexOf(item)).filter(idx => idx !== -1);
+                            
+                            if (itemIndices.length > 0) {
+                                measurementModelPls.push({ construct, items: itemIndices });
+                            }
+                        } else if (cleanLine.includes('~') || cleanLine.includes('->')) {
+                            let from, to;
+                            if (cleanLine.includes('->')) {
+                                [from, to] = cleanLine.split('->').map(s => s.trim());
+                            } else {
+                                [to, from] = cleanLine.split('~').map(s => s.trim());
+                            }
+                            if (from && to) {
+                                structuralModelPls.push({ from, to });
+                            }
+                        }
+                    }
+
+                    if (measurementModelPls.length === 0) {
+                        throw new Error('Không tìm thấy Measurement Model hợp lệ. Vui lòng kiểm tra lại cú pháp hoặc tên biến.');
+                    }
+                    
+                    result = await runPLSSEM(data, measurementModelPls, structuralModelPls);
                     break;
             }
 
@@ -186,22 +268,6 @@ export default function AdvancedMethodView({
                     <>
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">
-                                Biến phụ thuộc
-                            </label>
-                            <select
-                                value={targetIndex}
-                                onChange={(e) => setTargetIndex(parseInt(e.target.value))}
-                                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                            >
-                                {columnNames.map((name, idx) => (
-                                    <option key={idx} value={idx}>
-                                        {name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
                                 Biến nhóm (Group Variable)
                             </label>
                             <input
@@ -216,6 +282,21 @@ export default function AdvancedMethodView({
                             <p className="text-xs text-slate-500 mt-1">
                                 Nhập các giá trị nhóm (1, 2, 3...) cách nhau bởi dấu phẩy. Số lượng phải bằng số dòng dữ liệu ({data.length})
                             </p>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                                Model Syntax (MGA)
+                            </label>
+                            <textarea
+                                value={modelSyntax}
+                                onChange={(e) => setModelSyntax(e.target.value)}
+                                placeholder={"# Định nghĩa Measurement Model\nF1 =~ x1 + x2\nF2 =~ x3 + x4\n\n# Định nghĩa Structural Model\nF1 -> F2  (hoặc F2 ~ F1)"}
+                                rows={6}
+                                className="w-full px-4 py-3 font-mono text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-slate-50"
+                            />
+                            <div className="mt-2 text-xs text-slate-500 italic">
+                                Sử dụng '=~' cho nhân tố, '-&gt;' (hoặc '~' ngược lại) cho quan hệ nhân quả. Lưu ý: Tên biến (x1, x2) phải khớp chính xác với cột dữ liệu.
+                            </div>
                         </div>
                     </>
                 )}
@@ -239,23 +320,23 @@ export default function AdvancedMethodView({
                     </div>
                 )}
 
-                {(method === 'cbsem' || method === 'cfa') && (
+                {(method === 'cbsem' || method === 'cfa' || method === 'plssem') && (
                     <div className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">
-                                Model Syntax (Lavaan/AMOS Style)
+                                Model Syntax (Lavaan/SmartPLS Style)
                             </label>
                             <textarea
                                 value={modelSyntax}
                                 onChange={(e) => setModelSyntax(e.target.value)}
                                 placeholder={method === 'cfa' 
                                     ? "# Định nghĩa nhân tố (CFA)\nF1 =~ x1 + x2 + x3\nF2 =~ x4 + x5 + x6" 
-                                    : "# Định nghĩa cấu trúc (SEM)\nF1 =~ x1 + x2 + x3\nF2 =~ x4 + x5 + x6\nF2 ~ F1 # Đường dẫn tác động"}
+                                    : "# Định nghĩa cấu trúc (SEM)\nF1 =~ x1 + x2 + x3\nF2 =~ x4 + x5 + x6\nF2 ~ F1 # Hoặc F1 -> F2"}
                                 rows={6}
                                 className="w-full px-4 py-3 font-mono text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-slate-50"
                             />
                             <div className="mt-2 text-xs text-slate-500 italic">
-                                Sử dụng '=~' cho nhân tố, '~' cho quan hệ nhân quả. Mỗi dòng một câu lệnh.
+                                Sử dụng '=~' cho nhân tố, '-&gt;' hoặc '~' cho quan hệ nhân quả. Mỗi dòng một câu lệnh.
                             </div>
                         </div>
                     </div>
@@ -327,6 +408,13 @@ export default function AdvancedMethodView({
                             <li>• Phân tích dựa trên ma trận hiệp phương sai (Covariance-based)</li>
                             <li>• Cung cấp Fit Indices: CFI, TLI {'>'} 0.90; RMSEA {'<'} 0.08</li>
                             <li>• Xử lý dữ liệu khuyết bằng thuật toán FIML (tiêu chuẩn học thuật)</li>
+                        </>
+                    )}
+                    {method === 'plssem' && (
+                        <>
+                            <li>• Phân tích thuật toán PLS-SEM (Variance-based SEM) qua thư viện seminr</li>
+                            <li>• Đặc biệt hiệu quả với mô hình phức tạp và dự đoán (Prediction)</li>
+                            <li>• Cung cấp R², f², hệ số tải, Fornell-Larcker, HTMT, VIF...</li>
                         </>
                     )}
                 </ul>

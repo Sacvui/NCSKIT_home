@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Target, Layers, Play, Rocket, AlertTriangle, CheckCircle2 } from 'lucide-react';
-import { runEFA, runPLSSEM, runCronbachAlpha } from '@/lib/webr-wrapper';
+import { runEFA, runPLSSEM, runCronbachAlpha, runBootstrapping, runBlindfolding } from '@/lib/webr-wrapper';
 
 interface AutoPilotViewProps {
     step: string;
@@ -62,7 +62,16 @@ export function AutoPilotView({
     const [statusText, setStatusText] = useState('');
 
     useEffect(() => {
-        const autoGroups = autoGroupColumns(columns);
+        // Filter out completely non-numeric columns (like Names, IDs)
+        const numericCols = columns.filter(col => {
+            const hasNumeric = data.some(row => {
+                const val = row[col];
+                return val !== null && val !== undefined && val !== '' && val !== 'NA' && !isNaN(Number(val));
+            });
+            return hasNumeric;
+        });
+
+        const autoGroups = autoGroupColumns(numericCols);
         setGroups(autoGroups);
         if (autoGroups.length > 1) {
             // Auto guess initial paths: all others -> last one
@@ -70,7 +79,7 @@ export function AutoPilotView({
             const ivs = autoGroups.slice(0, -1).map(g => g.name);
             setPaths(ivs.map(iv => ({ from: iv, to: dv })));
         }
-    }, [columns]);
+    }, [columns, data]);
 
     const handleAddPath = () => {
         if (!newPathFrom || !newPathTo) {
@@ -150,7 +159,7 @@ export function AutoPilotView({
 
             // 3. SEM
             setStatusText('Đang chạy mô hình cấu trúc tuyến tính (PLS-SEM)...');
-            setProgress(80);
+            setProgress(70);
             const measurementModel = activeGroups.map(g => ({ 
                 construct: g.name, 
                 items: g.columns.map(c => columns.indexOf(c)) 
@@ -159,6 +168,37 @@ export function AutoPilotView({
             
             const semRes = await runPLSSEM(numericData as number[][], measurementModel, structuralModel);
             fullReport.sem = semRes;
+
+            // 4. Bootstrapping
+            setStatusText('Đang chạy Bootstrapping (5000 mẫu) để lấy P-Values...');
+            setProgress(85);
+            const bootRes = await runBootstrapping(numericData as number[][], measurementModel, structuralModel, 5000);
+            console.log('[DEBUG] Bootstrapping raw result:', JSON.stringify(bootRes, null, 2));
+            if (fullReport.sem) {
+                fullReport.sem.bootstrapping = bootRes;
+                console.log('[DEBUG] SEM bootstrapping after assign:', JSON.stringify(fullReport.sem.bootstrapping?.boot_paths ? Object.keys(fullReport.sem.bootstrapping.boot_paths) : 'no boot_paths'));
+            }
+
+            // 5. Blindfolding
+            setStatusText('Đang chạy Blindfolding để lấy mức độ liên quan dự đoán (Q²)...');
+            setProgress(95);
+            try {
+                const blindfoldingRes = await runBlindfolding(numericData as number[][], measurementModel, structuralModel);
+                if (fullReport.sem && blindfoldingRes && blindfoldingRes.q2) {
+                    // Extract Q2 values correctly based on whether it is a matrix_to_list or simple list
+                    let q2Data = blindfoldingRes.q2;
+                    if (q2Data && typeof q2Data === 'object' && q2Data['Q²_predict'] && typeof q2Data['Q²_predict'] === 'object') {
+                        fullReport.sem.q2 = q2Data['Q²_predict'];
+                    } else if (q2Data && typeof q2Data === 'object' && q2Data['Q²_predict']) {
+                        fullReport.sem.q2 = q2Data;
+                    } else {
+                        // fallback if q2_export has a single column unnamed or just the vector
+                        fullReport.sem.q2 = q2Data["Q2"] || q2Data["Q²"] || q2Data; 
+                    }
+                }
+            } catch (err: any) {
+                console.warn("Blindfolding error (non-fatal):", err);
+            }
 
             setProgress(100);
             setStatusText('Hoàn tất! Đang kết xuất báo cáo...');

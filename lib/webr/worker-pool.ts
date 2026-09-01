@@ -148,11 +148,17 @@ export class WebRPoolManager {
                         for (let j = 0; j < numRows; j += CHUNK_SIZE) {
                             const chunk = task.data.slice(j, j + CHUNK_SIZE);
                             const chunkText = chunk.map(row =>
-                                row.map(v => (v === null || v === undefined || Number.isNaN(v as number)) ? 'NA' : v).join(',')
-                            ).join('\\n');
-                            const escapedChunk = chunkText.replace(/\\/g, '\\\\\\\\').replace(/"/g, '\\\\\\"');
+                                row.map(v => {
+                                    if (v === null || v === undefined || (v as any) === '') return 'NA';
+                                    const n = Number(v);
+                                    return isNaN(n) ? 'NA' : n;
+                                }).join(',')
+                            ).join('\n');
+                            const escapedChunk = chunkText.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
                             await worker.evalR(`
-                                .chunk <- as.matrix(read.csv(text = "${escapedChunk}", header = FALSE, stringsAsFactors = FALSE))
+                                .chunk <- read.csv(text = "${escapedChunk}", header = FALSE, stringsAsFactors = FALSE)
+                                .chunk[] <- suppressWarnings(lapply(.chunk, as.numeric))
+                                .chunk <- as.matrix(.chunk)
                                 raw_data <- if(is.null(raw_data)) .chunk else rbind(raw_data, .chunk)
                                 rm(.chunk)
                             `);

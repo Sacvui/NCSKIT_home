@@ -1,12 +1,13 @@
 /**
  * Reliability & Factor Analysis Modules
  */
-import { WEBR_TIMEOUTS, getTimeoutForMethod } from '../constants';
+import { WEBR_TIMEOUTS } from '../constants';
 import { validateAndCleanData } from '../input-validator';
 import { executeRWithRecovery, loadPackagesForMethod } from '../core';
-import { parseWebRResult, parseMatrix, useRawDataInCode } from '../utils';
-import { getAnalysisRTemplate } from '../templates';
+import { useRawDataInCode, parseMatrix, parseWebRResult } from '../utils';
 import { runLavaanAnalysis } from './sem';
+import { CronbachResultSchema, ICronbachResult, EfaResultSchema, IEfaResult } from '../schemas';
+import { getAnalysisRTemplate } from '../templates';
 
 /**
  * Run Cronbach's Alpha analysis with SPSS-style Item-Total Statistics
@@ -15,23 +16,7 @@ export async function runCronbachAlpha(
     data: number[][],
     likertMin: number = 1,
     likertMax: number = 5
-): Promise<{
-    alpha: number;
-    rawAlpha: number;
-    standardizedAlpha: number;
-    omega: number; // McDonald's Omega (total)
-    omegaHierarchical: number; // Omega hierarchical (general factor)
-    nItems: number | string;
-    likertRange: { min: number; max: number };
-    itemTotalStats: {
-        itemName: string;
-        scaleMeanIfDeleted: number;
-        scaleVarianceIfDeleted: number;
-        correctedItemTotalCorrelation: number;
-        alphaIfItemDeleted: number;
-    }[];
-    rCode: string;
-}> {
+): Promise<ICronbachResult> {
     // Lazy load required packages
     await loadPackagesForMethod('cronbach');
 
@@ -160,7 +145,7 @@ export async function runCronbachAlpha(
         });
     }
 
-    return {
+    const rawResult = {
         alpha: rawAlpha,
         rawAlpha: rawAlpha,
         standardizedAlpha: stdAlpha,
@@ -171,6 +156,8 @@ export async function runCronbachAlpha(
         itemTotalStats: itemTotalStats,
         rCode: rCode
     };
+
+    return CronbachResultSchema.parse(rawResult);
 }
 
 /**
@@ -178,22 +165,10 @@ export async function runCronbachAlpha(
  */
 export async function runEFA(
     data: number[][], 
-    nFactors: number, 
+    nFactors: number = 0, 
     rotation: string = 'varimax',
     method: 'minres' | 'pca' | 'pa' | 'ml' = 'minres'
-): Promise<{
-    kmo: number;
-    bartlettP: number;
-    loadings: number[][];
-    communalities: number[];
-    structure: number[][];
-    eigenvalues: number[];
-    nFactorsUsed: number;
-    nFactorsSuggested: number;
-    factorMethod: string;
-    extractionMethod: string;
-    rCode: string;
-}> {
+): Promise<IEfaResult> {
     // Lazy load required packages (needs psych and GPArotation)
     await loadPackagesForMethod('efa');
 
@@ -268,7 +243,7 @@ export async function runEFA(
     const getValue = parseWebRResult(jsResult);
     const nFactorsUsed = getValue('n_factors_used')?.[0] || nFactors || 1;
 
-    return {
+    const rawResult = {
         kmo: getValue('kmo')?.[0] ?? 0,
         bartlettP: getValue('bartlett_p')?.[0] ?? 1,
         loadings: parseMatrix(getValue('loadings'), nFactorsUsed),
@@ -281,6 +256,8 @@ export async function runEFA(
         extractionMethod: getValue('extraction_method')?.[0] || method,
         rCode
     };
+
+    return EfaResultSchema.parse(rawResult);
 }
 
 

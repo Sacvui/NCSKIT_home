@@ -18,6 +18,7 @@ interface ReliabilityViewProps {
     step: AnalysisStep;
     data: any[];
     columns: string[];
+    allColumns?: string[];
     user: any;
     setResults: (results: any) => void;
     setStep: (step: AnalysisStep) => void;
@@ -49,7 +50,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
     setShowInsufficientCredits,
     locale
 }) => {
-    const [localStep, setLocalStep] = useState<'select' | 'cronbach-select' | 'omega-select' | 'cronbach-batch' | 'omega-batch' | 'efa-select' | 'cfa-select' | 'sem-select' | 'pls-sem-select'>(
+    const [localStep, setLocalStep] = useState<'select' | 'cronbach-select' | 'cronbach-batch-select' | 'omega-select' | 'efa-select' | 'cfa-select' | 'cbsem-select' | 'plssem-select' | string>(
         ['cronbach-select', 'omega-select', 'efa-select', 'cfa-select', 'sem-select', 'pls-sem-select'].includes(initialStep) 
             ? initialStep as any 
             : 'select'
@@ -269,15 +270,18 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
             if (options.useBootstrap) {
                 showToast('Đang chạy Bootstrapping (5000 samples)...', 'info');
                 const bootResults = await runBootstrapping(numericData as number[][], measurementModel, structuralModel, 5000);
-                results.bootstrapped_paths = bootResults.boot_paths;
-                results.bootstrapped_loadings = bootResults.boot_loadings;
+                results.bootstrapping = {
+                    boot_paths: bootResults.boot_paths,
+                    boot_loadings: bootResults.boot_loadings,
+                    n_bootstrap: 5000
+                };
             }
             
             // 3. Optional Blindfolding
             if (options.useBlindfolding) {
                 showToast('Đang tính toán Q² (Blindfolding)...', 'info');
                 const blindResults = await runBlindfolding(numericData as number[][], measurementModel, structuralModel);
-                results.q2 = blindResults.q2;
+                (results as any).q2 = blindResults.q2;
             }
 
             if (user) {
@@ -462,7 +466,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
         );
     }
 
-    if (localStep === 'sem-select') {
+    if (localStep === 'cbsem-select') {
         return (
             <SEMSelection
                 columns={columns}
@@ -490,7 +494,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
         );
     }
 
-    if (localStep === 'pls-sem-select') {
+    if (localStep === 'plssem-select') {
         return (
             <PLSSEMSelection
                 columns={columns}

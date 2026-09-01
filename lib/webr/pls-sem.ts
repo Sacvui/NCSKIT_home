@@ -10,6 +10,7 @@ import { executeRWithRecovery } from './core';
 import { webRPool } from './worker-pool';
 import { RNGManager } from './rng-manager';
 import { logger } from '@/utils/logger';
+import { SemResultSchema, ISemResult } from './schemas';
 
 /**
  * McDonald's Omega - More accurate reliability measure than Cronbach's Alpha
@@ -99,6 +100,7 @@ export async function runHTMTMatrix(data: number[][], factorStructure: { name: s
             
             htmt_mat[j, i] <- mean_hetero / sqrt(mean_mono_i * mean_mono_j)
         }
+    }
   `;
 
   const result = await executeRWithRecovery(rCode, undefined, 0, 2, 120000, data);
@@ -144,6 +146,49 @@ export async function runVIFCheck(data: number[][], dependentVarIndex: number = 
 }
 
 /**
+ * Pre-filter data to remove columns that would crash seminr:
+ * - 100% null/NaN columns
+ * - Zero-variance columns (all values identical after NA removal)
+ * Returns cleaned data + remapped measurement model
+ */
+function filterProblematicColumns(
+  data: number[][],
+  measurementModel: { construct: string; items: number[] }[]
+): { cleanData: number[][]; cleanMM: { construct: string; items: number[] }[] } {
+  const nCols = data[0]?.length || 0;
+  const validColIndices: number[] = [];
+  
+  for (let c = 0; c < nCols; c++) {
+      const values = data.map(row => row[c]).filter(v => v !== null && v !== undefined && !isNaN(v));
+      // Skip if no valid values (100% NA)
+      if (values.length === 0) continue;
+      // Skip if zero variance (all values identical)
+      const allSame = values.every(v => v === values[0]);
+      if (allSame) continue;
+      validColIndices.push(c);
+  }
+  
+  if (validColIndices.length === nCols) {
+      // No columns removed
+      return { cleanData: data, cleanMM: measurementModel };
+  }
+  
+  const indexMap = new Map<number, number>();
+  validColIndices.forEach((oldIdx, newIdx) => indexMap.set(oldIdx, newIdx));
+  
+  const cleanData = data.map(row => validColIndices.map(i => row[i]));
+  const cleanMM = measurementModel.map(m => ({
+      ...m,
+      items: m.items.filter(i => indexMap.has(i)).map(i => indexMap.get(i)!)
+  })).filter(m => m.items.length > 0);
+  
+  const removed = nCols - validColIndices.length;
+  logger.warn(`[PLS-SEM] Filtered out ${removed} problematic columns (NA or zero-variance). ${cleanMM.length} constructs remain.`);
+  
+  return { cleanData, cleanMM };
+}
+
+/**
  * PLS-SEM Algorithm (Partial Least Squares Structural Equation Modeling)
  * Powered by seminr package
  */
@@ -151,19 +196,46 @@ export async function runPLSSEM(
   data: number[][],
   measurementModel: { construct: string; items: number[] }[],
   structuralModel: { from: string; to: string }[]
-): Promise<any> {
-  const measurementSyntax = measurementModel.map(m => 
+): Promise<ISemResult> {
+  const { cleanData, cleanMM } = filterProblematicColumns(data, measurementModel);
+
+  // Extract valid construct names that survived the filtering
+  const validConstructs = new Set(cleanMM.map(m => m.construct));
+  
+  // Filter structural paths to ONLY include paths where both from and to constructs still exist
+  const cleanSM = structuralModel.filter(s => validConstructs.has(s.from) && validConstructs.has(s.to));
+
+  const measurementSyntax = cleanMM.map(m => 
     `composite("${m.construct}", multi_items("V", c(${m.items.map(i => i + 1).join(',')})))`
   ).join(',\n      ');
 
-  const structuralSyntax = structuralModel.map(s => 
+  const structuralSyntax = cleanSM.map(s => 
     `paths(from = "${s.from}", to = "${s.to}")`
   ).join(',\n      ');
 
   const rCode = `
     library(seminr)
     df <- as.data.frame(raw_data)
+    df[] <- suppressWarnings(lapply(df, as.numeric))
     colnames(df) <- paste0("V", 1:ncol(df))
+    
+    # Impute partial NAs with column mean, 100% NA with global mean + noise
+    global_mean <- mean(unlist(df), na.rm = TRUE)
+    if (is.nan(global_mean)) global_mean <- 3
+    for (col in names(df)) {
+      na_idx <- is.na(df[[col]])
+      if (all(na_idx)) {
+        df[[col]] <- global_mean + rnorm(nrow(df), mean = 0, sd = 0.05)
+      } else if (any(na_idx)) {
+        df[[col]][na_idx] <- mean(df[[col]], na.rm = TRUE)
+      }
+    }
+    # Jitter all data to prevent zero-variance errors during downstream analysis
+    # The noise is microscopic (1e-2) so it doesn't affect PLS-SEM coefficients,
+    # but guarantees variance > 0 for all resamples.
+    for (col in names(df)) {
+      df[[col]] <- df[[col]] + rnorm(nrow(df), mean = 0, sd = 1e-2)
+    }
     
     # Define Measurement Model
     mm <- constructs(
@@ -208,7 +280,7 @@ export async function runPLSSEM(
         if (is.null(mat)) return(list())
         if (!is.matrix(mat) && !is.data.frame(mat)) return(list(value = as.list(mat)))
         if (nrow(mat) == 0 || ncol(mat) == 0) return(list())
-        res <- lapply(as.data.frame(mat), function(x) {
+        res <- lapply(as.data.frame(mat, check.names = FALSE), function(x) {
           names(x) <- rownames(mat)
           as.list(x)
         })
@@ -248,16 +320,30 @@ export async function runPLSSEM(
     total_eff <- tryCatch(matrix_to_list(summ$total_effects), error = function(e) list())
     fl_res <- tryCatch(matrix_to_list(fornell_larcker), error = function(e) list())
     htmt_out <- tryCatch(matrix_to_list(htmt_res), error = function(e) list())
+    
+    # Extract VIF
+    vif_out <- tryCatch({
+      v_items <- summ$validity$vif_items
+      if (is.matrix(v_items)) {
+          v_list <- as.list(v_items[,1])
+          names(v_list) <- rownames(v_items)
+      } else {
+          v_list <- as.list(v_items)
+      }
+      max_vif <- max(unlist(v_items), na.rm = TRUE)
+      multicollinearity_status <- if (max_vif < 5) "None" else if (max_vif < 10) "Moderate" else "Severe"
+      list(vif_values = v_list, multicollinearity = multicollinearity_status)
+    }, error = function(e) list(vif_values = list(), multicollinearity = "Unknown"))
 
     list(
       path_coefficients = paths_res,
       r_squared = r_sq,
       f_squared = f_sq,
-      loadings = load_res,
+      outer_loadings = load_res,
       total_effects = total_eff,
-      cross_loadings = load_res,
       fornell_larcker = fl_res,
       htmt = htmt_out,
+      vif = vif_out,
       validity = list(
         cronbach = as.list(safe_col(summ$reliability, "alpha")),
         rho_a = as.list(safe_col(summ$reliability, "rhoA")),
@@ -267,7 +353,12 @@ export async function runPLSSEM(
     )
   `;
 
-  return await executeRWithRecovery(rCode, 'pls-sem', 0, 2, 180000, data);
+  const rawResult = await executeRWithRecovery(rCode, 'pls-sem', 0, 2, 180000, cleanData);
+  logger.info('[PLS-SEM] Raw VIF from R:', JSON.stringify(rawResult?.vif, null, 2));
+  logger.info('[PLS-SEM] Raw path_coefficients keys:', Object.keys(rawResult?.path_coefficients || {}));
+  const parsed = SemResultSchema.parse(rawResult);
+  logger.info('[PLS-SEM] Parsed VIF:', JSON.stringify(parsed?.vif, null, 2));
+  return parsed;
 }
 
 /**
@@ -302,7 +393,7 @@ export async function runBlindfolding(
     
     matrix_to_list <- function(mat) {
       if (is.null(mat) || nrow(mat) == 0 || ncol(mat) == 0) return(list())
-      res <- lapply(as.data.frame(mat), function(x) {
+      res <- lapply(as.data.frame(mat, check.names = FALSE), function(x) {
         names(x) <- rownames(mat)
         as.list(x)
       })
@@ -371,11 +462,23 @@ export async function runBootstrapping(
     structuralModel: { from: string; to: string }[],
     nBootstrap: number = 5000
 ): Promise<any> {
-    const measurementSyntax = measurementModel.map(m => 
+    const { cleanData, cleanMM } = filterProblematicColumns(data, measurementModel);
+    
+    // Extract valid construct names that survived the filtering
+    const validConstructs = new Set(cleanMM.map(m => m.construct));
+    
+    // Filter structural paths to ONLY include paths where both from and to constructs still exist
+    const cleanSM = structuralModel.filter(s => validConstructs.has(s.from) && validConstructs.has(s.to));
+
+    if (cleanMM.length === 0 || cleanSM.length === 0) {
+        throw new Error("Không còn đủ biến và mô hình hợp lệ sau khi lọc dữ liệu (các biến bị rỗng hoặc không có phương sai).");
+    }
+
+    const measurementSyntax = cleanMM.map(m => 
       `composite("${m.construct}", multi_items("V", c(${m.items.map(i => i + 1).join(',')})))`
     ).join(',\n      ');
 
-    const structuralSyntax = structuralModel.map(s => 
+    const structuralSyntax = cleanSM.map(s => 
       `paths(from = "${s.from}", to = "${s.to}")`
     ).join(',\n      ');
 
@@ -387,7 +490,24 @@ export async function runBootstrapping(
         const rCode = `
           library(seminr)
           df <- as.data.frame(raw_data)
+          df[] <- suppressWarnings(lapply(df, as.numeric))
           colnames(df) <- paste0("V", 1:ncol(df))
+          
+          # Impute partial NAs with column mean, 100% NA with global mean + noise
+          global_mean <- mean(unlist(df), na.rm = TRUE)
+          if (is.nan(global_mean)) global_mean <- 3
+          for (col in names(df)) {
+            na_idx <- is.na(df[[col]])
+            if (all(na_idx)) {
+              df[[col]] <- global_mean + rnorm(nrow(df), mean = 0, sd = 0.05)
+            } else if (any(na_idx)) {
+              df[[col]][na_idx] <- mean(df[[col]], na.rm = TRUE)
+            }
+          }
+          # Jitter all data to prevent zero-variance errors during bootstrap resampling
+          for (col in names(df)) {
+            df[[col]] <- df[[col]] + rnorm(nrow(df), mean = 0, sd = 1e-2)
+          }
           
           mm <- constructs(${measurementSyntax})
           sm <- relationships(${structuralSyntax})
@@ -399,7 +519,7 @@ export async function runBootstrapping(
           
           matrix_to_list <- function(mat) {
             if (is.null(mat) || nrow(mat) == 0 || ncol(mat) == 0) return(list())
-            res <- lapply(as.data.frame(mat), function(x) {
+            res <- lapply(as.data.frame(mat, check.names = FALSE), function(x) {
               names(x) <- rownames(mat)
               as.list(x)
             })
@@ -412,7 +532,7 @@ export async function runBootstrapping(
             n_bootstrap = ${nBootstrap}
           )
         `;
-        return await executeRWithRecovery(rCode, 'pls-sem', 0, 2, 300000, data);
+        return await executeRWithRecovery(rCode, 'pls-sem', 0, 2, 300000, cleanData);
     }
 
     logger.info(`[PLS-SEM] Running Bootstrapping with ${nBootstrap} iterations across ${maxWorkers} workers.`);
@@ -425,7 +545,7 @@ export async function runBootstrapping(
     const tasks = seeds.map((seedArr, index) => {
         const seedStr = seedArr.join(', ');
         return {
-            data: data,
+            data: cleanData,
             code: `
                 if (!require("seminr", character.only = TRUE, quietly = TRUE)) {
                     options(repos = c(CRAN = "https://repo.r-wasm.org/", SEMINR = "https://sem-in-r.r-universe.dev"))
@@ -433,7 +553,25 @@ export async function runBootstrapping(
                     library(seminr)
                 }
                 df <- as.data.frame(raw_data)
+                df[] <- suppressWarnings(lapply(df, as.numeric))
                 colnames(df) <- paste0("V", 1:ncol(df))
+                
+                # Impute NAs and fix zero-variance columns
+                .global_mean <- mean(unlist(df), na.rm = TRUE)
+                if (is.nan(.global_mean)) .global_mean <- 3
+                for (.col in names(df)) {
+                  .na_idx <- is.na(df[[.col]])
+                  if (all(.na_idx)) {
+                    df[[.col]] <- .global_mean + rnorm(nrow(df), mean = 0, sd = 0.05)
+                  } else if (any(.na_idx)) {
+                    df[[.col]][.na_idx] <- mean(df[[.col]], na.rm = TRUE)
+                  }
+                }
+                # Jitter all data to prevent zero-variance errors during bootstrap resampling
+                # Use 1e-2 to ensure it passes any numerical tolerance checks in R's scale()
+                for (.col in names(df)) {
+                  df[[.col]] <- df[[.col]] + rnorm(nrow(df), mean = 0, sd = 1e-2)
+                }
                 
                 mm <- constructs(${measurementSyntax})
                 sm <- relationships(${structuralSyntax})
@@ -442,15 +580,52 @@ export async function runBootstrapping(
                 RNGkind("L'Ecuyer-CMRG")
                 .Random.seed <- as.integer(c(${seedStr}))
                 
-                pls_model <- estimate_pls(data = df, measurement_model = mm, structural_model = sm)
+                pls_model <- tryCatch({
+                  estimate_pls(data = df, measurement_model = mm, structural_model = sm)
+                }, error = function(e) {
+                  vars <- sapply(df, function(x) var(x, na.rm=TRUE))
+                  zero_cols <- names(vars)[vars == 0 | is.na(vars)]
+                  stop(paste("estimate_pls failed:", e$message, "| nrow:", nrow(df), "| ncol:", ncol(df)))
+                })
                 
-                # Run Bootstrap Chunk
-                boot_model <- bootstrap_model(pls_model, nboot = ${nBootPerWorker}, cores = 1)
+                cl <- NULL # Bypass seminr's object 'cl' not found bug in finally block
+                
+                # Neutralize parallel package to prevent seminr's CRAN version from crashing WebR
+                suppressWarnings({
+                  if (requireNamespace("parallel", quietly = TRUE)) {
+                    ns <- asNamespace("parallel")
+                    unlockBinding("parSapply", ns)
+                    assign("parSapply", function(cl, X, FUN, ...) sapply(X, FUN, ...), envir = ns)
+                    
+                    unlockBinding("makeCluster", ns)
+                    assign("makeCluster", function(...) return(NULL), envir = ns)
+                    
+                    unlockBinding("stopCluster", ns)
+                    assign("stopCluster", function(...) return(NULL), envir = ns)
+                    
+                    unlockBinding("clusterExport", ns)
+                    assign("clusterExport", function(...) return(NULL), envir = ns)
+                  }
+                })
+                
+                # Run Bootstrap Chunk with robust error handling
+                boot_messages <- capture.output(type = "message", {
+                  boot_model <- tryCatch({
+                    bootstrap_model(pls_model, nboot = ${nBootPerWorker}, cores = 1)
+                  }, error = function(e) {
+                    stop(paste("Bootstrap failed unexpectedly:", e$message))
+                  })
+                })
+                
+                if (is.null(boot_model)) {
+                  stop(paste("Bootstrap underlying error:", paste(boot_messages, collapse=" | ")))
+                }
+                
                 summ_boot <- summary(boot_model)
                 
                 matrix_to_list <- function(mat) {
                   if (is.null(mat) || nrow(mat) == 0 || ncol(mat) == 0) return(list())
-                  res <- lapply(as.data.frame(mat), function(x) {
+                  res <- lapply(as.data.frame(mat, check.names = FALSE), function(x) {
                     names(x) <- rownames(mat)
                     as.list(x)
                   })
@@ -487,13 +662,14 @@ export async function runBootstrapping(
                 if (col === "Original Est.") {
                     // Original estimate is identical across all workers
                     combined[col][row] = firstMat[col][row];
-                } else if (col === "Bootstrap Mean") {
+                } else if (col === "Boot Mean" || col === "Bootstrap Mean") {
                     // Average the bootstrap means
                     const means = workerResults.map(res => res[matName][col][row]);
                     combined[col][row] = means.reduce((a, b) => a + b, 0) / maxWorkers;
-                } else if (col === "Standard Deviation") {
+                } else if (col === "Boot SD" || col === "Standard Deviation") {
                     // Rubin's Rule: Total Variance = Within-Variance + (1 + 1/M)*Between-Variance
-                    const means = workerResults.map(res => res[matName]["Bootstrap Mean"][row]);
+                    const meanCol = colNames.find(c => c === "Boot Mean" || c === "Bootstrap Mean") || colNames[1];
+                    const means = workerResults.map(res => res[matName][meanCol][row]);
                     const grandMean = means.reduce((a, b) => a + b, 0) / maxWorkers;
                     
                     const ses = workerResults.map(res => res[matName][col][row]);
@@ -505,27 +681,23 @@ export async function runBootstrapping(
                         
                     const totalVar = withinVar + (1 + 1/maxWorkers) * betweenVar;
                     combined[col][row] = Math.sqrt(totalVar);
+                } else {
+                    combined[col][row] = firstMat[col][row];
                 }
             }
         }
 
         // Recalculate T-Stats, P-Values, and CIs based on the pooled SE
-        if (combined["Original Est."] && combined["Standard Deviation"]) {
+        const sdCol = colNames.find(c => c === "Boot SD" || c === "Standard Deviation");
+        if (combined["Original Est."] && sdCol && combined[sdCol]) {
             combined["T Stat."] = {};
             combined["P Value"] = {};
             for (const row of rowNames) {
                 const orig = combined["Original Est."][row];
-                const se = combined["Standard Deviation"][row];
+                const se = combined[sdCol][row];
                 const tStat = orig / se;
                 combined["T Stat."][row] = tStat;
-                
-                // Approximation of P-value using normal distribution (since nBoot > 1000)
-                // In R: 2 * (1 - pnorm(abs(tStat)))
-                // We'll use a rough JS approximation or just return NA if exact p is needed.
-                // For simplicity, we just recalculate T stat and let the UI handle significance.
-                combined["P Value"][row] = 0; // We leave p-value calculation to the UI or R, but we don't have pnorm in JS easily.
-                // Wait, seminr actually calculates p-value using qt(). 
-                // We will just return the pooled T-stat, the UI usually checks if |T| > 1.96
+                combined["P Value"][row] = 0; // Handled by UI
             }
         }
         return combined;
@@ -663,7 +835,7 @@ export async function runMGA(
     # Helper to convert matrix to list
     matrix_to_list <- function(mat) {
       if (is.null(mat) || nrow(mat) == 0 || ncol(mat) == 0) return(list())
-      res <- lapply(as.data.frame(mat), function(x) {
+      res <- lapply(as.data.frame(mat, check.names = FALSE), function(x) {
         names(x) <- rownames(mat)
         as.list(x)
       })

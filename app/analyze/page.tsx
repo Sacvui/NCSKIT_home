@@ -36,7 +36,49 @@ import { MultivariateView } from '@/components/analyze/views/MultivariateView';
 import { ReliabilityView } from '@/components/analyze/views/ReliabilityView';
 import { BasicStatsView } from '@/components/analyze/views/BasicStatsView';
 import { AutoPilotView } from '@/components/analyze/views/AutoPilotView';
+import AdvancedMethodView from '@/components/analyze/views/AdvancedMethodView';
+import { PLSSEMView } from '@/components/analyze/views/PLSSEMView';
+import dynamicImport from 'next/dynamic';
+import { ResultSkeleton } from '@/components/results/shared/ResultSkeleton';
 import type { PreviousAnalysisData } from '@/types/analysis';
+
+// Lazy load result components
+const OmegaResults = dynamicImport(() => import('@/components/results/plssem/OmegaResults').then(m => ({ default: m.OmegaResults })), {
+    loading: () => <ResultSkeleton />,
+    ssr: false
+});
+const OutlierResults = dynamicImport(() => import('@/components/results/plssem/OutlierResults').then(m => ({ default: m.OutlierResults })), {
+    loading: () => <ResultSkeleton />,
+    ssr: false
+});
+const HTMTResults = dynamicImport(() => import('@/components/results/plssem/HTMTResults').then(m => ({ default: m.HTMTResults })), {
+    loading: () => <ResultSkeleton />,
+    ssr: false
+});
+const VIFResults = dynamicImport(() => import('@/components/results/plssem/VIFResults').then(m => ({ default: m.VIFResults })), {
+    loading: () => <ResultSkeleton />,
+    ssr: false
+});
+const BootstrapResults = dynamicImport(() => import('@/components/results/plssem').then(m => ({ default: m.BootstrapResults })), {
+    loading: () => <ResultSkeleton />,
+    ssr: false
+});
+const IPMAResults = dynamicImport(() => import('@/components/results/plssem').then(m => ({ default: m.IPMAResults })), {
+    loading: () => <ResultSkeleton />,
+    ssr: false
+});
+const MGAResults = dynamicImport(() => import('@/components/results/plssem').then(m => ({ default: m.MGAResults })), {
+    loading: () => <ResultSkeleton />,
+    ssr: false
+});
+const BlindfoldingResults = dynamicImport(() => import('@/components/results/plssem').then(m => ({ default: m.BlindfoldingResults })), {
+    loading: () => <ResultSkeleton />,
+    ssr: false
+});
+const PLSSEMResults = dynamicImport(() => import('@/components/results/factor/PLSResults').then(m => ({ default: m.PLSResults })), {
+    loading: () => <ResultSkeleton />,
+    ssr: false
+});
 import { DemographicSurvey } from '@/components/feedback/DemographicSurvey';
 import { ApplicabilitySurvey } from '@/components/feedback/ApplicabilitySurvey';
 import { FeedbackService } from '@/lib/feedback-service';
@@ -740,73 +782,40 @@ function AnalyzeContent() {
     // Handle PDF Export (Actual Logic)
     const runExportPDF = async () => {
         try {
-            const { exportToPDF } = await import('@/lib/pdf-exporter');
-
-            showToast('Đang tạo PDF, vui lòng đợi...', 'info');
-
-            // Capture charts if any
-            const chartImages: string[] = [];
-            const container = document.getElementById('analysis-results-container');
-            if (container) {
-                const canvases = container.querySelectorAll('canvas');
-                canvases.forEach(canvas => {
-                    try {
-                        chartImages.push(canvas.toDataURL('image/png'));
-                    } catch (e) {
-                        console.warn('Canvas capture failed:', e);
-                    }
-                });
-            }
-
-            // Handle batch Cronbach/Omega export - SINGLE FILE with all scales
-            if ((analysisType === 'cronbach-batch' || analysisType === 'omega-batch') && multipleResults.length > 0) {
-                const isOmegaBatch = analysisType === 'omega-batch';
-                // Combine all results into single PDF
-                const combinedTitle = isOmegaBatch
-                    ? `McDonald's Omega - Phân tích ${multipleResults.length} thang đo`
-                    : `Cronbach's Alpha - Phân tích ${multipleResults.length} thang đo`;
-                const combinedResults = {
-                    batchResults: multipleResults.map(r => ({
-                        scaleName: r.scaleName,
-                        alpha: r.data.alpha || r.data.rawAlpha,
-                        rawAlpha: r.data.rawAlpha,
-                        omega: r.data.omega,
-                        standardizedAlpha: r.data.standardizedAlpha,
-                        nItems: r.data.nItems,
-                        itemTotalStats: r.data.itemTotalStats,
-                        columns: r.columns
-                    }))
-                };
-
+            showToast('Đang chuẩn bị báo cáo... Vui lòng chọn "Lưu dưới dạng PDF" (Save as PDF) trong hộp thoại máy in.', 'info');
+            
+            // Add a title element dynamically for the print header if not already there
+            let printHeader = document.getElementById('print-header');
+            if (!printHeader) {
+                printHeader = document.createElement('div');
+                printHeader.id = 'print-header';
+                printHeader.className = 'hidden print:block text-center mb-8 pb-4 border-b-2 border-slate-200';
+                
                 const name = userProfile?.full_name || user?.email?.split('@')[0] || 'Researcher';
-                await exportToPDF({
-                    title: combinedTitle,
-                    analysisType: analysisType,
-                    results: combinedResults,
-                    columns: [],
-                    userName: name,
-                    chartImages: []
-                });
+                let title = `Báo cáo Phân tích - ${analysisType.toUpperCase()}`;
+                if ((analysisType === 'cronbach-batch' || analysisType === 'omega-batch') && multipleResults.length > 0) {
+                    title = `Báo cáo Phân tích Hàng loạt - ${multipleResults.length} Thang đo`;
+                }
+                
+                printHeader.innerHTML = `
+                    <h1 class="text-3xl font-black text-slate-900 mb-2">${title}</h1>
+                    <p class="text-slate-500 font-medium">Người thực hiện: ${name} | Ngày xuất: ${new Date().toLocaleDateString('vi-VN')}</p>
+                `;
+                
+                const container = document.getElementById('analysis-results-container');
+                if (container) {
+                    container.insertBefore(printHeader, container.firstChild);
+                }
+            }
+            
+            // Small delay to allow DOM update
+            setTimeout(async () => {
+                window.print();
                 if (user) {
                     await logExport(user.id, `PDF: ${analysisType}`);
                 }
-                showToast(`Đã xuất 1 file PDF tổng hợp ${multipleResults.length} thang đo!`, 'success');
-            } else {
-                // Single result export
-                const name = userProfile?.full_name || user?.email?.split('@')[0] || 'Researcher';
-                await exportToPDF({
-                    title: `Phân tích ${analysisType}`,
-                    analysisType,
-                    results: results?.data || results,
-                    columns: results?.columns || [],
-                    userName: name,
-                    chartImages
-                });
-                if (user) {
-                    await logExport(user.id, `PDF: ${analysisType}`);
-                }
-                showToast('Đã xuất PDF thành công!', 'success');
-            }
+            }, 500);
+
         } catch (error) {
             console.error(error);
             showToast('Lỗi xuất PDF: Vui lòng thử lại', 'error');
@@ -1185,12 +1194,12 @@ function AnalyzeContent() {
                         />
                     )}
 
-                    {/* Reliability & Factor Analysis */}
-                    {['cronbach-select', 'cronbach-batch-select', 'omega-select', 'efa-select', 'cfa-select', 'sem-select', 'pls-sem-select'].includes(step) && (
+                    {['cronbach-select', 'cronbach-batch-select', 'efa-select', 'cfa-select', 'cbsem-select', 'plssem-select'].includes(step) && (
                         <ReliabilityView
                             step={step}
                             data={data}
                             columns={getNumericColumns()}
+                            allColumns={getAllColumns()}
                             user={user}
                             setResults={setResults}
                             setStep={setStep}
@@ -1203,6 +1212,40 @@ function AnalyzeContent() {
                             setCurrentAnalysisCost={setCurrentAnalysisCost}
                             setShowInsufficientCredits={setShowInsufficientCredits}
                             locale={locale}
+                        />
+                    )}
+
+                    {['omega-select', 'outlier-select', 'vif-select', 'htmt-select'].includes(step) && (
+                        <PLSSEMView
+                            method={step.replace('-select', '') as any}
+                            data={data}
+                            columns={getNumericColumns()}
+                            user={user}
+                            setResults={(res) => {
+                                setResults({ type: step.replace('-select', ''), data: res, columns: getNumericColumns() });
+                                setAnalysisType(step.replace('-select', ''));
+                                setStep('results');
+                            }}
+                            setNcsBalance={setNcsBalance}
+                            showToast={showToast}
+                            onBack={() => setStep('analyze')}
+                            setRequiredCredits={setRequiredCredits}
+                            setCurrentAnalysisCost={setCurrentAnalysisCost}
+                            setShowInsufficientCredits={setShowInsufficientCredits}
+                        />
+                    )}
+
+                    {['bootstrap-select', 'ipma-select', 'mga-select', 'blindfolding-select'].includes(step) && (
+                        <AdvancedMethodView
+                            method={step.replace('-select', '') as any}
+                            data={data.map(row => getNumericColumns().map(col => row[col]))}
+                            columnNames={getNumericColumns()}
+                            onBack={() => setStep('analyze')}
+                            setResults={(res) => {
+                                setResults({ type: step.replace('-select', ''), data: res, columns: getNumericColumns() });
+                                setAnalysisType(step.replace('-select', ''));
+                                setStep('results');
+                            }}
                         />
                     )}
 
@@ -1273,11 +1316,57 @@ function AnalyzeContent() {
                                     {analysisType === 'mann-whitney' && "Mann-Whitney U Test"}
                                     {analysisType === 'kruskal-wallis' && "Kruskal-Wallis Test"}
                                     {analysisType === 'wilcoxon' && "Wilcoxon Signed Rank Test"}
+                                    {analysisType === 'outlier' && "Phát hiện Giá trị Dị biệt (Outliers)"}
+                                    {analysisType === 'htmt' && "Đánh giá Giá trị phân biệt (HTMT)"}
+                                    {analysisType === 'vif' && "Đa cộng tuyến (VIF)"}
+                                    {analysisType === 'plssem' && "Phân tích PLS-SEM"}
+                                    {analysisType === 'cbsem' && "Phân tích CB-SEM"}
+                                    {analysisType === 'bootstrap' && "Bootstrapping (SmartPLS Style)"}
+                                    {analysisType === 'mga' && "Phân tích Đa nhóm (MGA)"}
+                                    {analysisType === 'ipma' && "Ma trận Tầm quan trọng - Hiệu suất (IPMA)"}
+                                    {analysisType === 'blindfolding' && "Đánh giá Độ liên quan dự đoán (Blindfolding Q²)"}
                                 </p>
                             </div>
 
+                            {/* Advanced PLS-SEM Results Display */}
+                            {results && analysisType === 'omega' && (
+                                <OmegaResults results={results.data} columns={results.columns} scaleName={results.scaleName} />
+                            )}
+                            {results && analysisType === 'outlier' && (
+                                <OutlierResults results={results.data} columns={results.columns} />
+                            )}
+                            {results && analysisType === 'htmt' && (
+                                <HTMTResults results={results.data} factorStructure={results.factorStructure} />
+                            )}
+                            {results && analysisType === 'vif' && (
+                                <VIFResults results={results.data} columns={results.columns} />
+                            )}
+                            {results && analysisType === 'bootstrap' && (
+                                <BootstrapResults results={results.data} />
+                            )}
+                            {results && analysisType === 'ipma' && (
+                                <IPMAResults results={results.data} />
+                            )}
+                            {results && analysisType === 'mga' && (
+                                <MGAResults results={results.data} />
+                            )}
+                            {results && analysisType === 'blindfolding' && (
+                                <BlindfoldingResults results={results.data} />
+                            )}
+                            {results && analysisType === 'plssem' && (
+                                <PLSSEMResults results={results.data} />
+                            )}
+                            {results && analysisType === 'cbsem' && (
+                                <div className="bg-white p-6 rounded-xl border border-blue-200">
+                                    <h3 className="font-bold text-xl text-blue-900 mb-4">Kết quả CB-SEM</h3>
+                                    <pre className="text-sm bg-slate-50 p-4 rounded overflow-auto border border-slate-200">
+                                        {JSON.stringify(results.data, null, 2)}
+                                    </pre>
+                                </div>
+                            )}
+
                             {/* Single Result Display */}
-                            {results && analysisType !== 'cronbach-batch' && analysisType !== 'omega-batch' && (
+                            {results && !['cronbach-batch', 'omega-batch', 'omega', 'outlier', 'htmt', 'vif', 'bootstrap', 'ipma', 'mga', 'blindfolding', 'plssem', 'cbsem'].includes(analysisType) && (
                                 <ResultsDisplay
                                     analysisType={analysisType}
                                     results={results.data}

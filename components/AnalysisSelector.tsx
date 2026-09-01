@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { BarChart2, Shield, Network, Users, GitCompare, Layers, TrendingUp, Grid3x3, Activity, ChevronDown, ChevronRight, Star, Binary, FlaskConical, ArrowRightLeft, Target, CircleDot, Shuffle, Search, Bookmark, Rocket } from 'lucide-react';
+import { BarChart2, Shield, Network, Users, GitCompare, Layers, TrendingUp, Grid3x3, Activity, ChevronDown, ChevronRight, Star, Binary, FlaskConical, ArrowRightLeft, Target, CircleDot, Shuffle, Search, Bookmark, Rocket, Zap, Eye } from 'lucide-react';
 import { PointBadge } from '@/components/ui/PointBadge';
 import { Locale, t } from '@/lib/i18n';
 
@@ -41,9 +41,9 @@ export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing, mode, l
         if (mode === '1') {
             setExpandedCategories(['reliability', 'comparison', 'categorical']);
         } else if (mode === '2') {
-            setExpandedCategories(['relationship', 'factor', 'clustering']);
+            setExpandedCategories(['relationship', 'factor', 'pls-sem-advanced', 'clustering']);
         } else {
-            setExpandedCategories(['reliability', 'comparison']);
+            setExpandedCategories(['reliability', 'comparison', 'factor', 'pls-sem-advanced']);
         }
     }, [mode]);
 
@@ -102,8 +102,22 @@ export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing, mode, l
             options: [
                 { id: 'efa-select', title: t(locale, 'analyze.methods.efa'), desc: locale === 'vi' ? 'Phân tích nhân tố khám phá (Parallel Analysis)' : 'Exploratory Factor Analysis with Parallel Test', icon: Grid3x3, action: 'select', recommended: true, costType: 'efa' },
                 { id: 'cfa-select', title: t(locale, 'analyze.methods.cfa'), desc: locale === 'vi' ? 'Phân tích nhân tố khẳng định (Measurement Model)' : 'Confirmatory Factor Analysis (Validation)', icon: Network, action: 'select', badge: 'Elite', costType: 'cfa' },
-                { id: 'sem-select', title: t(locale, 'analyze.methods.sem'), desc: locale === 'vi' ? 'Mô hình cấu trúc tuyến tính (Structural Model CB-SEM)' : 'Structural Equation Modeling (High-End CB-SEM)', icon: Layers, action: 'select', badge: 'Elite', costType: 'sem' },
-                { id: 'pls-sem-select', title: 'PLS-SEM (SmartPLS Style)', desc: locale === 'vi' ? 'Mô hình cấu trúc bình phương tối thiểu riêng phần (PLS-SEM)' : 'Partial Least Squares SEM (for complex predictive models)', icon: Network, action: 'select', badge: 'Popular', costType: 'sem' },
+                { id: 'cbsem-select', title: t(locale, 'analyze.methods.sem'), desc: locale === 'vi' ? 'Mô hình cấu trúc tuyến tính (Structural Model CB-SEM)' : 'Structural Equation Modeling (High-End CB-SEM)', icon: Layers, action: 'select', badge: 'Elite', costType: 'sem' },
+            ]
+        },
+        {
+            id: 'pls-sem-advanced',
+            name: locale === 'vi' ? 'SmartPLS / PLS-SEM' : 'Advanced PLS-SEM',
+            description: locale === 'vi' ? 'Các thuật toán đánh giá mô hình đo lường và cấu trúc' : 'Advanced evaluations for measurement and structural models',
+            icon: Zap,
+            options: [
+                { id: 'plssem-select', title: 'PLS-SEM Algorithm', desc: locale === 'vi' ? 'Thuật toán chính (Path, R2, f2)' : 'Main algorithm', icon: Network, action: 'select', badge: 'Popular', costType: 'sem' },
+                { id: 'bootstrap-select', title: 'Bootstrapping', desc: locale === 'vi' ? 'Kiểm định ý nghĩa thống kê' : 'Significance testing', icon: TrendingUp, action: 'select', costType: 'sem' },
+                { id: 'mga-select', title: 'Multi-Group Analysis (MGA)', desc: locale === 'vi' ? 'Phân tích đa nhóm' : 'Multi-group analysis', icon: Users, action: 'select', costType: 'sem' },
+                { id: 'ipma-select', title: 'IPMA', desc: locale === 'vi' ? 'Ma trận Tầm quan trọng - Hiệu suất' : 'Importance-Performance Matrix', icon: Target, action: 'select', costType: 'sem' },
+                { id: 'blindfolding-select', title: 'Blindfolding (Q²)', desc: locale === 'vi' ? 'Kiểm tra độ liên quan dự đoán' : 'Predictive relevance', icon: Eye, action: 'select', costType: 'sem' },
+                { id: 'htmt-select', title: 'HTMT', desc: locale === 'vi' ? 'Đánh giá giá trị phân biệt' : 'Discriminant validity', icon: GitCompare, action: 'select', costType: 'sem' },
+                { id: 'vif-select', title: 'Collinearity (VIF)', desc: locale === 'vi' ? 'Kiểm tra đa cộng tuyến' : 'Collinearity statistics', icon: Shield, action: 'select', costType: 'sem' },
             ]
         },
         {
@@ -143,7 +157,7 @@ export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing, mode, l
                 disabled={isAnalyzing}
                 className="w-full relative overflow-hidden group rounded-3xl p-8 bg-gradient-to-br from-indigo-900 via-blue-900 to-indigo-800 border-2 border-indigo-400/30 shadow-2xl hover:shadow-indigo-900/40 transition-all hover:-translate-y-1 text-left flex flex-col md:flex-row items-center gap-6"
             >
-                <div className="absolute inset-0 bg-[url('/noise.png')] opacity-20 mix-blend-overlay"></div>
+                <div className="absolute inset-0 opacity-20 mix-blend-overlay"></div>
                 <div className="absolute -right-10 -top-10 w-40 h-40 bg-blue-500/20 blur-3xl rounded-full group-hover:bg-blue-400/30 transition-all"></div>
                 
                 <div className="w-20 h-20 shrink-0 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/20 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">

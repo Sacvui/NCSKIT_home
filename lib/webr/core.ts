@@ -432,7 +432,11 @@ export async function executeRWithRecovery(
 
                 if (numRows <= CHUNK_SIZE) {
                     const csvText = csvData.map(row =>
-                        row.map(v => (v === null || v === undefined || Number.isNaN(v as number)) ? 'NA' : v).join(',')
+                        row.map(v => {
+                            if (v === null || v === undefined || (v as any) === '') return 'NA';
+                            const n = Number(v);
+                            return isNaN(n) ? 'NA' : n;
+                        }).join(',')
                     ).join('\n');
                     const escapedCsv = csvText.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
                     await webR.evalR(`
@@ -445,11 +449,17 @@ export async function executeRWithRecovery(
                     for (let i = 0; i < numRows; i += CHUNK_SIZE) {
                         const chunk = csvData.slice(i, i + CHUNK_SIZE);
                         const chunkText = chunk.map(row =>
-                            row.map(v => (v === null || v === undefined || Number.isNaN(v as number)) ? 'NA' : v).join(',')
+                            row.map(v => {
+                                if (v === null || v === undefined || (v as any) === '') return 'NA';
+                                const n = Number(v);
+                                return isNaN(n) ? 'NA' : n;
+                            }).join(',')
                         ).join('\n');
                         const escapedChunk = chunkText.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
                         await webR.evalR(`
-                            .chunk <- as.matrix(read.csv(text = "${escapedChunk}", header = FALSE, stringsAsFactors = FALSE))
+                            .chunk <- read.csv(text = "${escapedChunk}", header = FALSE, stringsAsFactors = FALSE)
+                            .chunk[] <- suppressWarnings(lapply(.chunk, as.numeric))
+                            .chunk <- as.matrix(.chunk)
                             raw_data <- if(is.null(raw_data)) .chunk else rbind(raw_data, .chunk)
                             rm(.chunk)
                         `);

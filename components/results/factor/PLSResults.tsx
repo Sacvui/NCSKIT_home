@@ -29,7 +29,9 @@ export const PLSResults: React.FC<PLSResultsProps> = ({ results }) => {
         validity, 
         fornell_larcker, 
         htmt,
-        q2
+        q2,
+        bootstrapping,
+        vif
     } = results;
 
     const getStatusColor = (val: number, type: 'high' | 'low' | 'htmt') => {
@@ -247,6 +249,117 @@ export const PLSResults: React.FC<PLSResultsProps> = ({ results }) => {
                     </div>
                 </CardContent>
             </Card>
+
+            {/* 5. Bootstrapping / Path Significance */}
+            {bootstrapping && bootstrapping.boot_paths && (
+                <Card className="border-blue-100 shadow-sm overflow-hidden mt-8">
+                    <CardHeader className="bg-slate-50/50 border-b border-blue-50">
+                        <CardTitle className="text-sm font-black text-blue-900 uppercase tracking-widest flex items-center gap-2">
+                            <Zap className="w-4 h-4 text-blue-600" />
+                            Path Significance (Bootstrapping {bootstrapping.n_bootstrap || 5000} samples)
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr>
+                                        <TableHeader>Path</TableHeader>
+                                        <TableHeader>Original Sample (O)</TableHeader>
+                                        <TableHeader>Sample Mean (M)</TableHeader>
+                                        <TableHeader>Standard Deviation</TableHeader>
+                                        <TableHeader>T Statistics</TableHeader>
+                                        <TableHeader>P Values</TableHeader>
+                                        <TableHeader>Decision</TableHeader>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50">
+                                    {Object.keys(bootstrapping.boot_paths['Original Est.'] || {}).map((path: string) => {
+                                        const orig = bootstrapping.boot_paths['Original Est.'][path];
+                                        const mean = bootstrapping.boot_paths['Boot Mean'][path];
+                                        const sd = bootstrapping.boot_paths['Boot SD'][path];
+                                        const tStat = bootstrapping.boot_paths['T Stat.'][path];
+                                        // P-value fallback if not explicitly in matrix
+                                        let pVal = bootstrapping.boot_paths['P Value'] ? bootstrapping.boot_paths['P Value'][path] : null;
+                                        if (pVal === null || pVal === undefined) {
+                                            // Approx p-value from T-Stat (two-tailed)
+                                            // JS doesn't have pt() so we just do a rough check if |t| > 1.96 for p < 0.05
+                                            pVal = Math.abs(tStat) > 3.29 ? 0.001 : (Math.abs(tStat) > 2.58 ? 0.01 : (Math.abs(tStat) > 1.96 ? 0.049 : 0.1));
+                                        }
+                                        const supported = pVal < 0.05;
+
+                                        return (
+                                            <tr key={path} className="hover:bg-blue-50/30">
+                                                <td className="py-3 px-4 font-bold text-slate-700">{path}</td>
+                                                <td className="py-3 px-4 font-black text-blue-900">{safeToFixed(orig)}</td>
+                                                <td className="py-3 px-4 text-slate-600">{safeToFixed(mean)}</td>
+                                                <td className="py-3 px-4 text-slate-600">{safeToFixed(sd)}</td>
+                                                <td className="py-3 px-4 font-bold text-slate-700">{safeToFixed(tStat)}</td>
+                                                <td className={`py-3 px-4 font-black ${supported ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                                    {pVal < 0.001 ? '< 0.001' : safeToFixed(pVal)}
+                                                </td>
+                                                <td className="py-3 px-4">
+                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${supported ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                                                        {supported ? 'Supported' : 'Rejected'}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* 6. VIF (Collinearity) */}
+            {vif && vif.vif_values && (
+                <Card className="border-blue-100 shadow-sm overflow-hidden mt-8">
+                    <CardHeader className="bg-slate-50/50 border-b border-blue-50 flex items-center justify-between">
+                        <CardTitle className="text-sm font-black text-blue-900 uppercase tracking-widest flex items-center gap-2">
+                            <ShieldCheck className="w-4 h-4 text-blue-600" />
+                            Collinearity Assessment (VIF)
+                        </CardTitle>
+                        <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest ${vif.multicollinearity === 'None' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                            {vif.multicollinearity === 'None' ? 'No Multicollinearity' : 'Multicollinearity Detected'}
+                        </span>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr>
+                                        <TableHeader>Construct / Item</TableHeader>
+                                        <TableHeader>VIF Value</TableHeader>
+                                        <TableHeader>Decision</TableHeader>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50">
+                                    {Object.keys(vif.vif_values).map((key: string) => {
+                                        const val = vif.vif_values[key];
+                                        const isGood = val < 5;
+                                        const isIdeal = val < 3;
+                                        return (
+                                            <tr key={key} className="hover:bg-blue-50/30">
+                                                <td className="py-3 px-4 font-bold text-slate-700">{key}</td>
+                                                <td className={`py-3 px-4 font-black ${isIdeal ? 'text-emerald-600' : (isGood ? 'text-amber-600' : 'text-rose-600')}`}>
+                                                    {safeToFixed(val)}
+                                                </td>
+                                                <td className="py-3 px-4">
+                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${isGood ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                                                        {isIdeal ? 'Ideal (< 3)' : (isGood ? 'Acceptable (< 5)' : 'Problematic (> 5)')}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
         </div>
     );
 };

@@ -143,54 +143,94 @@ export function FileUpload({ onDataLoaded, locale }: FileUploadProps) {
                     <div className="h-[1px] flex-1 bg-slate-200"></div>
                 </div>
 
-                <button
-                    onClick={async (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setIsProcessing(true);
-                        try {
-                            const response = await fetch('/data/ncsstat_sample_500.csv');
-                            if (!response.ok) throw new Error(t(locale, 'analyze.upload.errorSample'));
-                            const text = await response.text();
+                <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
+                    <button
+                        onClick={async (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setIsProcessing(true);
+                            try {
+                                const response = await fetch('/data/ncsstat_sample_500.csv');
+                                if (!response.ok) throw new Error(t(locale, 'analyze.upload.errorSample'));
+                                const text = await response.text();
 
-                            Papa.parse(text, {
-                                header: true,
-                                skipEmptyLines: true,
-                                complete: (results) => {
-                                    if (results.data && results.data.length > 0) {
-                                        onDataLoaded(results.data, 'ncsstat_sample_500.csv');
-                                    } else {
-                                        setError(t(locale, 'analyze.upload.errorEmpty'));
+                                Papa.parse(text, {
+                                    header: true,
+                                    skipEmptyLines: true,
+                                    complete: (results) => {
+                                        if (results.data && results.data.length > 0) {
+                                            onDataLoaded(results.data, 'ncsstat_sample_500.csv');
+                                        } else {
+                                            setError(t(locale, 'analyze.upload.errorEmpty'));
+                                        }
+                                        setIsProcessing(false);
+                                    },
+                                    error: (err: Error) => {
+                                        setError(`${t(locale, 'analyze.upload.errorRead')}: ` + err.message);
+                                        setIsProcessing(false);
                                     }
-                                    setIsProcessing(false);
-                                },
-                                error: (err: Error) => {
-                                    setError(`${t(locale, 'analyze.upload.errorRead')}: ` + err.message);
-                                    setIsProcessing(false);
-                                }
-                             });
-                        } catch (err: any) {
-                            setError(`${t(locale, 'analyze.upload.errorRead')}: ` + (err.message || err));
-                            setIsProcessing(false);
-                        }
-                    }}
-                    disabled={isProcessing}
-                    className="group relative flex items-center gap-4 bg-white border-2 border-blue-900 px-8 py-4 rounded-2xl transition-all hover:bg-blue-900 hover:shadow-2xl hover:shadow-blue-200 active:scale-95 group"
-                >
-                    <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-900 group-hover:bg-white/10 group-hover:text-white transition-colors">
-                        <FileSpreadsheet className="w-5 h-5" />
-                    </div>
-                    <div className="text-left">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-blue-900 group-hover:text-blue-50 transition-colors">Dữ liệu mẫu chuẩn nghiên cứu</p>
-                        <p className="text-sm font-black text-blue-900 group-hover:text-white transition-colors uppercase tracking-tight">SEM Standard Dataset (N=500)</p>
-                    </div>
-                    <div className="ml-4 opacity-0 group-hover:opacity-100 transition-all group-hover:translate-x-1">
-                        <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                        </svg>
-                    </div>
-                </button>
-                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tight italic">Chứa 24 biến quan sát xây dựng trên mô hình SEM chuẩn Q1</p>
+                                 });
+                            } catch (err: any) {
+                                setError(`${t(locale, 'analyze.upload.errorRead')}: ` + (err.message || err));
+                                setIsProcessing(false);
+                            }
+                        }}
+                        disabled={isProcessing}
+                        className="group relative flex items-center gap-3 bg-white border-2 border-blue-900 px-6 py-3 rounded-2xl transition-all hover:bg-blue-900 hover:shadow-xl hover:shadow-blue-200 active:scale-95"
+                    >
+                        <div className="w-8 h-8 bg-blue-50 rounded-lg flex items-center justify-center text-blue-900 group-hover:bg-white/10 group-hover:text-white transition-colors">
+                            <FileSpreadsheet className="w-4 h-4" />
+                        </div>
+                        <div className="text-left">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-blue-900 group-hover:text-blue-50 transition-colors">Dữ liệu mẫu</p>
+                            <p className="text-sm font-black text-blue-900 group-hover:text-white transition-colors uppercase tracking-tight">SEM (N=500)</p>
+                        </div>
+                    </button>
+
+                    <button
+                        onClick={async (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setIsProcessing(true);
+                            try {
+                                const response = await fetch('/data/ncsstat_sample_1000.csv');
+                                if (!response.ok) throw new Error(t(locale, 'analyze.upload.errorSample'));
+                                const text = await response.text();
+
+                                Papa.parse(text, {
+                                    header: true,
+                                    skipEmptyLines: true,
+                                    complete: (results) => {
+                                        if (results.data && results.data.length > 0) {
+                                            onDataLoaded(results.data, 'ncsstat_sample_1000.csv');
+                                        } else {
+                                            setError(t(locale, 'analyze.upload.errorEmpty'));
+                                        }
+                                        setIsProcessing(false);
+                                    },
+                                    error: (err: Error) => {
+                                        setError(`${t(locale, 'analyze.upload.errorRead')}: ` + err.message);
+                                        setIsProcessing(false);
+                                    }
+                                 });
+                            } catch (err: any) {
+                                setError(`${t(locale, 'analyze.upload.errorRead')}: ` + (err.message || err));
+                                setIsProcessing(false);
+                            }
+                        }}
+                        disabled={isProcessing}
+                        className="group relative flex items-center gap-3 bg-white border-2 border-indigo-900 px-6 py-3 rounded-2xl transition-all hover:bg-indigo-900 hover:shadow-xl hover:shadow-indigo-200 active:scale-95"
+                    >
+                        <div className="w-8 h-8 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-900 group-hover:bg-white/10 group-hover:text-white transition-colors">
+                            <FileSpreadsheet className="w-4 h-4" />
+                        </div>
+                        <div className="text-left">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-indigo-900 group-hover:text-indigo-50 transition-colors">Dữ liệu mẫu</p>
+                            <p className="text-sm font-black text-indigo-900 group-hover:text-white transition-colors uppercase tracking-tight">SEM (N=1000)</p>
+                        </div>
+                    </button>
+                </div>
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tight italic mt-2">Chứa 24 biến quan sát xây dựng trên mô hình SEM chuẩn Q1</p>
             </div>
 
             {error && (
