@@ -60,8 +60,9 @@ export const SemResultSchema = z.object({
         ave: z.record(z.string(),safeNumber).catch({})
     }).catch({ cronbach: {}, rho_a: {}, rho_c: {}, composite_reliability: {}, ave: {} }),
     vif: z.object({
-        vif_values: z.record(z.string(),safeNumber).catch({})
-    }).catch({ vif_values: {} }),
+        vif_values: z.record(z.string(),safeNumber).catch({}),
+        multicollinearity: z.string().catch('Unknown')
+    }).catch({ vif_values: {}, multicollinearity: 'Unknown' }),
     bootstrapping: z.object({
         boot_paths: z.record(z.string(),z.record(z.string(),safeNumber)).catch({}),
         boot_loadings: z.record(z.string(),z.record(z.string(),safeNumber)).catch({}),

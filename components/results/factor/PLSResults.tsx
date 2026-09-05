@@ -360,6 +360,70 @@ export const PLSResults: React.FC<PLSResultsProps> = ({ results }) => {
                     </CardContent>
                 </Card>
             )}
+
+            {/* 7. Blindfolding (Q²) */}
+            {q2 && Object.keys(q2).length > 0 && (
+                <Card className="border-blue-100 shadow-sm overflow-hidden mt-8">
+                    <CardHeader className="bg-slate-50/50 border-b border-blue-50">
+                        <CardTitle className="text-sm font-black text-blue-900 uppercase tracking-widest flex items-center gap-2">
+                            <Zap className="w-4 h-4 text-blue-600" />
+                            Predictive Relevance (Q²) - Blindfolding
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-0">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr>
+                                        <TableHeader>Endogenous Construct</TableHeader>
+                                        <TableHeader>Q² Value</TableHeader>
+                                        <TableHeader>Predictive Relevance</TableHeader>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50">
+                                    {Object.keys(q2).map((constructName: string) => {
+                                        const val = q2[constructName];
+                                        const numVal = typeof val === 'object' ? Object.values(val)[0] as number : val;
+                                        if (typeof numVal !== 'number' || isNaN(numVal)) return null;
+                                        
+                                        let relevance = "None";
+                                        let color = "text-rose-600";
+                                        let badge = "bg-rose-100 text-rose-700";
+                                        
+                                        if (numVal > 0.35) {
+                                            relevance = "Large (> 0.35)";
+                                            color = "text-emerald-600";
+                                            badge = "bg-emerald-100 text-emerald-700";
+                                        } else if (numVal > 0.15) {
+                                            relevance = "Medium (> 0.15)";
+                                            color = "text-blue-600";
+                                            badge = "bg-blue-100 text-blue-700";
+                                        } else if (numVal > 0) {
+                                            relevance = "Small (> 0)";
+                                            color = "text-amber-600";
+                                            badge = "bg-amber-100 text-amber-700";
+                                        }
+                                        
+                                        return (
+                                            <tr key={constructName} className="hover:bg-blue-50/30">
+                                                <td className="py-3 px-4 font-bold text-slate-700">{constructName}</td>
+                                                <td className={`py-3 px-4 font-black ${color}`}>
+                                                    {safeToFixed(numVal)}
+                                                </td>
+                                                <td className="py-3 px-4">
+                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${badge}`}>
+                                                        {relevance}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
         </div>
     );
 };

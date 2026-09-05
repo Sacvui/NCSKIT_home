@@ -37,6 +37,8 @@ export async function loadPackageIfNeeded(packageName: string): Promise<boolean>
             await webR.installPackages([packageName], {
                 repos: 'https://repo.r-wasm.org/'
             });
+            // CRITICAL: Flush to IndexedDB so workers can access it!
+            try { await webR.FS.syncfs(false); } catch (e) {}
         }
 
         // Load the library

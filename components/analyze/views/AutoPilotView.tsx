@@ -170,9 +170,9 @@ export function AutoPilotView({
             fullReport.sem = semRes;
 
             // 4. Bootstrapping
-            setStatusText('Đang chạy Bootstrapping (5000 mẫu) để lấy P-Values...');
+            setStatusText('Đang chạy Bootstrapping (1000 mẫu) để lấy P-Values...');
             setProgress(85);
-            const bootRes = await runBootstrapping(numericData as number[][], measurementModel, structuralModel, 5000);
+            const bootRes = await runBootstrapping(numericData as number[][], measurementModel, structuralModel, 1000);
             console.log('[DEBUG] Bootstrapping raw result:', JSON.stringify(bootRes, null, 2));
             if (fullReport.sem) {
                 fullReport.sem.bootstrapping = bootRes;

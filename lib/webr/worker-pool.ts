@@ -40,24 +40,14 @@ export class WebRPoolManager {
                 });
                 
                 await worker.init();
-                
-                const persistentLib = '/home/web_user/library';
-                const channelType = getOptimalChannelType();
-                if (channelType !== 0) {
-                    try {
-                        try { await worker.FS.mkdir('/home/web_user'); } catch (e) {}
-                        try { await worker.FS.mkdir(persistentLib); } catch (e) {}
-                        await worker.FS.mount('IDBFS', {}, persistentLib);
-                        await worker.FS.syncfs(true);
-                    } catch (e) {
-                        logger.warn('[WebR Pool] IDBFS mount failed for worker:', e);
-                    }
-                }
 
+                // PURE RAM MODE for workers: No IDBFS mounting to avoid deadlocks.
+                // Install seminr directly into each worker's RAM safely.
+                await worker.installPackages(['seminr'], { repos: 'https://repo.r-wasm.org/' });
+                
+                // Generate unique RNG state per worker
                 await worker.evalR(`
-                    if (dir.exists("${persistentLib}")) {
-                        .libPaths(c('${persistentLib}', .libPaths()))
-                    }
+                    RNGkind("L'Ecuyer-CMRG")
                     options(repos = c(CRAN = "https://repo.r-wasm.org/"))
                     options(pkgType = "binary")
                 `);
@@ -181,12 +171,17 @@ export class WebRPoolManager {
                         })
                     `;
 
-                    await worker.evalR(wrappedCode);
+                    const evalPromise = worker.evalR(wrappedCode);
+                    const timeoutPromise = new Promise((_, reject) => {
+                        setTimeout(() => reject(new Error("Worker timeout or silent crash. Execution took too long.")), 180000);
+                    });
+                    
+                    await Promise.race([evalPromise, timeoutPromise]);
 
                     const resultProxy = await worker.evalR(`readLines("/home/web_user/output_pool.json")`);
                     const resultLines = await resultProxy.toJs() as any;
                     const finalStr = Array.isArray(resultLines?.values)
-                        ? resultLines.values.join('\\n')
+                        ? resultLines.values.join('\n')
                         : String(resultLines?.values ?? '');
 
                     if (finalStr.startsWith("ERROR:")) {

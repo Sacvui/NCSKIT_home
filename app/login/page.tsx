@@ -85,10 +85,8 @@ function LoginForm() {
         try {
             const supabase = getSupabase()
             const origin = window.location.origin
-            const isLocalhost = origin.includes('localhost')
-            const siteUrl = isLocalhost ? origin : origin.replace('stat.ncskit.org', 'ncsstat.ncskit.org')
             const targetPath = next && next !== '/' ? next : '/analyze'
-            const redirectTo = `${siteUrl}${targetPath}`
+            const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(targetPath)}`
 
             // Provider-specific options
             // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -321,19 +321,54 @@ export async function runPLSSEM(
     fl_res <- tryCatch(matrix_to_list(fornell_larcker), error = function(e) list())
     htmt_out <- tryCatch(matrix_to_list(htmt_res), error = function(e) list())
     
-    # Extract VIF
+    # Extract VIF - handle all possible return types from seminr
     vif_out <- tryCatch({
       v_items <- summ$validity$vif_items
-      if (is.matrix(v_items)) {
-          v_list <- as.list(v_items[,1])
-          names(v_list) <- rownames(v_items)
-      } else {
-          v_list <- as.list(v_items)
+      v_list <- list()
+      
+      if (!is.null(v_items)) {
+        # Unlist everything to ensure we have a flat vector of numeric values
+        flat_vif <- unlist(v_items)
+        if (length(flat_vif) > 0) {
+          # If names are missing or empty, assign default names
+          if (is.null(names(flat_vif)) || all(names(flat_vif) == "")) {
+            names(flat_vif) <- paste0("V", seq_along(flat_vif))
+          }
+          v_list <- as.list(flat_vif)
+        }
       }
-      max_vif <- max(unlist(v_items), na.rm = TRUE)
+      
+      # Also try inner VIF from structural model
+      if (length(v_list) == 0) {
+        inner_vif <- tryCatch({
+          scores <- pls_model$construct_scores
+          sm_mat <- pls_model$smMatrix
+          endogenous <- unique(sm_mat[, "target"])
+          vif_res <- list()
+          for (endo in endogenous) {
+            preds <- sm_mat[sm_mat[, "target"] == endo, "source"]
+            if (length(preds) > 1) {
+              df_vif <- data.frame(scores[, preds, drop = FALSE])
+              for (p in preds) {
+                others <- setdiff(preds, p)
+                r2 <- summary(lm(df_vif[[p]] ~ ., data = df_vif[, others, drop = FALSE]))$r.squared
+                vif_res[[paste0(p, " -> ", endo)]] <- if (r2 >= 0.9999) 999.99 else 1 / (1 - r2)
+              }
+            } else if (length(preds) == 1) {
+              vif_res[[paste0(preds, " -> ", endo)]] <- 1.0
+            }
+          }
+          vif_res
+        }, error = function(e) list())
+        if (length(inner_vif) > 0) v_list <- inner_vif
+      }
+      
+      max_vif <- if (length(v_list) > 0) max(unlist(v_list), na.rm = TRUE) else 1.0
       multicollinearity_status <- if (max_vif < 5) "None" else if (max_vif < 10) "Moderate" else "Severe"
       list(vif_values = v_list, multicollinearity = multicollinearity_status)
-    }, error = function(e) list(vif_values = list(), multicollinearity = "Unknown"))
+    }, error = function(e) {
+      list(vif_values = list(), multicollinearity = "Unknown")
+    })
 
     list(
       path_coefficients = paths_res,
@@ -483,59 +518,96 @@ export async function runBootstrapping(
     ).join(',\n      ');
 
     // Multithreading logic
-    const maxWorkers = webRPool.getMaxWorkers();
+    let maxWorkers = webRPool.getMaxWorkers();
+    if (maxWorkers < 1) maxWorkers = 1;
+    // Limit to 4 workers max to prevent memory exhaustion
+    if (maxWorkers > 4) maxWorkers = 4;
     
+    // Fallback if no workers available or forced single-thread
     if (maxWorkers <= 1) {
-        // Fallback to single-thread if worker pool is disabled or hardware is limited
+        logger.info(`[PLS-SEM] Bootstrapping falling back to single-threaded mode.`);
         const rCode = `
           library(seminr)
           df <- as.data.frame(raw_data)
           df[] <- suppressWarnings(lapply(df, as.numeric))
           colnames(df) <- paste0("V", 1:ncol(df))
           
-          # Impute partial NAs with column mean, 100% NA with global mean + noise
-          global_mean <- mean(unlist(df), na.rm = TRUE)
-          if (is.nan(global_mean)) global_mean <- 3
-          for (col in names(df)) {
-            na_idx <- is.na(df[[col]])
-            if (all(na_idx)) {
-              df[[col]] <- global_mean + rnorm(nrow(df), mean = 0, sd = 0.05)
-            } else if (any(na_idx)) {
-              df[[col]][na_idx] <- mean(df[[col]], na.rm = TRUE)
-            }
+          # Impute NAs
+          .global_mean <- mean(unlist(df), na.rm = TRUE)
+          if (is.nan(.global_mean)) .global_mean <- 3
+          for (.col in names(df)) {
+            .na_idx <- is.na(df[[.col]])
+            if (any(.na_idx)) df[[.col]][.na_idx] <- mean(df[[.col]], na.rm = TRUE)
           }
-          # Jitter all data to prevent zero-variance errors during bootstrap resampling
-          for (col in names(df)) {
-            df[[col]] <- df[[col]] + rnorm(nrow(df), mean = 0, sd = 1e-2)
+          for (.col in names(df)) {
+            df[[.col]] <- df[[.col]] + rnorm(nrow(df), mean = 0, sd = 1e-2)
           }
           
           mm <- constructs(${measurementSyntax})
           sm <- relationships(${structuralSyntax})
           
           pls_model <- estimate_pls(data = df, measurement_model = mm, structural_model = sm)
+          orig_summ <- summary(pls_model)
+          orig_paths <- orig_summ$paths
           
-          boot_model <- bootstrap_model(pls_model, nboot = ${nBootstrap}, cores = 1)
-          summ_boot <- summary(boot_model)
+          n_boot <- ${nBootstrap}
+          n_obs <- nrow(df)
+          path_names <- rownames(orig_paths)
+          path_names <- path_names[!grepl("R\\\\^2|AdjR", path_names)]
           
-          matrix_to_list <- function(mat) {
-            if (is.null(mat) || nrow(mat) == 0 || ncol(mat) == 0) return(list())
-            res <- lapply(as.data.frame(mat, check.names = FALSE), function(x) {
-              names(x) <- rownames(mat)
-              as.list(x)
-            })
-            return(res)
+          boot_estimates <- matrix(NA, nrow = n_boot, ncol = length(path_names))
+          colnames(boot_estimates) <- path_names
+          
+          for (b in 1:n_boot) {
+            tryCatch({
+              idx <- sample(1:n_obs, n_obs, replace = TRUE)
+              boot_df <- df[idx, , drop = FALSE]
+              boot_pls <- estimate_pls(data = boot_df, measurement_model = mm, structural_model = sm)
+              boot_summ <- summary(boot_pls)
+              for (pn in path_names) {
+                if (pn %in% rownames(boot_summ$paths)) {
+                  boot_estimates[b, pn] <- boot_summ$paths[pn, 1]
+                }
+              }
+            }, error = function(e) {})
           }
-
+          
+          orig_vals <- sapply(path_names, function(pn) {
+            if (pn %in% rownames(orig_paths)) orig_paths[pn, 1] else NA
+          })
+          
+          boot_mean <- colMeans(boot_estimates, na.rm = TRUE)
+          boot_sd <- apply(boot_estimates, 2, sd, na.rm = TRUE)
+          t_stat <- orig_vals / boot_sd
+          p_val <- 2 * pnorm(-abs(t_stat))
+          
+          result_paths <- list()
+          result_paths[["Original Est."]] <- as.list(orig_vals)
+          result_paths[["Boot Mean"]] <- as.list(boot_mean)
+          result_paths[["Boot SD"]] <- as.list(boot_sd)
+          result_paths[["T Stat."]] <- as.list(t_stat)
+          result_paths[["P Value"]] <- as.list(p_val)
+          
           list(
-            boot_paths = matrix_to_list(summ_boot$bootstrapped_paths),
-            boot_loadings = matrix_to_list(summ_boot$bootstrapped_loadings),
-            n_bootstrap = ${nBootstrap}
+            boot_paths = result_paths,
+            boot_loadings = list(),
+            n_bootstrap = n_boot
           )
         `;
         return await executeRWithRecovery(rCode, 'pls-sem', 0, 2, 300000, cleanData);
     }
 
     logger.info(`[PLS-SEM] Running Bootstrapping with ${nBootstrap} iterations across ${maxWorkers} workers.`);
+    
+    // CRITICAL: Ensure the main thread has flushed 'seminr' to IndexedDB
+    // so that workers can actually find it when they mount IDBFS!
+    try {
+        const { initWebR } = await import('./index');
+        const mainWebR = await initWebR();
+        await mainWebR.FS.syncfs(false);
+    } catch (e) {
+        logger.warn('[PLS-SEM] Failed to sync IDBFS before workers:', e);
+    }
     
     // 1. Generate L'Ecuyer-CMRG seeds for all workers to ensure mathematical rigor
     const seeds = await RNGManager.generateLecuyerSeeds(maxWorkers);
@@ -547,28 +619,18 @@ export async function runBootstrapping(
         return {
             data: cleanData,
             code: `
-                if (!require("seminr", character.only = TRUE, quietly = TRUE)) {
-                    options(repos = c(CRAN = "https://repo.r-wasm.org/", SEMINR = "https://sem-in-r.r-universe.dev"))
-                    tryCatch(webr::install("seminr"), error = function(e) {})
-                    library(seminr)
-                }
+                library(seminr)
                 df <- as.data.frame(raw_data)
                 df[] <- suppressWarnings(lapply(df, as.numeric))
                 colnames(df) <- paste0("V", 1:ncol(df))
                 
-                # Impute NAs and fix zero-variance columns
+                # Impute NAs
                 .global_mean <- mean(unlist(df), na.rm = TRUE)
                 if (is.nan(.global_mean)) .global_mean <- 3
                 for (.col in names(df)) {
                   .na_idx <- is.na(df[[.col]])
-                  if (all(.na_idx)) {
-                    df[[.col]] <- .global_mean + rnorm(nrow(df), mean = 0, sd = 0.05)
-                  } else if (any(.na_idx)) {
-                    df[[.col]][.na_idx] <- mean(df[[.col]], na.rm = TRUE)
-                  }
+                  if (any(.na_idx)) df[[.col]][.na_idx] <- mean(df[[.col]], na.rm = TRUE)
                 }
-                # Jitter all data to prevent zero-variance errors during bootstrap resampling
-                # Use 1e-2 to ensure it passes any numerical tolerance checks in R's scale()
                 for (.col in names(df)) {
                   df[[.col]] <- df[[.col]] + rnorm(nrow(df), mean = 0, sd = 1e-2)
                 }
@@ -576,138 +638,156 @@ export async function runBootstrapping(
                 mm <- constructs(${measurementSyntax})
                 sm <- relationships(${structuralSyntax})
                 
+                pls_model <- estimate_pls(data = df, measurement_model = mm, structural_model = sm)
+                orig_summ <- summary(pls_model)
+                orig_paths <- orig_summ$paths
+                
+                n_boot <- ${nBootPerWorker}
+                n_obs <- nrow(df)
+                path_names <- rownames(orig_paths)
+                path_names <- path_names[!grepl("R\\\\^2|AdjR", path_names)]
+                
+                boot_estimates <- matrix(NA, nrow = n_boot, ncol = length(path_names))
+                colnames(boot_estimates) <- path_names
+                
                 # Set L'Ecuyer-CMRG internal state
                 RNGkind("L'Ecuyer-CMRG")
                 .Random.seed <- as.integer(c(${seedStr}))
                 
-                pls_model <- tryCatch({
-                  estimate_pls(data = df, measurement_model = mm, structural_model = sm)
-                }, error = function(e) {
-                  vars <- sapply(df, function(x) var(x, na.rm=TRUE))
-                  zero_cols <- names(vars)[vars == 0 | is.na(vars)]
-                  stop(paste("estimate_pls failed:", e$message, "| nrow:", nrow(df), "| ncol:", ncol(df)))
-                })
-                
-                cl <- NULL # Bypass seminr's object 'cl' not found bug in finally block
-                
-                # Neutralize parallel package to prevent seminr's CRAN version from crashing WebR
-                suppressWarnings({
-                  if (requireNamespace("parallel", quietly = TRUE)) {
-                    ns <- asNamespace("parallel")
-                    unlockBinding("parSapply", ns)
-                    assign("parSapply", function(cl, X, FUN, ...) sapply(X, FUN, ...), envir = ns)
-                    
-                    unlockBinding("makeCluster", ns)
-                    assign("makeCluster", function(...) return(NULL), envir = ns)
-                    
-                    unlockBinding("stopCluster", ns)
-                    assign("stopCluster", function(...) return(NULL), envir = ns)
-                    
-                    unlockBinding("clusterExport", ns)
-                    assign("clusterExport", function(...) return(NULL), envir = ns)
-                  }
-                })
-                
-                # Run Bootstrap Chunk with robust error handling
-                boot_messages <- capture.output(type = "message", {
-                  boot_model <- tryCatch({
-                    bootstrap_model(pls_model, nboot = ${nBootPerWorker}, cores = 1)
-                  }, error = function(e) {
-                    stop(paste("Bootstrap failed unexpectedly:", e$message))
-                  })
-                })
-                
-                if (is.null(boot_model)) {
-                  stop(paste("Bootstrap underlying error:", paste(boot_messages, collapse=" | ")))
+                for (b in 1:n_boot) {
+                  tryCatch({
+                    idx <- sample(1:n_obs, n_obs, replace = TRUE)
+                    boot_df <- df[idx, , drop = FALSE]
+                    boot_pls <- estimate_pls(data = boot_df, measurement_model = mm, structural_model = sm)
+                    boot_summ <- summary(boot_pls)
+                    for (pn in path_names) {
+                      if (pn %in% rownames(boot_summ$paths)) {
+                        boot_estimates[b, pn] <- boot_summ$paths[pn, 1]
+                      }
+                    }
+                    rm(idx, boot_df, boot_pls, boot_summ)
+                  }, error = function(e) {})
+                  
+                  if (b %% 50 == 0) gc()
                 }
                 
-                summ_boot <- summary(boot_model)
-                
                 matrix_to_list <- function(mat) {
-                  if (is.null(mat) || nrow(mat) == 0 || ncol(mat) == 0) return(list())
-                  res <- lapply(as.data.frame(mat, check.names = FALSE), function(x) {
-                    names(x) <- rownames(mat)
-                    as.list(x)
-                  })
+                  res <- lapply(as.data.frame(mat, check.names = FALSE), as.list)
                   return(res)
                 }
 
                 list(
-                  boot_paths = matrix_to_list(summ_boot$bootstrapped_paths),
-                  boot_loadings = matrix_to_list(summ_boot$bootstrapped_loadings)
+                  boot_estimates = matrix_to_list(boot_estimates),
+                  path_names = path_names
                 )
             `
         };
     });
 
-    // 3. Execute in parallel
-    const workerResults = await webRPool.executeRParallel<any>(tasks, 300000);
+    // 3. Execute in parallel (timeout increased to 10 minutes for slow machines)
+    const workerResults = await webRPool.executeRParallel<any>(tasks, 600000);
     
     // 4. Combine results using Rubin's rules for pooling
-    if (!workerResults || workerResults.length === 0 || !workerResults[0].boot_paths) {
+    if (!workerResults || workerResults.length === 0 || !workerResults[0].boot_estimates) {
         throw new Error("Parallel bootstrapping failed to return valid results.");
     }
-
-    const combineMatrix = (matName: string) => {
-        const firstMat = workerResults[0][matName];
-        if (!firstMat) return {};
+    
+    // Merge boot_estimates from all workers
+    const pathNames: string[] = workerResults[0].path_names;
+    const combinedEstimates: Record<string, number[]> = {};
+    for (const pn of pathNames) {
+        combinedEstimates[pn] = [];
+    }
+    
+    for (const wr of workerResults) {
+        for (const pn of pathNames) {
+            if (wr.boot_estimates[pn]) {
+                combinedEstimates[pn] = combinedEstimates[pn].concat(wr.boot_estimates[pn]);
+            }
+        }
+    }
+    
+    // Get original estimates using the single thread fallback code execution trick
+    const rCodeFinal = `
+        library(seminr)
+        df <- as.data.frame(raw_data)
+        df[] <- suppressWarnings(lapply(df, as.numeric))
+        colnames(df) <- paste0("V", 1:ncol(df))
         
-        const combined: any = {};
-        const colNames = Object.keys(firstMat);
-        const rowNames = Object.keys(firstMat[colNames[0]] || {});
-
-        for (const col of colNames) {
-            combined[col] = {};
-            for (const row of rowNames) {
-                if (col === "Original Est.") {
-                    // Original estimate is identical across all workers
-                    combined[col][row] = firstMat[col][row];
-                } else if (col === "Boot Mean" || col === "Bootstrap Mean") {
-                    // Average the bootstrap means
-                    const means = workerResults.map(res => res[matName][col][row]);
-                    combined[col][row] = means.reduce((a, b) => a + b, 0) / maxWorkers;
-                } else if (col === "Boot SD" || col === "Standard Deviation") {
-                    // Rubin's Rule: Total Variance = Within-Variance + (1 + 1/M)*Between-Variance
-                    const meanCol = colNames.find(c => c === "Boot Mean" || c === "Bootstrap Mean") || colNames[1];
-                    const means = workerResults.map(res => res[matName][meanCol][row]);
-                    const grandMean = means.reduce((a, b) => a + b, 0) / maxWorkers;
-                    
-                    const ses = workerResults.map(res => res[matName][col][row]);
-                    const withinVar = ses.reduce((a, b) => a + b*b, 0) / maxWorkers;
-                    
-                    const betweenVar = maxWorkers > 1 
-                        ? means.reduce((a, b) => a + Math.pow(b - grandMean, 2), 0) / (maxWorkers - 1)
-                        : 0;
-                        
-                    const totalVar = withinVar + (1 + 1/maxWorkers) * betweenVar;
-                    combined[col][row] = Math.sqrt(totalVar);
-                } else {
-                    combined[col][row] = firstMat[col][row];
-                }
-            }
+        # Impute NAs
+        .global_mean <- mean(unlist(df), na.rm = TRUE)
+        if (is.nan(.global_mean)) .global_mean <- 3
+        for (.col in names(df)) {
+          .na_idx <- is.na(df[[.col]])
+          if (any(.na_idx)) df[[.col]][.na_idx] <- mean(df[[.col]], na.rm = TRUE)
         }
-
-        // Recalculate T-Stats, P-Values, and CIs based on the pooled SE
-        const sdCol = colNames.find(c => c === "Boot SD" || c === "Standard Deviation");
-        if (combined["Original Est."] && sdCol && combined[sdCol]) {
-            combined["T Stat."] = {};
-            combined["P Value"] = {};
-            for (const row of rowNames) {
-                const orig = combined["Original Est."][row];
-                const se = combined[sdCol][row];
-                const tStat = orig / se;
-                combined["T Stat."][row] = tStat;
-                combined["P Value"][row] = 0; // Handled by UI
-            }
+        for (.col in names(df)) {
+          df[[.col]] <- df[[.col]] + rnorm(nrow(df), mean = 0, sd = 1e-2)
         }
-        return combined;
+        
+        mm <- constructs(${measurementSyntax})
+        sm <- relationships(${structuralSyntax})
+        
+        pls_model <- estimate_pls(data = df, measurement_model = mm, structural_model = sm)
+        orig_summ <- summary(pls_model)
+        orig_paths <- orig_summ$paths
+        
+        path_names <- rownames(orig_paths)
+        path_names <- path_names[!grepl("R\\\\^2|AdjR", path_names)]
+        
+        orig_vals <- sapply(path_names, function(pn) {
+          if (pn %in% rownames(orig_paths)) orig_paths[pn, 1] else NA
+        })
+        
+        as.list(orig_vals)
+    `;
+    
+    const origValsRes = await executeRWithRecovery(rCodeFinal, 'pls-sem', 0, 2, 60000, cleanData);
+    
+    // Now calculate statistics in JavaScript
+    const jStat = (arr: number[]) => {
+        const validArr = arr.filter(v => typeof v === 'number' && !isNaN(v));
+        if (validArr.length === 0) return { mean: 0, sd: 0 };
+        const mean = validArr.reduce((a, b) => a + b, 0) / validArr.length;
+        const variance = validArr.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / (validArr.length - 1);
+        return { mean, sd: Math.sqrt(variance) };
     };
-
+    
+    // Approximation of standard normal CDF
+    const pnorm = (z: number) => {
+        const t = 1 / (1 + 0.2316419 * Math.abs(z));
+        const d = 0.3989423 * Math.exp(-z * z / 2);
+        const prob = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
+        return z > 0 ? 1 - prob : prob;
+    };
+    
+    const result_paths: Record<string, Record<string, number>> = {
+        "Original Est.": {},
+        "Boot Mean": {},
+        "Boot SD": {},
+        "T Stat.": {},
+        "P Value": {}
+    };
+    
+    for (const pn of pathNames) {
+        const origVal = origValsRes[pn];
+        const stats = jStat(combinedEstimates[pn] || []);
+        
+        const tStat = stats.sd > 0 ? origVal / stats.sd : 0;
+        const pVal = 2 * pnorm(-Math.abs(tStat));
+        
+        result_paths["Original Est."][pn] = origVal;
+        result_paths["Boot Mean"][pn] = stats.mean;
+        result_paths["Boot SD"][pn] = stats.sd;
+        result_paths["T Stat."][pn] = tStat;
+        result_paths["P Value"][pn] = pVal;
+    }
+    
     return {
-        boot_paths: combineMatrix('boot_paths'),
-        boot_loadings: combineMatrix('boot_loadings'),
+        boot_paths: result_paths,
+        boot_loadings: {},
         n_bootstrap: nBootstrap,
-        note: "Computed using Multi-threaded WebR Pool with L'Ecuyer-CMRG"
+        note: "Computed using Multi-threaded WebR Pool with Manual Extraction"
     };
 };
 

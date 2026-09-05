@@ -173,15 +173,15 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     channelType: getOptimalChannelType(),
                 });
 
-                // Only clean up ServiceWorker if we're not in the middle of a successful run
-                // or if we have a high crash count. Continuous unregistering causes race conditions.
-                if (typeof window !== 'undefined' && navigator.serviceWorker && crashCount > 2) {
+                // Aggressively clean up ServiceWorker before init to prevent deadlocks
+                // from persisting across page reloads.
+                if (typeof window !== 'undefined' && navigator.serviceWorker) {
                     try {
                         const regs = await navigator.serviceWorker.getRegistrations();
                         for (let reg of regs) {
                             if (reg.active?.scriptURL.includes('webr')) {
                                 await reg.unregister();
-                                logger.info('[WebR] Cleaned up conflicting ServiceWorker.');
+                                logger.info('[WebR] Cleaned up previous ServiceWorker to prevent deadlock.');
                             }
                         }
                     } catch (e) {}
@@ -192,7 +192,7 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 // CRITICAL: Safety timeout for webR.init()
                 await Promise.race([
                     webR.init(),
-                    new Promise((_, reject) => setTimeout(() => reject(new Error('WebR worker init timeout')), 30000))
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('WebR worker init timeout (Next.js server is likely compiling or lagging)')), 120000))
                 ]);
                 
                 logger.info('[WebR] Worker online.');

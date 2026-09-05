@@ -15,7 +15,6 @@ export async function middleware(request: NextRequest) {
     }
 
     // 2. FORCE PRIMARY DOMAIN: Avoid PKCE/Cookie mismatch between stat.ncskit.org and ncsstat.ncskit.org
-    /*
     if (host.includes('stat.ncskit.org') && !host.includes('ncsstat.ncskit.org')) {
         console.log(`[Middleware] Redirecting from ${host} to ncsstat.ncskit.org`)
         url.hostname = 'ncsstat.ncskit.org'
@@ -23,7 +22,6 @@ export async function middleware(request: NextRequest) {
         url.port = '' // Ensure port is stripped in production
         return NextResponse.redirect(url, { status: 301 })
     }
-    */
 
     // Block HTML 404 fallbacks for WebR R binary static files
     // If WebR fetches a missing file, it chokes on the NextJS 404 HTML fallback.
