@@ -193,16 +193,17 @@ export async function runEFA(
     n_obs <- nrow(na.omit(df))
     if (n_obs < 10) n_obs <- nrow(df) # Fallback if listwise is too small
 
-    # Parallel Analysis
-    n_factors_parallel <- tryCatch({
-        pa <- fa.parallel(cor_mat, n.obs = n_obs, fm = "minres", fa = "fa", plot = FALSE, n.iter = 20)
-        pa$nfact
-    }, error = function(e) NA)
-    
+    # Kaiser criterion (fast, no simulation)
     n_factors_kaiser <- sum(eigenvalues > 1)
     n_factors_run <- {{nFactors}}
+    n_factors_parallel <- NA
     
+    # Only run Parallel Analysis when user did NOT specify nFactors (auto-detect mode)
     if (n_factors_run <= 0) {
+        n_factors_parallel <- tryCatch({
+            pa <- fa.parallel(cor_mat, n.obs = n_obs, fm = "minres", fa = "fa", plot = FALSE, n.iter = 5)
+            pa$nfact
+        }, error = function(e) NA)
         n_factors_run <- if (!is.na(n_factors_parallel)) n_factors_parallel else n_factors_kaiser
     }
     if (n_factors_run < 1) n_factors_run <- 1

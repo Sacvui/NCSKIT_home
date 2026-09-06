@@ -29,27 +29,8 @@ function LoginForm() {
         setLocale(getStoredLocale())
     }, [])
 
-    // Safety net: If user lands here with a code (e.g., redirected from middleware), exchange it
-    useEffect(() => {
-        const exchangeCode = async () => {
-            const code = searchParams.get('code')
-            if (code && !loading) {
-                setLoading('resolving')
-                try {
-                    const supabase = getSupabase()
-                    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
-                    if (error) throw error
-                    
-                    window.location.href = next || '/analyze'
-                } catch (err: any) {
-                    console.error('[Login] Code exchange failed:', err)
-                    setLoading(null)
-                    setErrorMsg(isVi ? 'Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.' : 'Session expired. Please sign in again.')
-                }
-            }
-        }
-        exchangeCode()
-    }, [searchParams, next, isVi])
+    // Code exchange logic has been removed from here. It is now exclusively handled by AuthContext.tsx
+    // to prevent race conditions and "Session expired" double-exchange errors.
 
     const handleHardReset = async () => {
         setLoading('reset')
@@ -86,7 +67,9 @@ function LoginForm() {
             const supabase = getSupabase()
             const origin = window.location.origin
             const targetPath = next && next !== '/' ? next : '/analyze'
-            const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(targetPath)}`
+            // Bypass the server-side /auth/callback route and let AuthContext on the client handle the code exchange
+            // This prevents the AuthPKCECodeVerifierMissingError caused by cookie domain mismatches.
+            const redirectTo = `${origin}${targetPath}`
 
             // Provider-specific options
             // eslint-disable-next-line @typescript-eslint/no-explicit-any

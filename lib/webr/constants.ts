@@ -19,8 +19,8 @@ export const WEBR_TIMEOUTS = {
     SIMPLE: 30_000,
     /** 60 seconds — t-test, ANOVA, regression, chi-square, non-parametric */
     STANDARD: 60_000,
-    /** 120 seconds — EFA, CFA, SEM, mediation with bootstrap */
-    COMPLEX: 120_000,
+    /** 300 seconds — EFA, CFA, SEM, mediation with bootstrap (includes first-run package download time) */
+    COMPLEX: 300_000,
     /** 180 seconds — WebR engine initialization (includes package download) */
     INIT: 180_000,
 } as const;

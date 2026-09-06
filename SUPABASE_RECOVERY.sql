@@ -1,11 +1,16 @@
-﻿-- Enable UUID extension
+-- Enable UUID extension
 create extension if not exists "uuid-ossp";
 
--- 1. Create User Roles Enum
-create type user_role as enum ('user', 'admin', 'researcher');
+-- 1. Create User Roles Enum safely
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'user_role') THEN
+        CREATE TYPE user_role AS ENUM ('user', 'admin', 'researcher');
+    END IF;
+END$$;
 
 -- 2. Create Profiles Table
-create table public.profiles (
+create table if not exists public.profiles (
   id uuid references auth.users on delete cascade not null primary key,
   email text,
   full_name text,
@@ -21,7 +26,7 @@ create table public.profiles (
 );
 
 -- 3. Create Projects Table
-create table public.projects (
+create table if not exists public.projects (
   id uuid default gen_random_uuid() primary key,
   user_id uuid references public.profiles(id) on delete cascade not null,
   name text not null,
@@ -67,6 +72,7 @@ begin
 end;
 $$ language plpgsql security definer;
 
+drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
@@ -83,6 +89,7 @@ begin
 end;
 $$ language plpgsql;
 
+drop trigger if exists on_profile_created on profiles;
 create trigger on_profile_created
   before insert on profiles
   for each row execute procedure generate_referral_code();
@@ -449,4 +456,4 @@ create policy "Admins can view all feedback"
   );
 
 -- 4. Helper to promote user to admin (Run this manually for your user)
--- update public.profiles set role = 'admin' where email = 'your_email@example.com';
+update public.profiles set role = 'admin' where email in ('phuchai.le@gmail.com', 'foreverlove3004@gmail.com');

@@ -41,16 +41,48 @@ export class WebRPoolManager {
                 
                 await worker.init();
 
-                // PURE RAM MODE for workers: No IDBFS mounting to avoid deadlocks.
-                // Install seminr directly into each worker's RAM safely.
-                await worker.installPackages(['seminr'], { repos: 'https://repo.r-wasm.org/' });
+                // IDBFS Read-Only Mount: Prevents 4 workers from downloading 50MB simultaneously
+                const persistentLib = '/home/web_user/library';
+                const channelType = getOptimalChannelType();
                 
-                // Generate unique RNG state per worker
+                if (channelType !== 0) { // IDBFS only supports PostMessage/ServiceWorker
+                    try {
+                        try { await worker.FS.mkdir('/home/web_user'); } catch(e) {}
+                        try { await worker.FS.mkdir(persistentLib); } catch(e) {}
+                        
+                        await worker.FS.mount('IDBFS', {}, persistentLib);
+                        
+                        // Sync from IndexedDB to RAM (Read-only)
+                        await Promise.race([
+                            worker.FS.syncfs(true),
+                            new Promise((_, reject) => setTimeout(() => reject(new Error('Sync Timeout')), 10000))
+                        ]);
+                    } catch (e) {
+                        logger.warn('[WebR Pool] Worker IDBFS mount failed:', e);
+                    }
+                }
+                
+                // Generate unique RNG state and set lib paths
                 await worker.evalR(`
+                    if (dir.exists("${persistentLib}")) {
+                        .libPaths(c('${persistentLib}', .libPaths()))
+                    }
                     RNGkind("L'Ecuyer-CMRG")
                     options(repos = c(CRAN = "https://repo.r-wasm.org/"))
                     options(pkgType = "binary")
                 `);
+                
+                // Check if seminr is in cache before downloading
+                const checkInstalled = await worker.evalR(`require("seminr", character.only = TRUE, quietly = TRUE)`);
+                const checkInstalledJs = await checkInstalled.toJs() as any;
+                const isInstalled = checkInstalledJs?.values?.[0] === true;
+                
+                if (!isInstalled) {
+                    logger.info(`[WebR Pool] Worker ${i + 1} installing seminr from network...`);
+                    await worker.installPackages(['seminr'], { repos: 'https://repo.r-wasm.org/' });
+                } else {
+                    logger.debug(`[WebR Pool] Worker ${i + 1} loaded seminr from IDBFS cache.`);
+                }
                 
                 this.pool.push(worker);
                 logger.debug(`[WebR Pool] Worker ${i + 1}/${this.maxWorkers} ready.`);
@@ -89,7 +121,7 @@ export class WebRPoolManager {
     public releaseWorker(worker: WebR): void {
         if (this.busyWorkers.has(worker)) {
             // Clean up memory before releasing
-            worker.evalR('gc()').catch(e => logger.warn('[WebR Pool] Failed to GC worker:', e)).finally(() => {
+            worker.evalR('rm(list = ls(all.names = TRUE)); gc()').catch(e => logger.warn('[WebR Pool] Failed to GC worker:', e)).finally(() => {
                 this.busyWorkers.delete(worker);
             });
         }
@@ -173,7 +205,7 @@ export class WebRPoolManager {
 
                     const evalPromise = worker.evalR(wrappedCode);
                     const timeoutPromise = new Promise((_, reject) => {
-                        setTimeout(() => reject(new Error("Worker timeout or silent crash. Execution took too long.")), 180000);
+                        setTimeout(() => reject(new Error("Worker timeout or silent crash. Execution took too long.")), 300000); // 5 minutes max
                     });
                     
                     await Promise.race([evalPromise, timeoutPromise]);

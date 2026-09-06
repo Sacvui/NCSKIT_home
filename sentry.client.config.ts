@@ -48,6 +48,22 @@ Sentry.init({
                 delete event.user.username;
                 delete event.user.ip_address;
             }
+            // Strip potentially sensitive dataset arrays from breadcrumbs
+            if (event.breadcrumbs) {
+                event.breadcrumbs = event.breadcrumbs.map((b: any) => {
+                    if (b.data && b.data.data) {
+                        delete b.data.data;
+                    }
+                    if (b.data && b.data.state && b.data.state.data) {
+                        delete b.data.state.data;
+                    }
+                    return b;
+                });
+            }
+            // Strip from extra context
+            if (event.extra && event.extra.data) {
+                delete event.extra.data;
+            }
             return event;
         },
     });

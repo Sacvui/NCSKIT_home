@@ -45,15 +45,15 @@ export const translations = {
         },
         // PLS-SEM Banner (New)
         plssem: {
-            badge: 'BETA WORKFLOW',
-            title: 'Tiến trình PLS-SEM',
-            description: 'Quy trình phân tích chuyên nghiệp: Làm sạch - Kiểm định - Mô hình - Đào sâu',
-            cta: 'Thử ngay',
+            badge: 'NCSSTAT WORKFLOW',
+            title: 'Hệ thống Phân tích Thống kê',
+            description: 'Quy trình phân tích chuyên nghiệp chuẩn APA: Làm sạch dữ liệu - Đánh giá độ tin cậy - EFA/CFA - SEM & Hồi quy',
+            cta: 'Phân tích ngay',
             methods: {
-                omega: "McDonald's Omega",
-                htmt: 'Ma trận HTMT',
-                bootstrap: 'Bootstrapping',
-                ipma: 'Phân tích IPMA'
+                omega: "Cronbach's Alpha",
+                htmt: 'EFA & CFA',
+                bootstrap: 'Hồi quy tuyến tính',
+                ipma: 'Mô hình PLS-SEM'
             }
         },
         // Workflow (New)
@@ -606,15 +606,15 @@ export const translations = {
         },
         // PLS-SEM Banner (New)
         plssem: {
-            badge: 'BETA WORKFLOW',
-            title: 'PLS-SEM Workflow',
-            description: 'Professional analysis workflow: Clean - Test - Model - Insights',
-            cta: 'Try Now',
+            badge: 'NCSSTAT WORKFLOW',
+            title: 'Statistical Analysis System',
+            description: 'Professional APA-standard workflow: Data Cleaning - Reliability - EFA/CFA - SEM & Regression',
+            cta: 'Start Analyzing',
             methods: {
-                omega: "McDonald's Omega",
-                htmt: 'HTMT Matrix',
-                bootstrap: 'Bootstrapping',
-                ipma: 'IPMA Analysis'
+                omega: "Cronbach's Alpha",
+                htmt: 'EFA & CFA',
+                bootstrap: 'Linear Regression',
+                ipma: 'PLS-SEM Modeling'
             }
         },
         // Workflow (New)

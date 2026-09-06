@@ -280,8 +280,13 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         }
                         
                         # Ensure essential packages are available
+                        # NOTE: Only preload packages that are guaranteed available in the local/CDN repos.
+                        # quadprog + lavaan are loaded on-demand when CFA/SEM is triggered.
                         install_if_missing("jsonlite")
                         install_if_missing("psych")
+                        tryCatch(install_if_missing("GPArotation"), error = function(e) {
+                            message("[WebR] GPArotation optional, will load on-demand: ", e$message)
+                        })
                         
                         r_version_info <- paste0(R.version$major, ".", R.version$minor, " (", R.version$platform, ")")
                     `);
@@ -409,7 +414,7 @@ export async function executeRWithRecovery(
     method?: string,
     retryCount: number = 0,
     maxRetries: number = 2,
-    timeoutMs: number = 120000,
+    timeoutMs: number = 300000,
     csvData?: number[][] 
 ): Promise<any> {
     const webR = await initWebR();

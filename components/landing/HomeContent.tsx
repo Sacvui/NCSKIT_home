@@ -134,9 +134,9 @@ export default function HomeContent() {
                     </Link>
                 </motion.div>
 
-                {/* Main Feature Highlight: PLS-SEM 2026 */}
+                {/* Main Feature Highlight: Analysis System */}
                 <motion.div variants={itemVariants} className="mt-20 max-w-5xl mx-auto">
-                    <Link href="/analyze2" className="block group">
+                    <Link href="/analyze" className="block group">
                         <div className="relative overflow-hidden bg-slate-900 rounded-[3rem] p-10 md:p-14 shadow-2xl border border-slate-800 transition-all duration-500 group-hover:border-indigo-500/50">
                             <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-600/10 blur-[100px] rounded-full -mr-48 -mt-48 transition-all group-hover:bg-indigo-600/20"></div>
                             

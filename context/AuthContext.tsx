@@ -107,8 +107,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     const params = new URLSearchParams(window.location.search);
                     const code = params.get('code');
                     
-                    if (code && !isExchangingCode.current) {
-                        isExchangingCode.current = true;
+                    if (code) {
                         logger.debug('[Auth] OAuth code found, exchanging...');
                         try {
                             const { data: exchangeData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
@@ -118,11 +117,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                                 window.history.replaceState({}, '', window.location.pathname);
                             } else {
                                 logger.error('[Auth] Exchange failed:', exchangeError);
-                                window.history.replaceState({}, '', window.location.pathname);
+                                window.location.href = `/login?error=exchange_failed&err_msg=${encodeURIComponent(exchangeError?.message || 'Unknown error')}`;
+                                return; // Stop execution to let redirect happen
                             }
-                        } catch (e) {
+                        } catch (e: any) {
                             logger.error('[Auth] Exchange exception:', e);
-                            window.history.replaceState({}, '', window.location.pathname);
+                            window.location.href = `/login?error=exchange_failed&err_msg=${encodeURIComponent(e?.message || 'Exception during exchange')}`;
+                            return;
                         }
                         isExchangingCode.current = false;
                         setLoading(false);

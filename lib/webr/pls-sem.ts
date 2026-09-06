@@ -35,7 +35,7 @@ export async function runMcDonaldOmega(data: number[][], itemNames?: string[]): 
     )
   `;
 
-  return await executeRWithRecovery(rCode, 'cronbach', 0, 2, 120000, data);
+  return await executeRWithRecovery(rCode, 'cronbach', 0, 2, 300000, data);
 }
 
 /**
@@ -60,7 +60,7 @@ export async function runOutlierDetection(data: number[][]): Promise<any> {
       percentage = (length(outliers) / nrow(df)) * 100
     )
   `;
-  return await executeRWithRecovery(rCode, 'multivariate', 0, 2, 120000, data);
+  return await executeRWithRecovery(rCode, 'multivariate', 0, 2, 300000, data);
 }
 
 /**
@@ -103,7 +103,7 @@ export async function runHTMTMatrix(data: number[][], factorStructure: { name: s
     }
   `;
 
-  const result = await executeRWithRecovery(rCode, undefined, 0, 2, 120000, data);
+  const result = await executeRWithRecovery(rCode, undefined, 0, 2, 300000, data);
   return result;
 }
 
@@ -141,7 +141,7 @@ export async function runVIFCheck(data: number[][], dependentVarIndex: number = 
     )
   `;
 
-  const result = await executeRWithRecovery(rCode, undefined, 0, 2, 120000, data);
+  const result = await executeRWithRecovery(rCode, undefined, 0, 2, 300000, data);
   return result;
 }
 
@@ -469,7 +469,7 @@ export async function runSimpleBlindfolding(data: number[][], omissionDistance: 
     )
   `;
 
-  return await executeRWithRecovery(rCode, 'pls-sem', 0, 2, 120000, data);
+  return await executeRWithRecovery(rCode, 'pls-sem', 0, 2, 300000, data);
 }
 
 /**
@@ -488,7 +488,7 @@ export async function runSimpleBootstrapping(data: number[][], nBootstrap: numbe
     )
   `;
 
-  return await executeRWithRecovery(rCode, 'pls-sem', 0, 2, 120000, data);
+  return await executeRWithRecovery(rCode, 'pls-sem', 0, 2, 300000, data);
 }
 
 export async function runBootstrapping(
@@ -840,7 +840,7 @@ export async function runMediationModeration(
     )
   `;
 
-  const result = await executeRWithRecovery(rCode, undefined, 0, 2, 120000, data);
+  const result = await executeRWithRecovery(rCode, undefined, 0, 2, 300000, data);
   return result;
 }
 
@@ -865,7 +865,7 @@ export async function runIPMA(data: number[][], targetIndex: number): Promise<an
     )
   `;
 
-  const result = await executeRWithRecovery(rCode, undefined, 0, 2, 120000, data);
+  const result = await executeRWithRecovery(rCode, undefined, 0, 2, 300000, data);
   return result;
 }
 

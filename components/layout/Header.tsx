@@ -91,6 +91,10 @@ function HeaderContent({ centerContent, rightActions, hideNav = false, user: pro
                                 {t(locale, 'nav.cite_check')}
                             </NavLink>
 
+                            <a href="https://debate.ncskit.org" target="_blank" rel="noopener noreferrer" className="relative px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap text-slate-600 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-1.5">
+                                AI Proposal & Pitch Deck <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-100 text-indigo-700 uppercase">New</span>
+                            </a>
+
                             <NavDropdown
                                 label={t(locale, 'nav.knowledge_guides')}
                                 active={pathname?.startsWith('/docs') || pathname?.startsWith('/knowledge')}
@@ -228,6 +232,15 @@ function HeaderContent({ centerContent, rightActions, hideNav = false, user: pro
                             <ClipboardCheck className="w-5 h-5 text-indigo-500" />
                             {t(locale, 'nav.cite_check')}
                         </Link>
+                        <a 
+                            href="https://debate.ncskit.org"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-3 p-3 rounded-xl text-slate-700 font-bold hover:bg-slate-50 active:bg-indigo-50 active:text-indigo-600"
+                        >
+                            <span className="flex items-center justify-center w-5 h-5 rounded bg-indigo-100 text-indigo-600 font-black text-[10px]">AI</span>
+                            AI Proposal & Pitch Deck
+                        </a>
                         <Link 
                             href="/knowledge" 
                             className="flex items-center gap-3 p-3 rounded-xl text-slate-700 font-bold hover:bg-slate-50 active:bg-indigo-50 active:text-indigo-600"

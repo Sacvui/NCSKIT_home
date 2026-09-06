@@ -15,6 +15,34 @@ export const FALLBACK_ARTICLES: Record<string, any> = {
             }
         ]
     },
+    'what-is-a-research-model': {
+        slug: 'what-is-a-research-model', category: 'Mô hình nghiên cứu',
+        title_vi: 'Mô hình Nghiên cứu (Research Model) là gì?',
+        title_en: 'What is a Research Model?',
+        expert_tip_vi: 'Mô hình nghiên cứu chính là bản đồ định vị của đề tài. Một mô hình tốt không chỉ cần rõ ràng mà còn phải có tính kế thừa từ các lý thuyết nền tảng (Base Theory).',
+        expert_tip_en: 'A research model is the map of your study. A good model must be clear and derived from strong foundational theories.',
+        author: 'ncsStat Academic Team', updated_at: new Date().toISOString(),
+        content_structure: [
+            {
+                h2_vi: '1. Định nghĩa Mô hình Nghiên cứu', 
+                h2_en: '1. Definition of Research Model',
+                content_vi: 'Mô hình nghiên cứu là một khung logic trực quan (thường ở dạng sơ đồ) dùng để biểu diễn các biến số (nhân tố) và các giả thuyết về mối quan hệ giữa chúng. Nó cho người đọc thấy chính xác bạn đang muốn chứng minh điều gì trong nghiên cứu của mình.',
+                content_en: 'A research model is a visual logical framework (usually a diagram) used to represent variables (factors) and hypothesized relationships between them. It shows the reader exactly what you intend to prove in your study.'
+            },
+            {
+                h2_vi: '2. Các thành phần chính của một mô hình', 
+                h2_en: '2. Key Components of a Model',
+                content_vi: '**Biến độc lập (Independent Variable):** Là nguyên nhân gây ra sự thay đổi.\n**Biến phụ thuộc (Dependent Variable):** Là kết quả chịu sự tác động.\n**Biến trung gian (Mediator):** Là cầu nối giải thích TẠI SAO biến độc lập lại tác động đến biến phụ thuộc.\n**Biến điều tiết (Moderator):** Là yếu tố làm thay đổi MỨC ĐỘ hoặc CHIỀU HƯỚNG tác động giữa hai biến khác.',
+                content_en: '**Independent Variable (IV):** The cause of change.\n**Dependent Variable (DV):** The outcome affected by the IV.\n**Mediator:** The bridge explaining WHY the IV affects the DV.\n**Moderator:** The factor altering the STRENGTH or DIRECTION of the relationship between two variables.'
+            },
+            {
+                h2_vi: '3. Cách xây dựng Mô hình Nghiên cứu chuẩn', 
+                h2_en: '3. How to build a standard Research Model',
+                content_vi: 'Không thể tự ý vẽ các mũi tên nối các biến lại với nhau. Mọi mối quan hệ đều phải dựa trên:\n- **Lý thuyết nền (Base Theory):** Ví dụ: Thuyết TAM, TPB, UTAUT...\n- **Nghiên cứu trước đây (Literature Review):** Kế thừa kết quả từ các bài báo đã công bố.\n- **Khoảng trống nghiên cứu (Research Gap):** Bổ sung thêm biến mới vào mô hình cũ để tạo ra sự đóng góp khoa học.',
+                content_en: 'You cannot arbitrarily draw arrows connecting variables. All relationships must be based on:\n- **Base Theory:** e.g., TAM, TPB, UTAUT...\n- **Literature Review:** Inheriting results from published papers.\n- **Research Gap:** Adding new variables to an existing model to create scientific contribution.'
+            }
+        ]
+    },
     'technology-acceptance-model-tam': {
         slug: 'technology-acceptance-model-tam', category: 'Mô hình nghiên cứu',
         title_vi: 'Mô hình TAM Masterclass: Phân tích sâu và Case Study thực tế',

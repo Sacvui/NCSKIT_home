@@ -28,6 +28,7 @@ export function FileUpload({ onDataLoaded, locale }: FileUploadProps) {
                 Papa.parse(file, {
                     header: true,
                     skipEmptyLines: true,
+                    worker: true,
                     complete: (results) => {
                         if (results.data && results.data.length > 0) {
                             onDataLoaded(results.data, file.name);
@@ -157,6 +158,7 @@ export function FileUpload({ onDataLoaded, locale }: FileUploadProps) {
                                 Papa.parse(text, {
                                     header: true,
                                     skipEmptyLines: true,
+                                    worker: true,
                                     complete: (results) => {
                                         if (results.data && results.data.length > 0) {
                                             onDataLoaded(results.data, 'ncsstat_sample_500.csv');
@@ -200,6 +202,7 @@ export function FileUpload({ onDataLoaded, locale }: FileUploadProps) {
                                 Papa.parse(text, {
                                     header: true,
                                     skipEmptyLines: true,
+                                    worker: true,
                                     complete: (results) => {
                                         if (results.data && results.data.length > 0) {
                                             onDataLoaded(results.data, 'ncsstat_sample_1000.csv');
