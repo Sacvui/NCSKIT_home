@@ -44,9 +44,9 @@ export const getOptimalChannelType = (): 0 | 1 | 3 => {
     if (typeof window === 'undefined') return 3;
     // We prioritize ServiceWorker (1) for maximum compatibility with IDBFS persistence
     // while still maintaining near-native performance.
-    // SharedArrayBuffer (0) is fast but often blocks persistent storage access.
     if (navigator.serviceWorker && navigator.serviceWorker.controller) return 1;
-    if (typeof SharedArrayBuffer !== 'undefined' && window.crossOriginIsolated) return 0;
+    // DISABLED SharedArrayBuffer (0) because it blocks IDBFS and causes redundant package downloads across workers
+    // if (typeof SharedArrayBuffer !== 'undefined' && window.crossOriginIsolated) return 0;
     return 3;
 };
 
