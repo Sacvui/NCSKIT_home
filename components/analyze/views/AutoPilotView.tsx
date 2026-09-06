@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Target, Layers, Play, Rocket, AlertTriangle, CheckCircle2, ChevronLeft, ArrowRight, Lock } from 'lucide-react';
-import { runEFA, runPLSSEM, runCronbachAlpha, runBootstrapping, runBlindfolding } from '@/lib/webr-wrapper';
+import { runEFA, runPLSSEM, runCronbachAlpha, runBootstrapping, runBlindfolding, runLavaanAnalysis, runLinearRegression, runCorrelation } from '@/lib/webr-wrapper';
 import { AUTO_PILOT_PRESETS, PresetId, AutoPilotPreset } from '@/lib/auto-pilot-presets';
 
 interface AutoPilotViewProps {
@@ -140,67 +140,154 @@ export function AutoPilotView({
                 sem: null
             };
 
-            // 1. Reliability
-            setStatusText('Đang kiểm tra độ tin cậy thang đo (Cronbach Alpha)...');
-            setProgress(20);
-            for (const group of activeGroups) {
-                const groupIndices = group.columns.map(c => columns.indexOf(c));
-                const groupData = numericData.map(row => groupIndices.map(idx => row[idx]));
-                const res = await runCronbachAlpha(groupData as number[][]);
-                fullReport.cronbach[group.name] = { columns: group.columns, data: res };
-            }
-
-            // 2. EFA
-            setStatusText('Đang chạy phân tích nhân tố khám phá (EFA)...');
-            setProgress(50);
-            const allItems = activeGroups.flatMap(g => g.columns);
-            const efaIndices = allItems.map(c => columns.indexOf(c));
-            const efaData = numericData.map(row => efaIndices.map(idx => row[idx]));
-            const expectedFactors = activeGroups.length;
-            const efaRes = await runEFA(efaData as number[][], expectedFactors, 'oblimin', 'minres');
-            fullReport.efa = { columns: allItems, data: efaRes };
-
-            // 3. SEM
-            setStatusText('Đang chạy mô hình cấu trúc tuyến tính (PLS-SEM)...');
-            setProgress(70);
-            const measurementModel = activeGroups.map(g => ({ 
-                construct: g.name, 
-                items: g.columns.map(c => columns.indexOf(c)) 
-            }));
-            const structuralModel = paths;
-            
-            const semRes = await runPLSSEM(numericData as number[][], measurementModel, structuralModel);
-            fullReport.sem = semRes;
-
-            // 4. Bootstrapping
-            setStatusText(`Đang chạy Bootstrapping (${bootstrapSamples} mẫu) để lấy P-Values...`);
-            setProgress(80);
-            const bootRes = await runBootstrapping(numericData as number[][], measurementModel, structuralModel, bootstrapSamples);
-            console.log('[DEBUG] Bootstrapping raw result:', JSON.stringify(bootRes, null, 2));
-            if (fullReport.sem) {
-                fullReport.sem.bootstrapping = bootRes;
-                console.log('[DEBUG] SEM bootstrapping after assign:', JSON.stringify(fullReport.sem.bootstrapping?.boot_paths ? Object.keys(fullReport.sem.bootstrapping.boot_paths) : 'no boot_paths'));
-            }
-
-            // 5. Blindfolding
-            setStatusText('Đang chạy Blindfolding để lấy mức độ liên quan dự đoán (Q²)...');
-            setProgress(95);
-            try {
-                const blindfoldingRes = await runBlindfolding(numericData as number[][], measurementModel, structuralModel);
-                if (fullReport.sem && blindfoldingRes && blindfoldingRes.q2) {
-                    // Extract Q2 values correctly based on whether it is a matrix_to_list or simple list
-                    let q2Data = blindfoldingRes.q2;
-                    if (q2Data && typeof q2Data === 'object' && q2Data['Q²_predict'] && typeof q2Data['Q²_predict'] === 'object') {
-                        fullReport.sem.q2 = q2Data['Q²_predict'];
-                    } else if (q2Data && typeof q2Data === 'object' && q2Data['Q²_predict']) {
-                        fullReport.sem.q2 = q2Data;
-                    } else {
-                        // fallback if q2_export has a single column unnamed or just the vector
-                        fullReport.sem.q2 = q2Data["Q2"] || q2Data["Q²"] || q2Data; 
-                    }
+            if (selectedPreset.id === 'pls-sem') {
+                // 1. Reliability
+                setStatusText('Đang kiểm tra độ tin cậy thang đo (Cronbach Alpha)...');
+                setProgress(20);
+                for (const group of activeGroups) {
+                    const groupIndices = group.columns.map(c => columns.indexOf(c));
+                    const groupData = numericData.map(row => groupIndices.map(idx => row[idx]));
+                    const res = await runCronbachAlpha(groupData as number[][]);
+                    fullReport.cronbach[group.name] = { columns: group.columns, data: res };
                 }
-            } catch (err: any) {
-                console.warn("Blindfolding error (non-fatal):", err);
+
+                // 2. EFA
+                setStatusText('Đang chạy phân tích nhân tố khám phá (EFA)...');
+                setProgress(50);
+                const allItems = activeGroups.flatMap(g => g.columns);
+                const efaIndices = allItems.map(c => columns.indexOf(c));
+                const efaData = numericData.map(row => efaIndices.map(idx => row[idx]));
+                const expectedFactors = activeGroups.length;
+                const efaRes = await runEFA(efaData as number[][], expectedFactors, 'oblimin', 'minres');
+                fullReport.efa = { columns: allItems, data: efaRes };
+
+                // 3. SEM
+                setStatusText('Đang chạy mô hình cấu trúc tuyến tính (PLS-SEM)...');
+                setProgress(70);
+                const measurementModel = activeGroups.map(g => ({ 
+                    construct: g.name, 
+                    items: g.columns.map(c => columns.indexOf(c)) 
+                }));
+                const structuralModel = paths;
+                
+                const semRes = await runPLSSEM(numericData as number[][], measurementModel, structuralModel);
+                fullReport.sem = semRes;
+
+                // 4. Bootstrapping
+                setStatusText(`Đang chạy Bootstrapping (${bootstrapSamples} mẫu) để lấy P-Values...`);
+                setProgress(80);
+                const bootRes = await runBootstrapping(numericData as number[][], measurementModel, structuralModel, bootstrapSamples);
+                if (fullReport.sem) {
+                    fullReport.sem.bootstrapping = bootRes;
+                }
+
+                // 5. Blindfolding
+                setStatusText('Đang chạy Blindfolding để lấy mức độ liên quan dự đoán (Q²)...');
+                setProgress(95);
+                try {
+                    const blindfoldingRes = await runBlindfolding(numericData as number[][], measurementModel, structuralModel);
+                    if (fullReport.sem && blindfoldingRes && blindfoldingRes.q2) {
+                        let q2Data = blindfoldingRes.q2;
+                        if (q2Data && typeof q2Data === 'object' && q2Data['Q²_predict'] && typeof q2Data['Q²_predict'] === 'object') {
+                            fullReport.sem.q2 = q2Data['Q²_predict'];
+                        } else if (q2Data && typeof q2Data === 'object' && q2Data['Q²_predict']) {
+                            fullReport.sem.q2 = q2Data;
+                        } else {
+                            fullReport.sem.q2 = q2Data["Q2"] || q2Data["Q²"] || q2Data; 
+                        }
+                    }
+                } catch (err: any) {
+                    console.warn("Blindfolding error (non-fatal):", err);
+                }
+            } 
+            else if (selectedPreset.id === 'cb-sem') {
+                // 1. Reliability
+                setStatusText('Đang kiểm tra độ tin cậy thang đo (Cronbach Alpha)...');
+                setProgress(20);
+                for (const group of activeGroups) {
+                    const groupIndices = group.columns.map(c => columns.indexOf(c));
+                    const groupData = numericData.map(row => groupIndices.map(idx => row[idx]));
+                    const res = await runCronbachAlpha(groupData as number[][]);
+                    fullReport.cronbach[group.name] = { columns: group.columns, data: res };
+                }
+
+                // 2. CFA
+                setStatusText('Đang chạy Phân tích nhân tố khẳng định (CFA)...');
+                setProgress(50);
+                const cfaModel = activeGroups.map(g => `${g.name} =~ ${g.columns.join(' + ')}`).join('\n');
+                const cfaCols = activeGroups.flatMap(g => g.columns);
+                const cfaIndices = cfaCols.map(c => columns.indexOf(c));
+                const cfaData = numericData.map(row => cfaIndices.map(idx => row[idx]));
+                const cfaRes = await runLavaanAnalysis(cfaData as number[][], cfaCols, cfaModel);
+                fullReport.cfa = cfaRes;
+
+                // 3. SEM
+                setStatusText('Đang chạy Mô hình cấu trúc (CB-SEM)...');
+                setProgress(80);
+                const semModelLines = [...activeGroups.map(g => `${g.name} =~ ${g.columns.join(' + ')}`)];
+                paths.forEach(p => { semModelLines.push(`${p.to} ~ ${p.from}`); });
+                const semModel = semModelLines.join('\n');
+                const semRes = await runLavaanAnalysis(cfaData as number[][], cfaCols, semModel);
+                fullReport.sem = semRes;
+            }
+            else if (selectedPreset.id === 'regression') {
+                // 1. Reliability
+                setStatusText('Đang kiểm tra độ tin cậy thang đo (Cronbach Alpha)...');
+                setProgress(20);
+                for (const group of activeGroups) {
+                    const groupIndices = group.columns.map(c => columns.indexOf(c));
+                    const groupData = numericData.map(row => groupIndices.map(idx => row[idx]));
+                    const res = await runCronbachAlpha(groupData as number[][]);
+                    fullReport.cronbach[group.name] = { columns: group.columns, data: res };
+                }
+                
+                // 2. Correlation
+                setStatusText('Đang tính toán biến đại diện và Tương quan (Correlation)...');
+                setProgress(50);
+                const constructScores: Record<string, number[]> = {};
+                for (const group of activeGroups) {
+                    const groupIndices = group.columns.map(c => columns.indexOf(c));
+                    constructScores[group.name] = numericData.map(row => {
+                        const vals = groupIndices.map(idx => row[idx]).filter(v => v !== null) as number[];
+                        if (vals.length === 0) return 0;
+                        return vals.reduce((a, b) => a + b, 0) / vals.length;
+                    });
+                }
+                const constructNames = Object.keys(constructScores);
+                const constructData = [];
+                for (let i = 0; i < numericData.length; i++) {
+                    const row = constructNames.map(name => constructScores[name][i]);
+                    constructData.push(row);
+                }
+                
+                const corRes = await runCorrelation(constructData as number[][]);
+                fullReport.correlation = {
+                    matrix: corRes.correlationMatrix,
+                    pValues: corRes.pValues,
+                    constructs: constructNames
+                };
+
+                // 3. Linear Regression
+                setStatusText('Đang chạy Hồi quy đa biến (Linear Regression)...');
+                setProgress(80);
+                fullReport.regression = [];
+                
+                const targetVars = Array.from(new Set(paths.map(p => p.to)));
+                for (const dv of targetVars) {
+                    const ivs = paths.filter(p => p.to === dv).map(p => p.from);
+                    if (ivs.length === 0) continue;
+                    
+                    const regVars = [dv, ...ivs];
+                    const regIndices = regVars.map(v => constructNames.indexOf(v));
+                    const regData = constructData.map(row => regIndices.map(idx => row[idx]));
+                    
+                    const regRes = await runLinearRegression(regData as number[][], regVars);
+                    fullReport.regression.push({
+                        dependent: dv,
+                        independents: ivs,
+                        result: regRes
+                    });
+                }
             }
 
             setProgress(100);
