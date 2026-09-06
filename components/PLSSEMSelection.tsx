@@ -248,7 +248,7 @@ export default function PLSSEMSelection({ columns, onRunPLS, isAnalyzing, onBack
                                          <input type="checkbox" checked={useBootstrap} onChange={e => setUseBootstrap(e.target.checked)} className="w-5 h-5 rounded border-blue-200 text-blue-900" />
                                          <div className="flex flex-col">
                                             <span className="text-xs font-black text-blue-900 uppercase">Run Bootstrapping</span>
-                                            <span className="text-[9px] text-blue-600 font-bold uppercase">(5000 samples for P-values)</span>
+                                            <span className="text-[9px] text-blue-600 font-bold uppercase">(500 samples for P-values)</span>
                                          </div>
                                      </label>
                                      <label className="flex items-center gap-3 p-4 bg-blue-50/50 rounded-xl border border-blue-100 cursor-pointer hover:bg-blue-50 transition-all">

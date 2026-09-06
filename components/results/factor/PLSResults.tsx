@@ -256,7 +256,7 @@ export const PLSResults: React.FC<PLSResultsProps> = ({ results }) => {
                     <CardHeader className="bg-slate-50/50 border-b border-blue-50">
                         <CardTitle className="text-sm font-black text-blue-900 uppercase tracking-widest flex items-center gap-2">
                             <Zap className="w-4 h-4 text-blue-600" />
-                            Path Significance (Bootstrapping {bootstrapping.n_bootstrap || 5000} samples)
+                            Path Significance (Bootstrapping {bootstrapping.n_bootstrap || 500} samples)
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="p-0">
