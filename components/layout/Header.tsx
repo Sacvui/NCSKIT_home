@@ -68,44 +68,15 @@ function HeaderContent({ centerContent, rightActions, hideNav = false, user: pro
                                 />
                             </NavDropdown>
 
-                            <NavDropdown
-                                label={t(locale, 'nav.research_model')}
-                                active={pathname?.startsWith('/scales') || pathname === '/knowledge/what-is-a-research-model'}
-                                icon={Layout}
-                            >
-                                <NavDropdownItem
-                                    href="/scales"
-                                    active={pathname === '/scales'}
-                                    label={t(locale, 'nav.academic_scales')}
-                                    icon={Layout}
-                                />
-                                <NavDropdownItem
-                                    href="/knowledge/what-is-a-research-model"
-                                    active={pathname === '/knowledge/what-is-a-research-model'}
-                                    label={t(locale, 'nav.research_models')}
-                                    icon={Network}
-                                />
-                            </NavDropdown>
-
-                            <NavLink href="/cite-check" active={pathname === '/cite-check'}>
-                                {t(locale, 'nav.cite_check')}
+                            <NavLink href="/academy" active={pathname?.startsWith('/academy')}>
+                                {isVi ? 'ncsAcademy' : 'ncsAcademy'}
                             </NavLink>
-
-                            <a href="https://debate.ncskit.org" target="_blank" rel="noopener noreferrer" className="relative px-4 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap text-slate-600 hover:bg-slate-50 hover:text-slate-900 flex items-center gap-1.5">
-                                AI Proposal & Pitch Deck <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-100 text-indigo-700 uppercase">New</span>
-                            </a>
 
                             <NavDropdown
                                 label={t(locale, 'nav.knowledge_guides')}
-                                active={pathname?.startsWith('/docs') || pathname?.startsWith('/knowledge')}
+                                active={pathname?.startsWith('/docs')}
                                 icon={BookOpen}
                             >
-                                <NavDropdownItem
-                                    href="/knowledge"
-                                    active={pathname?.startsWith('/knowledge')}
-                                    label={t(locale, 'nav.knowledge_hub')}
-                                    icon={Brain}
-                                />
                                 <NavDropdownItem
                                     href="/docs/theory"
                                     active={pathname === '/docs/theory'}

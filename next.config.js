@@ -160,6 +160,26 @@ const nextConfig = {
         ignoreBuildErrors: false,
     },
 
+    async redirects() {
+        return [
+            {
+                source: '/scales',
+                destination: '/academy',
+                permanent: true,
+            },
+            {
+                source: '/knowledge',
+                destination: '/academy',
+                permanent: true,
+            },
+            {
+                source: '/methods',
+                destination: '/academy',
+                permanent: true,
+            }
+        ];
+    },
+
     // Enable compression
     compress: true,
 
