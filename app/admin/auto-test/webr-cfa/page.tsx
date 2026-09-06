@@ -765,14 +765,12 @@ export default function TestWebRDeep() {
                     list(
                         converged = TRUE,
                         n_obs = nrow(df),
-                        r_sq_F3 = round(s$paths["F3", 1], 4),
-                        path_F1_F3 = round(s$paths["F1 -> F3", 1], 4),
-                        path_F2_F3 = round(s$paths["F2 -> F3", 1], 4)
+                        path_F1_F3 = round(s$paths["F1", "F3"], 4),
+                        path_F2_F3 = round(s$paths["F2", "F3"], 4)
                     )
                 `, 'PLS-SEM');
                 if (plsRes.ok) {
                     addLog('OK', `PLS-SEM fitted: N=${plsRes.data.n_obs}`);
-                    addLog('RESULT', `R²(F3) = ${plsRes.data.r_sq_F3}`);
                     addLog('RESULT', `Path F1→F3 = ${plsRes.data.path_F1_F3}`);
                     addLog('RESULT', `Path F2→F3 = ${plsRes.data.path_F2_F3}`);
                     addPhaseResult('PLS-SEM', 'pass', performance.now() - p20Start);
@@ -812,12 +810,12 @@ export default function TestWebRDeep() {
                             idx <- sample(1:n, n, replace=TRUE)
                             bp <- estimate_pls(data=df[idx,], measurement_model=mm, structural_model=sm)
                             bs <- summary(bp)
-                            boot_ests[b,1] <- bs$paths["F1 -> F3", 1]
-                            boot_ests[b,2] <- bs$paths["F2 -> F3", 1]
+                            boot_ests[b,1] <- bs$paths["F1", "F3"]
+                            boot_ests[b,2] <- bs$paths["F2", "F3"]
                         }, error=function(e){})
                     }
                     boot_sd <- apply(boot_ests, 2, sd, na.rm=TRUE)
-                    orig_vals <- c(orig$paths["F1 -> F3",1], orig$paths["F2 -> F3",1])
+                    orig_vals <- c(orig$paths["F1", "F3"], orig$paths["F2", "F3"])
                     t_vals <- orig_vals / boot_sd
                     p_vals <- 2 * pnorm(-abs(t_vals))
                     
@@ -882,7 +880,7 @@ export default function TestWebRDeep() {
                             train_scores <- m$construct_scores
                             # Predict using training path coefficients
                             s <- summary(m)
-                            b1 <- s$paths["F1 -> F3", 1]; b2 <- s$paths["F2 -> F3", 1]
+                            b1 <- s$paths["F1", "F3"]; b2 <- s$paths["F2", "F3"]
                             test_m <- estimate_pls(data=test_df, measurement_model=mm, structural_model=sm)
                             test_scores <- test_m$construct_scores
                             pred <- b1 * test_scores[,"F1"] + b2 * test_scores[,"F2"]
