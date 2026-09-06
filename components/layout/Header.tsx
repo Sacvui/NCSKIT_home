@@ -68,6 +68,20 @@ function HeaderContent({ centerContent, rightActions, hideNav = false, user: pro
                                 />
                             </NavDropdown>
 
+                            <NavLink href="/cite-check" active={pathname?.startsWith('/cite-check')}>
+                                {t(locale, 'nav.cite_check')}
+                            </NavLink>
+
+                            <a 
+                                href="https://debate.ncskit.org"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="relative flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all whitespace-nowrap text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                            >
+                                <span className="flex items-center justify-center w-4 h-4 rounded bg-indigo-100 text-indigo-600 font-black text-[9px]">AI</span>
+                                AI Proposal
+                            </a>
+
                             <NavLink href="/academy" active={pathname?.startsWith('/academy')}>
                                 {isVi ? 'ncsAcademy' : 'ncsAcademy'}
                             </NavLink>
