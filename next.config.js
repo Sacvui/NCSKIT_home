@@ -115,7 +115,7 @@ const nextConfig = {
             },
             // Local R package repository
             {
-                source: '/webr_repo_v3/:path*',
+                source: '/webr_repo_v4/:path*',
                 headers: [
                     {
                         key: 'Cross-Origin-Resource-Policy',
