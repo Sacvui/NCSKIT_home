@@ -18,6 +18,19 @@ Tài liệu này hướng dẫn chi tiết quy trình cập nhật và phát hà
 
 Ngay sau khi lệnh Push thành công, bạn có thể mở giao diện web của Vercel (phần Deployments) để xem tiến trình tự động.
 
+**Khắc phục lỗi 403 Forbidden (Permission denied) khi đẩy code:**
+Nếu gặp lỗi quyền truy cập khi `git push` (đặc biệt khi dùng tài khoản/máy tính mới):
+1. Truy cập GitHub -> Settings -> Developer settings -> Personal access tokens.
+2. Tạo một **Fine-grained token** mới. Chú ý:
+   - **Repository access**: Chọn *Only select repositories* -> Chọn repo của bạn.
+   - **Permissions**: Mục *Contents* chọn **Read and write**.
+3. (Lựa chọn thay thế) Tạo Token (classic): Hãy chắc chắn đã tick vào ô `repo` (Full control of private repositories).
+4. Mở Terminal và cấu hình lại đường dẫn với token mới:
+   `git remote set-url origin https://<TOKEN_CỦA_BẠN>@github.com/Tên_User/Tên_Repo.git`
+5. Chạy lại lệnh `git push origin main`.
+
+*(Mẹo: Cách nhanh nhất là cấu hình Git Credential Manager để trình duyệt tự động hiện popup xác thực khi gọi `git push` mà không cần quản lý token thủ công)*
+
 ### Cách 2: Ép Cập Nhật Trực Tiếp bằng Vercel CLI
 Dùng trong trường hợp Github bị lỗi chứng chỉ (Permission denied) hoặc bạn muốn đẩy code lên thẳng Vercel bỏ qua Github.
 
