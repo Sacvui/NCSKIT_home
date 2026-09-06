@@ -41,48 +41,17 @@ export class WebRPoolManager {
                 
                 await worker.init();
 
-                // IDBFS Read-Only Mount: Prevents 4 workers from downloading 50MB simultaneously
-                const persistentLib = '/home/web_user/library';
-                const channelType = getOptimalChannelType();
-                
-                if (channelType !== 0) { // IDBFS only supports PostMessage/ServiceWorker
-                    try {
-                        try { await worker.FS.mkdir('/home/web_user'); } catch(e) {}
-                        try { await worker.FS.mkdir(persistentLib); } catch(e) {}
-                        
-                        await worker.FS.mount('IDBFS', {}, persistentLib);
-                        
-                        // Sync from IndexedDB to RAM (Read-only)
-                        await Promise.race([
-                            worker.FS.syncfs(true),
-                            new Promise((_, reject) => setTimeout(() => reject(new Error('Sync Timeout')), 10000))
-                        ]);
-                    } catch (e) {
-                        logger.warn('[WebR Pool] Worker IDBFS mount failed:', e);
-                    }
-                }
-                
-                // Generate unique RNG state and set lib paths
+                // Generate unique RNG state
                 await worker.evalR(`
-                    if (dir.exists("${persistentLib}")) {
-                        .libPaths(c('${persistentLib}', .libPaths()))
-                    }
                     RNGkind("L'Ecuyer-CMRG")
                     options(repos = c(CRAN = "https://repo.r-wasm.org/"))
                     options(pkgType = "binary")
                 `);
                 
-                // Check if seminr is in cache before downloading
-                const checkInstalled = await worker.evalR(`require("seminr", character.only = TRUE, quietly = TRUE)`);
-                const checkInstalledJs = await checkInstalled.toJs() as any;
-                const isInstalled = checkInstalledJs?.values?.[0] === true;
-                
-                if (!isInstalled) {
-                    logger.info(`[WebR Pool] Worker ${i + 1} installing seminr from network...`);
-                    await worker.installPackages(['seminr'], { repos: 'https://repo.r-wasm.org/' });
-                } else {
-                    logger.debug(`[WebR Pool] Worker ${i + 1} loaded seminr from IDBFS cache.`);
-                }
+                // Install seminr directly. The browser's HTTP cache will prevent redundant network requests 
+                // for subsequent workers since we spawn them sequentially.
+                logger.info(`[WebR Pool] Worker ${i + 1} verifying/installing seminr...`);
+                await worker.installPackages(['seminr'], { repos: 'https://repo.r-wasm.org/' });
                 
                 this.pool.push(worker);
                 logger.debug(`[WebR Pool] Worker ${i + 1}/${this.maxWorkers} ready.`);

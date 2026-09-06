@@ -23,12 +23,6 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(url, { status: 301 })
     }
 
-    // Block HTML 404 fallbacks for WebR R binary static files
-    // If WebR fetches a missing file, it chokes on the NextJS 404 HTML fallback.
-    if ((request.nextUrl.pathname.includes('/webr_repo_v2/') || request.nextUrl.pathname.includes('/webr_repo_v5/')) && 
-        /\.(rds|gz)$/.test(request.nextUrl.pathname)) {
-        return new NextResponse("Not Found", { status: 404, headers: { 'Content-Type': 'text/plain' } })
-    }
 
     // Skip session update for static assets
     if (request.nextUrl.pathname.startsWith('/_next') || request.nextUrl.pathname.includes('.')) {

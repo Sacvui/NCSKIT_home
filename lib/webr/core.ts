@@ -42,11 +42,11 @@ export const BASE_URL = typeof window !== 'undefined'
 
 export const getOptimalChannelType = (): 0 | 1 | 3 => {
     if (typeof window === 'undefined') return 3;
-    // We prioritize ServiceWorker (1) for maximum compatibility with IDBFS persistence
-    // while still maintaining near-native performance.
+    // Tối ưu nhất: SharedArrayBuffer cho phép tốc độ cao nhất (nếu có COOP/COEP headers)
+    if (typeof SharedArrayBuffer !== 'undefined' && window.crossOriginIsolated) return 0;
+    // Fallback: ServiceWorker
     if (navigator.serviceWorker && navigator.serviceWorker.controller) return 1;
-    // DISABLED SharedArrayBuffer (0) because it blocks IDBFS and causes redundant package downloads across workers
-    // if (typeof SharedArrayBuffer !== 'undefined' && window.crossOriginIsolated) return 0;
+    // Fallback cuối cùng: PostMessage
     return 3;
 };
 
