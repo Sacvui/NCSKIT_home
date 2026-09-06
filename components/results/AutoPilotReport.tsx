@@ -43,7 +43,7 @@ function CronbachSummaryRow({ scaleName, cronData }: { scaleName: string; cronDa
                     {badItems.length > 0 ? badItems.join(', ') : <span className="text-emerald-600 font-normal"><CheckCircle2 className="w-4 h-4 inline mr-1" />Không có</span>}
                 </td>
             </tr>
-            {expanded && itemTotalStats.length > 0 && (
+            {expanded && (
                 <tr className="bg-slate-50 border-b border-blue-100">
                     <td colSpan={5} className="p-4 pl-12">
                         <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden text-sm">
@@ -202,14 +202,20 @@ export function AutoPilotReport({ results, columns }: AutoPilotReportProps) {
                     <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-black shadow-lg">3</div>
                         <h3 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-3">
-                            <Network className="w-6 h-6 text-emerald-600" /> Mô hình Cấu trúc (PLS-SEM)
+                            <Network className="w-6 h-6 text-emerald-600" /> Mô hình Cấu trúc ({results.sem.fitMeasures ? 'CB-SEM' : 'PLS-SEM'})
                         </h3>
                     </div>
                     <div className="pl-4 md:pl-14 border-l-4 border-slate-100 ml-5 py-4">
-                        <PLSResults 
-                            results={results.sem} 
-                            columns={columns} 
-                        />
+                        {results.sem.fitMeasures ? (
+                            <React.Suspense fallback={<div>Đang tải kết quả CB-SEM...</div>}>
+                                {React.createElement(React.lazy(() => import('./factor/SEMResults').then(m => ({ default: m.SEMResults }))), { results: results.sem })}
+                            </React.Suspense>
+                        ) : (
+                            <PLSResults 
+                                results={results.sem} 
+                                columns={columns} 
+                            />
+                        )}
                     </div>
                 </div>
             )}
