@@ -69,7 +69,7 @@ export const AUTO_PILOT_PRESETS: AutoPilotPreset[] = [
         requiresGroups: false,
         color: 'text-amber-600',
         bgColor: 'bg-amber-50',
-        available: false, // Phase 2
+        available: true,
     },
     {
         id: 'scale',
@@ -82,7 +82,7 @@ export const AUTO_PILOT_PRESETS: AutoPilotPreset[] = [
         requiresGroups: true,
         color: 'text-purple-600',
         bgColor: 'bg-purple-50',
-        available: false, // Phase 2
+        available: true,
     },
     {
         id: 'logistic',
@@ -95,7 +95,7 @@ export const AUTO_PILOT_PRESETS: AutoPilotPreset[] = [
         requiresGroups: true,
         color: 'text-rose-600',
         bgColor: 'bg-rose-50',
-        available: false, // Phase 2
+        available: true,
     },
     {
         id: 'custom',
