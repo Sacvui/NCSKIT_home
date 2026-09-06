@@ -160,6 +160,19 @@ const nextConfig = {
         ignoreBuildErrors: false,
     },
 
+    async rewrites() {
+        return [
+            {
+                source: '/webr_repo_v5/:path*\\.rds',
+                destination: '/api/webr-not-found',
+            },
+            {
+                source: '/webr_repo_v5/:path*\\.gz',
+                destination: '/api/webr-not-found',
+            }
+        ];
+    },
+
     async redirects() {
         return [
             {
