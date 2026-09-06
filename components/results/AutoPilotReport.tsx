@@ -219,6 +219,109 @@ export function AutoPilotReport({ results, columns }: AutoPilotReportProps) {
                     </div>
                 </div>
             )}
+            {/* Section: CFA */}
+            {results.cfa && (
+                <div className="space-y-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center font-black shadow-lg">CFA</div>
+                        <h3 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-3">
+                            Phân tích Nhân tố Khẳng định (CFA)
+                        </h3>
+                    </div>
+                    <div className="pl-4 md:pl-14 border-l-4 border-slate-100 ml-5 py-4">
+                        <React.Suspense fallback={<div>Đang tải kết quả CFA...</div>}>
+                            {React.createElement(React.lazy(() => import('./factor/CFAResults').then(m => ({ default: m.CFAResults }))), { results: results.cfa })}
+                        </React.Suspense>
+                    </div>
+                </div>
+            )}
+
+            {/* Section: Correlation */}
+            {results.correlation && (
+                <div className="space-y-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-orange-600 text-white flex items-center justify-center font-black shadow-lg">Cor</div>
+                        <h3 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-3">
+                            Phân tích Tương quan (Correlation)
+                        </h3>
+                    </div>
+                    <div className="pl-4 md:pl-14 border-l-4 border-slate-100 ml-5 py-4">
+                        <React.Suspense fallback={<div>Đang tải kết quả Tương quan...</div>}>
+                            {React.createElement(React.lazy(() => import('./basic/CorrelationResults').then(m => ({ default: m.CorrelationResults }))), { results: results.correlation, columns: results.correlation.constructs || [] })}
+                        </React.Suspense>
+                    </div>
+                </div>
+            )}
+
+            {/* Section: Regression */}
+            {results.regression && (
+                <div className="space-y-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center font-black shadow-lg">Reg</div>
+                        <h3 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-3">
+                            Hồi quy Đa biến (Linear Regression)
+                        </h3>
+                    </div>
+                    <div className="pl-4 md:pl-14 border-l-4 border-slate-100 ml-5 py-4 space-y-8">
+                        {results.regression.map((reg: any, idx: number) => (
+                            <div key={idx}>
+                                <h4 className="text-lg font-bold text-slate-700 mb-4">Mô hình: {reg.dependent} ~ {reg.independents.join(' + ')}</h4>
+                                <React.Suspense fallback={<div>Đang tải kết quả Hồi quy...</div>}>
+                                    {React.createElement(React.lazy(() => import('./regression/RegressionResults').then(m => ({ default: m.RegressionResults }))), { results: reg.result, columns: [reg.dependent, ...reg.independents] })}
+                                </React.Suspense>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Section: Logistic */}
+            {results.logistic && (
+                <div className="space-y-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-pink-600 text-white flex items-center justify-center font-black shadow-lg">Log</div>
+                        <h3 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-3">
+                            Hồi quy Logistic (Logistic Regression)
+                        </h3>
+                    </div>
+                    <div className="pl-4 md:pl-14 border-l-4 border-slate-100 ml-5 py-4 space-y-8">
+                        {results.logistic.map((reg: any, idx: number) => (
+                            <div key={idx}>
+                                <h4 className="text-lg font-bold text-slate-700 mb-4">Mô hình: {reg.dependent} ~ {reg.independents.join(' + ')}</h4>
+                                <React.Suspense fallback={<div>Đang tải kết quả Logistic...</div>}>
+                                    {React.createElement(React.lazy(() => import('./regression/LogisticResults').then(m => ({ default: m.LogisticResults }))), { results: reg.result, columns: [reg.dependent, ...reg.independents] })}
+                                </React.Suspense>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Section: Compare */}
+            {results.compare && (
+                <div className="space-y-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-cyan-600 text-white flex items-center justify-center font-black shadow-lg">Cmp</div>
+                        <h3 className="text-2xl font-black text-slate-800 tracking-tight flex items-center gap-3">
+                            Kiểm định So sánh Trung bình (T-Test / ANOVA)
+                        </h3>
+                    </div>
+                    <div className="pl-4 md:pl-14 border-l-4 border-slate-100 ml-5 py-4 space-y-8">
+                        {results.compare.map((comp: any, idx: number) => (
+                            <div key={idx}>
+                                <h4 className="text-lg font-bold text-slate-700 mb-4">Biến phụ thuộc: {comp.testVar} (So sánh giữa các nhóm: {comp.groups.join(', ')})</h4>
+                                <React.Suspense fallback={<div>Đang tải kết quả...</div>}>
+                                    {comp.type === 't-test' ? (
+                                        React.createElement(React.lazy(() => import('./basic/TTestResults').then(m => ({ default: m.TTestResults }))), { results: comp.result, columns: [] })
+                                    ) : (
+                                        React.createElement(React.lazy(() => import('./basic/ANOVAResults').then(m => ({ default: m.ANOVAResults }))), { results: comp.result, columns: [] })
+                                    )}
+                                </React.Suspense>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
