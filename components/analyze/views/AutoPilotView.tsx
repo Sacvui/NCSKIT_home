@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Target, Layers, Play, Rocket, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { Target, Layers, Play, Rocket, AlertTriangle, CheckCircle2, ChevronLeft, ArrowRight, Lock } from 'lucide-react';
 import { runEFA, runPLSSEM, runCronbachAlpha, runBootstrapping, runBlindfolding } from '@/lib/webr-wrapper';
+import { AUTO_PILOT_PRESETS, PresetId, AutoPilotPreset } from '@/lib/auto-pilot-presets';
 
 interface AutoPilotViewProps {
     step: string;
@@ -61,6 +62,7 @@ export function AutoPilotView({
     const [progress, setProgress] = useState(0);
     const [statusText, setStatusText] = useState('');
     const [bootstrapSamples, setBootstrapSamples] = useState<number>(500);
+    const [selectedPreset, setSelectedPreset] = useState<AutoPilotPreset | null>(null);
 
     useEffect(() => {
         // Filter out completely non-numeric columns (like Names, IDs)
@@ -222,32 +224,114 @@ export function AutoPilotView({
         }
     };
 
+    if (!selectedPreset) {
+        return (
+            <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="text-center">
+                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-indigo-900 to-blue-900 text-white shadow-2xl mb-6">
+                        <Target className="w-10 h-10" />
+                    </div>
+                    <h2 className="text-3xl font-black text-blue-900 uppercase tracking-tight mb-4">
+                        Chọn Kịch bản Phân tích
+                    </h2>
+                    <p className="text-slate-500 max-w-2xl mx-auto">
+                        Hệ thống cung cấp các kịch bản chuẩn được thiết kế theo các tạp chí khoa học uy tín (Q1/Q2). Hãy chọn một kịch bản phù hợp với mục tiêu nghiên cứu của bạn.
+                    </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {AUTO_PILOT_PRESETS.map((preset) => (
+                        <div 
+                            key={preset.id}
+                            onClick={() => {
+                                if (preset.available) {
+                                    setSelectedPreset(preset);
+                                    if (preset.bootstrapDefault) setBootstrapSamples(preset.bootstrapDefault);
+                                }
+                            }}
+                            className={`relative rounded-3xl border-2 p-6 transition-all duration-300 ${
+                                preset.available 
+                                    ? 'bg-white border-slate-100 hover:border-indigo-400 hover:shadow-xl cursor-pointer hover:-translate-y-1' 
+                                    : 'bg-slate-50 border-slate-200 opacity-70 cursor-not-allowed'
+                            }`}
+                        >
+                            {!preset.available && (
+                                <div className="absolute top-4 right-4 bg-slate-200 text-slate-500 text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider flex items-center gap-1">
+                                    <Lock className="w-3 h-3" /> Đang phát triển
+                                </div>
+                            )}
+                            {preset.badge && preset.available && (
+                                <div className="absolute top-4 right-4 bg-indigo-100 text-indigo-700 text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider">
+                                    {preset.badge}
+                                </div>
+                            )}
+                            
+                            <div className={`w-14 h-14 rounded-2xl ${preset.bgColor} ${preset.color} flex items-center justify-center text-2xl mb-6 shadow-sm`}>
+                                {preset.icon}
+                            </div>
+                            
+                            <h3 className="text-lg font-black text-slate-800 mb-2">{preset.name}</h3>
+                            <p className="text-sm text-slate-500 mb-6 leading-relaxed line-clamp-2">
+                                {preset.description}
+                            </p>
+                            
+                            <div className="space-y-3">
+                                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Quy trình tự động:</div>
+                                <div className="flex flex-wrap gap-2">
+                                    {preset.steps.map((step, idx) => (
+                                        <span key={idx} className="inline-block px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-md font-medium">
+                                            {step}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                            
+                            <div className="mt-6 pt-4 border-t border-slate-100">
+                                <div className="text-[10px] text-slate-400 font-medium">
+                                    📚 Tham chiếu: {preset.references}
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <button 
+                onClick={() => setSelectedPreset(null)}
+                className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors font-bold text-sm"
+            >
+                <ChevronLeft className="w-4 h-4" /> Quay lại danh sách kịch bản
+            </button>
+
             <div className="text-center">
-                <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-indigo-900 to-blue-900 text-white shadow-2xl mb-6">
-                    <Rocket className="w-10 h-10" />
+                <div className={`inline-flex items-center justify-center w-20 h-20 rounded-3xl ${selectedPreset.bgColor} ${selectedPreset.color} shadow-xl mb-6 text-4xl`}>
+                    {selectedPreset.icon}
                 </div>
-                <h2 className="text-3xl font-black text-blue-900 uppercase tracking-tight mb-4">
-                    Thiết lập Auto Pilot
+                <h2 className="text-3xl font-black text-slate-800 uppercase tracking-tight mb-4">
+                    {selectedPreset.name}
                 </h2>
                 <p className="text-slate-500 max-w-2xl mx-auto">
-                    Hệ thống đã tự động gom nhóm thang đo của bạn. Hãy chọn đâu là biến phụ thuộc (Kết quả), và hệ thống sẽ tự thiết lập toàn bộ quy trình kiểm định Cronbach, EFA, và mô hình SEM.
+                    {selectedPreset.description}
                 </p>
             </div>
 
-            <div className="bg-white rounded-3xl border border-blue-100 shadow-xl p-8">
-                <h3 className="text-xl font-black text-blue-900 mb-6 flex items-center gap-3">
-                    <Layers className="w-6 h-6 text-indigo-500" /> Cấu hình Mô hình Nghiên cứu
-                </h3>
+            {selectedPreset.requiresPaths && (
+                <div className="bg-white rounded-3xl border border-blue-100 shadow-xl p-8">
+                    <h3 className="text-xl font-black text-blue-900 mb-6 flex items-center gap-3">
+                        <Layers className="w-6 h-6 text-indigo-500" /> Cấu hình Mô hình Nghiên cứu
+                    </h3>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {/* Path Builder */}
-                    <div className="space-y-4 md:col-span-2">
-                        <div className="flex items-center justify-between">
-                            <h4 className="font-bold text-slate-700">Thiết lập Giả thuyết (Đường dẫn)</h4>
-                            <span className="text-xs font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg">Path Builder</span>
-                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {/* Path Builder */}
+                        <div className="space-y-4 md:col-span-2">
+                            <div className="flex items-center justify-between">
+                                <h4 className="font-bold text-slate-700">Thiết lập Giả thuyết (Đường dẫn)</h4>
+                                <span className="text-xs font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg">Path Builder</span>
+                            </div>
                         
                         <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6">
                             <div className="flex flex-col md:flex-row items-center gap-4 mb-6">
@@ -316,57 +400,61 @@ export function AutoPilotView({
                         </div>
                     </div>
 
-                    {/* Bootstrap Sample Size Selector */}
-                    <div className="space-y-3 md:col-span-2 mt-2">
-                        <div className="flex items-center justify-between">
-                            <h4 className="font-bold text-slate-700">Số lượng Bootstrap (Resampling)</h4>
-                            <span className="text-xs font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">Bootstrapping</span>
-                        </div>
-                        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6">
-                            <div className="grid grid-cols-4 gap-3 mb-4">
-                                {[
-                                    { value: 100, label: '100', badge: '⚡ Nhanh', desc: 'Chỉ dùng debug / kiểm tra nhanh', color: 'slate' },
-                                    { value: 200, label: '200', badge: '🟡 Tối thiểu', desc: 'Phân tích sơ bộ, chưa đủ cho báo cáo', color: 'amber' },
-                                    { value: 500, label: '500', badge: '🟢 Đạt chuẩn', desc: 'Hair et al. (2017) — PLS-SEM', color: 'emerald' },
-                                    { value: 1000, label: '1,000', badge: '🟢🟢 Khuyến nghị', desc: 'Efron & Tibshirani (1993)', color: 'blue' },
-                                ].map(opt => (
-                                    <button
-                                        key={opt.value}
-                                        onClick={() => setBootstrapSamples(opt.value)}
-                                        className={`p-3 rounded-xl border-2 transition-all text-center ${
-                                            bootstrapSamples === opt.value
-                                                ? 'border-indigo-500 bg-indigo-50 shadow-md'
-                                                : 'border-slate-200 bg-white hover:border-slate-300'
-                                        }`}
-                                    >
-                                        <div className="text-2xl font-black text-slate-800">{opt.label}</div>
-                                        <div className="text-[10px] font-bold mt-1">{opt.badge}</div>
-                                        <div className="text-[9px] text-slate-400 mt-0.5 leading-tight">{opt.desc}</div>
-                                    </button>
-                                ))}
+                    {/* Bootstrap Sample Size Selector - Only show if required by preset */}
+                    {selectedPreset.bootstrapDefault && (
+                        <div className="space-y-3 md:col-span-2 mt-2">
+                            <div className="flex items-center justify-between">
+                                <h4 className="font-bold text-slate-700">Số lượng Bootstrap (Resampling)</h4>
+                                <span className="text-xs font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">Bootstrapping</span>
                             </div>
-                            <div className="space-y-2 text-xs text-slate-500">
-                                <p>
-                                    💡 <strong>Vì sao cần Bootstrap?</strong> PLS-SEM không giả định phân phối chuẩn, nên dùng <em>bootstrap resampling</em> để ước lượng sai số chuẩn (SE) và tính p-value cho hệ số đường dẫn (path coefficients).
-                                </p>
-                                <p>
-                                    📚 <strong>Cơ sở khoa học:</strong>
-                                </p>
-                                <ul className="list-disc list-inside space-y-1 ml-2 text-slate-400">
-                                    <li><strong>Hair, Hult, Ringle & Sarstedt (2017)</strong> — <em>&quot;A Primer on Partial Least Squares Structural Equation Modeling (PLS-SEM)&quot;</em>: Khuyến nghị tối thiểu <strong>500 mẫu bootstrap</strong> cho nghiên cứu PLS-SEM chuẩn, 5.000 cho xuất bản.</li>
-                                    <li><strong>Efron & Tibshirani (1993)</strong> — <em>&quot;An Introduction to the Bootstrap&quot;</em>: Nền tảng lý thuyết bootstrap, khuyến nghị <strong>1.000+ mẫu</strong> để ước lượng khoảng tin cậy ổn định.</li>
-                                    <li><strong>Davison & Hinkley (1997)</strong> — <em>&quot;Bootstrap Methods and their Application&quot;</em>: Xác nhận 1.000 là mức an toàn cho hầu hết ứng dụng thống kê.</li>
-                                </ul>
+                            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6">
+                                <div className="grid grid-cols-4 gap-3 mb-4">
+                                    {[
+                                        { value: 100, label: '100', badge: '⚡ Nhanh', desc: 'Chỉ dùng debug / kiểm tra nhanh', color: 'slate' },
+                                        { value: 200, label: '200', badge: '🟡 Tối thiểu', desc: 'Phân tích sơ bộ, chưa đủ cho báo cáo', color: 'amber' },
+                                        { value: 500, label: '500', badge: '🟢 Đạt chuẩn', desc: 'Hair et al. (2017) — PLS-SEM', color: 'emerald' },
+                                        { value: 1000, label: '1,000', badge: '🟢🟢 Khuyến nghị', desc: 'Efron & Tibshirani (1993)', color: 'blue' },
+                                    ].map(opt => (
+                                        <button
+                                            key={opt.value}
+                                            onClick={() => setBootstrapSamples(opt.value)}
+                                            className={`p-3 rounded-xl border-2 transition-all text-center ${
+                                                bootstrapSamples === opt.value
+                                                    ? 'border-indigo-500 bg-indigo-50 shadow-md'
+                                                    : 'border-slate-200 bg-white hover:border-slate-300'
+                                            }`}
+                                        >
+                                            <div className="text-2xl font-black text-slate-800">{opt.label}</div>
+                                            <div className="text-[10px] font-bold mt-1">{opt.badge}</div>
+                                            <div className="text-[9px] text-slate-400 mt-0.5 leading-tight">{opt.desc}</div>
+                                        </button>
+                                    ))}
+                                </div>
+                                <div className="space-y-2 text-xs text-slate-500">
+                                    <p>
+                                        💡 <strong>Vì sao cần Bootstrap?</strong> PLS-SEM không giả định phân phối chuẩn, nên dùng <em>bootstrap resampling</em> để ước lượng sai số chuẩn (SE) và tính p-value cho hệ số đường dẫn (path coefficients).
+                                    </p>
+                                    <p>
+                                        📚 <strong>Cơ sở khoa học:</strong>
+                                    </p>
+                                    <ul className="list-disc list-inside space-y-1 ml-2 text-slate-400">
+                                        <li><strong>Hair, Hult, Ringle & Sarstedt (2017)</strong> — <em>&quot;A Primer on Partial Least Squares Structural Equation Modeling (PLS-SEM)&quot;</em>: Khuyến nghị tối thiểu <strong>500 mẫu bootstrap</strong> cho nghiên cứu PLS-SEM chuẩn, 5.000 cho xuất bản.</li>
+                                        <li><strong>Efron & Tibshirani (1993)</strong> — <em>&quot;An Introduction to the Bootstrap&quot;</em>: Nền tảng lý thuyết bootstrap, khuyến nghị <strong>1.000+ mẫu</strong> để ước lượng khoảng tin cậy ổn định.</li>
+                                        <li><strong>Davison & Hinkley (1997)</strong> — <em>&quot;Bootstrap Methods and their Application&quot;</em>: Xác nhận 1.000 là mức an toàn cho hầu hết ứng dụng thống kê.</li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
                 </div>
+            )}
 
-                <div className="mt-10">
+            <div className="bg-white rounded-3xl border border-blue-100 shadow-xl p-8 mt-8">
+                <div className="">
                     <button
                         onClick={handleRunAutoPilot}
-                        disabled={isAnalyzing || paths.length === 0}
-                        className="w-full relative overflow-hidden group bg-gradient-to-r from-blue-900 to-indigo-900 text-white p-5 rounded-2xl font-black text-lg uppercase tracking-widest shadow-xl transition-all hover:shadow-blue-900/40 hover:-translate-y-1 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
+                        disabled={isAnalyzing || (selectedPreset.requiresPaths && paths.length === 0)}
+                        className={`w-full relative overflow-hidden group text-white p-5 rounded-2xl font-black text-lg uppercase tracking-widest shadow-xl transition-all ${isAnalyzing ? 'bg-slate-400' : 'bg-gradient-to-r from-blue-900 to-indigo-900 hover:shadow-blue-900/40 hover:-translate-y-1 active:scale-95'} disabled:opacity-50 disabled:pointer-events-none`}
                     >
                         {isAnalyzing ? (
                             <div className="flex flex-col items-center justify-center gap-2">
