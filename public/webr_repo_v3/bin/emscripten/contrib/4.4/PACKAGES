@@ -181566,9 +181566,9 @@ Suggests: httptest, roxygen2, testthat, knitr, rmarkdown
 License: GPL-3
 MD5sum: 44f63d50e85787e89e66bab7bae3f2aa
 
- P a c k a g e :   q u a d p r o g 
- V e r s i o n :   1 . 5 - 8 
- D e p e n d s :   R   ( > =   3 . 0 . 0 ) 
- L i c e n s e :   G P L - 2 
-  
- 
+Package: quadprog
+Version: 1.5-8
+Depends: R (>= 3.0.0)
+License: GPL-2
+MD5sum: 1
+
