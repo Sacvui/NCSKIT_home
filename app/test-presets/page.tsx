@@ -238,7 +238,7 @@ export default function TestWebRPresets() {
                     paste0("CFI=", round(fm_cfi, 3), ", RMSEA=", round(fm_rmsea, 3))
                 `);
                 const jsRes = await fmRes.toJs();
-                const fmValue = jsRes.values ? jsRes.values[0] : String(jsRes);
+                const fmValue = (jsRes as any).values ? (jsRes as any).values[0] : String(jsRes);
                 addLog('RESULT', 'CB-SEM Fit: ' + fmValue);
             } catch (e: any) {
                 p2Ok = false;
