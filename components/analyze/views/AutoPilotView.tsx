@@ -60,6 +60,7 @@ export function AutoPilotView({
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [progress, setProgress] = useState(0);
     const [statusText, setStatusText] = useState('');
+    const [bootstrapSamples, setBootstrapSamples] = useState<number>(500);
 
     useEffect(() => {
         // Filter out completely non-numeric columns (like Names, IDs)
@@ -170,9 +171,9 @@ export function AutoPilotView({
             fullReport.sem = semRes;
 
             // 4. Bootstrapping
-            setStatusText('Đang chạy Bootstrapping (500 mẫu) để lấy P-Values...');
+            setStatusText(`Đang chạy Bootstrapping (${bootstrapSamples} mẫu) để lấy P-Values...`);
             setProgress(80);
-            const bootRes = await runBootstrapping(numericData as number[][], measurementModel, structuralModel, 500);
+            const bootRes = await runBootstrapping(numericData as number[][], measurementModel, structuralModel, bootstrapSamples);
             console.log('[DEBUG] Bootstrapping raw result:', JSON.stringify(bootRes, null, 2));
             if (fullReport.sem) {
                 fullReport.sem.bootstrapping = bootRes;
@@ -314,6 +315,51 @@ export function AutoPilotView({
                             </div>
                         </div>
                     </div>
+
+                    {/* Bootstrap Sample Size Selector */}
+                    <div className="space-y-3 md:col-span-2 mt-2">
+                        <div className="flex items-center justify-between">
+                            <h4 className="font-bold text-slate-700">Số lượng Bootstrap (Resampling)</h4>
+                            <span className="text-xs font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">Bootstrapping</span>
+                        </div>
+                        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6">
+                            <div className="grid grid-cols-4 gap-3 mb-4">
+                                {[
+                                    { value: 100, label: '100', badge: '⚡ Nhanh', desc: 'Chỉ dùng debug / kiểm tra nhanh', color: 'slate' },
+                                    { value: 200, label: '200', badge: '🟡 Tối thiểu', desc: 'Phân tích sơ bộ, chưa đủ cho báo cáo', color: 'amber' },
+                                    { value: 500, label: '500', badge: '🟢 Đạt chuẩn', desc: 'Hair et al. (2017) — PLS-SEM', color: 'emerald' },
+                                    { value: 1000, label: '1,000', badge: '🟢🟢 Khuyến nghị', desc: 'Efron & Tibshirani (1993)', color: 'blue' },
+                                ].map(opt => (
+                                    <button
+                                        key={opt.value}
+                                        onClick={() => setBootstrapSamples(opt.value)}
+                                        className={`p-3 rounded-xl border-2 transition-all text-center ${
+                                            bootstrapSamples === opt.value
+                                                ? 'border-indigo-500 bg-indigo-50 shadow-md'
+                                                : 'border-slate-200 bg-white hover:border-slate-300'
+                                        }`}
+                                    >
+                                        <div className="text-2xl font-black text-slate-800">{opt.label}</div>
+                                        <div className="text-[10px] font-bold mt-1">{opt.badge}</div>
+                                        <div className="text-[9px] text-slate-400 mt-0.5 leading-tight">{opt.desc}</div>
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="space-y-2 text-xs text-slate-500">
+                                <p>
+                                    💡 <strong>Vì sao cần Bootstrap?</strong> PLS-SEM không giả định phân phối chuẩn, nên dùng <em>bootstrap resampling</em> để ước lượng sai số chuẩn (SE) và tính p-value cho hệ số đường dẫn (path coefficients).
+                                </p>
+                                <p>
+                                    📚 <strong>Cơ sở khoa học:</strong>
+                                </p>
+                                <ul className="list-disc list-inside space-y-1 ml-2 text-slate-400">
+                                    <li><strong>Hair, Hult, Ringle & Sarstedt (2017)</strong> — <em>&quot;A Primer on Partial Least Squares Structural Equation Modeling (PLS-SEM)&quot;</em>: Khuyến nghị tối thiểu <strong>500 mẫu bootstrap</strong> cho nghiên cứu PLS-SEM chuẩn, 5.000 cho xuất bản.</li>
+                                    <li><strong>Efron & Tibshirani (1993)</strong> — <em>&quot;An Introduction to the Bootstrap&quot;</em>: Nền tảng lý thuyết bootstrap, khuyến nghị <strong>1.000+ mẫu</strong> để ước lượng khoảng tin cậy ổn định.</li>
+                                    <li><strong>Davison & Hinkley (1997)</strong> — <em>&quot;Bootstrap Methods and their Application&quot;</em>: Xác nhận 1.000 là mức an toàn cho hầu hết ứng dụng thống kê.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="mt-10">
@@ -342,7 +388,7 @@ export function AutoPilotView({
                     
                     <div className="mt-4 flex items-center justify-center gap-2 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
                         <AlertTriangle className="w-3 h-3 text-amber-500" />
-                        Quá trình này có thể mất 15-30 giây tùy cấu hình máy tính
+                        {bootstrapSamples >= 1000 ? 'Bootstrap 1000 mẫu — có thể mất 3-10 phút' : bootstrapSamples >= 500 ? 'Có thể mất 1-5 phút tùy cấu hình' : 'Có thể mất 15-60 giây'}
                     </div>
                 </div>
             </div>

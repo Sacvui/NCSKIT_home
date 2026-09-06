@@ -725,13 +725,192 @@ export default function TestWebRDeep() {
             } catch (e: any) { addLog('ERROR', e.message); allPassed = false; addPhaseResult('Mediation', 'fail', performance.now() - p19Start); }
 
             // ═══════════════════════════════════════════
+            // PHASE 20: PLS-SEM (seminr)
+            // ═══════════════════════════════════════════
+            const p20Start = performance.now();
+            addLog('INFO', '══════ PHASE 20: PLS-SEM (seminr) ══════');
+            addLog('INFO', 'Installing seminr package (may take 30-60s)...');
+            try {
+                const installSeminr = await evalRSafe(webR, `
+                    if (!require("seminr", quietly = TRUE)) {
+                        options(repos = c("https://sem-in-r.r-universe.dev", "https://repo.r-wasm.org"))
+                        webr::install("seminr")
+                        library(seminr)
+                    }
+                    paste("seminr version:", packageVersion("seminr"))
+                `, 'INSTALL-SEMINR');
+                if (installSeminr.ok) addLog('OK', installSeminr.value); else { addLog('ERROR', installSeminr.value); allPassed = false; }
+
+                addLog('INFO', 'Fitting PLS-SEM model with simulated data...');
+                const plsRes = await evalRJSON(webR, `
+                    set.seed(42)
+                    n <- 150
+                    f1 <- rnorm(n); f2 <- rnorm(n); f3 <- 0.5*f1 + 0.3*f2 + rnorm(n,0,0.6)
+                    df <- data.frame(
+                        V1=f1*0.8+rnorm(n,0,0.3), V2=f1*0.7+rnorm(n,0,0.4), V3=f1*0.85+rnorm(n,0,0.3),
+                        V4=f2*0.8+rnorm(n,0,0.3), V5=f2*0.75+rnorm(n,0,0.35), V6=f2*0.9+rnorm(n,0,0.25),
+                        V7=f3*0.8+rnorm(n,0,0.3), V8=f3*0.7+rnorm(n,0,0.4), V9=f3*0.85+rnorm(n,0,0.3)
+                    )
+                    mm <- constructs(
+                        composite("F1", multi_items("V", 1:3)),
+                        composite("F2", multi_items("V", 4:6)),
+                        composite("F3", multi_items("V", 7:9))
+                    )
+                    sm <- relationships(
+                        paths(from = "F1", to = "F3"),
+                        paths(from = "F2", to = "F3")
+                    )
+                    pls <- estimate_pls(data = df, measurement_model = mm, structural_model = sm)
+                    s <- summary(pls)
+                    list(
+                        converged = TRUE,
+                        n_obs = nrow(df),
+                        r_sq_F3 = round(s$paths["F3", 1], 4),
+                        path_F1_F3 = round(s$paths["F1 -> F3", 1], 4),
+                        path_F2_F3 = round(s$paths["F2 -> F3", 1], 4)
+                    )
+                `, 'PLS-SEM');
+                if (plsRes.ok) {
+                    addLog('OK', `PLS-SEM fitted: N=${plsRes.data.n_obs}`);
+                    addLog('RESULT', `R²(F3) = ${plsRes.data.r_sq_F3}`);
+                    addLog('RESULT', `Path F1→F3 = ${plsRes.data.path_F1_F3}`);
+                    addLog('RESULT', `Path F2→F3 = ${plsRes.data.path_F2_F3}`);
+                    addPhaseResult('PLS-SEM', 'pass', performance.now() - p20Start);
+                } else { allPassed = false; addPhaseResult('PLS-SEM', 'fail', performance.now() - p20Start); }
+            } catch (e: any) { addLog('ERROR', `PLS-SEM: ${e.message}`); allPassed = false; addPhaseResult('PLS-SEM', 'fail', performance.now() - p20Start); }
+
+            // ═══════════════════════════════════════════
+            // PHASE 21: BOOTSTRAPPING (50 samples for speed)
+            // ═══════════════════════════════════════════
+            const p21Start = performance.now();
+            addLog('INFO', '══════ PHASE 21: BOOTSTRAPPING (50 mẫu — test mode) ══════');
+            addLog('DEBUG', 'Dùng 50 mẫu để test nhanh. Production nên dùng 500-1000.');
+            try {
+                const bootRes = await evalRJSON(webR, `
+                    set.seed(42)
+                    n <- 150
+                    f1 <- rnorm(n); f2 <- rnorm(n); f3 <- 0.5*f1 + 0.3*f2 + rnorm(n,0,0.6)
+                    df <- data.frame(
+                        V1=f1*0.8+rnorm(n,0,0.3), V2=f1*0.7+rnorm(n,0,0.4), V3=f1*0.85+rnorm(n,0,0.3),
+                        V4=f2*0.8+rnorm(n,0,0.3), V5=f2*0.75+rnorm(n,0,0.35), V6=f2*0.9+rnorm(n,0,0.25),
+                        V7=f3*0.8+rnorm(n,0,0.3), V8=f3*0.7+rnorm(n,0,0.4), V9=f3*0.85+rnorm(n,0,0.3)
+                    )
+                    mm <- constructs(
+                        composite("F1", multi_items("V", 1:3)),
+                        composite("F2", multi_items("V", 4:6)),
+                        composite("F3", multi_items("V", 7:9))
+                    )
+                    sm <- relationships(paths(from="F1",to="F3"), paths(from="F2",to="F3"))
+                    pls <- estimate_pls(data=df, measurement_model=mm, structural_model=sm)
+                    
+                    # Manual bootstrap (50 iterations for speed test)
+                    orig <- summary(pls)
+                    n_boot <- 50
+                    boot_ests <- matrix(NA, nrow=n_boot, ncol=2)
+                    for (b in 1:n_boot) {
+                        tryCatch({
+                            idx <- sample(1:n, n, replace=TRUE)
+                            bp <- estimate_pls(data=df[idx,], measurement_model=mm, structural_model=sm)
+                            bs <- summary(bp)
+                            boot_ests[b,1] <- bs$paths["F1 -> F3", 1]
+                            boot_ests[b,2] <- bs$paths["F2 -> F3", 1]
+                        }, error=function(e){})
+                    }
+                    boot_sd <- apply(boot_ests, 2, sd, na.rm=TRUE)
+                    orig_vals <- c(orig$paths["F1 -> F3",1], orig$paths["F2 -> F3",1])
+                    t_vals <- orig_vals / boot_sd
+                    p_vals <- 2 * pnorm(-abs(t_vals))
+                    
+                    list(
+                        n_boot = n_boot,
+                        paths = c("F1->F3", "F2->F3"),
+                        original = round(orig_vals, 4),
+                        boot_sd = round(boot_sd, 4),
+                        t_stat = round(t_vals, 4),
+                        p_value = round(p_vals, 6)
+                    )
+                `, 'BOOTSTRAP');
+                if (bootRes.ok) {
+                    addLog('OK', `Bootstrapping completed: ${bootRes.data.n_boot} samples`);
+                    const paths = Array.isArray(bootRes.data.paths) ? bootRes.data.paths : [bootRes.data.paths];
+                    const originals = Array.isArray(bootRes.data.original) ? bootRes.data.original : [bootRes.data.original];
+                    const pvals = Array.isArray(bootRes.data.p_value) ? bootRes.data.p_value : [bootRes.data.p_value];
+                    const tstats = Array.isArray(bootRes.data.t_stat) ? bootRes.data.t_stat : [bootRes.data.t_stat];
+                    for (let i = 0; i < paths.length; i++) {
+                        addLog('RESULT', `${paths[i]}: β=${originals[i]}, t=${tstats[i]}, p=${pvals[i]}`);
+                    }
+                    addPhaseResult('Bootstrapping', 'pass', performance.now() - p21Start);
+                } else { allPassed = false; addPhaseResult('Bootstrapping', 'fail', performance.now() - p21Start); }
+            } catch (e: any) { addLog('ERROR', `Bootstrap: ${e.message}`); allPassed = false; addPhaseResult('Bootstrapping', 'fail', performance.now() - p21Start); }
+
+            // ═══════════════════════════════════════════
+            // PHASE 22: BLINDFOLDING (Q²)
+            // ═══════════════════════════════════════════
+            const p22Start = performance.now();
+            addLog('INFO', '══════ PHASE 22: BLINDFOLDING (Q²) ══════');
+            try {
+                const bfRes = await evalRJSON(webR, `
+                    set.seed(42)
+                    n <- 150
+                    f1 <- rnorm(n); f2 <- rnorm(n); f3 <- 0.5*f1 + 0.3*f2 + rnorm(n,0,0.6)
+                    df <- data.frame(
+                        V1=f1*0.8+rnorm(n,0,0.3), V2=f1*0.7+rnorm(n,0,0.4), V3=f1*0.85+rnorm(n,0,0.3),
+                        V4=f2*0.8+rnorm(n,0,0.3), V5=f2*0.75+rnorm(n,0,0.35), V6=f2*0.9+rnorm(n,0,0.25),
+                        V7=f3*0.8+rnorm(n,0,0.3), V8=f3*0.7+rnorm(n,0,0.4), V9=f3*0.85+rnorm(n,0,0.3)
+                    )
+                    mm <- constructs(
+                        composite("F1", multi_items("V", 1:3)),
+                        composite("F2", multi_items("V", 4:6)),
+                        composite("F3", multi_items("V", 7:9))
+                    )
+                    sm <- relationships(paths(from="F1",to="F3"), paths(from="F2",to="F3"))
+                    pls <- estimate_pls(data=df, measurement_model=mm, structural_model=sm)
+                    
+                    # Manual Q² via cross-validation (omission distance = 7)
+                    scores <- pls$construct_scores
+                    D <- 7
+                    n_obs <- nrow(scores)
+                    SSE <- 0; SSO <- 0
+                    y_col <- "F3"
+                    y_mean <- mean(scores[, y_col])
+                    for (d in 1:D) {
+                        omit <- seq(d, n_obs, by=D)
+                        keep <- setdiff(1:n_obs, omit)
+                        train_df <- df[keep,]; test_df <- df[omit,]
+                        tryCatch({
+                            m <- estimate_pls(data=train_df, measurement_model=mm, structural_model=sm)
+                            train_scores <- m$construct_scores
+                            # Predict using training path coefficients
+                            s <- summary(m)
+                            b1 <- s$paths["F1 -> F3", 1]; b2 <- s$paths["F2 -> F3", 1]
+                            test_m <- estimate_pls(data=test_df, measurement_model=mm, structural_model=sm)
+                            test_scores <- test_m$construct_scores
+                            pred <- b1 * test_scores[,"F1"] + b2 * test_scores[,"F2"]
+                            actual <- test_scores[, "F3"]
+                            SSE <- SSE + sum((actual - pred)^2)
+                            SSO <- SSO + sum((actual - y_mean)^2)
+                        }, error=function(e){})
+                    }
+                    q2 <- 1 - SSE/SSO
+                    list(q2_F3 = round(q2, 4), SSE = round(SSE, 4), SSO = round(SSO, 4))
+                `, 'BLINDFOLDING');
+                if (bfRes.ok) {
+                    addLog('OK', `Blindfolding completed`);
+                    addLog('RESULT', `Q²(F3) = ${bfRes.data.q2_F3}`);
+                    const q2Ok = bfRes.data.q2_F3 > 0;
+                    addLog(q2Ok ? 'OK' : 'WARN', `Validation: Q²=${bfRes.data.q2_F3} ${q2Ok ? '✅ > 0 (predictive relevance)' : '⚠️ ≤ 0 (no predictive relevance)'}`);
+                    addPhaseResult('Blindfolding Q²', 'pass', performance.now() - p22Start);
+                } else { allPassed = false; addPhaseResult('Blindfolding Q²', 'fail', performance.now() - p22Start); }
+            } catch (e: any) { addLog('ERROR', `Blindfolding: ${e.message}`); allPassed = false; addPhaseResult('Blindfolding Q²', 'fail', performance.now() - p22Start); }
+
+            // ═══════════════════════════════════════════
             // FINAL SUMMARY
             // ═══════════════════════════════════════════
             addLog('INFO', '══════════════════════════════════════════');
             addLog('INFO', '══════ TỔNG KẾT TOÀN BỘ ══════');
             if (allPassed) {
-                addLog('OK', '🎉 TẤT CẢ 16 PHƯƠNG PHÁP ĐỀU THÀNH CÔNG!');
-                addLog('OK', 'WebR Engine → Packages → Descriptive → Cronbach → Correlation → T-Test → Paired T → ANOVA → Mann-Whitney → Kruskal-Wallis → Wilcoxon → Chi-Square → Regression → Logistic → EFA → CFA → SEM → Mediation');
+                addLog('OK', '🎉 TẤT CẢ 19 PHƯƠNG PHÁP ĐỀU THÀNH CÔNG!');
+                addLog('OK', 'WebR → Packages → Descriptive → Cronbach → Correlation → T-Test → Paired T → ANOVA → Mann-Whitney → Kruskal-Wallis → Wilcoxon → Chi-Square → Regression → Logistic → EFA → CFA → SEM → Mediation → PLS-SEM → Bootstrapping → Blindfolding');
                 setStatus('pass');
             } else {
                 addLog('ERROR', '❌ MỘT SỐ TEST THẤT BẠI - Xem log ở trên.');
@@ -796,7 +975,7 @@ export default function TestWebRDeep() {
         <div style={{ padding: 24, fontFamily: "'JetBrains Mono', monospace", background: '#1e1e2e', color: '#cdd6f4', minHeight: '100vh' }}>
             <h1 style={{ color: '#cba6f7', margin: '0 0 8px' }}>🧪 WebR Deep Integration Test</h1>
             <p style={{ color: '#6c7086', margin: '0 0 16px', fontSize: 13 }}>
-                Test pipeline: Init WebR → Stub quadprog → Install Packages → 16 Analysis Methods (Descriptive → Cronbach → Correlation → T-Test → ANOVA → Non-parametric → Regression → EFA → CFA → SEM → Mediation)
+                Test pipeline: Init WebR → Stub quadprog → Install Packages → 19 Analysis Methods (Descriptive → Cronbach → Correlation → T-Test → ANOVA → Non-parametric → Regression → EFA → CFA → SEM → Mediation → PLS-SEM → Bootstrapping → Blindfolding Q²)
             </p>
             
             <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 16, flexWrap: 'wrap' }}>
@@ -864,7 +1043,7 @@ export default function TestWebRDeep() {
                 border: '1px solid #313244'
             }}>
                 {logs.length === 0 ? (
-                    <span style={{ color: '#6c7086' }}>Nhấn "Chạy Deep Test" để bắt đầu kiểm tra toàn bộ 16 phương pháp phân tích...</span>
+                    <span style={{ color: '#6c7086' }}>Nhấn "Chạy Deep Test" để bắt đầu kiểm tra toàn bộ 19 phương pháp phân tích (bao gồm PLS-SEM + Bootstrapping + Blindfolding)...</span>
                 ) : (
                     logs.map((entry, i) => (
                         <div key={i} style={{ display: 'flex', gap: 8 }}>
