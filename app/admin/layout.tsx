@@ -40,6 +40,7 @@ const NAV_SECTIONS = [
             { href: '/admin/config', icon: Coins, label: 'Cấu hình giá / Credits' },
             { href: '/admin/analysis-code', icon: Code, label: 'Cấu hình Code (R)' },
             { href: '/admin/auto-test', icon: FlaskConical, label: 'Auto Test Engine' },
+            { href: '/admin/auto-test/webr-cfa', icon: Activity, label: 'WebR Deep Test' },
         ]
     },
     {
