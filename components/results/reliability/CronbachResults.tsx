@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { TrendingUp, Activity, CheckCircle2, ChevronRight, FileText } from 'lucide-react';
 import { getStoredLocale, t, type Locale } from '../../../lib/i18n';
 import { TemplateInterpretation } from '@/components/TemplateInterpretation';
+import { ScientificNote } from '../shared/ScientificNote';
 
 interface CronbachResultsProps {
     results: any;
@@ -139,6 +140,12 @@ export const CronbachResults = React.memo(function CronbachResults({
                 analysisType={isOmega ? 'omega' : 'cronbach'}
                 results={results}
                 scaleName={scaleName}
+            />
+
+            <ScientificNote 
+                insight={isOmega ? "McDonald's Omega cung cấp một ước lượng độ tin cậy chính xác hơn Cronbach's Alpha khi các biến quan sát có trọng số tải (factor loadings) khác nhau. Omega > 0.7 cho thấy sự nhất quán nội tại tốt." : "Độ tin cậy thang đo (Cronbach's Alpha) đo lường sự nhất quán nội tại của các biến quan sát. Hệ số Alpha > 0.7 cho thấy các biến phản ánh tốt khái niệm cần đo, trong khi tương quan biến-tổng (CITC) > 0.3 đảm bảo mỗi biến đều đóng góp ý nghĩa vào thang đo."}
+                citation={isOmega ? "Hayes & Coutts, 2020" : "Hair et al., 2010"}
+                reference={isOmega ? "Hayes, A. F., & Coutts, J. J. (2020). Use Omega Rather than Cronbach’s Alpha for Estimating Reliability. Communication Methods and Measures." : "Hair, J. F., Black, W. C., Babin, B. J., & Anderson, R. E. (2010). Multivariate Data Analysis (7th ed.). Pearson."}
             />
 
 

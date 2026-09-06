@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { FileText, Layers, Activity } from 'lucide-react';
 import { getStoredLocale, t, type Locale } from '@/lib/i18n';
 import { TemplateInterpretation } from '@/components/TemplateInterpretation';
+import { ScientificNote } from '../shared/ScientificNote';
 
 interface CorrelationResultsProps {
     results: any;
@@ -120,6 +121,12 @@ export const CorrelationResults = React.memo(function CorrelationResults({ resul
                     }}
                 />
             )}
+
+            <ScientificNote 
+                insight="Hệ số tương quan Pearson (r) đo lường mức độ và chiều hướng liên hệ tuyến tính giữa hai biến định lượng. Giá trị r nằm trong khoảng [-1, 1]. p-value < 0.05 hoặc 0.01 cho thấy mối tương quan có ý nghĩa thống kê trong tổng thể."
+                citation="Cohen, 1988"
+                reference="Cohen, J. (1988). Statistical Power Analysis for the Behavioral Sciences (2nd ed.). Lawrence Erlbaum Associates."
+            />
         </div>
     );
 });

@@ -3,6 +3,7 @@
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Activity, ShieldCheck, Zap, BarChart3, Network, Target } from 'lucide-react';
+import { ScientificNote } from '../shared/ScientificNote';
 
 interface PLSResultsProps {
     results: any;
@@ -424,6 +425,12 @@ export const PLSResults: React.FC<PLSResultsProps> = ({ results }) => {
                     </CardContent>
                 </Card>
             )}
+
+            <ScientificNote 
+                insight="PLS-SEM là phương pháp ước lượng cấu trúc linh hoạt, không yêu cầu giả định phân phối chuẩn và đặc biệt hiệu quả với cỡ mẫu nhỏ hoặc mô hình phức tạp. Bootstrapping được sử dụng để ước lượng sai số chuẩn và kiểm định ý nghĩa thống kê của các hệ số đường dẫn."
+                citation="Hair, Hult, Ringle & Sarstedt, 2017"
+                reference="Hair, J. F., Hult, G. T. M., Ringle, C. M., & Sarstedt, M. (2017). A Primer on Partial Least Squares Structural Equation Modeling (PLS-SEM). Sage."
+            />
         </div>
     );
 };

@@ -3,6 +3,7 @@
 import React, { useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import SEMPathDiagram from '@/components/SEMPathDiagram';
+import { ScientificNote } from '../shared/ScientificNote';
 
 interface SEMResultsProps {
     results: any;
@@ -221,6 +222,12 @@ export const SEMResults = React.memo(function SEMResults({ results }: SEMResults
                     </CardContent>
                 </Card>
             )}
+
+            <ScientificNote 
+                insight="Mô hình Cấu trúc (CB-SEM) cho phép kiểm định đồng thời các giả thuyết về mối quan hệ nhân quả giữa các nhân tố. Giá trị P-value < 0.05 khẳng định giả thuyết tác động có ý nghĩa thống kê, và Beta (Std. Est) cho biết độ lớn của tác động."
+                citation="Kline, 2015"
+                reference="Kline, R. B. (2015). Principles and Practice of Structural Equation Modeling. Guilford publications."
+            />
         </div>
     );
 });

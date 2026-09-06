@@ -6,6 +6,7 @@ import { TrendingUp, FileText, CheckCircle2, LayoutGrid, Info, ShieldCheck } fro
 
 import { getStoredLocale, t, type Locale } from '@/lib/i18n';
 import { TemplateInterpretation } from '@/components/TemplateInterpretation';
+import { ScientificNote } from '../shared/ScientificNote';
 
 interface EFAResultsProps {
     results: any;
@@ -176,6 +177,12 @@ export const EFAResults = React.memo(function EFAResults({ results, columns, onP
             <TemplateInterpretation 
                 analysisType="efa"
                 results={results}
+            />
+
+            <ScientificNote 
+                insight="Phân tích Nhân tố Khám phá (EFA) giúp thu gọn nhiều biến quan sát thành một vài nhân tố cốt lõi. Hệ số KMO > 0.5 và kiểm định Bartlett có ý nghĩa (p < 0.05) xác nhận dữ liệu phù hợp để gom nhóm. Ma trận xoay (Rotation) tối ưu hóa việc phân nhóm để dễ diễn giải."
+                citation="Hair et al., 2010; Kaiser, 1974"
+                reference="Hair, J. F., Black, W. C., Babin, B. J., & Anderson, R. E. (2010). Multivariate Data Analysis. | Kaiser, H. F. (1974). An index of factorial simplicity. Psychometrika."
             />
 
 

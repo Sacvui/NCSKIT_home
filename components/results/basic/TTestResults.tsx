@@ -3,6 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { FileText, Database, Activity, Info, BarChart } from 'lucide-react';
 import { getStoredLocale, t, type Locale } from '@/lib/i18n';
 import { TemplateInterpretation } from '@/components/TemplateInterpretation';
+import { ScientificNote } from '../shared/ScientificNote';
 
 interface TTestResultsProps {
     results: any;
@@ -172,6 +173,12 @@ export const TTestResults = React.memo(function TTestResults({ results, columns,
                     </div>
                 </div>
             </div>
+
+            <ScientificNote 
+                insight="Kiểm định Independent T-Test dùng để so sánh giá trị trung bình của một biến định lượng giữa 2 nhóm độc lập. p-value < 0.05 khẳng định sự khác biệt giữa hai nhóm có ý nghĩa thống kê, không phải do ngẫu nhiên. Kiểm định Levene (Levene's Test) dùng để xem phương sai 2 nhóm có đồng nhất hay không để chọn kết quả T-Test phù hợp."
+                citation="Field, 2013"
+                reference="Field, A. (2013). Discovering Statistics Using IBM SPSS Statistics. Sage."
+            />
         </div>
     );
 });

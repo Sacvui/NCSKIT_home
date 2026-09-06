@@ -2,9 +2,10 @@
 
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { FileText, Database, Activity, Target } from 'lucide-react';
+import { FileText, Database, Activity, Target, TrendingUp, Info } from 'lucide-react';
 import { getStoredLocale, t, type Locale } from '@/lib/i18n';
 import { TemplateInterpretation } from '@/components/TemplateInterpretation';
+import { ScientificNote } from '../shared/ScientificNote';
 
 interface LogisticResultsProps {
     results: any;
@@ -122,6 +123,12 @@ export const LogisticResults = React.memo(function LogisticResults({ results, co
                 variableNames={{
                     dependent: columns[0] || 'Biến phụ thuộc'
                 }}
+            />
+
+            <ScientificNote 
+                insight="Hồi quy Logistic dùng để dự báo một biến phụ thuộc phân loại nhị phân (0/1). Chỉ số Odds Ratio (OR) > 1 cho thấy xác suất xảy ra sự kiện tăng khi biến độc lập tăng. Pseudo R-squared (như Nagelkerke) đánh giá sự phù hợp tổng thể của mô hình."
+                citation="Hosmer, Lemeshow, & Sturdivant, 2013"
+                reference="Hosmer Jr, D. W., Lemeshow, S., & Sturdivant, R. X. (2013). Applied Logistic Regression. John Wiley & Sons."
             />
         </div>
 

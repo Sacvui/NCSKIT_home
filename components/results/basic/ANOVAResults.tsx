@@ -3,6 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Database, FileText, BarChart, Info, Activity } from 'lucide-react';
 import { getStoredLocale, t, type Locale } from '@/lib/i18n';
 import { TemplateInterpretation } from '@/components/TemplateInterpretation';
+import { ScientificNote } from '../shared/ScientificNote';
 
 interface ANOVAResultsProps {
     results: any;
@@ -247,6 +248,12 @@ export const ANOVAResults = React.memo(function ANOVAResults({ results, columns,
                     </p>
                 </div>
             </div>
+
+            <ScientificNote 
+                insight="Kiểm định One-Way ANOVA được sử dụng để so sánh giá trị trung bình của một biến định lượng giữa 3 nhóm phân loại trở lên. Nếu p-value < 0.05, có sự khác biệt ý nghĩa về mặt thống kê giữa ít nhất một cặp nhóm. Kiểm định hậu định (Post-hoc) sẽ chỉ ra chính xác cặp nhóm nào khác biệt."
+                citation="Field, 2013"
+                reference="Field, A. (2013). Discovering Statistics Using IBM SPSS Statistics. Sage."
+            />
         </div>
     );
 });

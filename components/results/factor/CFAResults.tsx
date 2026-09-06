@@ -3,6 +3,7 @@
 import React, { useMemo, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { TemplateInterpretation } from '@/components/TemplateInterpretation';
+import { ScientificNote } from '../shared/ScientificNote';
 
 interface CFAResultsProps {
     results: any;
@@ -178,6 +179,12 @@ export const CFAResults = React.memo(function CFAResults({ results, onProceedToS
             <TemplateInterpretation 
                 analysisType="cfa"
                 results={results}
+            />
+
+            <ScientificNote 
+                insight="Phân tích Nhân tố Khẳng định (CFA) dùng để kiểm định mức độ phù hợp của mô hình đo lường với dữ liệu thực tế. Các chỉ số phù hợp (Fit Indices) như CFI > 0.9 và RMSEA < 0.08 cho thấy cấu trúc nhân tố được giả định là hợp lý."
+                citation="Hu & Bentler, 1999"
+                reference="Hu, L. T., & Bentler, P. M. (1999). Cutoff criteria for fit indexes in covariance structure analysis. Structural Equation Modeling."
             />
 
             {/* Workflow: Next Step Button */}

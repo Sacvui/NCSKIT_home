@@ -6,6 +6,7 @@ import { Scatter } from 'react-chartjs-2';
 import { FileText, TrendingUp, Info } from 'lucide-react';
 import { getStoredLocale, t, type Locale } from '../../../lib/i18n';
 import { TemplateInterpretation } from '@/components/TemplateInterpretation';
+import { ScientificNote } from '../shared/ScientificNote';
 
 interface RegressionResultsProps {
     results: any;
@@ -176,6 +177,12 @@ export const RegressionResults = React.memo(function RegressionResults({ results
                 variableNames={{
                     dependent: columns[0] || 'Biến phụ thuộc'
                 }}
+            />
+
+            <ScientificNote 
+                insight="Hồi quy Đa biến đánh giá mức độ giải thích và tác động của các biến độc lập lên biến phụ thuộc. Adjusted R-squared cho biết % sự biến thiên của biến phụ thuộc được giải thích bởi mô hình. VIF < 5 (hoặc < 10) khẳng định mô hình không bị vi phạm giả định đa cộng tuyến."
+                citation="Field, 2013"
+                reference="Field, A. (2013). Discovering Statistics Using IBM SPSS Statistics. Sage."
             />
         </div>
     );
