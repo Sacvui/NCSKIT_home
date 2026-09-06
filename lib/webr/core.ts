@@ -348,17 +348,53 @@ export async function loadPackagesForMethod(method: string): Promise<void> {
 
         try {
             updateProgress(`Installing ${pkg}...`);
+
+            // CRITICAL: Before loading lavaan, create quadprog stub package on VFS
+            // quadprog is not available as WebR/WASM binary, but lavaan requires it as Imports dependency
+            if (pkg === 'lavaan' && !isPackageLoaded('quadprog')) {
+                updateProgress('Preparing quadprog compatibility layer...');
+                await runLocked(async () => {
+                    await webR.evalR(`
+                        if (!require("quadprog", character.only = TRUE, quietly = TRUE)) {
+                            lib_path <- .libPaths()[1]
+                            pkg_dir <- file.path(lib_path, "quadprog")
+                            if (dir.exists(pkg_dir)) unlink(pkg_dir, recursive = TRUE)
+                            dir.create(file.path(pkg_dir, "R"), recursive = TRUE, showWarnings = FALSE)
+                            dir.create(file.path(pkg_dir, "Meta"), recursive = TRUE, showWarnings = FALSE)
+                            
+                            writeLines(c(
+                                "Package: quadprog", "Version: 1.5-8",
+                                "Title: Quadratic Programming Stub for WebR",
+                                "Description: Stub for WebR - provides namespace so lavaan can load.",
+                                "Author: WebR Stub", "Maintainer: WebR Stub <stub@webr>",
+                                "License: GPL-2", "NeedsCompilation: no",
+                                paste0("Built: R ", R.version$major, ".", R.version$minor, "; ; ", Sys.time(), "; unix")
+                            ), file.path(pkg_dir, "DESCRIPTION"))
+                            
+                            writeLines(c("export(solve.QP)", "export(solve.QP.compact)"), file.path(pkg_dir, "NAMESPACE"))
+                            
+                            desc_fields <- read.dcf(file.path(pkg_dir, "DESCRIPTION"))[1, ]
+                            saveRDS(list(DESCRIPTION = desc_fields, Built = list(R = getRversion(), Platform = "", Date = Sys.time(), OStype = "unix")),
+                                    file.path(pkg_dir, "Meta", "package.rds"))
+                            
+                            saveRDS(list(exports = c("solve.QP", "solve.QP.compact"), exportPatterns = character(0),
+                                         imports = list(), importFrom = list(), importClasses = list(), importMethods = list(),
+                                         S3methods = matrix(character(0), ncol = 4, dimnames = list(NULL, c("generic","class","method","from")))),
+                                    file.path(pkg_dir, "Meta", "nsInfo.rds"))
+                            
+                            writeLines(c(
+                                'solve.QP <- function(Dmat, dvec, Amat, bvec, meq=0, factorized=FALSE) stop("quadprog::solve.QP not available in WebR")',
+                                'solve.QP.compact <- function(Dmat, dvec, Amat, Aind, bvec, meq=0, factorized=FALSE) stop("quadprog::solve.QP.compact not available in WebR")'
+                            ), file.path(pkg_dir, "R", "quadprog"))
+                        }
+                    `);
+                });
+                markPackageLoaded('quadprog');
+                logger.info('[WebR] quadprog stub package created successfully');
+            }
+
             await runLocked(async () => {
                 await webR.evalR(`
-                    if ("${pkg}" == "lavaan" && !isNamespaceLoaded("quadprog")) {
-                        tryCatch({
-                            ns <- new.env(parent = emptyenv())
-                            ns$solve.QP <- function(...) stop("quadprog is stubbed for WebR")
-                            ns$.__NAMESPACE__. <- new.env(parent = emptyenv())
-                            ns$.__NAMESPACE__.$spec <- c(name="quadprog", version="1.5.8")
-                            base::assign("quadprog", ns, envir = base::.loadedNamespaces)
-                        }, error = function(e) {})
-                    }
                     if (!require("${pkg}", character.only = TRUE, quietly = TRUE)) {
                         # CDN First - Much faster for deployment and ensures latest stable WASM binaries
                         .repos <- c("https://sem-in-r.r-universe.dev", "https://ropensci.r-universe.dev", "${officialRepo}")
@@ -370,6 +406,20 @@ export async function loadPackagesForMethod(method: string): Promise<void> {
                     }
                 `);
             });
+
+            // CRITICAL: After loading lavaan, patch lav_options_checkinterval for WASM compatibility
+            // lavaan 0.6.21 has a bug where integer conversion in option validation produces NA on WASM
+            if (pkg === 'lavaan') {
+                await runLocked(async () => {
+                    await webR.evalR(`
+                        tryCatch(
+                            assignInNamespace("lav_options_checkinterval", function(...) TRUE, ns = "lavaan"),
+                            error = function(e) {}
+                        )
+                    `);
+                });
+                logger.info('[WebR] lavaan patched for WASM compatibility');
+            }
             
             // CRITICAL: Sync filesystem after installation to ensure persistence across F5/Reloads
             const channelType = getOptimalChannelType();

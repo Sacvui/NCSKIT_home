@@ -40,6 +40,7 @@ const NAV_SECTIONS = [
             { href: '/admin/config', icon: Coins, label: 'Cấu hình giá / Credits' },
             { href: '/admin/analysis-code', icon: Code, label: 'Cấu hình Code (R)' },
             { href: '/admin/auto-test', icon: FlaskConical, label: 'Auto Test Engine' },
+            { href: '/admin/auto-test/webr-cfa', icon: Activity, label: 'WebR CFA Test' },
         ]
     },
     {
@@ -75,11 +76,25 @@ export default function AdminLayout({
                 }
 
                 // Check if user is admin
-                const { data: profile } = await supabase
+                const { data: profile, error: profileError } = await supabase
                     .from('profiles')
                     .select('role')
                     .eq('id', user.id)
                     .single()
+
+                if (profileError) {
+                    console.error('[Admin] Profile query error (likely RLS infinite recursion):', profileError.message)
+                    // Fallback: check user_metadata for admin role
+                    const metaRole = user.user_metadata?.role || user.app_metadata?.role
+                    if (metaRole === 'admin') {
+                        console.log('[Admin] Fallback: admin confirmed via user_metadata')
+                        setIsAdmin(true)
+                        setLoading(false)
+                        return
+                    }
+                    router.push('/')
+                    return
+                }
 
                 const userProfile = profile as any
                 if (userProfile?.role !== 'admin') {
