@@ -117,6 +117,8 @@ export function AutoPilotView({
     };
 
     const handleRunAutoPilot = async () => {
+        if (!selectedPreset) return;
+        
         if (selectedPreset.requiresPaths && paths.length === 0) {
             showToast('Vui lòng thêm ít nhất 1 giả thuyết (đường dẫn)', 'error');
             return;
@@ -703,6 +705,7 @@ export function AutoPilotView({
                         </div>
                     )}
                 </div>
+            </div>
             )}
 
             {selectedPreset.id === 'compare' && (

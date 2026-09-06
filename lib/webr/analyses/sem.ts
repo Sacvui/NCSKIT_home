@@ -49,19 +49,19 @@ export async function runLavaanAnalysis(
     
     # Use robust estimator by default for Likert data
     fit <- tryCatch({
-        sem(model = mod_str, data = df, std.lv = TRUE, missing = "fiml", estimator = "{{estimator}}")
+        lavaan::sem(model = mod_str, data = df, std.lv = TRUE, missing = "fiml", estimator = "{{estimator}}", bounds = FALSE)
     }, error = function(e) { 
         # Fallback to listwise deletion if FIML fails
-        sem(model = mod_str, data = df, std.lv = TRUE, missing = "listwise", estimator = "{{estimator}}")
+        lavaan::sem(model = mod_str, data = df, std.lv = TRUE, missing = "listwise", estimator = "{{estimator}}", bounds = FALSE)
     })
     
-    if (!isTRUE(lavInspect(fit, "converged"))) {
+    if (!isTRUE(lavaan::lavInspect(fit, "converged"))) {
         stop("Mô hình không hội tụ (Model did not converge). Có thể do ma trận hiệp phương sai không xác định dương hoặc mô hình không hợp lệ.")
     }
     
     # Extract fit measures safely
-    fm <- tryCatch({ fitMeasures(fit) }, error = function(e) { stop("Không thể tính toán chỉ số phù hợp (Fit Measures). Mô hình có thể chưa xác định (Underidentified).") })
-    est <- tryCatch({ parameterEstimates(fit, standardized = TRUE) }, error = function(e) { data.frame() })
+    fm <- tryCatch({ lavaan::fitMeasures(fit) }, error = function(e) { stop("Không thể tính toán chỉ số phù hợp (Fit Measures). Mô hình có thể chưa xác định (Underidentified).") })
+    est <- tryCatch({ lavaan::parameterEstimates(fit, standardized = TRUE) }, error = function(e) { data.frame() })
 
     
     list(
