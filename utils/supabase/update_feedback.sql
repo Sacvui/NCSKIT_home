@@ -12,9 +12,15 @@ create table if not exists public.feedback (
 alter table public.feedback enable row level security;
 
 -- 3. Policies for Feedback
--- Users can only insert their own feedback
+-- Users can insert their own feedback
 create policy "Users can insert own feedback" 
   on public.feedback for insert 
+  with check ((select auth.uid()) = user_id);
+
+-- Users can update their own feedback
+create policy "Users can update own feedback"
+  on public.feedback for update
+  using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
 
 -- Users can view their own feedback
