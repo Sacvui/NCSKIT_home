@@ -39,6 +39,12 @@ export async function runLavaanAnalysis(
     library(lavaan);
     df <- as.data.frame({{data}});
     colnames(df) <- c({{columns}});
+    
+    # Ensure all columns are numeric (critical for Likert data passed from JS)
+    for (col_name in colnames(df)) {
+        df[[col_name]] <- suppressWarnings(as.numeric(as.character(df[[col_name]])))
+    }
+    
     mod_str <- "{{model}}";
     
     # Use robust estimator by default for Likert data
@@ -49,7 +55,7 @@ export async function runLavaanAnalysis(
         sem(model = mod_str, data = df, std.lv = TRUE, missing = "listwise", estimator = "{{estimator}}")
     })
     
-    if (!lavInspect(fit, "converged")) {
+    if (!isTRUE(lavInspect(fit, "converged"))) {
         stop("Mô hình không hội tụ (Model did not converge). Có thể do ma trận hiệp phương sai không xác định dương hoặc mô hình không hợp lệ.")
     }
     
