@@ -268,12 +268,12 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
             
             // 2. Optional Bootstrap
             if (options.useBootstrap) {
-                showToast('Đang chạy Bootstrapping (5000 samples)...', 'info');
-                const bootResults = await runBootstrapping(numericData as number[][], measurementModel, structuralModel, 5000);
+                showToast('Đang chạy Bootstrapping (500 samples)...', 'info');
+                const bootResults = await runBootstrapping(numericData as number[][], measurementModel, structuralModel, 500);
                 results.bootstrapping = {
                     boot_paths: bootResults.boot_paths,
                     boot_loadings: bootResults.boot_loadings,
-                    n_bootstrap: 5000
+                    n_bootstrap: 500
                 };
             }
             

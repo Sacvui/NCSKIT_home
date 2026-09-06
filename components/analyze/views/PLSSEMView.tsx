@@ -281,7 +281,7 @@ export const PLSSEMView: React.FC<PLSSEMViewProps> = ({
     };
 
     // Bootstrapping
-    const runBootstrapAnalysis = async (nBootstrap: number = 5000) => {
+    const runBootstrapAnalysis = async (nBootstrap: number = 500) => {
         if (columns.length < 2) {
             showToast('Bootstrapping cần ít nhất 2 biến', 'error');
             return;

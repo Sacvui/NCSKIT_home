@@ -475,7 +475,7 @@ export async function runSimpleBlindfolding(data: number[][], omissionDistance: 
 /**
  * Simple Bootstrapping (Generic/Legacy for basic analyses)
  */
-export async function runSimpleBootstrapping(data: number[][], nBootstrap: number = 5000): Promise<any> {
+export async function runSimpleBootstrapping(data: number[][], nBootstrap: number = 500): Promise<any> {
   const rCode = `
     df <- as.data.frame(raw_data)
     means <- colMeans(df, na.rm=TRUE)
@@ -495,7 +495,7 @@ export async function runBootstrapping(
     data: number[][], 
     measurementModel: { construct: string; items: number[] }[],
     structuralModel: { from: string; to: string }[],
-    nBootstrap: number = 5000
+    nBootstrap: number = 500
 ): Promise<any> {
     const { cleanData, cleanMM } = filterProblematicColumns(data, measurementModel);
     

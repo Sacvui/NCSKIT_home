@@ -174,7 +174,7 @@ export class WebRPoolManager {
 
                     const evalPromise = worker.evalR(wrappedCode);
                     const timeoutPromise = new Promise((_, reject) => {
-                        setTimeout(() => reject(new Error("Worker timeout or silent crash. Execution took too long.")), 300000); // 5 minutes max
+                        setTimeout(() => reject(new Error("Worker timeout or silent crash. Execution took too long.")), 600000); // 10 minutes max
                     });
                     
                     await Promise.race([evalPromise, timeoutPromise]);
