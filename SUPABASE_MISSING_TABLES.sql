@@ -185,4 +185,60 @@ create policy "Users can update own avatars" on storage.objects for update to au
 -- 6. Cấp Quyền Admin cho 2 Email
 update public.profiles set role = 'admin' where email in ('phuchai.le@gmail.com', 'foreverlove3004@gmail.com');
 
+-- ====================================================================
+-- 7. CẤP QUYỀN CHO ADMIN QUẢN LÝ TÀI KHOẢN (TRANG TOKENS MANAGER)
+-- ====================================================================
+DO $$ BEGIN
+    DROP POLICY IF EXISTS "Admins can view all profiles" ON public.profiles;
+    DROP POLICY IF EXISTS "Admins can update all profiles" ON public.profiles;
+EXCEPTION WHEN OTHERS THEN NULL; END $$;
+
+CREATE POLICY "Admins can view all profiles" 
+ON public.profiles FOR SELECT 
+USING ((SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin');
+
+CREATE POLICY "Admins can update all profiles" 
+ON public.profiles FOR UPDATE 
+USING ((SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin');
+
+-- ====================================================================
+-- 8. TỰ ĐỘNG CỘNG 100,000 NCS KHI NGƯỜI DÙNG MỚI ĐĂNG KÝ
+-- ====================================================================
+DROP TRIGGER IF EXISTS set_default_tokens_trigger ON profiles;
+
+CREATE OR REPLACE FUNCTION set_default_tokens()
+RETURNS TRIGGER AS $$
+DECLARE
+  default_tokens INTEGER;
+BEGIN
+  -- Lấy giá trị default_ncs_balance từ bảng system_config
+  SELECT COALESCE((value::text)::integer, 100000)
+  INTO default_tokens
+  FROM system_config
+  WHERE key = 'default_ncs_balance';
+  
+  IF default_tokens IS NULL THEN
+    default_tokens := 100000;
+  END IF;
+  
+  -- Gán token cho người dùng mới
+  IF NEW.tokens IS NULL OR NEW.tokens <= 100 THEN
+    NEW.tokens := default_tokens;
+    NEW.total_earned := default_tokens;
+  END IF;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+CREATE TRIGGER set_default_tokens_trigger
+  BEFORE INSERT ON profiles
+  FOR EACH ROW
+  EXECUTE FUNCTION set_default_tokens();
+
+-- Tùy chọn: Chạy lệnh này để bù 100k token cho các user cũ bị lỗi 100 token
+UPDATE profiles 
+SET tokens = 100000, total_earned = 100000
+WHERE tokens <= 100;
+
 NOTIFY pgrst, 'reload schema';
