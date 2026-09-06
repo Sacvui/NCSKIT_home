@@ -159,13 +159,22 @@ export const DEFAULT_MEDIATION_CONFIG = {
 
 // Auto Test execution order (scientific workflow)
 export const AUTO_TEST_WORKFLOW = [
-    'descriptive',  // 1. Data overview
-    'cronbach',     // 2. Reliability
-    'efa',          // 3. Exploratory analysis
-    'cfa',          // 4. Confirmatory analysis
-    'correlation',  // 5. Relationship exploration
-    'regression',   // 6. Predictive modeling
-    'sem'           // 7. Full structural model
+    'descriptive',
+    'cronbach',
+    'ttest',
+    'ttest-paired',
+    'anova',
+    'mannwhitney',
+    'kruskalwallis',
+    'wilcoxon',
+    'correlation',
+    'regression',
+    'logistic',
+    'mediation',
+    'efa',
+    'cfa',
+    'sem',
+    'chisq'
 ];
 
 // Function to get all items as flat array

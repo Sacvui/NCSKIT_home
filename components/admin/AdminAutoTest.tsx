@@ -3,7 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { Play, CheckCircle, XCircle, Clock, Loader2, FileSpreadsheet, Settings, BarChart3, RefreshCw } from 'lucide-react';
 import { TEST_DATA_SCALES, ANALYSIS_CONFIGS, DEFAULT_CFA_MODEL, DEFAULT_SEM_MODEL, AUTO_TEST_WORKFLOW, DEFAULT_REGRESSION_CONFIG } from '@/lib/auto-test-config';
-import { runCronbachAlpha, runDescriptiveStats, runCorrelation, runEFA, runCFA, runSEM, runLinearRegression, initWebR, getWebRStatus } from '@/lib/webr-wrapper';
+import { 
+    runCronbachAlpha, runDescriptiveStats, runCorrelation, runEFA, runCFA, runSEM, 
+    runLinearRegression, runTTestIndependent, runTTestPaired, runOneWayANOVA, 
+    runMannWhitneyU, runKruskalWallis, runWilcoxonSignedRank, runLogisticRegression, 
+    runMediationAnalysis, runChiSquare, initWebR, getWebRStatus 
+} from '@/lib/webr-wrapper';
 
 interface TestResult {
     analysisId: string;
@@ -192,12 +197,91 @@ export function AdminAutoTest({ onTestComplete }: AdminAutoTestProps) {
                         }
                         result = cronbachResults;
                         break;
+                        
+                    case 'ttest':
+                    case 'mannwhitney':
+                        // Group 1: SAT1 > 3, Group 2: SAT1 <= 3. Value: TRUST1
+                        const tGroup1 = data.filter(r => r['SAT1'] > 3).map(r => Number(r['TRUST1']) || 0);
+                        const tGroup2 = data.filter(r => r['SAT1'] <= 3).map(r => Number(r['TRUST1']) || 0);
+                        if (analysisId === 'ttest') {
+                            result = await runTTestIndependent(tGroup1, tGroup2);
+                        } else {
+                            result = await runMannWhitneyU(tGroup1, tGroup2);
+                        }
+                        break;
+                        
+                    case 'ttest-paired':
+                    case 'wilcoxon':
+                        // Compare SAT1 (Before) vs SAT2 (After)
+                        const pairedG1 = data.map(r => Number(r['SAT1']) || 0);
+                        const pairedG2 = data.map(r => Number(r['SAT2']) || 0);
+                        if (analysisId === 'ttest-paired') {
+                            result = await runTTestPaired(pairedG1, pairedG2);
+                        } else {
+                            result = await runWilcoxonSignedRank(pairedG1, pairedG2);
+                        }
+                        break;
+                        
+                    case 'anova':
+                    case 'kruskalwallis':
+                        // Grouping by QUAL1 (rounded to 1-5)
+                        const anovaGroups: number[][] = [[], [], [], [], []];
+                        data.forEach(r => {
+                            let g = Math.round(Number(r['QUAL1']) || 1);
+                            if (g < 1) g = 1; if (g > 5) g = 5;
+                            anovaGroups[g - 1].push(Number(r['SAT1']) || 0);
+                        });
+                        if (analysisId === 'anova') {
+                            result = await runOneWayANOVA(anovaGroups.filter(g => g.length > 0));
+                        } else {
+                            result = await runKruskalWallis(anovaGroups.filter(g => g.length > 0));
+                        }
+                        break;
+                        
+                    case 'chisq':
+                        // Cross-tabulate rounded SAT1 vs QUAL1
+                        const chiData = data.map(r => [
+                            Math.round(Number(r['SAT1']) || 1), 
+                            Math.round(Number(r['QUAL1']) || 1)
+                        ]);
+                        result = await runChiSquare(chiData);
+                        break;
 
                     case 'correlation':
                         // Run correlation on composite scores (first item of each scale)
                         const corrVars = TEST_DATA_SCALES.map((s: any) => s.items[0]);
                         const corrMatrix = extractColumnsAsMatrix(data, corrVars);
                         result = await runCorrelation(corrMatrix, 'pearson');
+                        break;
+                        
+                    case 'regression':
+                        // Run Linear Regression using default config
+                        const depVar = DEFAULT_REGRESSION_CONFIG.dependent;
+                        const indepVars = DEFAULT_REGRESSION_CONFIG.independents;
+                        const regVars = [depVar, ...indepVars];
+                        const regMatrix = extractColumnsAsMatrix(data, regVars);
+                        result = await runLinearRegression(regMatrix, regVars);
+                        break;
+                        
+                    case 'logistic':
+                        // Binary Dependent: LOY1 > 3 -> 1, else 0
+                        const logDep = DEFAULT_REGRESSION_CONFIG.dependent;
+                        const logIndeps = DEFAULT_REGRESSION_CONFIG.independents;
+                        const logMatrix = data.map(r => {
+                            const y = (Number(r[logDep]) || 0) > 3 ? 1 : 0;
+                            return [y, ...logIndeps.map(x => Number(r[x]) || 0)];
+                        });
+                        result = await runLogisticRegression(logMatrix, [logDep, ...logIndeps]);
+                        break;
+                        
+                    case 'mediation':
+                        // X = QUAL1, M = SAT1, Y = LOY1
+                        const medMatrix = data.map(r => [
+                            Number(r['QUAL1']) || 0,
+                            Number(r['SAT1']) || 0,
+                            Number(r['LOY1']) || 0
+                        ]);
+                        result = await runMediationAnalysis(medMatrix, ['QUAL1', 'SAT1', 'LOY1'], 'QUAL1', 'SAT1', 'LOY1');
                         break;
 
                     case 'efa':
@@ -212,17 +296,6 @@ export function AdminAutoTest({ onTestComplete }: AdminAutoTestProps) {
                         const cfaVars = TEST_DATA_SCALES.flatMap(s => s.items);
                         const cfaMatrix = extractColumnsAsMatrix(data, cfaVars);
                         result = await runCFA(cfaMatrix, cfaVars, DEFAULT_CFA_MODEL.syntax);
-                        break;
-
-                    case 'regression':
-                        // Run Linear Regression using default config
-                        const depVar = DEFAULT_REGRESSION_CONFIG.dependent;
-                        const indepVars = DEFAULT_REGRESSION_CONFIG.independents;
-
-                        // Extract data: Dependent variable (Y) is column 0, Independents (X) are columns 1..N
-                        const regVars = [depVar, ...indepVars];
-                        const regMatrix = extractColumnsAsMatrix(data, regVars);
-                        result = await runLinearRegression(regMatrix, regVars);
                         break;
 
                     case 'sem':

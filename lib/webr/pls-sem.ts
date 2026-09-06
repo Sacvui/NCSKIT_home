@@ -388,7 +388,8 @@ export async function runPLSSEM(
     )
   `;
 
-  const rawResult = await executeRWithRecovery(rCode, 'pls-sem', 0, 2, 180000, cleanData);
+  // Tăng timeout lên 300,000 (5 phút) cho PLS-SEM cơ bản để xử lý dữ liệu lớn
+  const rawResult = await executeRWithRecovery(rCode, 'pls-sem', 0, 2, 300000, cleanData);
   logger.info('[PLS-SEM] Raw VIF from R:', JSON.stringify(rawResult?.vif, null, 2));
   logger.info('[PLS-SEM] Raw path_coefficients keys:', Object.keys(rawResult?.path_coefficients || {}));
   const parsed = SemResultSchema.parse(rawResult);
@@ -594,7 +595,9 @@ export async function runBootstrapping(
             n_bootstrap = n_boot
           )
         `;
-        return await executeRWithRecovery(rCode, 'pls-sem', 0, 2, 300000, cleanData);
+        // Bootstrapping 1000-5000 lần trên dữ liệu lớn cần cực nhiều thời gian trên WASM (single thread)
+        // Tăng timeout lên 600,000 (10 phút)
+        return await executeRWithRecovery(rCode, 'pls-sem', 0, 2, 600000, cleanData);
     }
 
     logger.info(`[PLS-SEM] Running Bootstrapping with ${nBootstrap} iterations across ${maxWorkers} workers.`);
