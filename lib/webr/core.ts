@@ -350,6 +350,15 @@ export async function loadPackagesForMethod(method: string): Promise<void> {
             updateProgress(`Installing ${pkg}...`);
             await runLocked(async () => {
                 await webR.evalR(`
+                    if ("${pkg}" == "lavaan" && !isNamespaceLoaded("quadprog")) {
+                        tryCatch({
+                            ns <- new.env(parent = emptyenv())
+                            ns$solve.QP <- function(...) stop("quadprog is stubbed for WebR")
+                            ns$.__NAMESPACE__. <- new.env(parent = emptyenv())
+                            ns$.__NAMESPACE__.$spec <- c(name="quadprog", version="1.5.8")
+                            base::assign("quadprog", ns, envir = base::.loadedNamespaces)
+                        }, error = function(e) {})
+                    }
                     if (!require("${pkg}", character.only = TRUE, quietly = TRUE)) {
                         # CDN First - Much faster for deployment and ensures latest stable WASM binaries
                         .repos <- c("https://sem-in-r.r-universe.dev", "https://ropensci.r-universe.dev", "${officialRepo}")

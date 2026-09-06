@@ -36,15 +36,6 @@ export async function runLavaanAnalysis(
     await loadPackagesForMethod('sem');
 
     const defaultRCode = `
-    if (!isNamespaceLoaded("quadprog")) {
-        tryCatch({
-            ns <- new.env(parent = emptyenv())
-            ns$solve.QP <- function(...) stop("quadprog is stubbed for WebR")
-            ns$.__NAMESPACE__. <- new.env(parent = emptyenv())
-            ns$.__NAMESPACE__.$spec <- c(name="quadprog", version="1.5.8")
-            base::assign("quadprog", ns, envir = base::.loadedNamespaces)
-        }, error = function(e) {})
-    }
     library(lavaan);
     df <- as.data.frame({{data}});
     colnames(df) <- c({{columns}});
