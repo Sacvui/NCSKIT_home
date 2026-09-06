@@ -664,23 +664,62 @@ export default function TestWebRDeep() {
             // ═══════════════════════════════════════════
             const p19Start = performance.now();
             addLog('INFO', '══════ PHASE 19: MEDIATION ANALYSIS ══════');
+            addLog('DEBUG', 'Using Baron & Kenny regression (no fork/parallel needed)');
             try {
                 const medRes = await evalRJSON(webR, `
                     set.seed(42)
                     X <- rnorm(150)
                     M <- 0.6*X + rnorm(150, 0, 0.7)
                     Y <- 0.3*X + 0.5*M + rnorm(150, 0, 0.6)
-                    md <- psych::mediate(Y ~ X + (M), data=data.frame(X=X, M=M, Y=Y))
+                    df <- data.frame(X=X, M=M, Y=Y)
+                    
+                    # Baron & Kenny approach (no forking needed)
+                    # Path a: X -> M
+                    model_a <- lm(M ~ X, data=df)
+                    a <- coef(model_a)["X"]
+                    a_p <- summary(model_a)$coefficients["X", 4]
+                    
+                    # Path b + c': X + M -> Y
+                    model_b <- lm(Y ~ X + M, data=df)
+                    b <- coef(model_b)["M"]
+                    b_p <- summary(model_b)$coefficients["M", 4]
+                    c_prime <- coef(model_b)["X"]
+                    c_prime_p <- summary(model_b)$coefficients["X", 4]
+                    
+                    # Path c (total): X -> Y
+                    model_c <- lm(Y ~ X, data=df)
+                    c_total <- coef(model_c)["X"]
+                    c_p <- summary(model_c)$coefficients["X", 4]
+                    
+                    # Indirect = a * b
+                    indirect <- a * b
+                    
+                    # Sobel test
+                    se_a <- summary(model_a)$coefficients["X", 2]
+                    se_b <- summary(model_b)$coefficients["M", 2]
+                    sobel_se <- sqrt(a^2 * se_b^2 + b^2 * se_a^2)
+                    sobel_z <- indirect / sobel_se
+                    sobel_p <- 2 * pnorm(-abs(sobel_z))
+                    
                     list(
-                        total = round(md$total, 4),
-                        direct = round(md$direct, 4),
-                        indirect = round(md$indirect, 4),
-                        mean_ab = round(md$mean.ab, 4)
+                        path_a = round(a, 4), path_a_p = round(a_p, 6),
+                        path_b = round(b, 4), path_b_p = round(b_p, 6),
+                        direct = round(c_prime, 4), direct_p = round(c_prime_p, 6),
+                        total = round(c_total, 4), total_p = round(c_p, 6),
+                        indirect = round(indirect, 4),
+                        sobel_z = round(sobel_z, 4), sobel_p = round(sobel_p, 6)
                     )
                 `, 'MEDIATION');
                 if (medRes.ok) {
-                    addLog('OK', `Mediation: total=${medRes.data.total}, direct=${medRes.data.direct}, indirect=${medRes.data.indirect}`);
-                    addLog('RESULT', `Mean(ab) = ${medRes.data.mean_ab}`);
+                    addLog('OK', `Mediation analysis completed`);
+                    addLog('RESULT', `Path a (X→M): ${medRes.data.path_a} (p=${medRes.data.path_a_p})`);
+                    addLog('RESULT', `Path b (M→Y): ${medRes.data.path_b} (p=${medRes.data.path_b_p})`);
+                    addLog('RESULT', `Direct c' (X→Y|M): ${medRes.data.direct} (p=${medRes.data.direct_p})`);
+                    addLog('RESULT', `Total c (X→Y): ${medRes.data.total} (p=${medRes.data.total_p})`);
+                    addLog('RESULT', `Indirect (a×b): ${medRes.data.indirect}`);
+                    addLog('RESULT', `Sobel test: z=${medRes.data.sobel_z}, p=${medRes.data.sobel_p}`);
+                    const indOk = Math.abs(medRes.data.indirect - 0.3) < 0.15;
+                    addLog(indOk ? 'OK' : 'WARN', `Validation: indirect=${medRes.data.indirect} (expected ~0.3) ${indOk ? '✅' : '⚠️'}`);
                     addPhaseResult('Mediation', 'pass', performance.now() - p19Start);
                 } else { allPassed = false; addPhaseResult('Mediation', 'fail', performance.now() - p19Start); }
             } catch (e: any) { addLog('ERROR', e.message); allPassed = false; addPhaseResult('Mediation', 'fail', performance.now() - p19Start); }
