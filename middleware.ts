@@ -54,6 +54,6 @@ export const config = {
          * - favicon.ico (favicon file)
          * - public files (files in public folder including images)
          */
-        '/((?!_next/static|_next/image|favicon.ico|webr_repo_v5|webr_core_v3|.*\\.(?:svg|png|jpg|jpeg|gif|webp|tgz|gz|rds|wasm)$).*)',
+        '/((?!_next/static|_next/image|favicon.ico|webr_core_v3|.*\\.(?:svg|png|jpg|jpeg|gif|webp|wasm)$).*)',
     ],
 }
