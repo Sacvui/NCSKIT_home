@@ -71,6 +71,16 @@ export default function UserMenu({ user: propUser, profile: propProfile }: { use
                         </div>
 
                         <div className="py-1">
+                            {profile?.role === 'admin' && (
+                                <Link
+                                    href="/admin"
+                                    className="flex items-center gap-2 px-4 py-2 text-sm text-indigo-700 bg-indigo-50/50 hover:bg-indigo-100/80 font-bold transition-colors"
+                                    onClick={() => setIsOpen(false)}
+                                >
+                                    Admin Dashboard
+                                </Link>
+                            )}
+
                             <Link
                                 href="/profile"
                                 className="flex items-center gap-2 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
