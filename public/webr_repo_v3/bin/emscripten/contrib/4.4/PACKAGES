@@ -142,7 +142,7 @@ Imports: ggplot2 (>= 3.4.0), reshape2 (>= 1.4.0), tidytext (>= 0.4.0),
         survival (>= 3.4-0), foreach (>= 1.5.0), lifecycle (>= 1.0.0)
 Suggests: testthat (>= 3.0.0)
 License: GPL-3
-MD5sum: 1e77e00edc0c12536ed941301dc9a7fb
+MD5sum: a8973a7771661a27ac651a62e3b7dd6ee77e00edc0c12536ed941301dc9a7fb
 
 Package: aberrance
 Version: 0.3.0
