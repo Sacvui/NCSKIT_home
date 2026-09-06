@@ -69,7 +69,7 @@ function LoginForm() {
             const targetPath = next && next !== '/' ? next : '/analyze'
             // Bypass the server-side /auth/callback route and let AuthContext on the client handle the code exchange
             // This prevents the AuthPKCECodeVerifierMissingError caused by cookie domain mismatches.
-            const redirectTo = `${origin}${targetPath}`
+            const redirectTo = targetPath.startsWith('http') ? targetPath : `${origin}${targetPath}`
 
             // Provider-specific options
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
