@@ -120,17 +120,25 @@ export async function runCronbachAlpha(
     const result = await executeRWithRecovery(rCode, 'cronbach', 0, 2, WEBR_TIMEOUTS.COMPLEX, cleanData);
     const getValue = parseWebRResult(result);
 
-    // Support both new explicit JSON mapping and old legacy template keys
-    const rawAlpha = getValue('raw_alpha')?.[0] ?? getValue('alphaVal')?.[0] ?? 0;
-    const stdAlpha = getValue('std_alpha')?.[0] ?? 0;
-    const omegaTotal = getValue('omega_total')?.[0] ?? getValue('omegaVal')?.[0] ?? 0;
-    const omegaH = getValue('omega_h')?.[0] ?? 0;
-    const nItems = getValue('n_items')?.[0] ?? getValue('n')?.[0] ?? 'N/A';
+    const extractScalar = (val: any) => Array.isArray(val) ? val[0] : val;
+    const extractArray = (val: any) => {
+        if (!val) return [];
+        if (Array.isArray(val)) return val;
+        if (typeof val === 'object') return Object.values(val);
+        return [val];
+    };
 
-    const scaleMeanDeleted = getValue('scale_mean_deleted') || [];
-    const scaleVarDeleted = getValue('scale_var_deleted') || [];
-    const correctedItemTotal = getValue('corrected_item_total') || [];
-    const alphaIfDeleted = getValue('alpha_if_deleted') || [];
+    // Support both new explicit JSON mapping and old legacy template keys
+    const rawAlpha = extractScalar(getValue('raw_alpha')) ?? extractScalar(getValue('alphaVal')) ?? 0;
+    const stdAlpha = extractScalar(getValue('std_alpha')) ?? 0;
+    const omegaTotal = extractScalar(getValue('omega_total')) ?? extractScalar(getValue('omegaVal')) ?? 0;
+    const omegaH = extractScalar(getValue('omega_h')) ?? 0;
+    const nItems = extractScalar(getValue('n_items')) ?? extractScalar(getValue('n')) ?? 'N/A';
+
+    const scaleMeanDeleted = extractArray(getValue('scale_mean_deleted'));
+    const scaleVarDeleted = extractArray(getValue('scale_var_deleted'));
+    const correctedItemTotal = extractArray(getValue('corrected_item_total'));
+    const alphaIfDeleted = extractArray(getValue('alpha_if_deleted'));
 
     const itemCount = typeof nItems === 'number' ? nItems : 0;
     const itemTotalStats = [];
@@ -242,19 +250,27 @@ export async function runEFA(
 
     const jsResult = await executeRWithRecovery(rCode, 'efa', 0, 2, WEBR_TIMEOUTS.COMPLEX, data);
     const getValue = parseWebRResult(jsResult);
-    const nFactorsUsed = getValue('n_factors_used')?.[0] || nFactors || 1;
+    const extractScalar = (val: any) => Array.isArray(val) ? val[0] : val;
+    const extractArray = (val: any) => {
+        if (!val) return [];
+        if (Array.isArray(val)) return val;
+        if (typeof val === 'object') return Object.values(val);
+        return [val];
+    };
+
+    const nFactorsUsed = extractScalar(getValue('n_factors_used')) || nFactors || 1;
 
     const rawResult = {
-        kmo: getValue('kmo')?.[0] ?? 0,
-        bartlettP: getValue('bartlett_p')?.[0] ?? 1,
+        kmo: extractScalar(getValue('kmo')) ?? 0,
+        bartlettP: extractScalar(getValue('bartlett_p')) ?? 1,
         loadings: parseMatrix(getValue('loadings'), nFactorsUsed),
-        communalities: getValue('communalities') || [],
+        communalities: extractArray(getValue('communalities')),
         structure: parseMatrix(getValue('structure'), nFactorsUsed),
-        eigenvalues: getValue('eigenvalues') || [],
+        eigenvalues: extractArray(getValue('eigenvalues')),
         nFactorsUsed: nFactorsUsed,
-        nFactorsSuggested: getValue('n_factors_suggested')?.[0] || nFactorsUsed,
-        factorMethod: getValue('extraction_method')?.[0] || method,
-        extractionMethod: getValue('extraction_method')?.[0] || method,
+        nFactorsSuggested: extractScalar(getValue('n_factors_suggested')) || nFactorsUsed,
+        factorMethod: extractScalar(getValue('extraction_method')) || method,
+        extractionMethod: extractScalar(getValue('extraction_method')) || method,
         rCode
     };
 
