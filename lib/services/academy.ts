@@ -51,20 +51,27 @@ export async function getAcademyResources(type?: 'scale' | 'theory' | 'method') 
         });
     }
 
-    if (!type || type === 'theory') {
+    if (!type || type === 'theory' || type === 'method') {
         STATIC_ARTICLES.forEach((a: any) => {
-            fallbackData.push({
-                id: a.slug,
-                slug: a.slug,
-                type: 'theory',
-                title_vi: a.title_vi,
-                title_en: a.title_en,
-                description_vi: a.title_vi + ' overview',
-                category: a.category,
-                meta_data: {
-                    icon_name: a.icon_name
-                }
-            });
+            const isMethod = a.slug.startsWith('scenario') || a.type === 'method';
+            
+            if (!type || (type === 'theory' && !isMethod) || (type === 'method' && isMethod)) {
+                fallbackData.push({
+                    id: a.slug,
+                    slug: a.slug,
+                    type: isMethod ? 'method' : 'theory',
+                    title_vi: a.title_vi,
+                    title_en: a.title_en,
+                    description_vi: a.description_vi || (a.title_vi + ' overview'),
+                    description_en: a.description_en || (a.title_en + ' overview'),
+                    content_vi: a.content_vi,
+                    content_en: a.content_en,
+                    category: a.category,
+                    meta_data: {
+                        icon_name: a.icon_name
+                    }
+                });
+            }
         });
     }
 
