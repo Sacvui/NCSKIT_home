@@ -19,8 +19,7 @@ export async function getAcademyResources(type?: 'scale' | 'theory' | 'method') 
         
         // If DB table exists and has data
         if (!error && data && data.length > 0) {
-            // Tạm thời vô hiệu hóa DB để ép dùng giải pháp 2 (Fallback tĩnh) theo yêu cầu
-            // return { data, source: 'db' };
+            return { data, source: 'db' };
         }
     } catch (e) {
         console.warn("Academy DB query failed, using fallback.", e);
