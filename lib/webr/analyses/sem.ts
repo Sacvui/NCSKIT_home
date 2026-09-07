@@ -47,12 +47,17 @@ export async function runLavaanAnalysis(
     
     mod_str <- "{{model}}";
     
-    # Use robust estimator by default for Likert data
+    # Default attempt: MLR with FIML (robust for Likert)
     fit <- tryCatch({
         lavaan::sem(model = mod_str, data = df, std.lv = TRUE, missing = "fiml", estimator = "{{estimator}}", bounds = FALSE)
-    }, error = function(e) { 
-        # Fallback to listwise deletion if FIML fails
-        lavaan::sem(model = mod_str, data = df, std.lv = TRUE, missing = "listwise", estimator = "{{estimator}}", bounds = FALSE)
+    }, error = function(e1) { 
+        # Fallback 1: MLR with listwise (if FIML fails)
+        tryCatch({
+            lavaan::sem(model = mod_str, data = df, std.lv = TRUE, missing = "listwise", estimator = "{{estimator}}", bounds = FALSE)
+        }, error = function(e2) {
+            # Fallback 2: ML with listwise (Standard, like in the test cases)
+            lavaan::sem(model = mod_str, data = df, std.lv = TRUE, missing = "listwise", estimator = "ML", bounds = FALSE)
+        })
     })
     
     if (!isTRUE(lavaan::lavInspect(fit, "converged"))) {

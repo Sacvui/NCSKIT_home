@@ -31,8 +31,15 @@ export async function runCBSEM(
     colnames(df) <- colnames_r
     
     model_syntax <- '${escapedModel}'
-    fit <- lavaan::${analysisType}(model_syntax, data=df, std.lv=TRUE, missing="fiml", bounds=FALSE)
-    
+    fit <- tryCatch({
+        lavaan::${analysisType}(model_syntax, data=df, std.lv=TRUE, missing="fiml", estimator="MLR", bounds=FALSE)
+    }, error = function(e1) {
+        tryCatch({
+            lavaan::${analysisType}(model_syntax, data=df, std.lv=TRUE, missing="listwise", estimator="MLR", bounds=FALSE)
+        }, error = function(e2) {
+            lavaan::${analysisType}(model_syntax, data=df, std.lv=TRUE, missing="listwise", estimator="ML", bounds=FALSE)
+        })
+    })
     fit_measures <- lavaan::fitMeasures(fit, c("chisq", "df", "pvalue", "gfi", "cfi", "tli", "rmsea", "srmr", "aic", "bic"))
     estimates <- lavaan::parameterEstimates(fit, standardized=TRUE)
     
