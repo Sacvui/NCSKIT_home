@@ -565,7 +565,7 @@ export async function runBootstrapping(
           rm(idx, boot_df, boot_pls, boot_summ)
         }, error = function(e) {})
         
-        if (b %% 50 == 0) gc()
+        if (b %% 5 == 0) gc()
       }
       
       orig_vals <- sapply(path_names, function(pn) {
