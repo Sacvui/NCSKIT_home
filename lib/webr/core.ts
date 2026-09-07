@@ -42,11 +42,13 @@ export const BASE_URL = typeof window !== 'undefined'
 
 export const getOptimalChannelType = (): 0 | 1 | 3 => {
     if (typeof window === 'undefined') return 3;
+    
     // Tối ưu nhất: SharedArrayBuffer cho phép tốc độ cao nhất (nếu có COOP/COEP headers)
     if (typeof SharedArrayBuffer !== 'undefined' && window.crossOriginIsolated) return 0;
-    // Fallback: ServiceWorker
-    if (navigator.serviceWorker && navigator.serviceWorker.controller) return 1;
-    // Fallback cuối cùng: PostMessage
+    
+    // TRÁNH SỬ DỤNG SERVICE WORKER (Channel 1) trên Safari/iOS vì lỗi FileReaderSync!
+    // Safari có bug nội tại với đồng bộ XHR (Sync XHR) khi bị Service Worker chặn lại.
+    // Do đó, nếu không có SharedArrayBuffer, fallback an toàn nhất trên mọi trình duyệt là PostMessage (3).
     return 3;
 };
 
