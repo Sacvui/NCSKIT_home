@@ -10,9 +10,13 @@ export class WebRPoolManager {
     private isInitializing: boolean = false;
 
     private constructor() {
-        // Leave 1 core for the main thread, max out at 4 to prevent out-of-memory on low-end devices
         const hardwareCores = typeof navigator !== 'undefined' ? navigator.hardwareConcurrency || 2 : 2;
-        this.maxWorkers = Math.max(1, Math.min(hardwareCores - 1, 4));
+        const isMobile = typeof navigator !== 'undefined' && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent);
+        
+        // Mobile devices have strict RAM limits (especially iOS). 
+        // Spawning 4 WebR workers uses >1GB RAM and causes silent OOM crashes.
+        // If mobile, we set maxWorkers to 1 (which forces single-thread fallback in pls-sem).
+        this.maxWorkers = isMobile ? 1 : Math.max(1, Math.min(hardwareCores - 1, 4));
     }
 
     public static getInstance(): WebRPoolManager {
