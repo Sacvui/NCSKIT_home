@@ -42,19 +42,29 @@ export class WebRPoolManager {
                 await worker.init();
 
                 // Generate unique RNG state
+                const localRepo = (typeof window !== 'undefined' && window.location.origin) 
+                    ? window.location.origin + "/webr_repo_v5" 
+                    : "https://ncskit.org/webr_repo_v5";
+
                 await worker.evalR(`
                     RNGkind("L'Ecuyer-CMRG")
-                    options(repos = c(CRAN = "https://repo.r-wasm.org/"))
+                    options(repos = c(LOCAL = "${localRepo}", SEMINR = "https://sem-in-r.r-universe.dev", CRAN = "https://repo.r-wasm.org/"))
                     options(pkgType = "binary")
                 `);
                 
-                // Install seminr directly. The browser's HTTP cache will prevent redundant network requests 
-                // for subsequent workers since we spawn them sequentially.
-                logger.info(`[WebR Pool] Worker ${i + 1} verifying/installing seminr...`);
-                await worker.installPackages(['seminr'], { repos: 'https://repo.r-wasm.org/' });
+                logger.info('[WebR Pool] Worker ' + (i + 1) + ' verifying/installing seminr...');
+                try {
+                    await worker.evalR(`
+                        if (!require("seminr", character.only = TRUE, quietly = TRUE)) {
+                            tryCatch(webr::install("seminr"), error = function(e) {})
+                        }
+                    `);
+                } catch (e) {
+                    logger.warn('[WebR Pool] Worker install failed, but continuing...', e);
+                }
                 
                 this.pool.push(worker);
-                logger.debug(`[WebR Pool] Worker ${i + 1}/${this.maxWorkers} ready.`);
+                logger.debug('[WebR Pool] Worker ' + (i + 1) + '/' + this.maxWorkers + ' ready.');
             }
         } catch (error) {
             logger.error('[WebR Pool] Failed to initialize pool:', error);
@@ -124,8 +134,13 @@ export class WebRPoolManager {
             
             const workerPromise = (async () => {
                 let worker = await this.acquireWorker();
+                let waitStart = Date.now();
+                
                 // Wait for an available worker if all are busy
                 while (!worker) {
+                    if (Date.now() - waitStart > 30000) {
+                        throw new Error("Timeout: Could not acquire an R worker within 30 seconds. System might be out of memory or workers crashed.");
+                    }
                     await new Promise(r => setTimeout(r, 100));
                     worker = await this.acquireWorker();
                 }
