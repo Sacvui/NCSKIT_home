@@ -47,6 +47,8 @@ export async function runLavaanAnalysis(
     
     mod_str <- "{{model}}";
     
+    fallback_msg <- ""
+    
     # Default attempt: MLR with FIML (robust for Likert)
     fit <- tryCatch({
         lavaan::sem(model = mod_str, data = df, std.lv = TRUE, missing = "fiml", estimator = "{{estimator}}", bounds = FALSE)
@@ -56,6 +58,7 @@ export async function runLavaanAnalysis(
             lavaan::sem(model = mod_str, data = df, std.lv = TRUE, missing = "listwise", estimator = "{{estimator}}", bounds = FALSE)
         }, error = function(e2) {
             # Fallback 2: ML with listwise (Standard, like in the test cases)
+            fallback_msg <<- "Dữ liệu có dấu hiệu đa cộng tuyến hoặc phân phối bất thường khiến thuật toán MLR từ chối xử lý. Hệ thống đã tạm sử dụng thuật toán ML tiêu chuẩn để ra kết quả. Lời khuyên: Bạn nên xem xét gộp các biến quá giống nhau hoặc tăng thêm cỡ mẫu để kết quả đạt độ tin cậy khoa học cao nhất."
             lavaan::sem(model = mod_str, data = df, std.lv = TRUE, missing = "listwise", estimator = "ML", bounds = FALSE)
         })
     })
@@ -80,7 +83,8 @@ export async function runLavaanAnalysis(
         gfi = if("gfi" %in% names(fm) && !is.na(fm["gfi"])) as.numeric(fm["gfi"]) else 0,
         agfi = if("agfi" %in% names(fm) && !is.na(fm["agfi"])) as.numeric(fm["agfi"]) else 0,
         nfi = if("nfi" %in% names(fm) && !is.na(fm["nfi"])) as.numeric(fm["nfi"]) else 0,
-        est_list = if(nrow(est) > 0) split(est, seq(nrow(est))) else list()
+        est_list = if(nrow(est) > 0) split(est, seq(nrow(est))) else list(),
+        fallback_warning = fallback_msg
     );
     `;
 

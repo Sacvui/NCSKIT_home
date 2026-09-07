@@ -31,12 +31,14 @@ export async function runCBSEM(
     colnames(df) <- colnames_r
     
     model_syntax <- '${escapedModel}'
+    fallback_msg <- ""
     fit <- tryCatch({
         lavaan::${analysisType}(model_syntax, data=df, std.lv=TRUE, missing="fiml", estimator="MLR", bounds=FALSE)
     }, error = function(e1) {
         tryCatch({
             lavaan::${analysisType}(model_syntax, data=df, std.lv=TRUE, missing="listwise", estimator="MLR", bounds=FALSE)
         }, error = function(e2) {
+            fallback_msg <<- "Dữ liệu có dấu hiệu đa cộng tuyến hoặc phân phối bất thường khiến thuật toán MLR từ chối xử lý. Hệ thống đã tạm sử dụng thuật toán ML tiêu chuẩn để ra kết quả. Lời khuyên: Bạn nên xem xét gộp các biến quá giống nhau hoặc tăng thêm cỡ mẫu để kết quả đạt độ tin cậy khoa học cao nhất."
             lavaan::${analysisType}(model_syntax, data=df, std.lv=TRUE, missing="listwise", estimator="ML", bounds=FALSE)
         })
     })
@@ -45,7 +47,8 @@ export async function runCBSEM(
     
     list(
       fit = as.list(fit_measures),
-      estimates = as.list(estimates)
+      estimates = as.list(estimates),
+      fallback_warning = fallback_msg
     )
   `;
 
@@ -60,12 +63,16 @@ export async function runCBSEM(
   }
 
   const estimates = output?.estimates?.values || [];
+  const warnings = [];
+  if (output?.fallback_warning && output.fallback_warning.length > 0) {
+    warnings.push(output.fallback_warning[0] || output.fallback_warning);
+  }
 
   return {
     fitIndices,
     parameterEstimates: estimates,
     standardizedEstimates: estimates.filter((p: any) => p.std_all !== undefined),
-    warnings: [],
+    warnings,
     errors: []
   };
 }
