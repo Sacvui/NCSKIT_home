@@ -20,7 +20,7 @@ export const translations = {
             userguide: 'Hướng dẫn Sử dụng',
             profile: 'Hồ sơ',
             knowledge_hub: 'Thư viện Tri thức',
-            knowledge_guides: 'Kiến thức & Hướng dẫn',
+            knowledge_guides: 'Help',
             login: 'Đăng nhập',
             logout: 'Đăng xuất'
         },
@@ -581,7 +581,7 @@ export const translations = {
             userguide: 'User Guide',
             profile: 'Profile',
             knowledge_hub: 'Knowledge Hub',
-            knowledge_guides: 'Knowledge & Guides',
+            knowledge_guides: 'Help',
             login: 'Login',
             logout: 'Logout'
         },
