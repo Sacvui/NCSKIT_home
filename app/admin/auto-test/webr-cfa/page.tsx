@@ -604,6 +604,9 @@ export default function TestWebRDeep() {
                 const fmRes = await webR.evalR(`
                     jsonlite::toJSON(list(
                         converged = isTRUE(lavInspect(.test_fit, "converged")),
+                        iterations = lavInspect(.test_fit, "iterations"),
+                        n_vars_total = ncol(df_cfa),
+                        n_par = lavInspect(.test_fit, "npar"),
                         cfi = as.numeric(fitMeasures(.test_fit, "cfi")),
                         tli = as.numeric(fitMeasures(.test_fit, "tli")),
                         rmsea = as.numeric(fitMeasures(.test_fit, "rmsea")),
@@ -617,7 +620,9 @@ export default function TestWebRDeep() {
                 const fmJs = await (fmRes as any).toJs();
                 const fm = JSON.parse(fmJs.values ? fmJs.values[0] : fmJs);
                 
-                addLog('OK', `CFA converged: ${fm.converged}, N=${fm.n_obs}`);
+                addLog('OK', `Loaded Data: N = ${fm.n_obs} observations, ${fm.n_vars_total} total variables`);
+                addLog('OK', `CFA Model: ${fm.n_par} parameters estimated`);
+                addLog('OK', `Estimation Converged: ${fm.converged} (after ${fm.iterations} iterations)`);
                 addLog('RESULT', `─── Fit Measures ───`);
                 addLog('RESULT', `  CFI   = ${fm.cfi?.toFixed(4)}`);
                 addLog('RESULT', `  TLI   = ${fm.tli?.toFixed(4)}`);
