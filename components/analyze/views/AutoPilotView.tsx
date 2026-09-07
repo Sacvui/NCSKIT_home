@@ -61,7 +61,7 @@ export function AutoPilotView({
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [progress, setProgress] = useState(0);
     const [statusText, setStatusText] = useState('');
-    const [bootstrapSamples, setBootstrapSamples] = useState<number>(500);
+    const [bootstrapSamples, setBootstrapSamples] = useState<number>(50);
     const [selectedPreset, setSelectedPreset] = useState<AutoPilotPreset | null>(null);
     const [categoricalCols, setCategoricalCols] = useState<string[]>([]);
     const [compareGroupVar, setCompareGroupVar] = useState<string>('');
@@ -668,10 +668,12 @@ export function AutoPilotView({
                             <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6">
                                 <div className="grid grid-cols-4 gap-3 mb-4">
                                     {[
-                                        { value: 100, label: '100', badge: '⚡ Nhanh', desc: 'Chỉ dùng debug / kiểm tra nhanh', color: 'slate' },
-                                        { value: 200, label: '200', badge: '🟡 Tối thiểu', desc: 'Phân tích sơ bộ, chưa đủ cho báo cáo', color: 'amber' },
-                                        { value: 500, label: '500', badge: '🟢 Đạt chuẩn', desc: 'Hair et al. (2017) — PLS-SEM', color: 'emerald' },
-                                        { value: 1000, label: '1,000', badge: '🟢🟢 Khuyến nghị', desc: 'Efron & Tibshirani (1993)', color: 'blue' },
+                                        { value: 50, label: '50', badge: '🧪 Demo', desc: 'Chạy thử để test tốc độ (Rất nhanh)', color: 'slate' },
+                                        { value: 100, label: '100', badge: '⚡ Nhanh', desc: 'Chỉ dùng debug / kiểm tra lỗi', color: 'amber' },
+                                        // Ẩn tạm thời để demo webassembly:
+                                        // { value: 200, label: '200', badge: '🟡 Tối thiểu', desc: 'Phân tích sơ bộ, chưa đủ cho báo cáo', color: 'emerald' },
+                                        // { value: 500, label: '500', badge: '🟢 Đạt chuẩn', desc: 'Hair et al. (2017) — PLS-SEM', color: 'emerald' },
+                                        // { value: 1000, label: '1,000', badge: '🟢🟢 Khuyến nghị', desc: 'Efron & Tibshirani (1993)', color: 'blue' },
                                     ].map(opt => (
                                         <button
                                             key={opt.value}
