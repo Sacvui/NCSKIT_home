@@ -18,6 +18,7 @@ interface PhaseResult {
 export default function TestWebRDeep() {
     const [logs, setLogs] = useState<LogEntry[]>([]);
     const [running, setRunning] = useState(false);
+    const [bootSamples, setBootSamples] = useState(100);
     const [status, setStatus] = useState<'idle' | 'running' | 'pass' | 'fail'>('idle');
     const [phaseResults, setPhaseResults] = useState<PhaseResult[]>([]);
     const webRRef = useRef<any>(null);
@@ -599,7 +600,23 @@ export default function TestWebRDeep() {
                         INT =~ INT1 + INT2 + INT3 + INT4
                         BEH =~ BEH1 + BEH2 + BEH3 + BEH4
                     '
-                    .test_fit <- cfa(cfa_model, data = df_cfa)
+                    
+                    fallback_msg <- ""
+                    
+                    # Default attempt: MLR with FIML (robust for Likert)
+                    .test_fit <- tryCatch({
+                        lavaan::cfa(model = cfa_model, data = df_cfa, std.lv = TRUE, missing = "fiml", estimator = "MLR", bounds = FALSE)
+                    }, error = function(e1) { 
+                        # Fallback 1: MLR with listwise (if FIML fails)
+                        tryCatch({
+                            lavaan::cfa(model = cfa_model, data = df_cfa, std.lv = TRUE, missing = "listwise", estimator = "MLR", bounds = FALSE)
+                        }, error = function(e2) {
+                            # Fallback 2: ML with listwise (Standard, like in the test cases)
+                            fallback_msg <<- "FALLBACK TO ML"
+                            lavaan::cfa(model = cfa_model, data = df_cfa, std.lv = TRUE, missing = "listwise", estimator = "ML", bounds = FALSE)
+                        })
+                    })
+                    
                 `);
                 const fmRes = await webR.evalR(`
                     jsonlite::toJSON(list(
@@ -614,7 +631,8 @@ export default function TestWebRDeep() {
                         chisq = as.numeric(fitMeasures(.test_fit, "chisq")),
                         df = as.numeric(fitMeasures(.test_fit, "df")),
                         pvalue = as.numeric(fitMeasures(.test_fit, "pvalue")),
-                        n_obs = lavInspect(.test_fit, "nobs")
+                        n_obs = lavInspect(.test_fit, "nobs"),
+                        fallback_msg = fallback_msg
                     ), auto_unbox = TRUE)
                 `);
                 const fmJs = await (fmRes as any).toJs();
@@ -622,6 +640,7 @@ export default function TestWebRDeep() {
                 
                 addLog('OK', `Loaded Data: N = ${fm.n_obs} observations, ${fm.n_vars_total} total variables`);
                 addLog('OK', `CFA Model: ${fm.n_par} parameters estimated`);
+                if (fm.fallback_msg) addLog('WARN', `Fallback triggered: ${fm.fallback_msg}`);
                 addLog('OK', `Estimation Converged: ${fm.converged} (after ${fm.iterations} iterations)`);
                 addLog('RESULT', `─── Fit Measures ───`);
                 addLog('RESULT', `  CFI   = ${fm.cfi?.toFixed(4)}`);
@@ -810,9 +829,9 @@ export default function TestWebRDeep() {
                     sm <- relationships(paths(from="F1",to="F3"), paths(from="F2",to="F3"))
                     pls <- estimate_pls(data=df, measurement_model=mm, structural_model=sm)
                     
-                    # Manual bootstrap (50 iterations for speed test)
+                    # Manual bootstrap (${bootSamples} iterations for speed test)
                     orig <- summary(pls)
-                    n_boot <- 50
+                    n_boot <- ${bootSamples}
                     boot_ests <- matrix(NA, nrow=n_boot, ncol=2)
                     for (b in 1:n_boot) {
                         tryCatch({
@@ -997,6 +1016,23 @@ export default function TestWebRDeep() {
                 >
                     {running ? '⏳ Đang chạy...' : '▶ Chạy Deep Test'}
                 </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: '#11111b', padding: '6px 12px', borderRadius: 6, border: '1px solid #313244' }}>
+                    <span style={{ fontSize: 13, color: '#a6adc8' }}>Số vòng Bootstrap (PLS-SEM):</span>
+                    <select 
+                        value={bootSamples} 
+                        onChange={e => setBootSamples(Number(e.target.value))}
+                        disabled={running}
+                        style={{ 
+                            background: '#1e1e2e', color: '#cdd6f4', border: '1px solid #45475a', 
+                            borderRadius: 4, padding: '4px 8px', outline: 'none', cursor: running ? 'not-allowed' : 'pointer'
+                        }}
+                    >
+                        <option value={50}>50 (Rất nhanh)</option>
+                        <option value={100}>100 (Nhanh)</option>
+                        <option value={500}>500 (Chuẩn mực)</option>
+                        <option value={1000}>1000 (Tối đa)</option>
+                    </select>
+                </div>
                 
                 {logs.length > 0 && !running && (
                     <>
