@@ -48,5 +48,20 @@ Hệ thống ASIG không chỉ diễn giải kết quả mà còn thực hiện 
 - **Gợi ý quy trình (Workflow)**: Nếu Cronbach's Alpha đạt chuẩn (> 0.7), ASIG sẽ gợi ý người dùng chuyển sang bước phân tích nhân tố khám phá (EFA).
 - **Phòng ngừa diễn giải sai**: ASIG ngăn chặn các tuyên bố quá mức về ý nghĩa thống kê khi cỡ mẫu quá nhỏ hoặc khi kết quả chỉ mấp mé ngưỡng ý nghĩa.
 
+## 7. Auto Pilot Workflow Logic & Dynamic Rendering
+
+Cơ chế phân tích tự động (Auto Pilot) sử dụng cấu trúc luồng tùy biến, cho phép thiết lập và tự động hiển thị chuỗi các phân tích thống kê chuyên sâu:
+- **PLS-SEM / CB-SEM Workflow**: Chạy liên hoàn chuỗi kiểm định Độ tin cậy -> EFA -> CFA (đối với CB-SEM) -> Mô hình cấu trúc -> Bootstrapping/Blindfolding (đối với PLS-SEM).
+- **Regression / Logistic Workflow**: Thiết lập chuỗi đánh giá Độ tin cậy -> Tương quan (Correlation) -> Hồi quy (Linear/Logistic) với việc tự động sinh biến đại diện (construct scores).
+- **So sánh nhóm (Compare Workflow)**: Tự động phân luồng phân tích T-Test (nếu có 2 nhóm) hoặc ANOVA (nếu > 2 nhóm) dựa trên biến phân loại.
+- **Hệ thống hiển thị động (Lazy-load Rendering)**: Báo cáo AutoPilotReport nhận diện cấu trúc đầu ra để kích hoạt chính xác các modules như `CFAResults`, `RegressionResults`, `TTestResults`... tránh hardcode và đảm bảo hiển thị đúng 100% dữ liệu đã tính toán ngầm.
+
+## 8. Academic Engine (Scientific Notes)
+
+ASIG tích hợp sâu tính năng **Scientific Notes** nhằm củng cố độ tin cậy khoa học của kết quả:
+- Mọi bảng kết quả cốt lõi (PLS, SEM, CFA, EFA, Cronbach, Regression, Logistic, T-Test, ANOVA, Correlation) đều được nhúng Insight giải thích bản chất phương pháp.
+- Kèm theo đó là các **Trích dẫn chuẩn APA** từ các tài liệu kinh điển toàn cầu (ví dụ: *Hair et al. (2017)*, *Kline (2015)*, *Field (2013)*, *Hu & Bentler (1999)*, *Cohen (1988)*).
+- Mục tiêu giúp sinh viên và nghiên cứu sinh am hiểu phương pháp thay vì chỉ "bấm nút lấy số".
+
 ---
-*Tài liệu này được cung cấp để hỗ trợ quá trình kiểm duyệt khoa học (Scientific Review) của JOSS.*
+*Tài liệu này được cung cấp để hỗ trợ quá trình kiểm duyệt khoa học (Scientific Review) của JOSS và cập nhật liên tục theo tiến độ phát triển.*
