@@ -666,22 +666,24 @@ export function AutoPilotView({
                                 <span className="text-xs font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">Bootstrapping</span>
                             </div>
                             <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6">
-                                <div className="grid grid-cols-4 gap-3 mb-4">
+                                <div className="grid grid-cols-5 gap-3 mb-4">
                                     {[
-                                        { value: 50, label: '50', badge: '🧪 Demo', desc: 'Chạy thử để test tốc độ (Rất nhanh)', color: 'slate' },
-                                        { value: 100, label: '100', badge: '⚡ Nhanh', desc: 'Chỉ dùng debug / kiểm tra lỗi', color: 'amber' },
-                                        // Ẩn tạm thời để demo webassembly:
-                                        // { value: 200, label: '200', badge: '🟡 Tối thiểu', desc: 'Phân tích sơ bộ, chưa đủ cho báo cáo', color: 'emerald' },
-                                        // { value: 500, label: '500', badge: '🟢 Đạt chuẩn', desc: 'Hair et al. (2017) — PLS-SEM', color: 'emerald' },
-                                        // { value: 1000, label: '1,000', badge: '🟢🟢 Khuyến nghị', desc: 'Efron & Tibshirani (1993)', color: 'blue' },
+                                        { value: 50, label: '50', badge: '🧪 Thử nghiệm', desc: 'Kiểm tra luồng thuật toán (Mất 1-2 phút)', color: 'slate', disabled: false },
+                                        { value: 100, label: '100', badge: '⚠️ Cơ bản', desc: 'Vẫn tốn khá nhiều thời gian để chạy', color: 'amber', disabled: false },
+                                        { value: 200, label: '200', badge: '🟡 Tối thiểu', desc: 'Phân tích sơ bộ, chưa đủ cho báo cáo', color: 'emerald', disabled: true },
+                                        { value: 500, label: '500', badge: '🟢 Đạt chuẩn', desc: 'Hair et al. (2017) — PLS-SEM', color: 'emerald', disabled: true },
+                                        { value: 1000, label: '1,000', badge: '🟢🟢 Khuyến nghị', desc: 'Efron & Tibshirani (1993)', color: 'blue', disabled: true },
                                     ].map(opt => (
                                         <button
                                             key={opt.value}
+                                            disabled={opt.disabled}
                                             onClick={() => setBootstrapSamples(opt.value)}
                                             className={`p-3 rounded-xl border-2 transition-all text-center ${
-                                                bootstrapSamples === opt.value
-                                                    ? 'border-indigo-500 bg-indigo-50 shadow-md'
-                                                    : 'border-slate-200 bg-white hover:border-slate-300'
+                                                opt.disabled
+                                                    ? 'border-slate-100 bg-slate-50 opacity-40 cursor-not-allowed grayscale'
+                                                    : bootstrapSamples === opt.value
+                                                        ? 'border-indigo-500 bg-indigo-50 shadow-md'
+                                                        : 'border-slate-200 bg-white hover:border-slate-300'
                                             }`}
                                         >
                                             <div className="text-2xl font-black text-slate-800">{opt.label}</div>
