@@ -591,46 +591,10 @@ export async function runBootstrapping(
       )
     `;
     
-        return { mean, sd: Math.sqrt(variance) };
-    };
-    
-    // Approximation of standard normal CDF
-    const pnorm = (z: number) => {
-        const t = 1 / (1 + 0.2316419 * Math.abs(z));
-        const d = 0.3989423 * Math.exp(-z * z / 2);
-        const prob = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274))));
-        return z > 0 ? 1 - prob : prob;
-    };
-    
-    const result_paths: Record<string, Record<string, number>> = {
-        "Original Est.": {},
-        "Boot Mean": {},
-        "Boot SD": {},
-        "T Stat.": {},
-        "P Value": {}
-    };
-    
-    for (const pn of pathNames) {
-        const origVal = origValsRes[pn];
-        const stats = jStat(combinedEstimates[pn] || []);
-        
-        const tStat = stats.sd > 0 ? origVal / stats.sd : 0;
-        const pVal = 2 * pnorm(-Math.abs(tStat));
-        
-        result_paths["Original Est."][pn] = origVal;
-        result_paths["Boot Mean"][pn] = stats.mean;
-        result_paths["Boot SD"][pn] = stats.sd;
-        result_paths["T Stat."][pn] = tStat;
-        result_paths["P Value"][pn] = pVal;
-    }
-    
-    return {
-        boot_paths: result_paths,
-        boot_loadings: {},
-        n_bootstrap: nBootstrap,
-        note: "Computed using Multi-threaded WebR Pool with Manual Extraction"
-    };
-};
+    logger.info(\`[PLS-SEM] Running single-threaded Bootstrapping (\${nBootstrap} iterations)\`);
+    // Timeout extended to 15 minutes (900000ms) for huge datasets
+    return await executeRWithRecovery(rCode, 'pls-sem', 0, 2, 900000, cleanData);
+}
 
 /**
  * Mediation & Moderation Analysis
