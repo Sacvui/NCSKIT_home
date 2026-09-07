@@ -591,7 +591,7 @@ export async function runBootstrapping(
       )
     `;
     
-    logger.info(\`[PLS-SEM] Running single-threaded Bootstrapping (\${nBootstrap} iterations)\`);
+    logger.info(`[PLS-SEM] Running single-threaded Bootstrapping (${nBootstrap} iterations)`);
     // Timeout extended to 15 minutes (900000ms) for huge datasets
     return await executeRWithRecovery(rCode, 'pls-sem', 0, 2, 900000, cleanData);
 }
