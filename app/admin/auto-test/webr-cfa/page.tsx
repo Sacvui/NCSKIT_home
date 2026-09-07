@@ -582,19 +582,24 @@ export default function TestWebRDeep() {
             } catch (e: any) { addLog('ERROR', e.message); allPassed = false; addPhaseResult('EFA', 'fail', performance.now() - p16Start); }
 
             // ═══════════════════════════════════════════
-            // PHASE 17: CFA (Confirmatory Factor Analysis)
+            // PHASE 17: CFA (ncsstat_sample_500.csv)
             // ═══════════════════════════════════════════
             const p17Start = performance.now();
-            addLog('INFO', '══════ PHASE 17: CFA (HolzingerSwineford1939) ══════');
+            addLog('INFO', '══════ PHASE 17: CFA (ncsstat_sample_500.csv) ══════');
             try {
-                addLog('INFO', 'Fitting CFA model...');
+                addLog('INFO', 'Fetching ncsstat_sample_500.csv and fitting CFA model...');
                 await webR.evalR(`
-                    HS.model <- '
-                        visual  =~ x1 + x2 + x3
-                        textual =~ x4 + x5 + x6
-                        speed   =~ x7 + x8 + x9
+                    # Download CSV using JS fetch then pass to R, or download in R directly
+                    df_cfa <- read.csv(url("https://ncskit.org/data/ncsstat_sample_500.csv"))
+                    
+                    cfa_model <- '
+                        SN =~ SN1 + SN2 + SN3 + SN4
+                        ATT =~ ATT1 + ATT2 + ATT3 + ATT4
+                        PBC =~ PBC1 + PBC2 + PBC3 + PBC4
+                        INT =~ INT1 + INT2 + INT3 + INT4
+                        BEH =~ BEH1 + BEH2 + BEH3 + BEH4
                     '
-                    .test_fit <- cfa(HS.model, data = HolzingerSwineford1939)
+                    .test_fit <- cfa(cfa_model, data = df_cfa)
                 `);
                 const fmRes = await webR.evalR(`
                     jsonlite::toJSON(list(
@@ -620,9 +625,8 @@ export default function TestWebRDeep() {
                 addLog('RESULT', `  SRMR  = ${fm.srmr?.toFixed(4)}`);
                 addLog('RESULT', `  χ²    = ${fm.chisq?.toFixed(3)}, df = ${fm.df}, p = ${fm.pvalue?.toFixed(4)}`);
                 
-                const expectedCFI = 0.931;
-                const cfiBias = Math.abs(fm.cfi - expectedCFI);
-                addLog(cfiBias < 0.01 ? 'OK' : 'WARN', `Validation: CFI=${fm.cfi?.toFixed(4)} vs expected ~${expectedCFI} (diff=${cfiBias.toFixed(4)}) ${cfiBias < 0.01 ? '✅' : '⚠️'}`);
+                const cfiOk = fm.cfi > 0.8;
+                addLog(cfiOk ? 'OK' : 'WARN', `Validation: CFI=${fm.cfi?.toFixed(4)} ${cfiOk ? '✅ > 0.8' : '⚠️ Low CFI'}`);
                 addPhaseResult('CFA', 'pass', performance.now() - p17Start);
             } catch (e: any) { addLog('ERROR', `CFA Exception: ${e.message}`); allPassed = false; addPhaseResult('CFA', 'fail', performance.now() - p17Start); }
 
