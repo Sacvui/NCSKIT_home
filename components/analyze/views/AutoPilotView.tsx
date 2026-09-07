@@ -61,7 +61,7 @@ export function AutoPilotView({
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [progress, setProgress] = useState(0);
     const [statusText, setStatusText] = useState('');
-    const [bootstrapSamples, setBootstrapSamples] = useState<number>(50);
+    const [bootstrapSamples, setBootstrapSamples] = useState<number>(10);
     const [selectedPreset, setSelectedPreset] = useState<AutoPilotPreset | null>(null);
     const [categoricalCols, setCategoricalCols] = useState<string[]>([]);
     const [compareGroupVar, setCompareGroupVar] = useState<string>('');
@@ -668,7 +668,7 @@ export function AutoPilotView({
                             <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6">
                                 <div className="grid grid-cols-5 gap-3 mb-4">
                                     {[
-                                        { value: 50, label: '50', badge: '🧪 Thử nghiệm', desc: 'Kiểm tra luồng thuật toán (Mất 1-2 phút)', color: 'slate', disabled: false },
+                                        { value: 10, label: '10', badge: '🧪 Thử nghiệm', desc: 'Siêu tốc (Chỉ kiểm tra luồng)', color: 'slate', disabled: false },
                                         { value: 100, label: '100', badge: '⚠️ Cơ bản', desc: 'Vẫn tốn khá nhiều thời gian để chạy', color: 'amber', disabled: false },
                                         { value: 200, label: '200', badge: '🟡 Tối thiểu', desc: 'Phân tích sơ bộ, chưa đủ cho báo cáo', color: 'emerald', disabled: true },
                                         { value: 500, label: '500', badge: '🟢 Đạt chuẩn', desc: 'Hair et al. (2017) — PLS-SEM', color: 'emerald', disabled: true },
