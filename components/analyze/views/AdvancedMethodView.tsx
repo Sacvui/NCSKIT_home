@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Play, AlertCircle, Loader2, TrendingUp, Target, Users, Eye, Zap } from 'lucide-react';
+import { Play, AlertCircle, Loader2, TrendingUp, Target, Users, Eye, Zap, GitCompare, Shield } from 'lucide-react';
 import { runSimpleBootstrapping, runIPMA, runMGA, runSimpleBlindfolding, runPLSSEM, runHarmanCMB, runHTMTMatrix, runVIFCheck } from '@/lib/webr/pls-sem';
 import { runCBSEM } from '@/lib/webr/analyses/cb-sem';
 
