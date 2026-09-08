@@ -58,16 +58,12 @@ export async function runCronbachAlpha(
     });
     
     # === McDonald's Omega (Robust) ===
-    # Factor detection using parallel analysis
+    # For a single scale/construct, we assume 1 factor. 
+    # (fa.parallel is computationally expensive and unnecessary here)
     omega_result <- tryCatch({
         if (ncol(data) >= 3) {
-            nfactors_detected <- tryCatch({
-                pa <- fa.parallel(data, fm="minres", fa="fa", plot=FALSE, n.iter=5);
-                max(1, pa$nfact)
-            }, error = function(e) { 1 });
-            
             om <- suppressWarnings(suppressMessages(
-                omega(data, nfactors = nfactors_detected, plot = FALSE, check.keys = TRUE)
+                omega(data, nfactors = 1, plot = FALSE, check.keys = TRUE)
             ));
             
             list(
