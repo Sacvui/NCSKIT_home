@@ -39,8 +39,8 @@ test.describe('Auto-Pilot Analysis Luồng (PLS-SEM)', () => {
         await expect(page.locator('text=Chạy Auto Pilot thành công!')).toBeVisible({ timeout: 60000 });
         
         // 9. Kiểm tra xem màn hình kết quả (Results) đã hiển thị đúng kết quả Auto-Pilot chưa
-        // Thường có text "BÁO CÁO PHÂN TÍCH TỰ ĐỘNG ĐA BƯỚC" hoặc kết quả Cronbach
-        await expect(page.locator('text=Cronbach\'s Alpha')).first().toBeVisible();
+        // Thường có text "BÁO CÁO PHÂN TÍCH TỰ ĐỘNG ĐA BƯỚC"        // Wait for results
+        await expect(page.locator('text=Cronbach\'s Alpha').first()).toBeVisible();
         await expect(page.locator('text=Báo cáo Auto Pilot Tổng Hợp')).toBeVisible();
 
         // 10. Check if the new CMB and HTMT tests are rendered
