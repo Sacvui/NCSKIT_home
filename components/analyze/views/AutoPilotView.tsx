@@ -4,6 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { Target, Layers, Play, Rocket, AlertTriangle, CheckCircle2, ChevronLeft, ArrowRight, Lock } from 'lucide-react';
 import { runEFA, runPLSSEM, runCronbachAlpha, runBootstrapping, runBlindfolding, runLavaanAnalysis, runLinearRegression, runCorrelation, runTTestIndependent, runOneWayANOVA, runLogisticRegression } from '@/lib/webr-wrapper';
 import { AUTO_PILOT_PRESETS, PresetId, AutoPilotPreset } from '@/lib/auto-pilot-presets';
+import { AutoPilotPresetSelector } from './autopilot/AutoPilotPresetSelector';
+import { AutoPilotConfigPanel } from './autopilot/AutoPilotConfigPanel';
+import { AutoPilotProgress } from './autopilot/AutoPilotProgress';
 
 interface AutoPilotViewProps {
     step: string;
@@ -482,82 +485,18 @@ export function AutoPilotView({
         }
     };
 
-    if (!selectedPreset) {
-        return (
-            <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="text-center">
-                    <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-indigo-900 to-blue-900 text-white shadow-2xl mb-6">
-                        <Target className="w-10 h-10" />
-                    </div>
-                    <h2 className="text-3xl font-black text-blue-900 uppercase tracking-tight mb-4">
-                        Chọn Kịch bản Phân tích
-                    </h2>
-                    <p className="text-slate-500 max-w-2xl mx-auto">
-                        Hệ thống cung cấp các kịch bản chuẩn được thiết kế theo các tạp chí khoa học uy tín (Q1/Q2). Hãy chọn một kịch bản phù hợp với mục tiêu nghiên cứu của bạn.
-                    </p>
-                </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {AUTO_PILOT_PRESETS.map((preset) => (
-                        <div 
-                            key={preset.id}
-                            onClick={() => {
-                                if (preset.available) {
-                                    setSelectedPreset(preset);
-                                    if (preset.bootstrapDefault) setBootstrapSamples(preset.bootstrapDefault);
-                                }
-                            }}
-                            className={`relative rounded-3xl border-2 p-6 transition-all duration-300 ${
-                                preset.available 
-                                    ? 'bg-white border-slate-100 hover:border-indigo-400 hover:shadow-xl cursor-pointer hover:-translate-y-1' 
-                                    : 'bg-slate-50 border-slate-200 opacity-70 cursor-not-allowed'
-                            }`}
-                        >
-                            {!preset.available && (
-                                <div className="absolute top-4 right-4 bg-slate-200 text-slate-500 text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider flex items-center gap-1">
-                                    <Lock className="w-3 h-3" /> Đang phát triển
-                                </div>
-                            )}
-                            {preset.badge && preset.available && (
-                                <div className="absolute top-4 right-4 bg-indigo-100 text-indigo-700 text-[10px] font-black px-2 py-1 rounded-md uppercase tracking-wider">
-                                    {preset.badge}
-                                </div>
-                            )}
-                            
-                            <div className={`w-14 h-14 rounded-2xl ${preset.bgColor} ${preset.color} flex items-center justify-center text-2xl mb-6 shadow-sm`}>
-                                {preset.icon}
-                            </div>
-                            
-                            <h3 className="text-lg font-black text-slate-800 mb-2">{preset.name}</h3>
-                            <p className="text-sm text-slate-500 mb-6 leading-relaxed line-clamp-2">
-                                {preset.description}
-                            </p>
-                            
-                            <div className="space-y-3">
-                                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">Quy trình tự động:</div>
-                                <div className="flex flex-wrap gap-2">
-                                    {preset.steps.map((step, idx) => (
-                                        <span key={idx} className="inline-block px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-md font-medium">
-                                            {step}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                            
-                            <div className="mt-6 pt-4 border-t border-slate-100">
-                                <div className="text-[10px] text-slate-400 font-medium">
-                                    📚 Tham chiếu: {preset.references}
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        );
+    if (!selectedPreset) {
+        return <AutoPilotPresetSelector onSelect={(preset) => {
+            setSelectedPreset(preset);
+            if (preset.bootstrapDefault) setBootstrapSamples(preset.bootstrapDefault);
+        }} />;
     }
 
     return (
         <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {isAnalyzing && <AutoPilotProgress progress={progress} statusText={statusText} />}
+            
             <button 
                 onClick={() => setSelectedPreset(null)}
                 className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors font-bold text-sm"
@@ -577,250 +516,44 @@ export function AutoPilotView({
                 </p>
             </div>
 
-            {selectedPreset.requiresPaths && (
-                <div className="bg-white rounded-3xl border border-blue-100 shadow-xl p-8">
-                    <h3 className="text-xl font-black text-blue-900 mb-6 flex items-center gap-3">
-                        <Layers className="w-6 h-6 text-indigo-500" /> Cấu hình Mô hình Nghiên cứu
-                    </h3>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        {/* Path Builder */}
-                        <div className="space-y-4 md:col-span-2">
-                            <div className="flex items-center justify-between">
-                                <h4 className="font-bold text-slate-700">Thiết lập Giả thuyết (Đường dẫn)</h4>
-                                <span className="text-xs font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg">Path Builder</span>
-                            </div>
-                        
-                        <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6">
-                            <div className="flex flex-col md:flex-row items-center gap-4 mb-6">
-                                <select 
-                                    value={newPathFrom}
-                                    onChange={(e) => setNewPathFrom(e.target.value)}
-                                    className="flex-1 p-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-indigo-400"
-                                >
-                                    <option value="" disabled>-- Biến Tác Động --</option>
-                                    {groups.map(g => (
-                                        <option key={g.name} value={g.name}>{g.name} ({g.columns.length} items)</option>
-                                    ))}
-                                </select>
-                                
-                                <div className="text-slate-400 shrink-0">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-                                </div>
-
-                                <select 
-                                    value={newPathTo}
-                                    onChange={(e) => setNewPathTo(e.target.value)}
-                                    className="flex-1 p-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-indigo-400"
-                                >
-                                    <option value="" disabled>-- Biến Bị Tác Động --</option>
-                                    {groups.map(g => (
-                                        <option key={g.name} value={g.name}>{g.name} ({g.columns.length} items)</option>
-                                    ))}
-                                </select>
-
-                                <button
-                                    onClick={handleAddPath}
-                                    className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold transition-colors shrink-0"
-                                >
-                                    Thêm
-                                </button>
-                            </div>
-
-                            <div className="space-y-3">
-                                {paths.length === 0 ? (
-                                    <div className="text-center text-slate-400 text-sm py-4 italic">
-                                        Chưa có giả thuyết nào. Hãy thêm đường dẫn ở trên.
-                                    </div>
-                                ) : (
-                                    paths.map((path, idx) => (
-                                        <div key={idx} className="flex items-center justify-between bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
-                                            <div className="flex items-center gap-4 flex-1">
-                                                <div className="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-700 font-black flex items-center justify-center shrink-0">
-                                                    H{idx + 1}
-                                                </div>
-                                                <div className="flex items-center gap-3 font-bold text-slate-700 text-lg">
-                                                    <span>{path.from}</span>
-                                                    <span className="text-slate-300">→</span>
-                                                    <span>{path.to}</span>
-                                                </div>
-                                            </div>
-                                            <button 
-                                                onClick={() => handleRemovePath(idx)}
-                                                className="p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
-                                            >
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
-                                            </button>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Bootstrap Sample Size Selector - Only show if required by preset */}
-                    {selectedPreset.bootstrapDefault && (
-                        <div className="space-y-3 md:col-span-2 mt-2">
-                            <div className="flex items-center justify-between">
-                                <h4 className="font-bold text-slate-700">Số lượng Bootstrap (Resampling)</h4>
-                                <span className="text-xs font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">Bootstrapping</span>
-                            </div>
-                            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6">
-                                <div className="grid grid-cols-5 gap-3 mb-4">
-                                    {[
-                                        { value: 10, label: '10', badge: '🧪 Thử nghiệm', desc: 'Siêu tốc (Chỉ kiểm tra luồng)', color: 'slate', disabled: false },
-                                        { value: 100, label: '100', badge: '⚠️ Cơ bản', desc: 'Vẫn tốn khá nhiều thời gian để chạy', color: 'amber', disabled: false },
-                                        { value: 200, label: '200', badge: '🟡 Tối thiểu', desc: 'Phân tích sơ bộ, chưa đủ cho báo cáo', color: 'emerald', disabled: true },
-                                        { value: 500, label: '500', badge: '🟢 Đạt chuẩn', desc: 'Hair et al. (2017) — PLS-SEM', color: 'emerald', disabled: true },
-                                        { value: 1000, label: '1,000', badge: '🟢🟢 Khuyến nghị', desc: 'Efron & Tibshirani (1993)', color: 'blue', disabled: true },
-                                    ].map(opt => (
-                                        <button
-                                            key={opt.value}
-                                            disabled={opt.disabled}
-                                            onClick={() => setBootstrapSamples(opt.value)}
-                                            className={`p-3 rounded-xl border-2 transition-all text-center ${
-                                                opt.disabled
-                                                    ? 'border-slate-100 bg-slate-50 opacity-40 cursor-not-allowed grayscale'
-                                                    : bootstrapSamples === opt.value
-                                                        ? 'border-indigo-500 bg-indigo-50 shadow-md'
-                                                        : 'border-slate-200 bg-white hover:border-slate-300'
-                                            }`}
-                                        >
-                                            <div className="text-2xl font-black text-slate-800">{opt.label}</div>
-                                            <div className="text-[10px] font-bold mt-1">{opt.badge}</div>
-                                            <div className="text-[9px] text-slate-400 mt-0.5 leading-tight">{opt.desc}</div>
-                                        </button>
-                                    ))}
-                                </div>
-                                <div className="space-y-2 text-xs text-slate-500">
-                                    <p>
-                                        💡 <strong>Vì sao cần Bootstrap?</strong> PLS-SEM không giả định phân phối chuẩn, nên dùng <em>bootstrap resampling</em> để ước lượng sai số chuẩn (SE) và tính p-value cho hệ số đường dẫn (path coefficients).
-                                    </p>
-                                    <p>
-                                        📚 <strong>Cơ sở khoa học:</strong>
-                                    </p>
-                                    <ul className="list-disc list-inside space-y-1 ml-2 text-slate-400">
-                                        <li><strong>Hair, Hult, Ringle & Sarstedt (2017)</strong> — <em>&quot;A Primer on Partial Least Squares Structural Equation Modeling (PLS-SEM)&quot;</em>: Khuyến nghị tối thiểu <strong>500 mẫu bootstrap</strong> cho nghiên cứu PLS-SEM chuẩn, 5.000 cho xuất bản.</li>
-                                        <li><strong>Efron & Tibshirani (1993)</strong> — <em>&quot;An Introduction to the Bootstrap&quot;</em>: Nền tảng lý thuyết bootstrap, khuyến nghị <strong>1.000+ mẫu</strong> để ước lượng khoảng tin cậy ổn định.</li>
-                                        <li><strong>Davison & Hinkley (1997)</strong> — <em>&quot;Bootstrap Methods and their Application&quot;</em>: Xác nhận 1.000 là mức an toàn cho hầu hết ứng dụng thống kê.</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </div>
-            )}
-
-            {selectedPreset.id === 'compare' && (
-                <div className="bg-white rounded-3xl border border-blue-100 shadow-xl p-8">
-                    <h3 className="text-xl font-black text-blue-900 mb-6 flex items-center gap-3">
-                        <Layers className="w-6 h-6 text-indigo-500" /> Cấu hình So sánh Nhóm
-                    </h3>
-                    <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-6">
-                        <div>
-                            <div className="flex items-center justify-between mb-2">
-                                <h4 className="font-bold text-slate-700">1. Chọn Biến Phân Nhóm (Independent Variable)</h4>
-                                <span className="text-xs font-black text-amber-600 bg-amber-50 px-2 py-1 rounded-lg">Categorical</span>
-                            </div>
-                            <select 
-                                value={compareGroupVar}
-                                onChange={(e) => setCompareGroupVar(e.target.value)}
-                                className="w-full p-3 bg-white border border-slate-200 rounded-xl font-bold text-slate-700 outline-none focus:border-indigo-400"
-                            >
-                                <option value="" disabled>-- Chọn Biến Phân Nhóm (Ví dụ: Giới tính, Độ tuổi) --</option>
-                                {categoricalCols.map(col => (
-                                    <option key={col} value={col}>{col}</option>
-                                ))}
-                            </select>
-                        </div>
-                        
-                        <div className="pt-4 border-t border-slate-200">
-                            <div className="flex items-center justify-between mb-2">
-                                <h4 className="font-bold text-slate-700">2. Chọn Biến Định Lượng (Dependent Variables)</h4>
-                                <span className="text-xs font-black text-blue-600 bg-blue-50 px-2 py-1 rounded-lg">Numeric Groups</span>
-                            </div>
-                            <div className="flex flex-wrap gap-2 mt-3">
-                                {groups.map(g => {
-                                    const isSelected = compareTestVars.includes(g.name);
-                                    return (
-                                        <button
-                                            key={g.name}
-                                            onClick={() => {
-                                                if (isSelected) {
-                                                    setCompareTestVars(prev => prev.filter(v => v !== g.name));
-                                                } else {
-                                                    setCompareTestVars(prev => [...prev, g.name]);
-                                                }
-                                            }}
-                                            className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border-2 ${
-                                                isSelected 
-                                                    ? 'bg-indigo-50 border-indigo-500 text-indigo-700' 
-                                                    : 'bg-white border-slate-200 text-slate-500 hover:border-indigo-300'
-                                            }`}
-                                        >
-                                            {g.name} ({g.columns.length} items)
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {selectedPreset.id === 'scale' && (
-                <div className="bg-white rounded-3xl border border-blue-100 shadow-xl p-8">
-                    <h3 className="text-xl font-black text-blue-900 mb-6 flex items-center gap-3">
-                        <Layers className="w-6 h-6 text-indigo-500" /> Cấu trúc Thang đo tự động
-                    </h3>
-                    <p className="text-slate-500 mb-6">
-                        Hệ thống đã tự động nhận diện các nhóm biến dưới đây. Quy trình Phát triển thang đo sẽ tự động chạy: Cronbach Alpha ➔ Exploratory Factor Analysis (EFA) ➔ Confirmatory Factor Analysis (CFA) cho toàn bộ các biến này.
-                    </p>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {groups.map(g => (
-                            <div key={g.name} className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                                <h4 className="font-black text-indigo-900 mb-1">{g.name}</h4>
-                                <p className="text-xs text-slate-500">{g.columns.join(', ')}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
+            <AutoPilotConfigPanel 
+                preset={selectedPreset}
+                groups={groups}
+                paths={paths}
+                newPathFrom={newPathFrom}
+                newPathTo={newPathTo}
+                setNewPathFrom={setNewPathFrom}
+                setNewPathTo={setNewPathTo}
+                handleAddPath={handleAddPath}
+                handleRemovePath={handleRemovePath}
+                bootstrapSamples={bootstrapSamples}
+                setBootstrapSamples={setBootstrapSamples}
+                categoricalCols={categoricalCols}
+                compareGroupVar={compareGroupVar}
+                setCompareGroupVar={setCompareGroupVar}
+                compareTestVars={compareTestVars}
+                setCompareTestVars={setCompareTestVars}
+            />
 
             <div className="bg-white rounded-3xl border border-blue-100 shadow-xl p-8 mt-8">
-                <div className="">
-                    <button
-                        onClick={handleRunAutoPilot}
-                        disabled={
-                            isAnalyzing || 
-                            (selectedPreset.requiresPaths && paths.length === 0) ||
-                            (selectedPreset.id === 'compare' && (!compareGroupVar || compareTestVars.length === 0))
-                        }
-                        className={`w-full relative overflow-hidden group text-white p-5 rounded-2xl font-black text-lg uppercase tracking-widest shadow-xl transition-all ${isAnalyzing ? 'bg-slate-400' : 'bg-gradient-to-r from-blue-900 to-indigo-900 hover:shadow-blue-900/40 hover:-translate-y-1 active:scale-95'} disabled:opacity-50 disabled:pointer-events-none`}
-                    >
-                        {isAnalyzing ? (
-                            <div className="flex flex-col items-center justify-center gap-2">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                    <span>{statusText}</span>
-                                </div>
-                                <div className="w-64 h-1.5 bg-white/10 rounded-full overflow-hidden mt-2">
-                                    <div className="h-full bg-white rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="flex items-center justify-center gap-3">
-                                <Rocket className="w-6 h-6 group-hover:animate-bounce" />
-                                Bắt đầu Phân tích Toàn diện
-                            </div>
-                        )}
-                    </button>
-                    
-                    <div className="mt-4 flex items-center justify-center gap-2 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                        <AlertTriangle className="w-3 h-3 text-amber-500" />
-                        {bootstrapSamples >= 1000 ? 'Bootstrap 1000 mẫu — có thể mất 3-10 phút' : bootstrapSamples >= 500 ? 'Có thể mất 1-5 phút tùy cấu hình' : 'Có thể mất 15-60 giây'}
+                <button
+                    onClick={handleRunAutoPilot}
+                    disabled={
+                        isAnalyzing || 
+                        (selectedPreset.requiresPaths && paths.length === 0) ||
+                        (selectedPreset.id === 'compare' && (!compareGroupVar || compareTestVars.length === 0))
+                    }
+                    className={`w-full relative overflow-hidden group text-white p-5 rounded-2xl font-black text-lg uppercase tracking-widest shadow-xl transition-all ${isAnalyzing ? 'bg-slate-400' : 'bg-gradient-to-r from-blue-900 to-indigo-900 hover:shadow-blue-900/40 hover:-translate-y-1 active:scale-95'} disabled:opacity-50 disabled:pointer-events-none`}
+                >
+                    <div className="flex items-center justify-center gap-3">
+                        <Rocket className="w-6 h-6 group-hover:animate-bounce" />
+                        Bắt đầu Phân tích Toàn diện
                     </div>
+                </button>
+                
+                <div className="mt-4 flex items-center justify-center gap-2 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                    <AlertTriangle className="w-3 h-3 text-amber-500" />
+                    {bootstrapSamples >= 1000 ? 'Bootstrap 1000 mẫu — có thể mất 3-10 phút' : bootstrapSamples >= 500 ? 'Có thể mất 1-5 phút tùy cấu hình' : 'Có thể mất 15-60 giây'}
                 </div>
             </div>
         </div>

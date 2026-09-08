@@ -1,0 +1,46 @@
+import { test, expect } from '@playwright/test';
+import path from 'path';
+
+test.describe('Auto-Pilot Analysis Luồng (PLS-SEM)', () => {
+    test('Nên chạy báo cáo Auto-Pilot đầy đủ mà không gặp lỗi', async ({ page }) => {
+        // 1. Tải trang analyze
+        await page.goto('/analyze');
+        
+        // 2. Tải file CSV
+        const filePath = path.join(__dirname, 'test_data.csv');
+        await page.setInputFiles('input[type="file"]', filePath);
+        
+        // 3. Đợi dữ liệu được load thành công và hiển thị các tab
+        // Kiểm tra chữ "Hồ sơ dữ liệu"
+        await expect(page.locator('text=Hồ sơ dữ liệu')).toBeVisible({ timeout: 10000 });
+        
+        // 4. Click chuyển sang tab Auto-Pilot
+        await page.click('text=Auto Pilot');
+        
+        // 5. Chọn kịch bản "Kiểm định mô hình PLS-SEM" (Preset đầu tiên thường là PLS-SEM)
+        // Dựa vào text hiển thị trong preset
+        await page.click('text=Kiểm định Mô hình PLS-SEM');
+        
+        // 6. Kiểm tra giao diện Cấu hình Mô hình xuất hiện
+        await expect(page.locator('text=Thiết lập Giả thuyết (Đường dẫn)')).toBeVisible();
+
+        // (AutoPilot mặc định tự động group biến có chung tiền tố và auto link IV -> DV)
+        // Nên nếu file test_data.csv có ATT, SN -> group, paths đã được auto-gen!
+
+        // 7. Click nút "Bắt đầu Phân tích Toàn diện"
+        await page.click('button:has-text("Bắt đầu Phân tích Toàn diện")');
+
+        // 8. Đợi WebR chạy xong toàn bộ tiến trình.
+        // Giao diện sẽ báo "Đang phân tích tự động..." và tiến trình tăng dần.
+        // Chúng ta đợi popup tiến trình biến mất hoặc text Toast success
+        // Hoặc check bảng kết quả render ra
+        
+        // Timeout 60s cho việc tải WebR và chạy Model
+        await expect(page.locator('text=Chạy Auto Pilot thành công!')).toBeVisible({ timeout: 60000 });
+        
+        // 9. Kiểm tra xem màn hình kết quả (Results) đã hiển thị đúng kết quả Auto-Pilot chưa
+        // Thường có text "BÁO CÁO PHÂN TÍCH TỰ ĐỘNG ĐA BƯỚC" hoặc kết quả Cronbach
+        await expect(page.locator('text=Cronbach\'s Alpha')).first().toBeVisible();
+        await expect(page.locator('text=BÁO CÁO PHÂN TÍCH TỰ ĐỘNG ĐA BƯỚC')).toBeVisible();
+    });
+});
