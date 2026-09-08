@@ -12,7 +12,7 @@ import {
     interpretCFA,
     interpretMediation,
     InterpretationResult
-} from '@/lib/interpretation-templates';
+} from '@/lib/asig';
 import { validateOrigin } from '@/utils/csrf-protection';
 import { checkRateLimit } from '@/utils/rate-limit';
 
@@ -258,3 +258,4 @@ function formatAsMarkdown(result: InterpretationResult): string {
 
     return lines.join('\n');
 }
+

@@ -34,7 +34,7 @@ import {
     interpretOutlier,
     interpretHTMT,
     InterpretationResult
-} from '@/lib/interpretation-templates';
+} from '@/lib/asig';
 
 interface TemplateInterpretationProps {
     analysisType: string;
@@ -456,3 +456,4 @@ export function TemplateInterpretation({
         </div>
     );
 }
+
