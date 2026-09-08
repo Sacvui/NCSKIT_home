@@ -66,31 +66,47 @@ export const TEST_DATA_SCALES: ScaleDefinition[] = [
 
 // All 18 analysis methods with default costs
 export const ANALYSIS_CONFIGS: AnalysisConfig[] = [
-    // Reliability & Descriptive (2)
+    // Reliability & Descriptive (4)
     { id: 'descriptive', name: 'Descriptive Statistics', description: 'Mean, SD, Skewness, Kurtosis', ncsCost: 100, enabled: true },
-    { id: 'cronbach', name: "Cronbach's Alpha & Omega", description: 'Scale reliability analysis', ncsCost: 200, enabled: true },
+    { id: 'frequency', name: 'Frequency & Demographics', description: 'Categorical distribution', ncsCost: 100, enabled: true },
+    { id: 'cronbach', name: "Cronbach's Alpha", description: 'Scale reliability analysis', ncsCost: 200, enabled: true },
+    { id: 'omega', name: "McDonald's Omega", description: 'Modern scale reliability', ncsCost: 200, enabled: true },
 
-    // Group Comparison (6)
+    // Group Comparison (8)
     { id: 'ttest', name: 'Independent T-Test', description: 'Compare 2 independent groups', ncsCost: 150, enabled: true },
     { id: 'ttest-paired', name: 'Paired T-Test', description: 'Before-after comparison', ncsCost: 150, enabled: true },
     { id: 'anova', name: 'ANOVA / Welch', description: 'Compare multiple groups', ncsCost: 200, enabled: true },
+    { id: 'twoway-anova', name: 'Two-Way ANOVA', description: 'Factorial ANOVA', ncsCost: 250, enabled: true },
     { id: 'mannwhitney', name: 'Mann-Whitney U', description: 'Non-parametric 2 groups', ncsCost: 150, enabled: true },
     { id: 'kruskalwallis', name: 'Kruskal-Wallis H', description: 'Non-parametric multiple groups', ncsCost: 200, enabled: true },
     { id: 'wilcoxon', name: 'Wilcoxon Signed-Rank', description: 'Non-parametric paired', ncsCost: 150, enabled: true },
 
-    // Correlation & Regression (4)
+    // Correlation & Regression (5)
     { id: 'correlation', name: 'Correlation Matrix', description: 'Pearson/Spearman correlation', ncsCost: 200, enabled: true },
     { id: 'regression', name: 'Linear Regression', description: 'Multiple regression with β', ncsCost: 300, enabled: true },
     { id: 'logistic', name: 'Logistic Regression', description: 'Binary outcome prediction', ncsCost: 350, enabled: true },
     { id: 'mediation', name: 'Mediation Analysis', description: 'Baron & Kenny + Sobel', ncsCost: 400, enabled: true },
+    { id: 'moderation', name: 'Moderation Analysis', description: 'Interaction effects', ncsCost: 400, enabled: true },
 
-    // Factor Analysis & SEM (3)
+    // Factor Analysis & SEM (4)
     { id: 'efa', name: 'EFA', description: 'Exploratory Factor Analysis', ncsCost: 400, enabled: true },
     { id: 'cfa', name: 'CFA', description: 'Confirmatory Factor Analysis', ncsCost: 500, enabled: true },
-    { id: 'sem', name: 'SEM', description: 'Structural Equation Modeling', ncsCost: 600, enabled: true },
+    { id: 'cbsem', name: 'CB-SEM (Lavaan)', description: 'Structural Equation Modeling', ncsCost: 600, enabled: true },
 
-    // Categorical (1)
-    { id: 'chisq', name: 'Chi-Square Test', description: 'Independence + Fisher exact', ncsCost: 150, enabled: true },
+    // PLS-SEM Advanced (8)
+    { id: 'plssem', name: 'PLS-SEM Algorithm', description: 'SmartPLS core algorithm', ncsCost: 400, enabled: true },
+    { id: 'bootstrap', name: 'Bootstrapping', description: 'Significance testing', ncsCost: 500, enabled: true },
+    { id: 'mga', name: 'Multi-Group Analysis (MGA)', description: 'Group comparison in SEM', ncsCost: 500, enabled: true },
+    { id: 'ipma', name: 'IPMA', description: 'Importance-Performance Matrix', ncsCost: 400, enabled: true },
+    { id: 'blindfolding', name: 'Blindfolding (Q²)', description: 'Predictive relevance', ncsCost: 400, enabled: true },
+    { id: 'htmt', name: 'HTMT', description: 'Discriminant validity', ncsCost: 200, enabled: true },
+    { id: 'vif', name: 'Collinearity (VIF)', description: 'Multicollinearity check', ncsCost: 200, enabled: true },
+    { id: 'cmb', name: 'Common Method Bias (CMB)', description: 'Harman single factor test', ncsCost: 200, enabled: true },
+
+    // Categorical & Clustering (3)
+    { id: 'chisq', name: 'Chi-Square Test', description: 'Independence Test', ncsCost: 150, enabled: true },
+    { id: 'fisher', name: 'Fisher Exact Test', description: 'Small sample categorical', ncsCost: 150, enabled: true },
+    { id: 'cluster', name: 'K-Means Clustering', description: 'Customer segmentation', ncsCost: 400, enabled: true },
 ];
 
 // Pre-configured CFA model for test data
@@ -134,13 +150,15 @@ export const DEFAULT_MEDIATION_CONFIG = {
     covariates: [] as string[]
 };
 
-// Auto Test execution order (scientific workflow)
 export const AUTO_TEST_WORKFLOW = [
     'descriptive',
+    'frequency',
     'cronbach',
+    'omega',
     'ttest',
     'ttest-paired',
     'anova',
+    'twoway-anova',
     'mannwhitney',
     'kruskalwallis',
     'wilcoxon',
@@ -148,10 +166,21 @@ export const AUTO_TEST_WORKFLOW = [
     'regression',
     'logistic',
     'mediation',
+    'moderation',
     'efa',
     'cfa',
-    'sem',
-    'chisq'
+    'cbsem',
+    'plssem',
+    'bootstrap',
+    'mga',
+    'ipma',
+    'blindfolding',
+    'htmt',
+    'vif',
+    'cmb',
+    'chisq',
+    'fisher',
+    'cluster'
 ];
 
 // Function to get all items as flat array
