@@ -15,7 +15,7 @@ async function seed() {
         console.error("Expected fallback source, got", res.source)
     }
     
-    const itemsToInsert = res.data.map(item => {
+    const itemsToInsert = res.data.map((item: any) => {
         return {
             slug: item.slug,
             type: item.type,
