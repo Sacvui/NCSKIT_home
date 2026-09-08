@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import { Play, AlertCircle, Loader2, TrendingUp, Target, Users, Eye, Zap } from 'lucide-react';
-import { runSimpleBootstrapping, runIPMA, runMGA, runSimpleBlindfolding, runPLSSEM } from '@/lib/webr/pls-sem';
+import { runSimpleBootstrapping, runIPMA, runMGA, runSimpleBlindfolding, runPLSSEM, runHarmanCMB, runHTMTMatrix, runVIFCheck } from '@/lib/webr/pls-sem';
 import { runCBSEM } from '@/lib/webr/analyses/cb-sem';
 
-type AdvancedMethod = 'bootstrap' | 'ipma' | 'mga' | 'blindfolding' | 'cbsem' | 'cfa' | 'plssem';
+type AdvancedMethod = 'bootstrap' | 'ipma' | 'mga' | 'blindfolding' | 'cbsem' | 'cfa' | 'plssem' | 'cmb' | 'htmt' | 'vif';
 
 interface AdvancedMethodViewProps {
     method: AdvancedMethod;
@@ -75,6 +75,24 @@ export default function AdvancedMethodView({
             icon: Zap,
             color: 'green',
             description: 'Thuật toán bình phương tối thiểu riêng phần (seminr)'
+        },
+        cmb: {
+            title: 'Common Method Bias (CMB)',
+            icon: AlertCircle,
+            color: 'amber',
+            description: 'Kiểm tra phương sai phương pháp chung (Harman\'s Single Factor)'
+        },
+        htmt: {
+            title: 'HTMT Ratio',
+            icon: GitCompare,
+            color: 'indigo',
+            description: 'Đánh giá giá trị phân biệt'
+        },
+        vif: {
+            title: 'Collinearity (VIF)',
+            icon: Shield,
+            color: 'blue',
+            description: 'Kiểm tra đa cộng tuyến'
         }
     };
 
@@ -146,6 +164,36 @@ export default function AdvancedMethodView({
                 case 'cbsem':
                 case 'cfa':
                     result = await runCBSEM(data, columnNames, modelSyntax, method === 'cfa' ? 'cfa' : 'sem');
+                    break;
+                case 'cmb':
+                case 'htmt':
+                    if (!modelSyntax.trim()) {
+                        throw new Error('Vui lòng nhập Model Syntax (nhóm biến) cho kiểm định này');
+                    }
+                    const parsedMM = [];
+                    const mmLines = modelSyntax.split('\n');
+                    for (const line of mmLines) {
+                        const cleanLine = line.split('#')[0].trim();
+                        if (cleanLine.includes('=~')) {
+                            const [construct, itemsStr] = cleanLine.split('=~').map(s => s.trim());
+                            const items = itemsStr.split('+').map(s => s.trim());
+                            const itemIndices = items.map(item => columnNames.indexOf(item)).filter(idx => idx !== -1);
+                            if (itemIndices.length > 0) {
+                                parsedMM.push({ name: construct, items: itemIndices });
+                            }
+                        }
+                    }
+                    if (parsedMM.length === 0) {
+                        throw new Error('Không tìm thấy cấu trúc nhóm biến hợp lệ. Hãy khai báo dạng: Construct =~ Var1 + Var2');
+                    }
+                    if (method === 'cmb') {
+                        result = await runHarmanCMB(data, parsedMM);
+                    } else {
+                        result = await runHTMTMatrix(data, parsedMM);
+                    }
+                    break;
+                case 'vif':
+                    result = await runVIFCheck(data, targetIndex);
                     break;
                 case 'plssem':
                     if (!modelSyntax.trim()) {
@@ -320,7 +368,7 @@ export default function AdvancedMethodView({
                     </div>
                 )}
 
-                {(method === 'cbsem' || method === 'cfa' || method === 'plssem') && (
+                {(method === 'cbsem' || method === 'cfa' || method === 'plssem' || method === 'cmb' || method === 'htmt') && (
                     <div className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-slate-700 mb-2">

@@ -32,7 +32,8 @@ export const PLSResults: React.FC<PLSResultsProps> = ({ results }) => {
         htmt,
         q2,
         bootstrapping,
-        vif
+        vif,
+        harman
     } = results;
 
     const getStatusColor = (val: number, type: 'high' | 'low' | 'htmt') => {
@@ -314,16 +315,16 @@ export const PLSResults: React.FC<PLSResultsProps> = ({ results }) => {
                 </Card>
             )}
 
-            {/* 6. VIF (Collinearity) */}
+            {/* 6. VIF (Full Collinearity / CMB) */}
             {vif && vif.vif_values && (
                 <Card className="border-blue-100 shadow-sm overflow-hidden mt-8">
                     <CardHeader className="bg-slate-50/50 border-b border-blue-50 flex items-center justify-between">
                         <CardTitle className="text-sm font-black text-blue-900 uppercase tracking-widest flex items-center gap-2">
                             <ShieldCheck className="w-4 h-4 text-blue-600" />
-                            Collinearity Assessment (VIF)
+                            Full Collinearity VIF (CMB Check)
                         </CardTitle>
                         <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest ${vif.multicollinearity === 'None' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                            {vif.multicollinearity === 'None' ? 'No Multicollinearity' : 'Multicollinearity Detected'}
+                            {vif.multicollinearity === 'None' ? 'No CMB Detected' : 'CMB Alert (VIF > 3.3)'}
                         </span>
                     </CardHeader>
                     <CardContent className="p-0">
@@ -331,25 +332,25 @@ export const PLSResults: React.FC<PLSResultsProps> = ({ results }) => {
                             <table className="w-full text-sm">
                                 <thead>
                                     <tr>
-                                        <TableHeader>Construct / Item</TableHeader>
-                                        <TableHeader>VIF Value</TableHeader>
-                                        <TableHeader>Decision</TableHeader>
+                                        <TableHeader>Construct</TableHeader>
+                                        <TableHeader>Inner VIF Value</TableHeader>
+                                        <TableHeader>Decision (Kock, 2015)</TableHeader>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-50">
                                     {Object.keys(vif.vif_values).map((key: string) => {
                                         const val = vif.vif_values[key];
-                                        const isGood = val < 5;
-                                        const isIdeal = val < 3;
+                                        const isGood = val <= 3.3;
+                                        const isModerate = val <= 5.0;
                                         return (
                                             <tr key={key} className="hover:bg-blue-50/30">
                                                 <td className="py-3 px-4 font-bold text-slate-700">{key}</td>
-                                                <td className={`py-3 px-4 font-black ${isIdeal ? 'text-emerald-600' : (isGood ? 'text-amber-600' : 'text-rose-600')}`}>
+                                                <td className={`py-3 px-4 font-black ${isGood ? 'text-emerald-600' : (isModerate ? 'text-amber-600' : 'text-rose-600')}`}>
                                                     {safeToFixed(val)}
                                                 </td>
                                                 <td className="py-3 px-4">
-                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${isGood ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                                                        {isIdeal ? 'Ideal (< 3)' : (isGood ? 'Acceptable (< 5)' : 'Problematic (> 5)')}
+                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${isGood ? 'bg-emerald-100 text-emerald-700' : (isModerate ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700')}`}>
+                                                        {isGood ? 'No CMB (≤ 3.3)' : (isModerate ? 'Acceptable (≤ 5.0)' : 'CMB Detected (> 5.0)')}
                                                     </span>
                                                 </td>
                                             </tr>
@@ -357,6 +358,35 @@ export const PLSResults: React.FC<PLSResultsProps> = ({ results }) => {
                                     })}
                                 </tbody>
                             </table>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
+
+            {/* 6.5 Harman's Single Factor */}
+            {harman && (
+                <Card className="border-blue-100 shadow-sm overflow-hidden mt-8">
+                    <CardHeader className="bg-slate-50/50 border-b border-blue-50 flex items-center justify-between">
+                        <CardTitle className="text-sm font-black text-blue-900 uppercase tracking-widest flex items-center gap-2">
+                            <Activity className="w-4 h-4 text-blue-600" />
+                            Harman's Single Factor Test (CMB)
+                        </CardTitle>
+                        <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest ${!harman.has_cmb ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                            {!harman.has_cmb ? 'Pass (< 50%)' : 'Fail (> 50%)'}
+                        </span>
+                    </CardHeader>
+                    <CardContent className="p-6">
+                        <div className="flex flex-col items-center justify-center p-4">
+                            <div className="text-4xl font-black mb-2 flex items-baseline gap-1">
+                                <span className={!harman.has_cmb ? 'text-emerald-600' : 'text-rose-600'}>
+                                    {safeToFixed(harman.variance_explained, 2)}
+                                </span>
+                                <span className="text-xl text-slate-400">%</span>
+                            </div>
+                            <p className="text-slate-500 text-center max-w-md">
+                                Phương sai giải thích bởi nhân tố duy nhất (Single Factor). 
+                                Nếu giá trị này nhỏ hơn 50%, dữ liệu của bạn không mắc phải lỗi phương sai phương pháp chung (Common Method Bias).
+                            </p>
                         </div>
                     </CardContent>
                 </Card>

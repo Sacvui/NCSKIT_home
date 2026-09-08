@@ -63,6 +63,10 @@ export const SemResultSchema = z.object({
         vif_values: z.record(z.string(),safeNumber).catch({}),
         multicollinearity: z.string().catch('Unknown')
     }).catch({ vif_values: {}, multicollinearity: 'Unknown' }),
+    harman: z.object({
+        variance_explained: safeNumber,
+        has_cmb: z.boolean().catch(false)
+    }).optional(),
     bootstrapping: z.object({
         boot_paths: z.record(z.string(),z.record(z.string(),safeNumber)).catch({}),
         boot_loadings: z.record(z.string(),z.record(z.string(),safeNumber)).catch({}),

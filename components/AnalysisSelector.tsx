@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { BarChart2, Shield, Network, Users, GitCompare, Layers, TrendingUp, Grid3x3, Activity, ChevronDown, ChevronRight, Star, Binary, FlaskConical, ArrowRightLeft, Target, CircleDot, Shuffle, Search, Bookmark, Rocket, Zap, Eye } from 'lucide-react';
+import { BarChart2, Shield, Network, Users, GitCompare, Layers, TrendingUp, Grid3x3, Activity, ChevronDown, ChevronRight, Star, Binary, FlaskConical, ArrowRightLeft, Target, CircleDot, Shuffle, Search, Bookmark, Rocket, Zap, Eye, AlertCircle } from 'lucide-react';
 import { PointBadge } from '@/components/ui/PointBadge';
 import { Locale, t } from '@/lib/i18n';
 
@@ -118,6 +118,7 @@ export function AnalysisSelector({ onSelect, onRunAnalysis, isAnalyzing, mode, l
                 { id: 'blindfolding-select', title: 'Blindfolding (Q²)', desc: locale === 'vi' ? 'Kiểm tra độ liên quan dự đoán' : 'Predictive relevance', icon: Eye, action: 'select', costType: 'sem' },
                 { id: 'htmt-select', title: 'HTMT', desc: locale === 'vi' ? 'Đánh giá giá trị phân biệt' : 'Discriminant validity', icon: GitCompare, action: 'select', costType: 'sem' },
                 { id: 'vif-select', title: 'Collinearity (VIF)', desc: locale === 'vi' ? 'Kiểm tra đa cộng tuyến' : 'Collinearity statistics', icon: Shield, action: 'select', costType: 'sem' },
+                { id: 'cmb-select', title: 'Common Method Bias (CMB)', desc: locale === 'vi' ? 'Kiểm tra phương sai phương pháp chung' : 'Harman\'s Single Factor Test', icon: AlertCircle, action: 'select', costType: 'sem' },
             ]
         },
         {

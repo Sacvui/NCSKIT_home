@@ -41,6 +41,11 @@ test.describe('Auto-Pilot Analysis Luồng (PLS-SEM)', () => {
         // 9. Kiểm tra xem màn hình kết quả (Results) đã hiển thị đúng kết quả Auto-Pilot chưa
         // Thường có text "BÁO CÁO PHÂN TÍCH TỰ ĐỘNG ĐA BƯỚC" hoặc kết quả Cronbach
         await expect(page.locator('text=Cronbach\'s Alpha')).first().toBeVisible();
-        await expect(page.locator('text=BÁO CÁO PHÂN TÍCH TỰ ĐỘNG ĐA BƯỚC')).toBeVisible();
+        await expect(page.locator('text=Báo cáo Auto Pilot Tổng Hợp')).toBeVisible();
+
+        // 10. Check if the new CMB and HTMT tests are rendered
+        await expect(page.locator('text=Discriminant Validity (HTMT Matrix)')).toBeVisible();
+        await expect(page.locator('text=Full Collinearity VIF (CMB Check)')).toBeVisible();
+        await expect(page.locator('text=Harman\'s Single Factor Test (CMB)')).toBeVisible();
     });
 });

@@ -146,6 +146,41 @@ export async function runVIFCheck(data: number[][], dependentVarIndex: number = 
 }
 
 /**
+ * Harman's Single Factor Test (Common Method Bias)
+ */
+export async function runHarmanCMB(data: number[][], factorStructure: { name: string; items: number[] }[]): Promise<any> {
+  const allItems = factorStructure.flatMap(f => f.items.map(i => i + 1));
+  const uniqueItems = Array.from(new Set(allItems));
+  
+  const rCode = `
+    df <- as.data.frame(raw_data)
+    valid_items <- c(${uniqueItems.join(',')})
+    
+    # Check if we have enough items
+    if (length(valid_items) > 1) {
+      pca_res <- tryCatch({
+        prcomp(df[, valid_items, drop=FALSE], center = TRUE, scale. = TRUE)
+      }, error = function(e) NULL)
+      
+      if (!is.null(pca_res)) {
+        variance_explained <- (pca_res$sdev[1]^2) / sum(pca_res$sdev^2) * 100
+        list(
+          variance_explained = variance_explained,
+          has_cmb = variance_explained > 50,
+          total_items = length(valid_items)
+        )
+      } else {
+        list(variance_explained = 0, has_cmb = FALSE, error = "PCA failed")
+      }
+    } else {
+      list(variance_explained = 0, has_cmb = FALSE, error = "Not enough items")
+    }
+  `;
+
+  return await executeRWithRecovery(rCode, undefined, 0, 2, 300000, data);
+}
+
+/**
  * Pre-filter data to remove columns that would crash seminr:
  * - 100% null/NaN columns
  * - Zero-variance columns (all values identical after NA removal)
@@ -321,50 +356,48 @@ export async function runPLSSEM(
     fl_res <- tryCatch(matrix_to_list(fornell_larcker), error = function(e) list())
     htmt_out <- tryCatch(matrix_to_list(htmt_res), error = function(e) list())
     
-    # Extract VIF - handle all possible return types from seminr
+    # Harman's Single Factor Test (CMB)
+    harman_out <- tryCatch({
+      # Get only the items used in the measurement model
+      all_items <- unlist(lapply(mm, function(x) x$items))
+      # Ensure they are valid column names in df
+      valid_items <- intersect(all_items, colnames(df))
+      
+      if (length(valid_items) > 1) {
+        # PCA without rotation on all items
+        pca_res <- prcomp(df[, valid_items, drop=FALSE], center = TRUE, scale. = TRUE)
+        variance_explained <- (pca_res$sdev[1]^2) / sum(pca_res$sdev^2) * 100
+        
+        list(
+          variance_explained = variance_explained,
+          has_cmb = variance_explained > 50
+        )
+      } else {
+        list(variance_explained = 0, has_cmb = FALSE)
+      }
+    }, error = function(e) list(variance_explained = 0, has_cmb = FALSE))
+    
+    # Full Collinearity VIF (Inner VIF for CMB according to Kock 2015)
     vif_out <- tryCatch({
-      v_items <- summ$validity$vif_items
+      scores <- pls_model$construct_scores
+      constructs <- colnames(scores)
       v_list <- list()
       
-      if (!is.null(v_items)) {
-        # Unlist everything to ensure we have a flat vector of numeric values
-        flat_vif <- unlist(v_items)
-        if (length(flat_vif) > 0) {
-          # If names are missing or empty, assign default names
-          if (is.null(names(flat_vif)) || all(names(flat_vif) == "")) {
-            names(flat_vif) <- paste0("V", seq_along(flat_vif))
-          }
-          v_list <- as.list(flat_vif)
+      if (length(constructs) > 1) {
+        df_scores <- as.data.frame(scores)
+        # Regress each construct against all others
+        for (c in constructs) {
+          others <- setdiff(constructs, c)
+          formula_str <- paste(c, "~", paste(others, collapse = " + "))
+          r2 <- summary(lm(as.formula(formula_str), data = df_scores))$r.squared
+          v_list[[c]] <- if (r2 >= 0.9999) 999.99 else 1 / (1 - r2)
         }
       }
       
-      # Also try inner VIF from structural model
-      if (length(v_list) == 0) {
-        inner_vif <- tryCatch({
-          scores <- pls_model$construct_scores
-          sm_mat <- pls_model$smMatrix
-          endogenous <- unique(sm_mat[, "target"])
-          vif_res <- list()
-          for (endo in endogenous) {
-            preds <- sm_mat[sm_mat[, "target"] == endo, "source"]
-            if (length(preds) > 1) {
-              df_vif <- data.frame(scores[, preds, drop = FALSE])
-              for (p in preds) {
-                others <- setdiff(preds, p)
-                r2 <- summary(lm(df_vif[[p]] ~ ., data = df_vif[, others, drop = FALSE]))$r.squared
-                vif_res[[paste0(p, " -> ", endo)]] <- if (r2 >= 0.9999) 999.99 else 1 / (1 - r2)
-              }
-            } else if (length(preds) == 1) {
-              vif_res[[paste0(preds, " -> ", endo)]] <- 1.0
-            }
-          }
-          vif_res
-        }, error = function(e) list())
-        if (length(inner_vif) > 0) v_list <- inner_vif
-      }
-      
       max_vif <- if (length(v_list) > 0) max(unlist(v_list), na.rm = TRUE) else 1.0
-      multicollinearity_status <- if (max_vif < 5) "None" else if (max_vif < 10) "Moderate" else "Severe"
+      # Threshold for Full Collinearity VIF is usually 3.3 for CMB
+      multicollinearity_status <- if (max_vif <= 3.3) "None" else if (max_vif < 5) "Moderate" else "Severe"
+      
       list(vif_values = v_list, multicollinearity = multicollinearity_status)
     }, error = function(e) {
       list(vif_values = list(), multicollinearity = "Unknown")
@@ -378,6 +411,7 @@ export async function runPLSSEM(
       total_effects = total_eff,
       fornell_larcker = fl_res,
       htmt = htmt_out,
+      harman = harman_out,
       vif = vif_out,
       validity = list(
         cronbach = as.list(safe_col(summ$reliability, "alpha")),
