@@ -103,7 +103,7 @@ export function AdminAutoTest({ onTestComplete }: AdminAutoTestProps) {
     const loadTestData = async () => {
         setDataLoading(true);
         try {
-            const response = await fetch('/test_data_sem_cfa.csv');
+            const response = await fetch('/data/ncsstat_sample_500.csv');
             const text = await response.text();
 
             // Parse CSV
@@ -200,9 +200,9 @@ export function AdminAutoTest({ onTestComplete }: AdminAutoTestProps) {
                         
                     case 'ttest':
                     case 'mannwhitney':
-                        // Group 1: SAT1 > 3, Group 2: SAT1 <= 3. Value: TRUST1
-                        const tGroup1 = data.filter(r => r['SAT1'] > 3).map(r => Number(r['TRUST1']) || 0);
-                        const tGroup2 = data.filter(r => r['SAT1'] <= 3).map(r => Number(r['TRUST1']) || 0);
+                        // Group 1: SN1 > 3, Group 2: SN1 <= 3. Value: ATT1
+                        const tGroup1 = data.filter(r => r['SN1'] > 3).map(r => Number(r['ATT1']) || 0);
+                        const tGroup2 = data.filter(r => r['SN1'] <= 3).map(r => Number(r['ATT1']) || 0);
                         if (analysisId === 'ttest') {
                             result = await runTTestIndependent(tGroup1, tGroup2);
                         } else {
@@ -212,9 +212,9 @@ export function AdminAutoTest({ onTestComplete }: AdminAutoTestProps) {
                         
                     case 'ttest-paired':
                     case 'wilcoxon':
-                        // Compare SAT1 (Before) vs SAT2 (After)
-                        const pairedG1 = data.map(r => Number(r['SAT1']) || 0);
-                        const pairedG2 = data.map(r => Number(r['SAT2']) || 0);
+                        // Compare SN1 (Before) vs SN2 (After)
+                        const pairedG1 = data.map(r => Number(r['SN1']) || 0);
+                        const pairedG2 = data.map(r => Number(r['SN2']) || 0);
                         if (analysisId === 'ttest-paired') {
                             result = await runTTestPaired(pairedG1, pairedG2);
                         } else {
@@ -224,12 +224,12 @@ export function AdminAutoTest({ onTestComplete }: AdminAutoTestProps) {
                         
                     case 'anova':
                     case 'kruskalwallis':
-                        // Grouping by QUAL1 (rounded to 1-5)
+                        // Grouping by PBC1 (rounded to 1-5)
                         const anovaGroups: number[][] = [[], [], [], [], []];
                         data.forEach(r => {
-                            let g = Math.round(Number(r['QUAL1']) || 1);
+                            let g = Math.round(Number(r['PBC1']) || 1);
                             if (g < 1) g = 1; if (g > 5) g = 5;
-                            anovaGroups[g - 1].push(Number(r['SAT1']) || 0);
+                            anovaGroups[g - 1].push(Number(r['SN1']) || 0);
                         });
                         if (analysisId === 'anova') {
                             result = await runOneWayANOVA(anovaGroups.filter(g => g.length > 0));
@@ -239,10 +239,10 @@ export function AdminAutoTest({ onTestComplete }: AdminAutoTestProps) {
                         break;
                         
                     case 'chisq':
-                        // Cross-tabulate rounded SAT1 vs QUAL1
+                        // Cross-tabulate rounded SN1 vs PBC1
                         const chiData = data.map(r => [
-                            Math.round(Number(r['SAT1']) || 1), 
-                            Math.round(Number(r['QUAL1']) || 1)
+                            Math.round(Number(r['SN1']) || 1), 
+                            Math.round(Number(r['PBC1']) || 1)
                         ]);
                         result = await runChiSquare(chiData);
                         break;
@@ -275,13 +275,13 @@ export function AdminAutoTest({ onTestComplete }: AdminAutoTestProps) {
                         break;
                         
                     case 'mediation':
-                        // X = QUAL1, M = SAT1, Y = LOY1
+                        // X = ATT1, M = INT1, Y = BEH1
                         const medMatrix = data.map(r => [
-                            Number(r['QUAL1']) || 0,
-                            Number(r['SAT1']) || 0,
-                            Number(r['LOY1']) || 0
+                            Number(r['ATT1']) || 0,
+                            Number(r['INT1']) || 0,
+                            Number(r['BEH1']) || 0
                         ]);
-                        result = await runMediationAnalysis(medMatrix, ['QUAL1', 'SAT1', 'LOY1'], 'QUAL1', 'SAT1', 'LOY1');
+                        result = await runMediationAnalysis(medMatrix, ['ATT1', 'INT1', 'BEH1'], 'ATT1', 'INT1', 'BEH1');
                         break;
 
                     case 'efa':
@@ -401,7 +401,7 @@ export function AdminAutoTest({ onTestComplete }: AdminAutoTestProps) {
             <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
                 <div className="flex items-center gap-3 mb-3">
                     <FileSpreadsheet className="w-5 h-5 text-slate-600" />
-                    <span className="font-medium text-slate-700">Test Data: test_data_sem_cfa.csv</span>
+                    <span className="font-medium text-slate-700">Test Data: /data/ncsstat_sample_500.csv</span>
                     {testData && (
                         <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
                             {testData.length} observations loaded

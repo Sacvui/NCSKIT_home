@@ -33,50 +33,32 @@ export interface SEMModelDefinition {
 // Test data scales (8 constructs × 5 items)
 export const TEST_DATA_SCALES: ScaleDefinition[] = [
     {
-        name: 'SAT (Satisfaction)',
-        items: ['SAT1', 'SAT2', 'SAT3', 'SAT4', 'SAT5'],
+        name: 'SN (Subjective Norm)',
+        items: ['SN1', 'SN2', 'SN3', 'SN4'],
         likertMin: 1,
         likertMax: 5
     },
     {
-        name: 'TRUST (Trust)',
-        items: ['TRUST1', 'TRUST2', 'TRUST3', 'TRUST4', 'TRUST5'],
+        name: 'ATT (Attitude)',
+        items: ['ATT1', 'ATT2', 'ATT3', 'ATT4'],
         likertMin: 1,
         likertMax: 5
     },
     {
-        name: 'QUAL (Quality)',
-        items: ['QUAL1', 'QUAL2', 'QUAL3', 'QUAL4', 'QUAL5'],
+        name: 'PBC (Perceived Behavioral Control)',
+        items: ['PBC1', 'PBC2', 'PBC3', 'PBC4'],
         likertMin: 1,
         likertMax: 5
     },
     {
-        name: 'VAL (Value)',
-        items: ['VAL1', 'VAL2', 'VAL3', 'VAL4', 'VAL5'],
+        name: 'INT (Intention)',
+        items: ['INT1', 'INT2', 'INT3', 'INT4'],
         likertMin: 1,
         likertMax: 5
     },
     {
-        name: 'LOY (Loyalty)',
-        items: ['LOY1', 'LOY2', 'LOY3', 'LOY4', 'LOY5'],
-        likertMin: 1,
-        likertMax: 5
-    },
-    {
-        name: 'COM (Commitment)',
-        items: ['COM1', 'COM2', 'COM3', 'COM4', 'COM5'],
-        likertMin: 1,
-        likertMax: 5
-    },
-    {
-        name: 'IMG (Image)',
-        items: ['IMG1', 'IMG2', 'IMG3', 'IMG4', 'IMG5'],
-        likertMin: 1,
-        likertMax: 5
-    },
-    {
-        name: 'EXP (Experience)',
-        items: ['EXP1', 'EXP2', 'EXP3', 'EXP4', 'EXP5'],
+        name: 'BEH (Behavior)',
+        items: ['BEH1', 'BEH2', 'BEH3', 'BEH4'],
         likertMin: 1,
         likertMax: 5
     }
@@ -113,47 +95,42 @@ export const ANALYSIS_CONFIGS: AnalysisConfig[] = [
 
 // Pre-configured CFA model for test data
 export const DEFAULT_CFA_MODEL: CFAModelDefinition = {
-    syntax: `SAT =~ SAT1 + SAT2 + SAT3 + SAT4 + SAT5
-TRUST =~ TRUST1 + TRUST2 + TRUST3 + TRUST4 + TRUST5
-QUAL =~ QUAL1 + QUAL2 + QUAL3 + QUAL4 + QUAL5
-VAL =~ VAL1 + VAL2 + VAL3 + VAL4 + VAL5
-LOY =~ LOY1 + LOY2 + LOY3 + LOY4 + LOY5
-COM =~ COM1 + COM2 + COM3 + COM4 + COM5
-IMG =~ IMG1 + IMG2 + IMG3 + IMG4 + IMG5
-EXP =~ EXP1 + EXP2 + EXP3 + EXP4 + EXP5`,
-    description: '8-factor measurement model with 5 indicators each'
+    syntax: `SN =~ SN1 + SN2 + SN3 + SN4
+ATT =~ ATT1 + ATT2 + ATT3 + ATT4
+PBC =~ PBC1 + PBC2 + PBC3 + PBC4
+INT =~ INT1 + INT2 + INT3 + INT4
+BEH =~ BEH1 + BEH2 + BEH3 + BEH4`,
+    description: '5-factor measurement model (TPB) with 4 indicators each'
 };
 
 // Pre-configured SEM model for test data
 export const DEFAULT_SEM_MODEL: SEMModelDefinition = {
     measurementModel: DEFAULT_CFA_MODEL.syntax,
     structuralModel: `# Structural relationships
-LOY ~ SAT + TRUST + VAL
-SAT ~ QUAL + EXP + IMG
-TRUST ~ QUAL + COM
-VAL ~ QUAL + IMG`,
-    description: 'Customer Loyalty Model: Quality/Experience/Image → Satisfaction → Loyalty'
+INT ~ SN + ATT + PBC
+BEH ~ INT + PBC`,
+    description: 'Theory of Planned Behavior Model'
 };
 
 // EFA configuration
 export const DEFAULT_EFA_CONFIG = {
-    variables: TEST_DATA_SCALES.flatMap(s => s.items), // All 40 items
+    variables: TEST_DATA_SCALES.flatMap(s => s.items), // 20 items
     rotation: 'promax' as const,
-    nFactors: 8,
+    nFactors: 5,
     useFAMethod: 'ml' as const // Maximum Likelihood
 };
 
 // Regression configuration (example)
 export const DEFAULT_REGRESSION_CONFIG = {
-    dependent: 'LOY1', // Will be computed as composite
-    independents: ['SAT1', 'TRUST1', 'QUAL1'] // Simplified
+    dependent: 'INT1', // Simplified
+    independents: ['SN1', 'ATT1', 'PBC1'] // Simplified
 };
 
 // Mediation configuration
 export const DEFAULT_MEDIATION_CONFIG = {
-    x: 'QUAL1', // Predictor
-    m: 'SAT1',  // Mediator
-    y: 'LOY1',  // Outcome
+    x: 'ATT1', // Predictor
+    m: 'INT1', // Mediator
+    y: 'BEH1', // Outcome
     covariates: [] as string[]
 };
 
