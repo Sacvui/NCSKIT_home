@@ -1,7 +1,7 @@
 import { AnalysisType, InterpretationResult } from './shared';
 import { interpretCronbachAlpha, interpretEFA, interpretCFA } from './factor';
-import { interpretCorrelation, interpretTTest, interpretANOVA, interpretPairedTTest, interpretMannWhitney, interpretKruskalWallis, interpretWilcoxon, interpretTwoWayANOVA, interpretChiSquare } from './basic';
-import { interpretLinearRegression, interpretLogisticRegression, interpretMediation, interpretModeration, interpretCluster } from './regression';
+import { interpretCorrelation, interpretTTestIndependent, interpretANOVA, interpretTTestPaired, interpretMannWhitney, interpretKruskalWallis, interpretWilcoxonSigned, interpretTwoWayANOVA, interpretChiSquare, interpretDescriptive } from './basic';
+import { interpretLinearRegression, interpretLogisticRegression, interpretMediation, interpretModeration, interpretClusterAnalysis } from './regression';
 
 // ===== MAIN GENERATOR =====
 
