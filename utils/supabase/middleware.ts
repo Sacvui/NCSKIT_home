@@ -71,7 +71,7 @@ export async function updateSession(request: NextRequest) {
             .eq('id', user.id)
             .single()
 
-        const userRole = profile?.role || 'student'
+        const userRole = profile?.role || user.user_metadata?.role || user.app_metadata?.role || 'student'
         const adminRoles = ['platform_admin', 'super_admin', 'institution_admin', 'admin']
         
         if (!adminRoles.includes(userRole)) {
