@@ -9,7 +9,8 @@ import { getAcademyResources } from '@/lib/services/academy';
 import { ArrowLeft, BookOpen, Layers, CheckCircle2, FileText, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
-export default function AcademyDetail({ params }: { params: { slug: string } }) {
+export default function AcademyDetail(props: { params: Promise<{ slug: string }> }) {
+    const params = React.use(props.params);
     const router = useRouter();
     const [locale, setLocale] = useState<Locale>('vi');
     const [mounted, setMounted] = useState(false);
