@@ -263,7 +263,7 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         ropensci_repo <- "https://ropensci.r-universe.dev"
                         fallback_repo <- "https://repo.r-wasm.org/"
                         
-                        options(repos = c(LOCAL = local_repo, LAVAAN = lavaan_repo, SEMINR = seminr_repo, ROPEN = ropensci_repo, CRAN = fallback_repo))
+                        options(repos = c(LAVAAN = lavaan_repo, SEMINR = seminr_repo, ROPEN = ropensci_repo, CRAN = fallback_repo))
                         options(pkgType = "binary")
                         options(webr.repo_quiet = FALSE) # Set to FALSE to see errors in console
                         options(timeout = 60)
@@ -272,11 +272,7 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         install_if_missing <- function(pkg) {
                             if (!require(pkg, character.only = TRUE, quietly = TRUE)) {
                                 message("Installing missing package: ", pkg)
-                                tryCatch(webr::install(pkg, repos = local_repo), error = function(e) {})
-                                if (!require(pkg, character.only = TRUE, quietly = TRUE)) {
-                                    message("Local install failed for ", pkg, ", trying CRAN...")
-                                    tryCatch(webr::install(pkg, repos = fallback_repo), error = function(e) {})
-                                }
+                                tryCatch(webr::install(pkg), error = function(e) { message("Install error: ", e) })
                                 library(pkg, character.only = TRUE)
                             }
                         }
