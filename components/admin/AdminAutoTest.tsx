@@ -7,7 +7,10 @@ import {
     runCronbachAlpha, runDescriptiveStats, runCorrelation, runEFA, runCFA, runSEM, 
     runLinearRegression, runTTestIndependent, runTTestPaired, runOneWayANOVA, 
     runMannWhitneyU, runKruskalWallis, runWilcoxonSignedRank, runLogisticRegression, 
-    runMediationAnalysis, runChiSquare, initWebR, getWebRStatus 
+    runMediationAnalysis, runChiSquare, initWebR, getWebRStatus,
+    runMcDonaldOmega, runTwoWayANOVA, runModerationAnalysis, runClusterAnalysis, runCBSEM,
+    runPLSSEM, runSimpleBootstrapping, runHTMTMatrix, runMGA, runIPMA, runSimpleBlindfolding,
+    runHarmanCMB, runVIFCheck, runFrequencyStats, runFisherExactTest
 } from '@/lib/webr-wrapper';
 
 interface TestResult {
@@ -298,12 +301,108 @@ export function AdminAutoTest({ onTestComplete }: AdminAutoTestProps) {
                         result = await runCFA(cfaMatrix, cfaVars, DEFAULT_CFA_MODEL.syntax);
                         break;
 
-                    case 'sem':
-                        // Run SEM with default model - need columns and syntax
-                        const semVars = TEST_DATA_SCALES.flatMap(s => s.items);
-                        const semMatrix = extractColumnsAsMatrix(data, semVars);
-                        const semSyntax = DEFAULT_SEM_MODEL.measurementModel + '\n' + DEFAULT_SEM_MODEL.structuralModel;
-                        result = await runSEM(semMatrix, semVars, semSyntax);
+                    case 'cbsem':
+                        // Run CB-SEM with lavaan
+                        const cbsemVars = TEST_DATA_SCALES.flatMap(s => s.items);
+                        const cbsemMatrix = extractColumnsAsMatrix(data, cbsemVars);
+                        const cbsemSyntax = DEFAULT_SEM_MODEL.measurementModel + '\n' + DEFAULT_SEM_MODEL.structuralModel;
+                        result = await runCBSEM(cbsemMatrix, cbsemVars, cbsemSyntax, 'sem');
+                        break;
+                        
+                    case 'frequency':
+                        const freqVar = TEST_DATA_SCALES[0].items[0]; // e.g. SN1
+                        const freqMatrix = extractColumnsAsMatrix(data, [freqVar]);
+                        result = await runFrequencyStats(freqMatrix);
+                        break;
+                        
+                    case 'omega':
+                        const omegaResults = [];
+                        for (const scale of TEST_DATA_SCALES) {
+                            const omMatrix = extractColumnsAsMatrix(data, scale.items);
+                            const r = await runMcDonaldOmega(omMatrix, scale.items);
+                            omegaResults.push({
+                                scale: scale.name,
+                                omega_total: r.omega_total,
+                                alpha: r.alpha
+                            });
+                        }
+                        result = omegaResults;
+                        break;
+
+                    case 'twoway-anova':
+                        const yAnova = data.map(r => Number(r['ATT1']) || 0);
+                        const f1Anova = data.map(r => String(Math.round(Number(r['SN1']) || 1)));
+                        const f2Anova = data.map(r => String(Math.round(Number(r['PBC1']) || 1)));
+                        result = await runTwoWayANOVA(yAnova, f1Anova, f2Anova, 'SN1', 'PBC1', 'ATT1');
+                        break;
+
+                    case 'moderation':
+                        const modVars = ['ATT1', 'PBC1', 'INT1'];
+                        const modMatrix = extractColumnsAsMatrix(data, modVars);
+                        result = await runModerationAnalysis(modMatrix, modVars, 'ATT1', 'PBC1', 'INT1');
+                        break;
+
+                    case 'fisher':
+                        const fisherData = data.map(r => [
+                            (Math.round(Number(r['SN1']) || 1) > 3) ? 1 : 0, 
+                            (Math.round(Number(r['PBC1']) || 1) > 3) ? 1 : 0
+                        ]);
+                        result = await runFisherExactTest(fisherData);
+                        break;
+
+                    case 'cluster':
+                        const clusVars = ['SN1', 'SN2', 'ATT1', 'ATT2'];
+                        const clusMatrix = extractColumnsAsMatrix(data, clusVars);
+                        result = await runClusterAnalysis(clusMatrix, 3, 'kmeans', clusVars);
+                        break;
+
+                    case 'plssem':
+                    case 'bootstrap':
+                    case 'htmt':
+                    case 'vif':
+                    case 'cmb':
+                    case 'mga':
+                    case 'ipma':
+                    case 'blindfolding':
+                        // Common setup for PLS-SEM related tests
+                        const allScaleItems = TEST_DATA_SCALES.flatMap(s => s.items);
+                        const plsFullMatrix = extractColumnsAsMatrix(data, allScaleItems);
+                        
+                        // Parse DEFAULT_SEM_MODEL into required arrays
+                        const measurementModel = TEST_DATA_SCALES.map((scale, idx) => ({
+                            construct: scale.name.split(' ')[0],
+                            items: [idx*4, idx*4+1, idx*4+2, idx*4+3]
+                        }));
+                        const structuralModel = [
+                            { from: 'SN', to: 'INT' },
+                            { from: 'ATT', to: 'INT' },
+                            { from: 'PBC', to: 'INT' },
+                            { from: 'INT', to: 'BEH' },
+                            { from: 'PBC', to: 'BEH' }
+                        ];
+
+                        if (analysisId === 'plssem') {
+                            result = await runPLSSEM(plsFullMatrix, measurementModel, structuralModel);
+                        } else if (analysisId === 'bootstrap') {
+                            result = await runSimpleBootstrapping(plsFullMatrix, 100);
+                        } else if (analysisId === 'htmt') {
+                            const fsHTMT = TEST_DATA_SCALES.map((scale, idx) => ({ name: scale.name.split(' ')[0], items: [idx*4, idx*4+1, idx*4+2, idx*4+3] }));
+                            result = await runHTMTMatrix(plsFullMatrix, fsHTMT);
+                        } else if (analysisId === 'vif') {
+                            // Run VIF on first 4 columns
+                            const vifMatrix = extractColumnsAsMatrix(data, ['INT1', 'SN1', 'ATT1', 'PBC1']);
+                            result = await runVIFCheck(vifMatrix, 0); 
+                        } else if (analysisId === 'cmb') {
+                            const fsCMB = TEST_DATA_SCALES.map((scale, idx) => ({ name: scale.name.split(' ')[0], items: [idx*4, idx*4+1, idx*4+2, idx*4+3] }));
+                            result = await runHarmanCMB(plsFullMatrix, fsCMB);
+                        } else if (analysisId === 'mga') {
+                            const groupVariable = data.map(r => (Number(r['SN1']) || 0) > 3 ? 1 : 0);
+                            result = await runMGA(plsFullMatrix, measurementModel, structuralModel, groupVariable, 100);
+                        } else if (analysisId === 'ipma') {
+                            result = await runIPMA(plsFullMatrix, 0); // Target = First column
+                        } else if (analysisId === 'blindfolding') {
+                            result = await runSimpleBlindfolding(plsFullMatrix, 7);
+                        }
                         break;
 
                     default:
