@@ -38,20 +38,15 @@ export function AIInterpretation({ analysisType, results, userProfile }: AIInter
     }, []);
 
     const generateExplanation = async () => {
-        if (!apiKey) {
-            setError('Vui lòng nhập Gemini API Key trong phần Cài đặt AI (trên thanh cài đặt biến).');
-            return;
-        }
-
-        // Rate limiting: 10s cooldown
+        // Rate limiting: 5s cooldown
         const now = Date.now();
-        if (now - lastCallTime < 10000) {
-            setError('Vui lòng đợi 10 giây trước khi gọi AI lại (tránh spam).');
+        if (now - lastCallTime < 5000) {
+            setError('Vui lòng đợi 5 giây trước khi tạo lại (tránh spam).');
             return;
         }
 
         // Check cache first
-        const cacheKey = JSON.stringify({ analysisType, results: results?.data || results, userProfile });
+        const cacheKey = JSON.stringify({ analysisType, results: results?.data || results });
         if (cache.has(cacheKey)) {
             setExplanation(cache.get(cacheKey)!);
             setError(null);
@@ -63,17 +58,27 @@ export function AIInterpretation({ analysisType, results, userProfile }: AIInter
         setLastCallTime(now);
 
         try {
-            // Build Context from User Profile
-            let context = '';
-            if (userProfile) {
-                context = `Người dùng là: ${userProfile.academic_level || 'N/A'}`;
-                if (userProfile.research_field) context += `, lĩnh vực: ${userProfile.research_field}`;
-                if (userProfile.organization) context += `, đơn vị: ${userProfile.organization}`;
+            // Build Context from Results if available
+            const scaleName = results?.scaleName || results?.data?.scaleName || 'Thang đo';
+            const variableNames = results?.variables || results?.data?.variables || [];
+            
+            const response = await fetch('/api/template-interpret', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    analysisType,
+                    results: results?.data || results,
+                    scaleName,
+                    variableNames
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Lỗi Server: ${response.statusText}`);
             }
 
-            // Use centralized Explainer Service (key sent via encrypted header automatically)
-            const response = await explainResults(analysisType, results, context);
-            const text = response.explanation;
+            const data = await response.json();
+            const text = data.explanation || data.interpretation?.summary || 'Không có diễn giải nào.';
 
             setExplanation(text);
 
@@ -83,34 +88,32 @@ export function AIInterpretation({ analysisType, results, userProfile }: AIInter
             setCache(newCache);
         } catch (err: any) {
             console.error(err);
-            setError(err.message || 'Có lỗi xảy ra khi gọi AI.');
+            setError(err.message || 'Có lỗi xảy ra khi tạo diễn giải.');
         } finally {
             setLoading(false);
         }
     };
 
-    if (!apiKey) return null; // Hide if no key (or show prompt?)
-
     return (
-        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-indigo-100 rounded-xl p-6 mt-8 shadow-sm">
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-6 mt-8 shadow-sm">
             <div className="flex items-center gap-3 mb-4">
-                <div className="p-2 bg-indigo-600 rounded-lg shadow-md shadow-indigo-200">
-                    <Sparkles className="w-5 h-5 text-white animate-pulse" />
+                <div className="p-2 bg-blue-600 rounded-lg shadow-md shadow-blue-200">
+                    <Sparkles className="w-5 h-5 text-white" />
                 </div>
-                <h3 className="text-lg font-bold text-indigo-900">Trợ lý AI Phân tích</h3>
+                <h3 className="text-lg font-bold text-blue-900">Diễn giải Học thuật (Chuẩn ASIG)</h3>
             </div>
 
             {!explanation && !loading && (
                 <div className="text-center py-6">
-                    <p className="text-indigo-600 mb-4 text-sm">
-                        AI sẽ tự động đọc kết quả và viết báo cáo phân tích gợi ý cho bạn.
+                    <p className="text-blue-600 mb-4 text-sm">
+                        Hệ thống sẽ tự động đọc kết quả và viết báo cáo phân tích theo chuẩn khoa học.
                     </p>
                     <button
                         onClick={generateExplanation}
-                        className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-full shadow-lg shadow-indigo-200 transition-all hover:scale-105 flex items-center gap-2 mx-auto"
+                        className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-full shadow-lg shadow-blue-200 transition-all hover:scale-105 flex items-center gap-2 mx-auto"
                     >
                         <Bot className="w-5 h-5" />
-                        Giải thích kết quả ngay
+                        Tạo báo cáo diễn giải
                     </button>
                 </div>
             )}
