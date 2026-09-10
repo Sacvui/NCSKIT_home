@@ -15,7 +15,7 @@ const MAX_INIT_ATTEMPTS = 3;
 
 // Storage keys for crash monitoring
 const CRASH_COUNTER_KEY = 'webr_crash_count';
-const REPO_VERSION = 'webr_repo_v5';
+const REPO_VERSION = 'webr_repo_v6';
 
 // Error recovery state
 let lastError: Error | null = null;

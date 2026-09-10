@@ -115,7 +115,7 @@ const nextConfig = {
             },
             // Local R package repository
             {
-                source: '/webr_repo_v5/:path*',
+                source: '/webr_repo_v6/:path*',
                 headers: [
                     {
                         key: 'Cross-Origin-Resource-Policy',
@@ -164,7 +164,7 @@ const nextConfig = {
         return {
             fallback: [
                 {
-                    source: '/webr_repo_v5/:path*',
+                    source: '/webr_repo_v6/:path*',
                     destination: '/api/webr-not-found',
                 }
             ]
