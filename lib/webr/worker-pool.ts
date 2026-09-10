@@ -59,6 +59,9 @@ export class WebRPoolManager {
                 logger.info('[WebR Pool] Worker ' + (i + 1) + ' verifying/installing seminr...');
                 try {
                     await worker.evalR(`
+                        if (!require("jsonlite", character.only = TRUE, quietly = TRUE)) {
+                            tryCatch(webr::install("jsonlite"), error = function(e) {})
+                        }
                         if (!require("seminr", character.only = TRUE, quietly = TRUE)) {
                             tryCatch(webr::install("seminr"), error = function(e) {})
                         }
