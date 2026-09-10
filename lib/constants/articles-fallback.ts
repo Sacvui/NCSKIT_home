@@ -1,4 +1,4 @@
-export const STATIC_ARTICLES = [
+const rawArticles = [
     {
         slug: 'scenario-pls-sem',
         category: ['Research Scenarios', 'Structural Modeling'],
@@ -385,21 +385,73 @@ export const STATIC_ARTICLES = [
         icon_name: 'Star',
         title_vi: 'Mô hình Chất lượng Dịch vụ (SERVQUAL)',
         title_en: 'Service Quality Model (SERVQUAL)',
-        description_vi: 'Tìm hiểu thang đo SERVQUAL với 5 thành phần cốt lõi: Tin cậy, Đáp ứng, Đảm bảo, Đồng cảm, và Hữu hình trong nghiên cứu sự hài lòng khách hàng.',
+        description_vi: 'Hướng dẫn chuyên sâu Thang đo SERVQUAL. Giải phẫu 5 thành phần cốt lõi (RATER) và Mô hình 5 khoảng cách chất lượng dịch vụ.',
         content_vi: `
             <div class="space-y-10 text-slate-700 leading-relaxed">
+                <!-- 1. Nguồn gốc -->
                 <div class="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100">
-                    <h3 class="text-2xl font-black text-indigo-900 mb-4">1. Thang đo SERVQUAL là gì?</h3>
-                    <p class="mb-4">Mô hình <strong>SERVQUAL</strong> (kết hợp từ "Service" và "Quality") được Parasuraman, Zeithaml và Berry phát triển vào năm 1988. Đây là thang đo chuẩn mực nhất để đo lường khoảng cách giữa "Kỳ vọng" của khách hàng và "Cảm nhận thực tế" của họ sau khi trải nghiệm dịch vụ.</p>
+                    <h3 class="text-2xl font-black text-indigo-900 mb-4">1. Khái quát và Bối cảnh ra đời</h3>
+                    <p class="mb-4">Khác với sản phẩm hữu hình, "dịch vụ" mang tính vô hình, không đồng nhất và không thể lưu trữ. Để đo lường một thứ trừu tượng như vậy, Parasuraman, Zeithaml và Berry đã giới thiệu <strong>Mô hình SERVQUAL</strong> vào năm 1988.</p>
+                    <p>SERVQUAL định nghĩa Chất lượng dịch vụ là khoảng cách (Gap) giữa <strong>Sự kỳ vọng (Expectations)</strong> của khách hàng trước khi mua và <strong>Sự cảm nhận (Perceptions)</strong> của họ sau khi trải nghiệm dịch vụ. Nếu Cảm nhận > Kỳ vọng, chất lượng dịch vụ được đánh giá là tuyệt hảo.</p>
                 </div>
+
+                <!-- 2. RATER -->
                 <div>
-                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> 5 Thành phần của Mô hình SERVQUAL</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="bg-white p-4 rounded-xl border border-slate-200"><strong>1. Độ tin cậy (Reliability):</strong> Khả năng cung cấp dịch vụ chính xác, đúng hạn như đã hứa hẹn.</div>
-                        <div class="bg-white p-4 rounded-xl border border-slate-200"><strong>2. Độ đáp ứng (Responsiveness):</strong> Sự sẵn sàng giúp đỡ khách hàng và cung cấp dịch vụ kịp thời.</div>
-                        <div class="bg-white p-4 rounded-xl border border-slate-200"><strong>3. Năng lực phục vụ (Assurance):</strong> Kiến thức, kỹ năng và thái độ tạo sự tin tưởng của nhân viên.</div>
-                        <div class="bg-white p-4 rounded-xl border border-slate-200"><strong>4. Sự đồng cảm (Empathy):</strong> Mức độ quan tâm, chăm sóc cá nhân hóa dành cho khách hàng.</div>
-                        <div class="bg-white p-4 rounded-xl border border-slate-200 md:col-span-2"><strong>5. Phương tiện hữu hình (Tangibles):</strong> Cơ sở vật chất, trang thiết bị, diện mạo nhân viên và tài liệu truyền thông.</div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Giải phẫu 5 Thành phần của Thang đo (Mô hình RATER)</h3>
+                    <p class="mb-4">Từ 10 thành phần ban đầu, SERVQUAL đã được tinh gọn lại thành 5 thứ nguyên cốt lõi (viết tắt là RATER) với 22 biến quan sát:</p>
+                    <div class="space-y-4">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-rose-500">
+                            <h4 class="font-bold text-slate-900 text-lg">1. Độ tin cậy (Reliability)</h4>
+                            <p class="text-sm mt-2 text-slate-600">Khả năng cung cấp dịch vụ chính xác và đúng hẹn ngay từ lần đầu tiên. Đây thường là yếu tố quan trọng nhất.</p>
+                            <div class="mt-2 bg-slate-50 p-3 rounded-lg text-xs italic">Ví dụ Likert: "Ngân hàng X luôn thực hiện các giao dịch chính xác không để xảy ra sai sót."</div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-orange-500">
+                            <h4 class="font-bold text-slate-900 text-lg">2. Năng lực phục vụ (Assurance)</h4>
+                            <p class="text-sm mt-2 text-slate-600">Kiến thức, chuyên môn và thái độ lịch sự của nhân viên, khả năng tạo sự tin tưởng cho khách hàng.</p>
+                            <div class="mt-2 bg-slate-50 p-3 rounded-lg text-xs italic">Ví dụ Likert: "Nhân viên của ngân hàng X có đủ kiến thức chuyên môn để trả lời mọi thắc mắc của tôi."</div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-blue-500">
+                            <h4 class="font-bold text-slate-900 text-lg">3. Phương tiện hữu hình (Tangibles)</h4>
+                            <p class="text-sm mt-2 text-slate-600">Cơ sở vật chất, trang thiết bị, không gian và diện mạo của nhân viên.</p>
+                            <div class="mt-2 bg-slate-50 p-3 rounded-lg text-xs italic">Ví dụ Likert: "Ngân hàng X có cơ sở vật chất khang trang và thiết bị giao dịch hiện đại."</div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-emerald-500">
+                            <h4 class="font-bold text-slate-900 text-lg">4. Sự đồng cảm (Empathy)</h4>
+                            <p class="text-sm mt-2 text-slate-600">Sự quan tâm chăm sóc cá nhân hóa, hiểu rõ nhu cầu riêng biệt của từng khách hàng.</p>
+                            <div class="mt-2 bg-slate-50 p-3 rounded-lg text-xs italic">Ví dụ Likert: "Ngân hàng X có giờ giấc làm việc thuận tiện cho cá nhân tôi."</div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-purple-500">
+                            <h4 class="font-bold text-slate-900 text-lg">5. Độ đáp ứng (Responsiveness)</h4>
+                            <p class="text-sm mt-2 text-slate-600">Sự sẵn lòng giúp đỡ và cung cấp dịch vụ nhanh chóng, không để khách hàng phải chờ đợi.</p>
+                            <div class="mt-2 bg-slate-50 p-3 rounded-lg text-xs italic">Ví dụ Likert: "Nhân viên ngân hàng X luôn sẵn sàng giúp đỡ tôi ngay lập tức."</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Phương pháp tiếp cận -->
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">3</span> Ứng dụng & Biến thể (SERVPERF)</h3>
+                    <div class="bg-indigo-50 p-6 rounded-2xl border border-indigo-100">
+                        <p class="mb-4 text-sm text-indigo-900">Mặc dù SERVQUAL cực kỳ nổi tiếng, việc bắt khách hàng phải làm khảo sát 2 lần (1 lần hỏi Kỳ vọng, 1 lần hỏi Cảm nhận) khiến bảng câu hỏi quá dài (44 câu).</p>
+                        <p class="text-sm text-indigo-900">Năm 1992, Cronin và Taylor đã đề xuất mô hình <strong>SERVPERF</strong>. Mô hình này giữ nguyên 22 biến của 5 thành phần RATER, nhưng <strong>chỉ đo lường sự Cảm nhận thực tế (Performance)</strong>, bỏ qua phần Kỳ vọng. Ngày nay, 90% luận văn về mức độ hài lòng khách hàng tại Việt Nam thực chất đang sử dụng mô hình SERVPERF thay vì SERVQUAL gốc.</p>
+                    </div>
+                </div>
+
+                <!-- 4. Khuyến nghị phân tích -->
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">4</span> Khuyến nghị phương pháp phân tích thống kê</h3>
+                    <div class="bg-slate-900 text-slate-300 p-6 rounded-2xl border-l-4 border-emerald-500 shadow-xl">
+                        <p class="mb-4 text-white font-medium">Quy trình phân tích chuẩn mực cho dữ liệu SERVPERF</p>
+                        <p class="mb-3 text-sm">Với 22 biến quan sát, điều đầu tiên bạn phải làm là <strong>Phân tích nhân tố khám phá (EFA)</strong> để kiểm tra xem 22 biến này có thực sự gom tụ lại thành 5 nhóm (RATER) như lý thuyết hay không. Rất nhiều trường hợp dữ liệu bị gom lại chỉ còn 3 hoặc 4 nhóm (Ví dụ: Tin cậy và Đáp ứng bị gộp chung).</p>
+                        <p class="text-sm">Sau khi chạy EFA và Cronbach's Alpha, bạn sẽ tính giá trị trung bình đại diện cho các nhóm, và đưa vào mô hình <strong>Hồi quy tuyến tính (OLS)</strong> với biến phụ thuộc là "Sự hài lòng của khách hàng".</p>
+                        
+                        <div class="mt-6 pt-6 border-t border-slate-700">
+                            <strong class="text-white text-base block mb-3">📚 Trích dẫn tham khảo chuẩn APA 7:</strong>
+                            <div class="space-y-3 text-xs">
+                                <p>Parasuraman, A., Zeithaml, V. A., & Berry, L. L. (1988). Servqual: A multiple-item scale for measuring consumer perceptions of service quality. <em>Journal of retailing</em>, 64(1), 12-40.</p>
+                                <p>Cronin Jr, J. J., & Taylor, S. A. (1992). Measuring service quality: a reexamination and extension. <em>Journal of marketing</em>, 56(3), 55-68.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>`
@@ -410,22 +462,67 @@ export const STATIC_ARTICLES = [
         icon_name: 'Cpu',
         title_vi: 'Mô hình Chấp nhận và Sử dụng Công nghệ (UTAUT)',
         title_en: 'Unified Theory of Acceptance and Use of Technology',
-        description_vi: 'Thuyết UTAUT hợp nhất 8 mô hình lý thuyết hành vi, lý giải ý định sử dụng công nghệ thông qua Kỳ vọng hiệu quả, Kỳ vọng nỗ lực và Ảnh hưởng xã hội.',
+        description_vi: 'Hướng dẫn chuyên sâu Thuyết UTAUT. Tổng hợp 4 biến độc lập cốt lõi, vai trò của các biến điều tiết và cách áp dụng vào nghiên cứu hành vi công nghệ.',
         content_vi: `
             <div class="space-y-10 text-slate-700 leading-relaxed">
+                <!-- 1. Nguồn gốc -->
                 <div class="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100">
-                    <h3 class="text-2xl font-black text-indigo-900 mb-4">1. Tính ưu việt của mô hình nghiên cứu UTAUT</h3>
-                    <p class="mb-4">Phát triển bởi Venkatesh et al. (2003), <strong>UTAUT</strong> là một nỗ lực nhằm tổng hợp và thống nhất 8 mô hình lý thuyết nổi bật (bao gồm TAM, TPB, TRA) về sự chấp nhận công nghệ. UTAUT có khả năng giải thích tới 70% phương sai của ý định hành vi, cao hơn rất nhiều so với TAM (chỉ khoảng 40%).</p>
+                    <h3 class="text-2xl font-black text-indigo-900 mb-4">1. Sự ra đời của siêu mô hình (The Super Model)</h3>
+                    <p class="mb-4">Trước năm 2003, giới nghiên cứu bị "ngộp" trong một biển lý thuyết về sự chấp nhận công nghệ (TAM, TPB, TRA, Thuyết Khuếch tán Đổi mới - IDT...). Venkatesh và cộng sự đã thực hiện một siêu nghiên cứu, chắt lọc và hợp nhất 8 mô hình mạnh nhất để tạo ra <strong>UTAUT (Unified Theory of Acceptance and Use of Technology)</strong>.</p>
+                    <p>Sức mạnh của UTAUT nằm ở việc nó có thể giải thích tới <strong>70%</strong> sự biến thiên trong ý định sử dụng công nghệ của người dùng, cao hơn rất nhiều so với mức 40% của TAM gốc.</p>
                 </div>
+
+                <!-- 2. Giải phẫu cấu trúc -->
                 <div>
-                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Bốn biến định lượng chính trong UTAUT</h3>
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                        <ul class="space-y-4 text-sm">
-                            <li class="p-3 border-b"><strong>Kỳ vọng hiệu quả (Performance Expectancy):</strong> Sự tin tưởng rằng hệ thống sẽ giúp đạt được hiệu suất công việc cao hơn.</li>
-                            <li class="p-3 border-b"><strong>Kỳ vọng nỗ lực (Effort Expectancy):</strong> Mức độ dễ dàng khi sử dụng hệ thống.</li>
-                            <li class="p-3 border-b"><strong>Ảnh hưởng xã hội (Social Influence):</strong> Mức độ cá nhân nhận thức được rằng những người quan trọng khác tin rằng họ nên sử dụng hệ thống mới.</li>
-                            <li class="p-3 border-b"><strong>Điều kiện thuận lợi (Facilitating Conditions):</strong> Mức độ cá nhân tin rằng có sự hỗ trợ về mặt tổ chức và hạ tầng kỹ thuật để sử dụng hệ thống.</li>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Giải phẫu 4 Biến Độc lập Cốt lõi</h3>
+                    <p class="mb-4">Thay vì dùng PU và PEOU của TAM, UTAUT sử dụng hệ thống biến bao quát hơn:</p>
+                    <div class="space-y-4">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-blue-500">
+                            <h4 class="font-bold text-slate-900 text-lg">1. Kỳ vọng hiệu quả (Performance Expectancy - PE)</h4>
+                            <p class="text-sm mt-2 text-slate-600">Niềm tin rằng hệ thống sẽ giúp cá nhân đạt hiệu suất công việc cao. Tương đồng với PU trong TAM. Là biến dự báo mạnh nhất cho ý định.</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-emerald-500">
+                            <h4 class="font-bold text-slate-900 text-lg">2. Kỳ vọng nỗ lực (Effort Expectancy - EE)</h4>
+                            <p class="text-sm mt-2 text-slate-600">Mức độ dễ dàng gắn liền với việc sử dụng hệ thống. Tương đồng với PEOU trong TAM.</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-orange-500">
+                            <h4 class="font-bold text-slate-900 text-lg">3. Ảnh hưởng xã hội (Social Influence - SI)</h4>
+                            <p class="text-sm mt-2 text-slate-600">Áp lực từ những người quan trọng xung quanh (sếp, bạn bè, đồng nghiệp) cho rằng cá nhân nên sử dụng công nghệ mới. Tương đồng với Subjective Norm trong TPB.</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-purple-500">
+                            <h4 class="font-bold text-slate-900 text-lg">4. Điều kiện thuận lợi (Facilitating Conditions - FC)</h4>
+                            <p class="text-sm mt-2 text-slate-600">Niềm tin rằng có đủ cơ sở hạ tầng tổ chức và kỹ thuật để hỗ trợ việc sử dụng hệ thống. Đặc biệt, biến FC không chỉ tác động lên Ý định, mà còn có khả năng tác động trực tiếp lên <strong>Hành vi sử dụng thực tế (Use Behavior)</strong>.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Biến điều tiết -->
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">3</span> "Vũ khí bí mật": Các Biến Điều tiết (Moderators)</h3>
+                    <div class="bg-amber-50 p-6 rounded-2xl border border-amber-100">
+                        <p class="mb-4 text-sm text-amber-900">Điểm làm nên sức mạnh của UTAUT chính là việc đưa vào 4 biến nhân khẩu học để đóng vai trò làm biến điều tiết. Sự tác động của 4 biến độc lập lên ý định sẽ mạnh hay yếu phụ thuộc vào:</p>
+                        <ul class="list-disc pl-5 space-y-2 text-amber-900 text-sm font-medium">
+                            <li><strong>Giới tính (Gender):</strong> Nam giới quan tâm nhiều đến Kỳ vọng hiệu quả (PE), trong khi nữ giới quan tâm nhiều đến Kỳ vọng nỗ lực (EE) và Ảnh hưởng xã hội (SI).</li>
+                            <li><strong>Độ tuổi (Age):</strong> Người trẻ tuổi bị chi phối bởi PE, người lớn tuổi bị chi phối bởi EE, SI và FC.</li>
+                            <li><strong>Kinh nghiệm (Experience):</strong> Người mới dùng bị áp lực bởi xã hội (SI) nhiều hơn người đã có kinh nghiệm.</li>
+                            <li><strong>Tính tự nguyện (Voluntariness of Use):</strong> SI chỉ có tác động mạnh trong môi trường bắt buộc sử dụng (ví dụ: công ty áp dụng phần mềm ERP mới bắt buộc).</li>
                         </ul>
+                    </div>
+                </div>
+
+                <!-- 4. Khuyến nghị phân tích -->
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">4</span> Khuyến nghị phương pháp phân tích thống kê</h3>
+                    <div class="bg-slate-900 text-slate-300 p-6 rounded-2xl border-l-4 border-indigo-500 shadow-xl">
+                        <p class="mb-3 text-sm">Khi làm luận văn với UTAUT, việc xử lý <strong>Biến điều tiết (Moderating Variables)</strong> bằng SPSS truyền thống là một cơn ác mộng (phải tạo biến tương tác thủ công).</p>
+                        <p class="text-sm">Tôi khuyên bạn nên sử dụng hệ thống <strong>SmartPLS (PLS-SEM)</strong>. Thuật toán phân tích đa nhóm (MGA - Multi-Group Analysis) trong SmartPLS cho phép bạn kiểm định sự khác biệt giữa nhóm Nam/Nữ, Lớn tuổi/Trẻ tuổi một cách hoàn toàn tự động và ra biểu đồ trực quan.</p>
+                        
+                        <div class="mt-6 pt-6 border-t border-slate-700">
+                            <strong class="text-white text-base block mb-3">📚 Trích dẫn tham khảo chuẩn APA 7:</strong>
+                            <div class="space-y-3 text-xs">
+                                <p>Venkatesh, V., Morris, M. G., Davis, G. B., & Davis, F. D. (2003). User acceptance of information technology: Toward a unified view. <em>MIS quarterly</em>, 425-478.</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>`
@@ -436,21 +533,49 @@ export const STATIC_ARTICLES = [
         icon_name: 'Shield',
         title_vi: 'Mô hình 5 Áp lực Cạnh tranh của Porter',
         title_en: 'Porter\'s Five Forces',
-        description_vi: 'Áp dụng Mô hình 5 áp lực cạnh tranh của Michael Porter trong phân tích môi trường vi mô và hoạch định chiến lược kinh doanh.',
+        description_vi: 'Hướng dẫn phân tích môi trường vi mô doanh nghiệp bằng Mô hình 5 áp lực cạnh tranh. Định hình chiến lược đại dương xanh.',
         content_vi: `
             <div class="space-y-10 text-slate-700 leading-relaxed">
+                <!-- 1. Nguồn gốc -->
                 <div class="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100">
-                    <h3 class="text-2xl font-black text-indigo-900 mb-4">1. Khung phân tích chiến lược của Michael Porter</h3>
-                    <p class="mb-4">Ra đời năm 1979 tại Trường Kinh doanh Harvard, mô hình <strong>5 Áp lực cạnh tranh</strong> giúp nhà quản trị phân tích sức hấp dẫn (khả năng sinh lời) của một ngành công nghiệp. Không chỉ trong kinh doanh, đây là khung lý thuyết bắt buộc trong các luận văn thạc sĩ quản trị kinh doanh (MBA) khi đề xuất giải pháp chiến lược.</p>
+                    <h3 class="text-2xl font-black text-indigo-900 mb-4">1. Khung phân tích chiến lược kinh điển</h3>
+                    <p class="mb-4">Ra đời năm 1979 trên tạp chí Harvard Business Review bởi Giáo sư Michael Porter, mô hình <strong>5 Áp lực cạnh tranh (Five Forces)</strong> đã thay đổi vĩnh viễn cách các giám đốc điều hành hoạch định chiến lược.</p>
+                    <p>Mô hình này giúp nhà quản trị phân tích sức hấp dẫn (khả năng sinh lời) của một ngành công nghiệp cụ thể. Chân lý của Porter rất đơn giản: Ngành càng chịu nhiều áp lực, biên lợi nhuận của doanh nghiệp càng mỏng.</p>
                 </div>
+
+                <!-- 2. Giải phẫu -->
                 <div>
-                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Giải phẫu 5 Áp lực</h3>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Giải phẫu 5 Áp lực (The 5 Forces)</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="bg-white p-4 rounded-xl border border-slate-200"><strong>1. Đối thủ cạnh tranh hiện tại (Industry Rivalry):</strong> Mức độ khốc liệt của cuộc chiến giành thị phần giữa các doanh nghiệp đang có mặt trên thị trường.</div>
-                        <div class="bg-white p-4 rounded-xl border border-slate-200"><strong>2. Nguy cơ từ đối thủ tiềm ẩn (Threat of New Entrants):</strong> Rào cản gia nhập ngành cao hay thấp (vốn, bản quyền, quy mô).</div>
-                        <div class="bg-white p-4 rounded-xl border border-slate-200"><strong>3. Đe dọa từ sản phẩm thay thế (Threat of Substitutes):</strong> Các sản phẩm từ ngành khác nhưng có chung chức năng giải quyết nhu cầu của khách hàng.</div>
-                        <div class="bg-white p-4 rounded-xl border border-slate-200"><strong>4. Quyền lực thương lượng của Nhà cung cấp (Bargaining Power of Suppliers):</strong> Khả năng ép giá từ các nhà cung cấp nguyên vật liệu độc quyền.</div>
-                        <div class="bg-white p-4 rounded-xl border border-slate-200 md:col-span-2"><strong>5. Quyền lực thương lượng của Khách hàng (Bargaining Power of Buyers):</strong> Quyền lực ép giá của khách hàng dựa trên khối lượng mua và độ nhạy cảm về giá.</div>
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 border-l-4 border-l-rose-500">
+                            <h4 class="font-bold text-slate-900 text-lg mb-2">1. Cạnh tranh nội bộ ngành (Rivalry)</h4>
+                            <p class="text-sm text-slate-600">Mức độ khốc liệt của cuộc chiến giành thị phần. Áp lực cao khi: Ngành tăng trưởng chậm, có nhiều đối thủ ngang sức, rào cản rút lui (Exit barriers) cao.</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 border-l-4 border-l-orange-500">
+                            <h4 class="font-bold text-slate-900 text-lg mb-2">2. Đe dọa từ Đối thủ tiềm ẩn (New Entrants)</h4>
+                            <p class="text-sm text-slate-600">Những người lính mới sẵn sàng nhảy vào ăn chia miếng bánh. Áp lực được giảm thiểu bởi "Rào cản gia nhập" (Vốn, bản quyền, tính kinh tế theo quy mô).</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 border-l-4 border-l-blue-500">
+                            <h4 class="font-bold text-slate-900 text-lg mb-2">3. Đe dọa từ Sản phẩm thay thế (Substitutes)</h4>
+                            <p class="text-sm text-slate-600">Các sản phẩm ngoài ngành nhưng có chung công năng (Ví dụ: Skype thay thế vé máy bay công tác). Áp lực cao khi chi phí chuyển đổi (Switching cost) của khách hàng thấp.</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 border-l-4 border-l-emerald-500">
+                            <h4 class="font-bold text-slate-900 text-lg mb-2">4. Quyền lực Nhà cung cấp (Suppliers)</h4>
+                            <p class="text-sm text-slate-600">Nhà cung cấp có thể ép giá đầu vào, làm giảm biên lợi nhuận của bạn. Áp lực cao khi: Thị trường có ít nhà cung cấp độc quyền, bạn không phải khách hàng lớn của họ.</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-xl border border-slate-200 border-l-4 border-l-purple-500 md:col-span-2">
+                            <h4 class="font-bold text-slate-900 text-lg mb-2">5. Quyền lực Khách hàng (Buyers)</h4>
+                            <p class="text-sm text-slate-600">Khách hàng có thể ép bạn giảm giá hoặc đòi hỏi chất lượng cao hơn. Áp lực cao khi: Khách hàng mua khối lượng lớn, sản phẩm của bạn không có sự khác biệt (Commodity).</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Ứng dụng -->
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">3</span> Ứng dụng trong Luận văn MBA</h3>
+                    <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                        <p class="mb-4 text-sm text-slate-700">Trong luận văn thạc sĩ quản trị kinh doanh, Porter's Five Forces không phải là công cụ đo lường định lượng (chạy SPSS), mà là công cụ <strong>Định tính (Qualitative)</strong> để xây dựng Chiến lược cấp Công ty (Corporate Strategy).</p>
+                        <p class="text-sm text-slate-700">Hãy kết hợp 5 áp lực này với phân tích SWOT và PESTEL để đề xuất một trong 3 Chiến lược Cạnh tranh Tổng quát của Porter: Dẫn đầu chi phí (Cost Leadership), Khác biệt hóa (Differentiation) hoặc Tập trung (Focus).</p>
                     </div>
                 </div>
             </div>`
@@ -574,3 +699,21 @@ export const STATIC_ARTICLES = [
             </div>`
     }
 ];
+
+const authorSignature = `
+<div class="mt-12 pt-6 border-t border-slate-200">
+    <div class="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+        <div class="w-12 h-12 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center font-bold text-xl shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div>
+            <div class="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-0.5">Tác giả biên soạn & Cố vấn học thuật</div>
+            <div class="font-black text-slate-900 text-lg">Lê Phúc Hải</div>
+        </div>
+    </div>
+</div>`;
+
+export const STATIC_ARTICLES = rawArticles.map(article => ({
+    ...article,
+    content_vi: article.content_vi + authorSignature
+}));
