@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 import ArticleClient from '@/components/knowledge/ArticleClient';
 import { getSupabase } from '@/utils/supabase/client';
 import { FALLBACK_ARTICLES, DEFAULT_ARTICLE } from '@/lib/constants/knowledge-fallbacks';
+import StructuredData from '@/components/seo/StructuredData';
 
 // Cấu hình Metadata động cho SEO bài viết
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
@@ -28,6 +29,9 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     return {
         title,
         description,
+        alternates: {
+            canonical: `/knowledge/${slug}`,
+        },
         openGraph: {
             title,
             description,
@@ -69,11 +73,66 @@ export default async function KnowledgeArticlePage({ params }: { params: Promise
         }
     }
 
+    const articleUrl = `https://ncskit.org/knowledge/${slug}`;
+    const titleVi = article?.title_vi || 'Kiến thức Thống kê';
+    
+    const articleSchema = {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": titleVi,
+        "description": `Hướng dẫn chi tiết về ${titleVi} - Phân tích thống kê NCSKIT.org`,
+        "author": {
+            "@type": "Organization",
+            "name": "NCSKIT Academy"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "NCSKIT",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://ncskit.org/favicon.svg"
+            }
+        },
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": articleUrl
+        }
+    };
+
+    const breadcrumbSchema = {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+            {
+                "@type": "ListItem",
+                "position": 1,
+                "name": "Trang chủ",
+                "item": "https://ncskit.org"
+            },
+            {
+                "@type": "ListItem",
+                "position": 2,
+                "name": "Thư viện Kiến thức",
+                "item": "https://ncskit.org/knowledge"
+            },
+            {
+                "@type": "ListItem",
+                "position": 3,
+                "name": titleVi,
+                "item": articleUrl
+            }
+        ]
+    };
+
     return (
-        <ArticleClient 
-            initialArticle={article} 
-            fallbackArticles={FALLBACK_ARTICLES} 
-            slug={slug} 
-        />
+        <>
+            <StructuredData data={articleSchema} />
+            <StructuredData data={breadcrumbSchema} />
+            <ArticleClient 
+                initialArticle={article} 
+                fallbackArticles={FALLBACK_ARTICLES} 
+                slug={slug} 
+            />
+        </>
     );
 }
