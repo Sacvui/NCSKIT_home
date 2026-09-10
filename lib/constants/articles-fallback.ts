@@ -701,16 +701,8 @@ const rawArticles = [
 ];
 
 const authorSignature = `
-<div class="mt-12 pt-6 border-t border-slate-200">
-    <div class="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
-        <div class="w-12 h-12 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center font-bold text-xl shadow-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        </div>
-        <div>
-            <div class="text-xs text-slate-500 uppercase tracking-wider font-semibold mb-0.5">Tổng hợp và biên soạn</div>
-            <div class="font-black text-slate-900 text-lg">Lê Phúc Hải</div>
-        </div>
-    </div>
+<div class="mt-12 pt-6 border-t border-slate-200 text-right text-sm">
+    <span class="text-slate-500 italic">By</span> <strong class="text-slate-900 font-bold">Lê Phúc Hải</strong>
 </div>`;
 
 export const STATIC_ARTICLES = rawArticles.map(article => ({
