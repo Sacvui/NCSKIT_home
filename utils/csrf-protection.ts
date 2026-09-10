@@ -32,8 +32,7 @@ export function validateOrigin(request: NextRequest): boolean {
 
     const allowedOrigins = new Set([
         // Production domains
-        'https://stat.ncskit.org',
-        'https://ncsstat.ncskit.org',
+        'https://ncskit.org',
         // Dynamic: match the current host (handles Vercel preview URLs)
         `https://${host}`,
         `http://${host}`,

@@ -23,7 +23,7 @@ export default function ReferralCard({ referralCode: initialCode, userId }: { re
     }, [initialCode, userId])
 
     // Base URL from env or fallback to current origin
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://stat.ncskit.org')
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : 'https://ncskit.org')
     const referralLink = `${baseUrl}?ref=${code}`
 
     const copyToClipboard = () => {

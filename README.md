@@ -5,7 +5,7 @@
 
 **ncsStat** is an open-source, decentralized statistical analysis platform that runs a full R engine (WebR) entirely within the browser. It is designed to provide high-performance, privacy-centric research tools without the need for server-side computation or data transmission.
 
-🔗 **Live Application:** [https://stat.ncskit.org](https://stat.ncskit.org)
+🔗 **Live Application:** [https://ncskit.org](https://ncskit.org)
 
 ---
 
@@ -92,7 +92,7 @@ If you use ncsStat in your research, please cite it as follows:
 **CFF File:** [CITATION.cff](./CITATION.cff)
 
 **APA Format:**
-> Le, P. H. (2026). *ncsStat: A Web-Based Statistical Analysis Platform for Privacy-Preserving Decentralized Computing*. https://stat.ncskit.org
+> Le, P. H. (2026). *ncsStat: A Web-Based Statistical Analysis Platform for Privacy-Preserving Decentralized Computing*. https://ncskit.org
 
 ---
 

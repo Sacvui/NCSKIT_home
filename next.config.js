@@ -161,16 +161,14 @@ const nextConfig = {
     },
 
     async rewrites() {
-        return [
-            {
-                source: '/webr_repo_v5/:path(.*\\.rds)',
-                destination: '/api/webr-not-found',
-            },
-            {
-                source: '/webr_repo_v5/:path(.*\\.gz)',
-                destination: '/api/webr-not-found',
-            }
-        ];
+        return {
+            fallback: [
+                {
+                    source: '/webr_repo_v5/:path*',
+                    destination: '/api/webr-not-found',
+                }
+            ]
+        };
     },
 
     async redirects() {

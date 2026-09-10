@@ -8,7 +8,7 @@
  * To enable ORCID login, you need to:
  * 1. Register an app at https://orcid.org/developer-tools
  * 2. Set ORCID_CLIENT_ID and ORCID_CLIENT_SECRET in Vercel
- * 3. Add redirect URI: https://stat.ncskit.org/auth/orcid/callback
+ * 3. Add redirect URI: https://ncskit.org/auth/orcid/callback
  */
 
 const ORCID_AUTH_URL = 'https://orcid.org/oauth/authorize';

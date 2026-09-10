@@ -10,8 +10,7 @@ import { describe, it, expect } from '@jest/globals';
 // by extracting the core validation logic
 
 const ALLOWED_PRODUCTION_ORIGINS = [
-    'https://stat.ncskit.org',
-    'https://ncsstat.ncskit.org',
+    'https://ncskit.org',
 ];
 
 const ALLOWED_DEV_ORIGINS = [
@@ -37,19 +36,18 @@ function isOriginAllowed(origin: string | null, host: string, isDev = false): bo
 }
 
 describe('validateOrigin logic', () => {
-    const host = 'stat.ncskit.org';
+    const host = 'ncskit.org';
 
     it('allows requests with no Origin header (server-to-server)', () => {
         expect(isOriginAllowed(null, host)).toBe(true);
     });
 
     it('allows production origin', () => {
-        expect(isOriginAllowed('https://stat.ncskit.org', host)).toBe(true);
-        expect(isOriginAllowed('https://ncsstat.ncskit.org', host)).toBe(true);
+        expect(isOriginAllowed('https://ncskit.org', host)).toBe(true);
     });
 
     it('allows origin matching current host', () => {
-        expect(isOriginAllowed('https://stat.ncskit.org', 'stat.ncskit.org')).toBe(true);
+        expect(isOriginAllowed('https://ncskit.org', 'ncskit.org')).toBe(true);
     });
 
     it('blocks unknown external origin', () => {
@@ -58,11 +56,11 @@ describe('validateOrigin logic', () => {
     });
 
     it('blocks HTTP origin in production (when host is HTTPS-only)', () => {
-        // http://stat.ncskit.org matches http://${host} in our logic
+        // http://ncskit.org matches http://${host} in our logic
         // In production, the middleware enforces HTTPS redirect before this check
         // So this test documents that HTTP origins from the same host are technically allowed
         // by validateOrigin, but blocked at the HTTPS redirect layer
-        const result = isOriginAllowed('http://stat.ncskit.org', host, false);
+        const result = isOriginAllowed('http://ncskit.org', host, false);
         expect(typeof result).toBe('boolean'); // Documents current behavior
     });
 
@@ -76,8 +74,8 @@ describe('validateOrigin logic', () => {
     });
 
     it('blocks origin with similar prefix (subdomain attack)', () => {
-        // 'https://stat.ncskit.org.evil.com' should NOT match 'https://stat.ncskit.org'
-        const malicious = 'https://stat.ncskit.org.evil.com';
+        // 'https://ncskit.org.evil.com' should NOT match 'https://ncskit.org'
+        const malicious = 'https://ncskit.org.evil.com';
         // Our check uses startsWith — this would match! Let's verify the logic handles it
         // The correct check should be exact match or same-origin, not startsWith on the full URL
         // This test documents the current behavior
