@@ -212,27 +212,93 @@ export const STATIC_ARTICLES = [
         icon_name: 'MonitorSmartphone',
         title_vi: 'Mô hình Chấp nhận Công nghệ (TAM)',
         title_en: 'Technology Acceptance Model (TAM)',
-        description_vi: 'Mô hình kinh điển trong nghiên cứu hành vi ứng dụng công nghệ thông tin. Lý thuyết cốt lõi để vẽ mô hình TAM trong luận văn thạc sĩ.',
+        description_vi: 'Hướng dẫn chuyên sâu (Deep-dive) về Mô hình TAM. Phân tích cấu trúc nhân tố, sự tiến hóa thành TAM 2, TAM 3 và cách ứng dụng vào luận văn thạc sĩ.',
         content_vi: `
             <div class="space-y-10 text-slate-700 leading-relaxed">
+                <!-- 1. Nguồn gốc & Bối cảnh -->
                 <div class="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100">
-                    <h3 class="text-2xl font-black text-indigo-900 mb-4">1. Nguồn gốc Lý thuyết TAM</h3>
-                    <p class="mb-4">Mô hình <strong>Chấp nhận Công nghệ (TAM - Technology Acceptance Model)</strong> do Fred Davis đề xuất vào năm 1989 là một trong những khung lý thuyết có tầm ảnh hưởng lớn nhất trên toàn cầu khi nghiên cứu về hành vi ứng dụng Công nghệ Thông tin (CNTT).</p>
-                    <p>Trong thời đại chuyển đổi số hiện nay, các sinh viên làm luận văn thạc sĩ thường xuyên sử dụng TAM để giải thích lý do tại sao người dùng (khách hàng, nhân viên) lại chấp nhận hoặc từ chối sử dụng một hệ thống phần mềm, ứng dụng di động, hoặc công nghệ AI mới.</p>
+                    <h3 class="text-2xl font-black text-indigo-900 mb-4">1. Nguồn gốc & Bối cảnh ra đời (Historical Context)</h3>
+                    <p class="mb-4">Mô hình <strong>Chấp nhận Công nghệ (TAM - Technology Acceptance Model)</strong> do Fred Davis giới thiệu lần đầu tiên vào năm 1989 trong luận án tiến sĩ của ông tại MIT. Mục tiêu ban đầu của Davis là tìm ra một mô hình lý thuyết để giải thích tại sao nhân viên văn phòng lại chấp nhận hoặc từ chối sử dụng hệ thống máy tính mới tại nơi làm việc.</p>
+                    <p>TAM được xây dựng dựa trên nền tảng của <em>Thuyết Hành động Hợp lý (TRA)</em> của Fishbein và Ajzen, nhưng Davis đã thay thế các biến số niềm tin phức tạp trong TRA bằng hai cấu trúc nhận thức đặc thù dành riêng cho môi trường công nghệ thông tin. Chính sự đơn giản nhưng có sức mạnh dự báo cao (thường giải thích được 40% - 50% ý định hành vi) đã giúp TAM trở thành mô hình thống trị toàn cầu trong lĩnh vực Hệ thống thông tin (Information Systems).</p>
                 </div>
+                
+                <!-- 2. Giải phẫu cấu trúc -->
                 <div>
-                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Cấu trúc Nhân tố cốt lõi của TAM</h3>
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-6">
-                        <ul class="space-y-4 text-sm">
-                            <li class="bg-slate-50 p-4 rounded-lg border border-slate-100"><strong>Nhận thức sự hữu ích (Perceived Usefulness - PU):</strong> Mức độ mà một cá nhân tin rằng việc sử dụng một hệ thống cụ thể sẽ nâng cao hiệu suất làm việc của họ. Đây là nhân tố dự báo mạnh mẽ nhất cho Ý định sử dụng.</li>
-                            <li class="bg-slate-50 p-4 rounded-lg border border-slate-100"><strong>Nhận thức tính dễ sử dụng (Perceived Ease of Use - PEOU):</strong> Mức độ mà cá nhân tin rằng việc sử dụng hệ thống sẽ không tốn nhiều nỗ lực học hỏi. PEOU có tác động trực tiếp đến PU.</li>
-                            <li class="bg-slate-50 p-4 rounded-lg border border-slate-100"><strong>Ý định hành vi (Behavioral Intention - BI):</strong> Quyết định chủ quan của người dùng về việc sẽ sử dụng công nghệ trong tương lai.</li>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Giải phẫu cấu trúc các nhân tố (Construct Anatomy)</h3>
+                    <p class="mb-4">TAM nguyên bản xoay quanh 2 nhân tố (biến độc lập) cốt lõi quyết định đến Ý định sử dụng (Behavioral Intention). Khi thiết kế bảng câu hỏi khảo sát, bạn cần bám sát định nghĩa của 2 nhân tố này:</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm border-t-4 border-t-blue-500">
+                            <h4 class="font-bold text-slate-900 mb-3 text-lg">1. Nhận thức Hữu ích (Perceived Usefulness - PU)</h4>
+                            <p class="text-sm mb-4"><em>Định nghĩa:</em> Mức độ mà một người tin rằng việc sử dụng một hệ thống cụ thể sẽ nâng cao hiệu suất làm việc của họ.</p>
+                            <p class="text-sm font-semibold text-slate-900 mb-2">Ví dụ câu hỏi đo lường (Thang Likert 5 điểm):</p>
+                            <ul class="list-disc pl-5 text-sm space-y-1 text-slate-600">
+                                <li>PU1: Sử dụng hệ thống [X] giúp tôi hoàn thành công việc nhanh hơn.</li>
+                                <li>PU2: Hệ thống [X] giúp cải thiện chất lượng công việc của tôi.</li>
+                                <li>PU3: Nhìn chung, hệ thống [X] rất hữu ích cho công việc/cuộc sống của tôi.</li>
+                            </ul>
+                            <div class="mt-4 p-3 bg-blue-50 text-blue-800 rounded-lg text-xs font-bold">🎯 PU là nhân tố có sức mạnh tác động lớn nhất đến Ý định sử dụng trong 90% các nghiên cứu thực nghiệm.</div>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm border-t-4 border-t-emerald-500">
+                            <h4 class="font-bold text-slate-900 mb-3 text-lg">2. Nhận thức Dễ sử dụng (Perceived Ease of Use - PEOU)</h4>
+                            <p class="text-sm mb-4"><em>Định nghĩa:</em> Mức độ mà một người tin rằng việc sử dụng hệ thống sẽ không đòi hỏi nhiều nỗ lực về mặt thể chất lẫn tinh thần.</p>
+                            <p class="text-sm font-semibold text-slate-900 mb-2">Ví dụ câu hỏi đo lường (Thang Likert 5 điểm):</p>
+                            <ul class="list-disc pl-5 text-sm space-y-1 text-slate-600">
+                                <li>PEOU1: Thao tác trên hệ thống [X] rất dễ học và dễ nhớ.</li>
+                                <li>PEOU2: Giao diện của hệ thống [X] rất rõ ràng và dễ hiểu.</li>
+                                <li>PEOU3: Tôi không cần đến sự trợ giúp kỹ thuật để sử dụng [X].</li>
+                            </ul>
+                            <div class="mt-4 p-3 bg-emerald-50 text-emerald-800 rounded-lg text-xs font-bold">💡 Lưu ý: Theo TAM, PEOU không chỉ tác động đến Ý định sử dụng, mà còn tác động thuận chiều trực tiếp lên PU.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Sự tiến hóa -->
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">3</span> Sự tiến hóa của Mô hình (Model Evolution)</h3>
+                    <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                        <p class="mb-4">Theo thời gian, giới học thuật nhận ra rằng chỉ 2 biến PU và PEOU là không đủ để bao quát bức tranh tâm lý con người. Do đó, Venkatesh và Davis đã nâng cấp mô hình thành các phiên bản mới:</p>
+                        <ul class="space-y-4">
+                            <li class="bg-white p-4 rounded-xl border border-slate-200">
+                                <strong class="text-indigo-700">Mô hình TAM 2 (2000):</strong> Bổ sung các biến số <em>Ảnh hưởng xã hội (Social Influence)</em> và <em>Các quy trình nhận thức công cụ (Cognitive Instrumental Processes)</em>. TAM 2 giải thích lý do vì sao một người ban đầu thấy hệ thống hữu ích (Do áp lực từ sếp, hình ảnh cá nhân, chất lượng đầu ra).
+                            </li>
+                            <li class="bg-white p-4 rounded-xl border border-slate-200">
+                                <strong class="text-indigo-700">Mô hình TAM 3 (2008):</strong> Tích hợp sâu vào nhân tố "Tính dễ sử dụng". TAM 3 bổ sung các biến như <em>Sự e ngại máy tính (Computer Anxiety)</em>, <em>Sự tự tin vào khả năng sử dụng máy tính (Computer Self-efficacy)</em> và <em>Niềm vui khi sử dụng (Playfulness)</em>.
+                            </li>
                         </ul>
                     </div>
                 </div>
-                <div class="p-6 bg-slate-900 rounded-2xl text-slate-300 text-sm mt-10 border-l-4 border-indigo-500 shadow-xl">
-                    <strong class="text-white text-base block mb-3">📚 Trích dẫn tham khảo chuẩn APA 7:</strong>
-                    <p>Davis, F. D. (1989). Perceived usefulness, perceived ease of use, and user acceptance of information technology. <em>MIS quarterly</em>, 319-340.</p>
+
+                <!-- 4. Ứng dụng vẽ mô hình -->
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">4</span> Ứng dụng thực tế vào Luận văn Thạc sĩ</h3>
+                    <p class="mb-4">Ngày nay, nếu bạn chỉ dùng đúng 2 biến của TAM nguyên bản để làm luận văn thạc sĩ, hội đồng bảo vệ sẽ đánh giá đề tài của bạn "quá đơn giản và thiếu tính mới". Để đạt điểm cao, bạn cần sử dụng TAM làm <strong>Base Model (Mô hình nền tảng)</strong> và tích hợp thêm các nhân tố ngoại sinh (External Variables) phù hợp với ngữ cảnh nghiên cứu.</p>
+                    <div class="bg-amber-50 p-6 rounded-2xl border border-amber-100">
+                        <h4 class="font-bold text-amber-900 mb-3">Ví dụ ý tưởng ghép mô hình (Hybrid Models):</h4>
+                        <ul class="list-disc pl-5 space-y-2 text-amber-800 text-sm">
+                            <li><strong>Nghiên cứu App Ngân hàng (Mobile Banking):</strong> Ghép TAM với biến <em>Rủi ro cảm nhận (Perceived Risk)</em> và <em>Sự tin tưởng (Trust)</em>.</li>
+                            <li><strong>Nghiên cứu Nền tảng học trực tuyến (E-learning):</strong> Ghép TAM với <em>Sự tương tác xã hội (Social Interaction)</em> và <em>Chất lượng hệ thống (System Quality)</em>.</li>
+                            <li><strong>Nghiên cứu Chatbot AI:</strong> Ghép TAM với <em>Tính nhân hóa cảm nhận (Perceived Anthropomorphism)</em>.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 5. Khuyến nghị phân tích -->
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">5</span> Khuyến nghị phương pháp phân tích (Methodological Advice)</h3>
+                    <div class="bg-slate-900 text-slate-300 p-6 rounded-2xl border-l-4 border-indigo-500 shadow-xl">
+                        <p class="mb-4 text-white font-medium">Khi xử lý dữ liệu từ mô hình TAM mở rộng, bạn nên chọn công cụ nào?</p>
+                        <p class="mb-3 text-sm">Do mô hình TAM thường được kết hợp thêm nhiều biến mới (tạo ra mô hình cấu trúc phức tạp) và dữ liệu thu thập từ thang đo Likert thường bị lệch chuẩn (Mọi người có xu hướng đánh số 4 và 5), <strong>PLS-SEM (sử dụng SmartPLS)</strong> là lựa chọn lý tưởng nhất.</p>
+                        <p class="text-sm">PLS-SEM xử lý tốt dữ liệu không phân phối chuẩn và tối ưu hóa việc dự báo Ý định sử dụng (R-square). Bạn có thể <a href="/analyze" class="text-indigo-400 font-bold hover:underline">nhấn vào đây để tải file Excel lên hệ thống NCSKIT</a> và chạy tự động toàn bộ mô hình đo lường cũng như kiểm định giả thuyết cấu trúc theo phương pháp PLS-SEM.</p>
+                        
+                        <div class="mt-6 pt-6 border-t border-slate-700">
+                            <strong class="text-white text-base block mb-3">📚 Trích dẫn tham khảo chuẩn APA 7:</strong>
+                            <div class="space-y-3 text-xs">
+                                <p>Davis, F. D. (1989). Perceived usefulness, perceived ease of use, and user acceptance of information technology. <em>MIS quarterly</em>, 319-340.</p>
+                                <p>Venkatesh, V., & Davis, F. D. (2000). A theoretical extension of the technology acceptance model: Four longitudinal field studies. <em>Management science</em>, 46(2), 186-204.</p>
+                                <p>Venkatesh, V., & Bala, H. (2008). Technology acceptance model 3 and a research agenda on interventions. <em>Decision sciences</em>, 39(2), 273-315.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>`
     },
@@ -242,26 +308,74 @@ export const STATIC_ARTICLES = [
         icon_name: 'Brain',
         title_vi: 'Thuyết Hành vi Dự định (TPB)',
         title_en: 'Theory of Planned Behavior (TPB)',
-        description_vi: 'Thuyết Hành vi Dự định (TPB) giải thích ý định thực hiện hành vi thông qua 3 yếu tố: Thái độ, Chuẩn chủ quan và Nhận thức kiểm soát hành vi.',
+        description_vi: 'Hướng dẫn chuyên sâu về Thuyết Hành vi Dự định (TPB). Phân tích 3 trụ cột (Thái độ, Chuẩn chủ quan, Kiểm soát hành vi) và cách thiết kế bảng hỏi.',
         content_vi: `
             <div class="space-y-10 text-slate-700 leading-relaxed">
+                <!-- 1. Nguồn gốc & Bối cảnh -->
                 <div class="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100">
-                    <h3 class="text-2xl font-black text-indigo-900 mb-4">1. Khái quát về Mô hình nghiên cứu TPB</h3>
-                    <p class="mb-4"><strong>Thuyết Hành vi Dự định (Theory of Planned Behavior - TPB)</strong> được Icek Ajzen phát triển (1991) là bản nâng cấp từ Thuyết Hành động Hợp lý (TRA). TPB được giới nghiên cứu học thuật đánh giá cao vì nó đã bổ sung thêm nhân tố "Nhận thức kiểm soát hành vi" để khắc phục điểm yếu của TRA trong việc giải thích những hành vi mà con người không hoàn toàn có khả năng kiểm soát chủ động.</p>
+                    <h3 class="text-2xl font-black text-indigo-900 mb-4">1. Khái quát và Bối cảnh ra đời (Historical Context)</h3>
+                    <p class="mb-4"><strong>Thuyết Hành vi Dự định (Theory of Planned Behavior - TPB)</strong> được Icek Ajzen phát triển vào năm 1991. Đây là bản nâng cấp hoàn hảo nhằm khắc phục những lỗ hổng của Thuyết Hành động Hợp lý (TRA - Theory of Reasoned Action) trước đó.</p>
+                    <p>Hạn chế lớn nhất của TRA là nó giả định con người luôn có khả năng kiểm soát hoàn toàn hành vi của mình. Tuy nhiên trong thực tế, dù bạn rất muốn mua một chiếc ô tô (Ý định cao), nhưng bạn lại không có đủ tiền hoặc chưa có bằng lái. Ajzen đã giải quyết bài toán này bằng cách thêm vào nhân tố thứ ba: <em>Nhận thức kiểm soát hành vi (Perceived Behavioral Control)</em>, biến TPB trở thành mô hình dự báo hành vi tâm lý học số một thế giới.</p>
                 </div>
+
+                <!-- 2. Giải phẫu cấu trúc -->
                 <div>
-                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Ba trụ cột của TPB</h3>
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                        <ul class="space-y-4 text-sm">
-                            <li class="p-3 border-b"><strong>Thái độ đối với hành vi (Attitude):</strong> Đánh giá tích cực hoặc tiêu cực của cá nhân đối với việc thực hiện hành vi.</li>
-                            <li class="p-3 border-b"><strong>Chuẩn chủ quan (Subjective Norm):</strong> Áp lực xã hội cảm nhận được từ những người quan trọng xung quanh (gia đình, bạn bè) về việc nên hay không nên thực hiện hành vi.</li>
-                            <li class="p-3 border-b"><strong>Nhận thức kiểm soát hành vi (Perceived Behavioral Control):</strong> Niềm tin của cá nhân về sự dễ dàng hay khó khăn khi thực hiện hành vi (phản ánh trải nghiệm trong quá khứ và các rào cản dự kiến).</li>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Ba trụ cột cấu thành Ý định (The Three Pillars)</h3>
+                    <p class="mb-4">Mô hình TPB khẳng định Ý định hành vi (Intention) được định hình bởi 3 yếu tố độc lập. Hiểu đúng bản chất của chúng sẽ giúp bạn thiết kế câu hỏi khảo sát không bị trùng lặp ngữ nghĩa:</p>
+                    <div class="space-y-4">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex gap-4 items-start border-l-4 border-l-rose-500">
+                            <div>
+                                <h4 class="font-bold text-slate-900 text-lg">1. Thái độ đối với hành vi (Attitude towards behavior)</h4>
+                                <p class="text-sm mt-2 text-slate-600">Đánh giá tổng quan (tích cực hoặc tiêu cực) của cá nhân về việc thực hiện hành vi. Thái độ được hình thành từ niềm tin về hậu quả của hành vi đó.</p>
+                                <div class="mt-2 bg-slate-50 p-3 rounded-lg text-xs italic">Ví dụ: "Tôi cho rằng việc mua thực phẩm hữu cơ là rất tốt cho sức khỏe và môi trường."</div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex gap-4 items-start border-l-4 border-l-blue-500">
+                            <div>
+                                <h4 class="font-bold text-slate-900 text-lg">2. Chuẩn chủ quan (Subjective Norm)</h4>
+                                <p class="text-sm mt-2 text-slate-600">Áp lực xã hội cảm nhận được về việc nên hay không nên thực hiện hành vi. Đây là sức mạnh của đám đông, được quyết định bởi những người quan trọng (gia đình, bạn bè, sếp).</p>
+                                <div class="mt-2 bg-slate-50 p-3 rounded-lg text-xs italic">Ví dụ: "Gia đình và bạn thân của tôi đều khuyên tôi nên dùng thực phẩm hữu cơ."</div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex gap-4 items-start border-l-4 border-l-emerald-500">
+                            <div>
+                                <h4 class="font-bold text-slate-900 text-lg">3. Nhận thức kiểm soát hành vi (Perceived Behavioral Control - PBC)</h4>
+                                <p class="text-sm mt-2 text-slate-600">Sự cảm nhận của cá nhân về mức độ dễ dàng hay khó khăn khi thực hiện hành vi. Phản ánh các rào cản về Nguồn lực (Tiền bạc, thời gian) và Năng lực bản thân.</p>
+                                <div class="mt-2 bg-slate-50 p-3 rounded-lg text-xs italic">Ví dụ: "Tôi hoàn toàn có đủ khả năng tài chính và dễ dàng tìm mua thực phẩm hữu cơ gần nhà."</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Các biến số mở rộng -->
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">3</span> Ứng dụng & Mở rộng (Extensions)</h3>
+                    <p class="mb-4">Trong các bài báo khoa học chuẩn ISI/Scopus, tác giả hiếm khi chỉ đo lường 3 biến cơ bản của TPB. Tùy thuộc vào chủ đề nghiên cứu, hội đồng sẽ mong đợi bạn "cấy ghép" thêm các biến số mới (Construct Addition) để tăng tính độc đáo (Novelty):</p>
+                    <div class="bg-indigo-50 p-6 rounded-2xl border border-indigo-100">
+                        <ul class="list-disc pl-5 space-y-3 text-indigo-900 text-sm">
+                            <li><strong>Nghiên cứu Tiêu dùng Xanh (Green Consumption):</strong> Thêm biến <em>Nhận thức về môi trường (Environmental Concern)</em> hoặc <em>Kiến thức môi trường (Environmental Knowledge)</em> tác động lên Thái độ.</li>
+                            <li><strong>Nghiên cứu Khởi nghiệp (Entrepreneurial Intention):</strong> Thêm biến <em>Chấp nhận rủi ro (Risk-taking propensity)</em> và <em>Nhu cầu thành đạt (Need for achievement)</em>.</li>
+                            <li><strong>Nghiên cứu Mua sắm xa xỉ (Luxury Brands):</strong> Thay thế "Chuẩn chủ quan" bằng việc tách nhỏ thành <em>Ảnh hưởng thông tin (Informational Influence)</em> và <em>Ảnh hưởng định mức (Normative Influence)</em>.</li>
                         </ul>
                     </div>
                 </div>
-                <div class="p-6 bg-slate-900 rounded-2xl text-slate-300 text-sm mt-10 border-l-4 border-indigo-500 shadow-xl">
-                    <strong class="text-white text-base block mb-3">📚 Trích dẫn tham khảo chuẩn APA 7:</strong>
-                    <p>Ajzen, I. (1991). The theory of planned behavior. <em>Organizational behavior and human decision processes</em>, 50(2), 179-211.</p>
+
+                <!-- 4. Khuyến nghị phân tích -->
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">4</span> Khuyến nghị phương pháp phân tích thống kê</h3>
+                    <div class="bg-slate-900 text-slate-300 p-6 rounded-2xl border-l-4 border-emerald-500 shadow-xl">
+                        <p class="mb-4 text-white font-medium">TPB nên dùng hồi quy OLS hay mô hình SEM?</p>
+                        <p class="mb-3 text-sm">Nhiều sinh viên sử dụng phần mềm SPSS để tính giá trị trung bình (Compute Variable) của các câu hỏi Likert rồi chạy <strong>Hồi quy tuyến tính đa biến (OLS Regression)</strong>. Tuy nhiên, cách làm này <strong>đã lỗi thời</strong> vì nó bỏ qua hoàn toàn sai số đo lường (Measurement Error) của các câu hỏi thành phần.</p>
+                        <p class="text-sm">Thay vào đó, bạn bắt buộc phải áp dụng <strong>Mô hình cấu trúc (CB-SEM hoặc PLS-SEM)</strong>. Các phần mềm thế hệ mới (như hệ thống R-Wasm của NCSKIT) cho phép phân tích CFA (Đo lường độ tin cậy) và SEM (Kiểm định giả thuyết H1, H2, H3) cùng một lúc. Điều này giúp hệ số tác động (Beta) của Thái độ, Chuẩn chủ quan và PBC lên Ý định trở nên chính xác và đáng tin cậy hơn rất nhiều.</p>
+                        
+                        <div class="mt-6 pt-6 border-t border-slate-700">
+                            <strong class="text-white text-base block mb-3">📚 Trích dẫn tham khảo chuẩn APA 7:</strong>
+                            <div class="space-y-3 text-xs">
+                                <p>Ajzen, I. (1991). The theory of planned behavior. <em>Organizational behavior and human decision processes</em>, 50(2), 179-211.</p>
+                                <p>Armitage, C. J., & Conner, M. (2001). Efficacy of the theory of planned behaviour: A meta‐analytic review. <em>British journal of social psychology</em>, 40(4), 471-499.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>`
     },
