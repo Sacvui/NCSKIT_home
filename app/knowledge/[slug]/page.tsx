@@ -6,8 +6,8 @@ import { FALLBACK_ARTICLES, DEFAULT_ARTICLE } from '@/lib/constants/knowledge-fa
 import StructuredData from '@/components/seo/StructuredData';
 
 // Cấu hình Metadata động cho SEO bài viết
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-    const { slug } = params;
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+    const { slug } = await params;
     const supabase = getSupabase();
     
     // Thử lấy dữ liệu từ DB cho SEO
