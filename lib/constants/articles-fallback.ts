@@ -5,45 +5,74 @@ const rawArticles = [
         icon_name: 'Network',
         title_vi: 'Kịch bản 1: Mô hình Cấu trúc Tuyến tính PLS-SEM',
         title_en: 'Scenario 1: Partial Least Squares SEM',
-        description_vi: 'Hướng dẫn phân tích PLS-SEM chuyên sâu. Giải pháp tối ưu cho cỡ mẫu nhỏ, dữ liệu không phân phối chuẩn và mô hình nghiên cứu phức tạp.',
+        description_vi: 'Giải phẫu thuật toán tự động phân tích PLS-SEM trên hệ thống NCSKIT. Quy trình 5 bước chuẩn mực và lý do đằng sau trình tự tính toán này.',
         content_vi: `
             <div class="space-y-10 text-slate-700 leading-relaxed">
+                <!-- 1. Tổng quan -->
                 <div class="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100">
                     <h3 class="text-2xl font-black text-indigo-900 mb-4 flex items-center gap-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> 1. Tổng quan về phương pháp</h3>
-                    <p class="mb-4">Trong thực hành phân tích số liệu luận văn, <strong>PLS-SEM (Partial Least Squares Structural Equation Modeling)</strong> đang dần thay thế các phương pháp truyền thống nhờ khả năng giải quyết các mô hình cấu trúc phức tạp. Bản chất của thuật toán PLS-SEM là tối đa hóa phương sai được giải thích (R²) của các cấu trúc nội sinh.</p>
-                    <div class="bg-white p-4 rounded-xl border border-indigo-100 mt-4 text-sm">
-                        <h4 class="font-bold text-indigo-800 mb-2">Điều kiện áp dụng PLS-SEM:</h4>
-                        <ul class="list-disc pl-5 space-y-1">
-                            <li>Mục tiêu cốt lõi của nghiên cứu là <strong>dự báo</strong> hành vi hoặc xác định các nhân tố tác động trọng yếu (Key Drivers).</li>
-                            <li>Dữ liệu thu thập thực tế vi phạm giả định phân phối chuẩn (Non-normal data).</li>
-                            <li>Cỡ mẫu khảo sát nhỏ, không đủ đáp ứng quy tắc khắt khe của AMOS/CB-SEM.</li>
+                    <p class="mb-4"><strong>PLS-SEM (Partial Least Squares Structural Equation Modeling)</strong> là thuật toán tối ưu hóa phương sai được giải thích (R²) của các cấu trúc nội sinh. Đây là "cứu cánh" hoàn hảo khi dữ liệu thu thập thực tế vi phạm giả định phân phối chuẩn (Non-normal data) hoặc cỡ mẫu quá nhỏ không đủ điều kiện chạy CB-SEM (AMOS).</p>
+                </div>
+
+                <!-- 2. Trình tự -->
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Trình tự thuật toán tự động (Quy trình 5 bước)</h3>
+                    <p class="mb-4">Khi bạn nhấn nút <strong>"Chạy Dữ liệu"</strong> trên hệ thống NCSKIT, máy chủ sẽ tự động kích hoạt một chuỗi các phép tính ma trận phức tạp theo đúng trình tự chuẩn mực quốc tế:</p>
+                    <div class="space-y-4">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-rose-500">
+                            <h4 class="font-bold text-slate-900 text-lg">Bước 1: Đánh giá Mô hình Đo lường (Outer Model)</h4>
+                            <p class="text-sm mt-2 text-slate-600">Hệ thống tính toán Hệ số tải ngoài (Outer Loadings), Độ tin cậy tổng hợp (Composite Reliability - CR), Cronbach's Alpha và Phương sai trích (AVE) để đảm bảo các câu hỏi trong bảng khảo sát thực sự đo lường đúng nhân tố của nó.</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-orange-500">
+                            <h4 class="font-bold text-slate-900 text-lg">Bước 2: Kiểm tra Giá trị Phân biệt (Discriminant Validity)</h4>
+                            <p class="text-sm mt-2 text-slate-600">Thuật toán đối chiếu tự động tỷ số HTMT (Heterotrait-Monotrait Ratio) và tiêu chuẩn Fornell-Larcker để chứng minh các nhân tố độc lập hoàn toàn phân biệt với nhau, không bị trùng lặp khái niệm.</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-blue-500">
+                            <h4 class="font-bold text-slate-900 text-lg">Bước 3: Quét Đa cộng tuyến (Collinearity)</h4>
+                            <p class="text-sm mt-2 text-slate-600">Kiểm tra ma trận hệ số VIF (Variance Inflation Factor) giữa các cấu trúc nội sinh (Inner VIF) để loại trừ hiện tượng các biến độc lập tương quan quá mạnh với nhau gây nhiễu kết quả.</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-emerald-500">
+                            <h4 class="font-bold text-slate-900 text-lg">Bước 4: Đánh giá Mô hình Cấu trúc (Inner Model)</h4>
+                            <p class="text-sm mt-2 text-slate-600">Hệ thống trả về giá trị R-square (R²) để biết mô hình giải thích được bao nhiêu % sự biến thiên, và hệ số tác động f-square (f²) để xem xét độ mạnh/yếu của từng mối quan hệ.</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-purple-500">
+                            <h4 class="font-bold text-slate-900 text-lg">Bước 5: Kiểm định Giả thuyết bằng Bootstrapping</h4>
+                            <p class="text-sm mt-2 text-slate-600">Máy chủ sẽ tự động lấy mẫu lặp lại (Resampling) từ 5,000 đến 10,000 lần để tính toán T-statistics và P-value, qua đó kết luận giả thuyết (H1, H2...) được chấp nhận hay bác bỏ.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Triết lý hệ thống -->
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">3</span> Tại sao NCSKIT thiết kế trình tự này? (The Rationale)</h3>
+                    <div class="bg-amber-50 p-6 rounded-2xl border border-amber-100">
+                        <p class="mb-4 text-sm text-amber-900">Nhiều sinh viên thường thắc mắc: <em>"Tại sao vừa tải file lên, hệ thống không báo luôn cho tôi biết giả thuyết P-value có đạt hay không (Bước 5), mà phải báo cáo một loạt các chỉ số rườm rà ở Bước 1 và Bước 2?"</em></p>
+                        <p class="text-sm text-amber-900 font-bold mb-2">Câu trả lời nằm ở nguyên tắc cốt lõi của nghiên cứu khoa học: "Garbage in, Garbage out" (Dữ liệu rác tạo ra kết quả rác).</p>
+                        <ul class="list-disc pl-5 space-y-2 text-amber-800 text-sm">
+                            <li>Nếu <strong>Thước đo (Bảng câu hỏi Likert)</strong> của bạn bị hỏng (Không đạt CR, AVE ở Bước 1), điều đó có nghĩa là người làm khảo sát đã đánh lụi, hoặc họ không hiểu câu hỏi.</li>
+                            <li>Khi thước đo đã sai, thì mọi mối quan hệ nhân quả (P-value ở Bước 5) được rút ra từ thước đo đó đều là giả tạo và vô giá trị.</li>
+                            <li>Do đó, NCSKIT ép buộc quy trình <strong>Đánh giá Outer Model trước, Inner Model sau</strong> để bảo vệ tính toàn vẹn học thuật cho luận văn của bạn.</li>
                         </ul>
                     </div>
                 </div>
+
+                <!-- 4. Rules of Thumb -->
                 <div>
-                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Hướng dẫn đọc kết quả SmartPLS</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                            <h4 class="font-bold text-slate-900 mb-4 border-b pb-2 text-lg">Đánh giá Mô hình Đo lường</h4>
-                            <ul class="space-y-3 text-sm">
-                                <li><span class="font-bold text-blue-600">Hệ số tải ngoài:</span> Cần đạt mức ≥ 0.708.</li>
-                                <li><span class="font-bold text-blue-600">Độ tin cậy cấu trúc:</span> Composite Reliability (CR) cần nằm trong khoảng <strong>0.70 - 0.90</strong>.</li>
-                                <li><span class="font-bold text-blue-600">Tính hội tụ:</span> Hệ số AVE phải ≥ 0.50.</li>
-                                <li><span class="font-bold text-blue-600">Tính phân biệt:</span> Tỷ số <strong>HTMT cần < 0.85</strong>.</li>
-                            </ul>
-                        </div>
-                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                            <h4 class="font-bold text-slate-900 mb-4 border-b pb-2 text-lg">Đánh giá Mô hình Cấu trúc</h4>
-                            <ul class="space-y-3 text-sm">
-                                <li><span class="font-bold text-teal-600">Đa cộng tuyến (VIF):</span> Giá trị VIF nội bộ phải < 3.0.</li>
-                                <li><span class="font-bold text-teal-600">Kiểm định giả thuyết:</span> Chạy Bootstrapping. Giả thuyết được chấp nhận khi P-value < 0.05.</li>
-                            </ul>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">4</span> Tiêu chuẩn đọc kết quả (Rules of Thumb)</h3>
+                    <div class="bg-slate-900 text-slate-300 p-6 rounded-2xl shadow-xl">
+                        <ul class="space-y-3 text-sm">
+                            <li><span class="text-emerald-400 font-bold">Hệ số tải (Outer Loadings):</span> ≥ 0.708 (Tuy nhiên có thể chấp nhận ≥ 0.40 nếu loại bỏ nó không làm tăng CR và AVE).</li>
+                            <li><span class="text-emerald-400 font-bold">Độ tin cậy (CR):</span> Nằm trong khoảng 0.70 - 0.90 (Tuyệt đối không được > 0.95 vì đó là dấu hiệu trùng lặp câu hỏi).</li>
+                            <li><span class="text-emerald-400 font-bold">Phương sai trích (AVE):</span> ≥ 0.50 (Giải thích được ít nhất 50% phương sai của cấu trúc).</li>
+                            <li><span class="text-emerald-400 font-bold">Tỷ số HTMT:</span> < 0.90 (Hoặc nghiêm ngặt hơn là < 0.85).</li>
+                            <li><span class="text-emerald-400 font-bold">Đa cộng tuyến (VIF):</span> < 3.0 (Nếu > 3.0, mô hình của bạn đang có vấn đề, hệ số Beta sẽ bị méo mó).</li>
+                            <li><span class="text-emerald-400 font-bold">P-value (Bootstrapping):</span> < 0.05 (Khẳng định tác động có ý nghĩa thống kê ở độ tin cậy 95%).</li>
+                        </ul>
+                        <div class="mt-6 pt-6 border-t border-slate-700">
+                            <strong class="text-white text-base block mb-3">📚 Trích dẫn tham khảo chuẩn APA 7:</strong>
+                            <p class="text-xs">Hair, J. F., Risher, J. J., Sarstedt, M., & Ringle, C. M. (2019). When to use and how to report the results of PLS-SEM. <em>European Business Review</em>, 31(1), 2-24.</p>
                         </div>
                     </div>
-                </div>
-                <div class="p-6 bg-slate-900 rounded-2xl text-slate-300 text-sm mt-10 border-l-4 border-indigo-500 shadow-xl">
-                    <strong class="text-white text-base block mb-3">📚 Trích dẫn tham khảo chuẩn APA 7:</strong>
-                    <p>Hair, J. F., Risher, J. J., Sarstedt, M., & Ringle, C. M. (2019). When to use and how to report the results of PLS-SEM. <em>European Business Review</em>, 31(1), 2-24.</p>
                 </div>
             </div>`
     },
@@ -53,34 +82,73 @@ const rawArticles = [
         icon_name: 'Layers',
         title_vi: 'Kịch bản 2: Mô hình Cấu trúc Hiệp phương sai CB-SEM',
         title_en: 'Scenario 2: Covariance-Based SEM',
-        description_vi: 'Hướng dẫn phân tích CFA và SEM bằng AMOS. Phương pháp luận chuẩn mực để kiểm định sự phù hợp của lý thuyết nghiên cứu.',
+        description_vi: 'Quy trình chạy AMOS / CB-SEM chuẩn mực. Hiểu rõ sự khác biệt giữa CFA và SEM, cùng ý nghĩa các chỉ số độ xoắn (CMIN/df, RMSEA, CFI).',
         content_vi: `
             <div class="space-y-10 text-slate-700 leading-relaxed">
+                <!-- 1. Tổng quan -->
                 <div class="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100">
-                    <h3 class="text-2xl font-black text-indigo-900 mb-4 flex items-center gap-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> 1. Tổng quan về mô hình CB-SEM</h3>
-                    <p class="mb-4">Khác với mô hình PLS tập trung vào dự báo, <strong>CB-SEM</strong> được thiết kế chuyên biệt để <strong>Khẳng định lý thuyết (Theory Confirmation)</strong>. Khi sử dụng các dịch vụ chạy AMOS, thuật toán Maximum Likelihood (ML) sẽ tính toán khoảng cách chênh lệch giữa ma trận hiệp phương sai của dữ liệu thu thập thực tế và ma trận hiệp phương sai lý thuyết.</p>
+                    <h3 class="text-2xl font-black text-indigo-900 mb-4 flex items-center gap-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> 1. Tổng quan về phương pháp</h3>
+                    <p class="mb-4">Khác với mô hình PLS tập trung vào tối đa hóa dự báo, <strong>CB-SEM (Covariance-Based SEM)</strong> được thiết kế chuyên biệt để <strong>Khẳng định lý thuyết (Theory Confirmation)</strong>.</p>
+                    <p>Thuật toán Maximum Likelihood (ML) cốt lõi của CB-SEM sẽ tính toán khoảng cách chênh lệch giữa ma trận hiệp phương sai của dữ liệu thu thập thực tế và ma trận hiệp phương sai lý thuyết. Khoảng cách này càng nhỏ, mô hình của bạn càng "Fit" (Phù hợp) với dữ liệu thị trường.</p>
                 </div>
+
+                <!-- 2. Trình tự -->
                 <div>
-                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Quy trình thực hiện Phân tích CFA bằng AMOS</h3>
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-6">
-                        <h4 class="font-bold text-slate-900 mb-4 text-lg border-b pb-2">Bước 1: Phân Tích Nhân Tố Khẳng Định (CFA)</h4>
-                        <ul class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mt-4">
-                            <li class="bg-slate-50 p-3 rounded-lg border border-slate-100"><strong>CMIN/df:</strong> Phải < 3.0 (Tốt), có thể chấp nhận < 5.0.</li>
-                            <li class="bg-slate-50 p-3 rounded-lg border border-slate-100"><strong>CFI & TLI:</strong> Cần ≥ 0.90 (Ưu tiên > 0.95).</li>
-                            <li class="bg-slate-50 p-3 rounded-lg border border-slate-100"><strong>RMSEA:</strong> Yêu cầu < 0.08.</li>
-                        </ul>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Trình tự thuật toán tự động (Quy trình 2 Bước kinh điển)</h3>
+                    <p class="mb-4">Các giáo sư uy tín (như Anderson & Gerbing, 1988) bắt buộc sinh viên phải tuân thủ nghiêm ngặt **Quy trình tiếp cận 2 bước (Two-step Approach)** khi làm CB-SEM. Đây cũng là quy trình mà NCSKIT lập trình sẵn:</p>
+                    <div class="space-y-4">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-orange-500">
+                            <h4 class="font-bold text-slate-900 text-lg">Bước 1: Phân Tích Nhân Tố Khẳng Định (CFA)</h4>
+                            <p class="text-sm mt-2 text-slate-600">Hệ thống sẽ chạy CFA (Confirmatory Factor Analysis) để kiểm tra chất lượng của công cụ đo lường. Thuật toán sẽ tính toán các chỉ số Model Fit (CMIN/df, RMSEA, CFI, TLI) để xem tổng thể các câu hỏi có khớp với dữ liệu thực tế hay không. Đồng thời, nó tính AVE và CR (tương tự PLS) để xác nhận độ tin cậy.</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-blue-500">
+                            <h4 class="font-bold text-slate-900 text-lg">Bước 2: Phân Tích Mô Hình Cấu Trúc (SEM)</h4>
+                            <p class="text-sm mt-2 text-slate-600">Sau khi CFA đã đạt yêu cầu, hệ thống mới chuyển sang chạy SEM để vẽ các mũi tên tác động (Paths). Bước này xuất ra các hệ số Beta chuẩn hóa (Standardized Estimates), P-value để kết luận giả thuyết, và R².</p>
+                        </div>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                        <h4 class="font-bold text-slate-900 mb-4 text-lg border-b pb-2">Bước 2: Phân Tích Mô Hình Cấu Trúc (SEM)</h4>
-                        <ul class="list-disc pl-5 space-y-2 text-sm">
-                            <li>Sử dụng <strong>Beta chuẩn hóa</strong> để xác định biến độc lập có tác động mạnh nhất.</li>
-                            <li>Đánh giá <strong>P-value</strong> (hiển thị là ***). Nếu P-value < 0.05, giả thuyết được chấp nhận.</li>
+                </div>
+
+                <!-- 3. Triết lý hệ thống -->
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">3</span> Tại sao phải tách rời CFA và SEM? (The Rationale)</h3>
+                    <div class="bg-amber-50 p-6 rounded-2xl border border-amber-100">
+                        <p class="mb-4 text-sm text-amber-900 font-bold">Lý do cốt lõi của quy trình 2 bước:</p>
+                        <p class="mb-4 text-sm text-amber-900">Nếu bạn gộp chung việc đánh giá thang đo và kiểm định giả thuyết vào cùng một lúc, và kết quả báo là "Mô hình không phù hợp (Model Fit kém)", bạn sẽ không biết lỗi nằm ở đâu. Do công cụ đo lường của bạn dở tệ (Câu hỏi bị hiểu sai)? Hay do lý thuyết của bạn bị sai (Biến A không hề tác động lên Biến B)?</p>
+                        <ul class="list-disc pl-5 space-y-2 text-amber-800 text-sm">
+                            <li>Bằng cách tách riêng CFA (Bước 1), thuật toán NCSKIT cho phép bạn tập trung sửa lỗi bảng câu hỏi trước.</li>
+                            <li>Một khi CFA đã "Đẹp", mọi nguyên nhân dẫn đến Model Fit kém ở Bước 2 chắc chắn là do Mô hình lý thuyết của bạn chưa chuẩn xác.</li>
                         </ul>
                     </div>
                 </div>
-                <div class="p-6 bg-slate-900 rounded-2xl text-slate-300 text-sm mt-10 border-l-4 border-indigo-500 shadow-xl">
-                    <strong class="text-white text-base block mb-3">📚 Trích dẫn tham khảo chuẩn APA 7:</strong>
-                    <p>Kline, R. B. (2015). <em>Principles and practice of structural equation modeling</em> (4th ed.). Guilford publications.</p>
+
+                <!-- 4. Rules of Thumb -->
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">4</span> Tiêu chuẩn Model Fit chuẩn mực (Rules of Thumb)</h3>
+                    <div class="bg-slate-900 text-slate-300 p-6 rounded-2xl shadow-xl">
+                        <ul class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                            <li class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+                                <span class="text-emerald-400 font-bold block mb-1">Chi-square/df (CMIN/df):</span> 
+                                Lý tưởng là < 3.0. Chấp nhận được nếu < 5.0 (với cỡ mẫu lớn).
+                            </li>
+                            <li class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+                                <span class="text-emerald-400 font-bold block mb-1">RMSEA:</span> 
+                                Tuyệt vời nếu < 0.05. Chấp nhận được nếu nằm trong khoảng 0.05 - 0.08.
+                            </li>
+                            <li class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+                                <span class="text-emerald-400 font-bold block mb-1">CFI & TLI:</span> 
+                                Bắt buộc phải ≥ 0.90 (Rất tốt nếu > 0.95).
+                            </li>
+                            <li class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+                                <span class="text-emerald-400 font-bold block mb-1">P-value (***):</span> 
+                                Giá trị nhỏ hơn 0.001 được ký hiệu là *** trong AMOS. Chấp nhận giả thuyết khi P < 0.05.
+                            </li>
+                        </ul>
+                        <div class="mt-6 pt-6 border-t border-slate-700">
+                            <strong class="text-white text-base block mb-3">📚 Trích dẫn tham khảo chuẩn APA 7:</strong>
+                            <p class="text-xs">Anderson, J. C., & Gerbing, D. W. (1988). Structural equation modeling in practice: A review and recommended two-step approach. <em>Psychological bulletin</em>, 103(3), 411.</p>
+                            <p class="text-xs mt-2">Hu, L. T., & Bentler, P. M. (1999). Cutoff criteria for fit indexes in covariance structure analysis: Conventional criteria versus new alternatives. <em>Structural equation modeling: a multidisciplinary journal</em>, 6(1), 1-55.</p>
+                        </div>
+                    </div>
                 </div>
             </div>`
     },
@@ -90,35 +158,76 @@ const rawArticles = [
         icon_name: 'LineChart',
         title_vi: 'Kịch bản 3: Hồi quy Tuyến tính Đa biến (OLS)',
         title_en: 'Scenario 3: Multiple Linear Regression (OLS)',
-        description_vi: 'Quy trình hồi quy đa biến trên SPSS. Hướng dẫn cách đọc hệ số Beta, R-square và cách khắc phục đa cộng tuyến hiệu quả.',
+        description_vi: 'Quy trình chạy Hồi quy OLS tự động từ A-Z. Minh bạch các bước kiểm định ANOVA, R bình phương, Đa cộng tuyến và phân tích sai số.',
         content_vi: `
             <div class="space-y-10 text-slate-700 leading-relaxed">
+                <!-- 1. Tổng quan -->
                 <div class="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100">
                     <h3 class="text-2xl font-black text-indigo-900 mb-4 flex items-center gap-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg> 1. Bản chất của mô hình Hồi quy Đa biến</h3>
-                    <p class="mb-3"><strong>Hồi quy Tuyến tính Đa biến (Multiple Regression)</strong> là phương pháp cốt lõi nhất khi thực hiện phân tích số liệu trên SPSS. Mục tiêu là đo lường mức độ tác động của các biến độc lập (X) lên một biến phụ thuộc (Y).</p>
+                    <p class="mb-3"><strong>Hồi quy Tuyến tính Đa biến (Multiple Regression - Phương pháp OLS)</strong> là "chìa khóa vàng" trong phân tích số liệu SPSS truyền thống. Nhiệm vụ của nó là vẽ ra một đường thẳng tối ưu nhất xuyên qua đám mây dữ liệu, nhằm đo lường mức độ tác động của nhiều biến độc lập (X1, X2, X3) lên một biến phụ thuộc (Y).</p>
                 </div>
+
+                <!-- 2. Trình tự -->
                 <div>
-                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Các bước đọc kết quả phân tích hồi quy SPSS</h3>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Trình tự Thuật toán phân tích Hồi quy</h3>
+                    <p class="mb-4">Hệ thống NCSKIT chạy mô hình OLS theo quy trình 4 bước kiểm định khắt khe để đảm bảo mô hình không bị "ảo":</p>
                     <div class="space-y-4">
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex gap-4 items-start">
-                            <div class="bg-blue-100 text-blue-600 font-bold px-3 py-1 rounded-lg shrink-0 mt-1">Bước 1</div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex gap-4 items-start border-l-4 border-l-blue-500">
                             <div>
-                                <h4 class="font-bold text-slate-900 text-lg">Đánh giá độ phù hợp của mô hình (ANOVA & R Square)</h4>
-                                <p class="text-sm mt-2"><strong>Sig. kiểm định F:</strong> Bắt buộc phải < 0.05. <br/><strong>R bình phương hiệu chỉnh:</strong> % sự biến thiên của biến phụ thuộc được giải thích bởi mô hình.</p>
+                                <h4 class="font-bold text-slate-900 text-lg">Bước 1: Kiểm định ANOVA (Độ phù hợp của Mô hình)</h4>
+                                <p class="text-sm mt-2 text-slate-600">Hệ thống chạy bài test F (F-test) để kiểm tra xem việc đưa các biến độc lập vào mô hình có thực sự giúp dự báo tốt hơn so với việc đoán mò (dùng giá trị trung bình) hay không.</p>
                             </div>
                         </div>
-                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex gap-4 items-start">
-                            <div class="bg-blue-100 text-blue-600 font-bold px-3 py-1 rounded-lg shrink-0 mt-1">Bước 2</div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex gap-4 items-start border-l-4 border-l-emerald-500">
                             <div>
-                                <h4 class="font-bold text-slate-900 text-lg">Diễn giải hệ số Beta và Đa cộng tuyến</h4>
-                                <p class="text-sm mt-2">Biến độc lập nào có <strong>Sig. < 0.05</strong> thì biến đó mới có tác động ý nghĩa thống kê. Khắc phục đa cộng tuyến: Giá trị <strong>VIF</strong> phải < 10 (tốt nhất là < 3).</p>
+                                <h4 class="font-bold text-slate-900 text-lg">Bước 2: Đánh giá R Bình phương Hiệu chỉnh (Adjusted R²)</h4>
+                                <p class="text-sm mt-2 text-slate-600">Tính toán % sự biến thiên của biến phụ thuộc Y được giải thích bởi các biến X. Tại sao dùng <em>R² hiệu chỉnh</em> thay vì <em>R²</em>? Vì R² hiệu chỉnh có cơ chế phạt (penalty) khi bạn cố tình thêm những biến "rác" không có tác dụng vào mô hình.</p>
+                            </div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex gap-4 items-start border-l-4 border-l-orange-500">
+                            <div>
+                                <h4 class="font-bold text-slate-900 text-lg">Bước 3: Quét Đa cộng tuyến (VIF)</h4>
+                                <p class="text-sm mt-2 text-slate-600">Hệ thống đo lường độ phóng đại phương sai (VIF). Nếu các biến độc lập tự tương quan quá chặt với nhau, nó sẽ làm méo mó hệ số tác động.</p>
+                            </div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex gap-4 items-start border-l-4 border-l-purple-500">
+                            <div>
+                                <h4 class="font-bold text-slate-900 text-lg">Bước 4: Kiểm định Giả thuyết (Hệ số Beta & P-value)</h4>
+                                <p class="text-sm mt-2 text-slate-600">Cuối cùng, thuật toán xuất ra các hệ số hồi quy (Chưa chuẩn hóa và Chuẩn hóa) cùng chỉ số P-value (Sig.) để kết luận biến X nào thực sự có tác động ý nghĩa đến Y.</p>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="p-6 bg-slate-900 rounded-2xl text-slate-300 text-sm mt-10 border-l-4 border-indigo-500 shadow-xl">
-                    <strong class="text-white text-base block mb-3">📚 Trích dẫn tham khảo chuẩn APA 7:</strong>
-                    <p>Field, A. (2013). <em>Discovering statistics using IBM SPSS statistics</em> (4th ed.). Sage publications.</p>
+
+                <!-- 3. Triết lý hệ thống -->
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">3</span> Tại sao NCSKIT thiết kế trình tự này? (The Rationale)</h3>
+                    <div class="bg-amber-50 p-6 rounded-2xl border border-amber-100">
+                        <p class="mb-4 text-sm text-amber-900 font-bold">Rất nhiều sinh viên lấy kết quả SPSS và nhìn thẳng ngay vào hệ số Beta (Bước 4) để chép vào bài. Điều này cực kỳ nguy hiểm!</p>
+                        <ul class="list-disc pl-5 space-y-2 text-amber-800 text-sm">
+                            <li>Nếu <strong>Kiểm định ANOVA (Bước 1)</strong> bị Fail (Sig > 0.05), điều đó có nghĩa là toàn bộ tập dữ liệu mẫu không thể hiện diện cho tổng thể thị trường. Toàn bộ mô hình đổ sông đổ biển.</li>
+                            <li>Nếu <strong>Đa cộng tuyến (Bước 3)</strong> quá cao, hệ số Beta của bạn ở Bước 4 sẽ bị khuếch đại sai lệch, thậm chí bị đảo ngược dấu (từ dương sang âm). Bạn sẽ kết luận ngược lại với thực tế!</li>
+                            <li>Đó là lý do thuật toán tự động của NCSKIT báo cáo kết quả tuần tự, buộc người dùng phải kiểm tra độ "khỏe mạnh" của mô hình (ANOVA, VIF) trước khi cho phép rút ra kết luận giả thuyết.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 4. Rules of Thumb -->
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">4</span> Tiêu chuẩn đọc kết quả (Rules of Thumb)</h3>
+                    <div class="bg-slate-900 text-slate-300 p-6 rounded-2xl shadow-xl">
+                        <ul class="space-y-3 text-sm">
+                            <li><span class="text-emerald-400 font-bold">Sig. kiểm định F (ANOVA):</span> Bắt buộc < 0.05.</li>
+                            <li><span class="text-emerald-400 font-bold">R bình phương hiệu chỉnh:</span> Càng cao càng tốt (Thường luận văn mong đợi mức > 50%).</li>
+                            <li><span class="text-emerald-400 font-bold">Đa cộng tuyến VIF:</span> Phải < 10 (Nghiêm ngặt hơn đối với dữ liệu khảo sát là < 3 hoặc < 5).</li>
+                            <li><span class="text-emerald-400 font-bold">Sig. của từng biến độc lập (T-test):</span> < 0.05 mới có ý nghĩa.</li>
+                            <li><span class="text-emerald-400 font-bold">Beta chuẩn hóa (Standardized Beta):</span> Dùng để so sánh xem biến nào tác động MẠNH NHẤT lên Y (Biến nào có Beta lớn nhất là tác động mạnh nhất).</li>
+                        </ul>
+                        <div class="mt-6 pt-6 border-t border-slate-700">
+                            <strong class="text-white text-base block mb-3">📚 Trích dẫn tham khảo chuẩn APA 7:</strong>
+                            <p class="text-xs">Field, A. (2013). <em>Discovering statistics using IBM SPSS statistics</em> (4th ed.). Sage publications.</p>
+                        </div>
+                    </div>
                 </div>
             </div>`
     },
@@ -128,20 +237,66 @@ const rawArticles = [
         icon_name: 'Binary',
         title_vi: 'Kịch bản 4: Hồi quy Logistic Nhị phân',
         title_en: 'Scenario 4: Binary Logistic Regression',
-        description_vi: 'Áp dụng hồi quy logistic nhị phân trên SPSS để dự báo xác suất và ra quyết định. Phân tích tác động thông qua hệ số Odds Ratio.',
+        description_vi: 'Quy trình chạy hồi quy logistic nhị phân. Hiểu rõ bản chất việc dự báo Xác suất (Probability) và cách đọc hệ số Odds Ratio (Exp(B)).',
         content_vi: `
             <div class="space-y-10 text-slate-700 leading-relaxed">
+                <!-- 1. Tổng quan -->
                 <div class="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100">
-                    <h3 class="text-2xl font-black text-indigo-900 mb-4">1. Đặc điểm của Hồi quy Logistic Nhị phân</h3>
-                    <p class="mb-4">Hồi quy Logistic không dự báo trực tiếp giá trị của biến phụ thuộc, mà dự báo <strong>Xác suất (Probability)</strong> xảy ra sự kiện đó (ví dụ: Mua hay Không mua).</p>
+                    <h3 class="text-2xl font-black text-indigo-900 mb-4 flex items-center gap-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> 1. Đặc điểm của Hồi quy Logistic Nhị phân</h3>
+                    <p class="mb-4">Khác với hồi quy OLS thông thường, <strong>Hồi quy Logistic Nhị phân</strong> được sử dụng khi biến phụ thuộc Y của bạn chỉ có 2 giá trị (Ví dụ: 0 = Không mua, 1 = Có mua; hoặc 0 = Phá sản, 1 = Không phá sản).</p>
+                    <p>Vì Y là biến phân loại, mô hình không dự báo trực tiếp giá trị của Y, mà dự báo <strong>Xác suất (Probability)</strong> xảy ra sự kiện Y = 1.</p>
                 </div>
+
+                <!-- 2. Trình tự -->
                 <div>
-                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Đọc hệ số Odds Ratio (Exp(B))</h3>
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                        <ul class="space-y-3 text-sm">
-                            <li><span class="font-bold text-teal-600">Exp(B) > 1:</span> Tác động thuận chiều. Khả năng xảy ra sự kiện Y=1 sẽ tăng gấp Exp(B) lần khi X tăng.</li>
-                            <li><span class="font-bold text-teal-600">Exp(B) < 1:</span> Tác động ngược chiều.</li>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Trình tự Thuật toán phân tích Logistic</h3>
+                    <p class="mb-4">Thuật toán Maximum Likelihood Estimation (MLE) trên hệ thống NCSKIT được thực thi theo 3 bước tuần tự:</p>
+                    <div class="space-y-4">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-rose-500">
+                            <h4 class="font-bold text-slate-900 text-lg">Bước 1: Kiểm định Omnibus (Độ phù hợp tổng thể)</h4>
+                            <p class="text-sm mt-2 text-slate-600">Kiểm tra xem mô hình chứa các biến độc lập có năng lực dự báo tốt hơn mô hình gốc (chỉ có hằng số) hay không. Đây là chốt chặn đầu tiên.</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-emerald-500">
+                            <h4 class="font-bold text-slate-900 text-lg">Bước 2: Hệ số Pseudo R-square (Nagelkerke R Square)</h4>
+                            <p class="text-sm mt-2 text-slate-600">Đo lường mức độ giải thích của mô hình (tương tự như R² của hồi quy OLS, nhưng dành cho Logistic).</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-blue-500">
+                            <h4 class="font-bold text-slate-900 text-lg">Bước 3: Kiểm định Wald và Hệ số Odds Ratio - Exp(B)</h4>
+                            <p class="text-sm mt-2 text-slate-600">Sử dụng kiểm định Wald để xác định biến độc lập nào có ý nghĩa (P-value < 0.05). Cuối cùng, xuất ra hệ số Exp(B) để diễn giải mức độ tác động cụ thể.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Triết lý hệ thống -->
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">3</span> Tại sao dùng Exp(B) thay vì hệ số Beta? (The Rationale)</h3>
+                    <div class="bg-amber-50 p-6 rounded-2xl border border-amber-100">
+                        <p class="mb-4 text-sm text-amber-900 font-bold">Hệ thống NCSKIT nhấn mạnh vào việc diễn giải hệ số Exp(B) vì lý do toán học lõi:</p>
+                        <p class="text-sm text-amber-900">Mối quan hệ trong Logistic không phải là đường thẳng (tuyến tính) mà là đường cong hình chữ S (Hàm Sigmoid). Do đó, hệ số Beta gốc (B) chỉ thể hiện sự thay đổi trong <em>Logarit tự nhiên của tỷ lệ cược (Log-odds)</em>. Điều này là vô nghĩa với người dùng bình thường.</p>
+                        <p class="text-sm text-amber-900 mt-2">Bằng cách tự động lấy hàm số mũ của B <strong>(Exponential của B = Exp(B))</strong>, hệ thống chuyển đổi kết quả sang <strong>Tỷ lệ cược (Odds Ratio)</strong> - một con số cực kỳ dễ hiểu đối với các nhà quản trị kinh doanh.</p>
+                    </div>
+                </div>
+
+                <!-- 4. Rules of Thumb -->
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">4</span> Tiêu chuẩn đọc kết quả (Rules of Thumb)</h3>
+                    <div class="bg-slate-900 text-slate-300 p-6 rounded-2xl shadow-xl">
+                        <ul class="space-y-4 text-sm">
+                            <li class="border-b border-slate-700 pb-2"><span class="text-emerald-400 font-bold block mb-1">Sig. kiểm định Omnibus:</span> Phải < 0.05 để mô hình có ý nghĩa.</li>
+                            <li class="border-b border-slate-700 pb-2"><span class="text-emerald-400 font-bold block mb-1">Sig. kiểm định Wald (từng biến):</span> < 0.05 để biến X có tác động lên Xác suất xảy ra Y.</li>
+                            <li>
+                                <span class="text-emerald-400 font-bold block mb-1">Cách đọc Odds Ratio - Exp(B):</span>
+                                <ul class="list-disc pl-5 mt-2 space-y-1">
+                                    <li><strong>Nếu Exp(B) > 1:</strong> Tác động thuận chiều. Khả năng xảy ra sự kiện Y=1 sẽ TĂNG gấp Exp(B) lần khi X tăng 1 đơn vị.</li>
+                                    <li><strong>Nếu Exp(B) < 1:</strong> Tác động ngược chiều. Khả năng xảy ra sự kiện Y=1 sẽ GIẢM khi X tăng.</li>
+                                    <li><strong>Nếu Exp(B) = 1:</strong> Biến độc lập không có tác động gì.</li>
+                                </ul>
+                            </li>
                         </ul>
+                        <div class="mt-6 pt-6 border-t border-slate-700">
+                            <strong class="text-white text-base block mb-3">📚 Trích dẫn tham khảo chuẩn APA 7:</strong>
+                            <p class="text-xs">Hosmer Jr, D. W., Lemeshow, S., & Sturdivant, R. X. (2013). <em>Applied logistic regression</em> (Vol. 398). John Wiley & Sons.</p>
+                        </div>
                     </div>
                 </div>
             </div>`
@@ -152,19 +307,65 @@ const rawArticles = [
         icon_name: 'GitCompare',
         title_vi: 'Kịch bản 5: So sánh Khác biệt (T-test & ANOVA)',
         title_en: 'Scenario 5: Mean Differences (T-test & ANOVA)',
-        description_vi: 'Hướng dẫn kiểm định Independent T-test và One-way ANOVA trên SPSS. Phương pháp phân tích sự khác biệt trung bình.',
+        description_vi: 'Giải phẫu quy trình kiểm định Independent T-test và One-way ANOVA. Tại sao luôn phải qua bước kiểm tra Levene Test trước khi đọc Sig cuối cùng?',
         content_vi: `
             <div class="space-y-10 text-slate-700 leading-relaxed">
+                <!-- 1. Tổng quan -->
                 <div class="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100">
-                    <h3 class="text-2xl font-black text-indigo-900 mb-4">1. Phương pháp Kiểm định Khác biệt Nhóm</h3>
-                    <p class="mb-4">Sử dụng <strong>Independent T-Test</strong> cho 2 nhóm (Nam/Nữ) và <strong>ANOVA</strong> cho 3 nhóm trở lên (Độ tuổi).</p>
+                    <h3 class="text-2xl font-black text-indigo-900 mb-4 flex items-center gap-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> 1. Phương pháp Kiểm định Khác biệt Nhóm</h3>
+                    <p class="mb-4">Trong nghiên cứu hành vi, việc tìm ra sự khác biệt giữa các nhóm khách hàng (Nhân khẩu học) là chìa khóa để phân khúc thị trường.</p>
+                    <ul class="list-disc pl-5 space-y-2 text-sm text-indigo-900 font-medium">
+                        <li><strong>Independent T-Test:</strong> Dùng để so sánh giá trị trung bình giữa ĐÚNG 2 NHÓM độc lập (Ví dụ: Giới tính Nam vs Nữ).</li>
+                        <li><strong>One-way ANOVA:</strong> Dùng để so sánh giá trị trung bình từ 3 NHÓM TRỞ LÊN (Ví dụ: Độ tuổi Dưới 18, 18-25, 25-30, Trên 30).</li>
+                    </ul>
                 </div>
+
+                <!-- 2. Trình tự -->
                 <div>
-                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Hướng dẫn đọc kết quả</h3>
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                        <ul class="space-y-3 text-sm">
-                            <li><strong>Levene's Test:</strong> Kiểm tra phương sai đồng nhất.</li>
-                            <li><strong>Sig. T-test / ANOVA:</strong> Nếu < 0.05, có sự khác biệt có ý nghĩa thống kê giữa các nhóm.</li>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Trình tự Thuật toán chuẩn khoa học</h3>
+                    <p class="mb-4">Hệ thống tự động thực hiện quy trình 2 bước bắt buộc sau đây:</p>
+                    <div class="space-y-4">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-orange-500">
+                            <h4 class="font-bold text-slate-900 text-lg">Bước 1: Kiểm định Phương sai đồng nhất (Levene's Test)</h4>
+                            <p class="text-sm mt-2 text-slate-600">Trước khi so sánh trung bình, thuật toán phải kiểm tra xem "Độ biến thiên (phương sai) của các nhóm có bằng nhau không?". Điều này cực kỳ quan trọng để chọn đúng công thức T-test/ANOVA ở Bước 2.</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-emerald-500">
+                            <h4 class="font-bold text-slate-900 text-lg">Bước 2: Kiểm định Trung bình (Sig. T-Test / Sig. ANOVA)</h4>
+                            <p class="text-sm mt-2 text-slate-600">Sau khi đã có kết quả Levene, hệ thống sẽ tự động chọn công thức "Equal variances assumed" (Phương sai bằng nhau) hoặc "Equal variances not assumed" (Phương sai không bằng nhau) để tính ra giá trị P-value (Sig.) cuối cùng.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Triết lý hệ thống -->
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">3</span> Tại sao phải test Phương sai (Levene) trước? (The Rationale)</h3>
+                    <div class="bg-amber-50 p-6 rounded-2xl border border-amber-100">
+                        <p class="mb-4 text-sm text-amber-900 font-bold">Hãy tưởng tượng bạn so sánh điểm thi môn Toán giữa Lớp A và Lớp B.</p>
+                        <p class="text-sm text-amber-900 mb-2">Trung bình cả hai lớp đều là 7 điểm. Nhìn bề ngoài có vẻ không có sự khác biệt (Bước 2). Tuy nhiên:</p>
+                        <ul class="list-disc pl-5 space-y-2 text-amber-800 text-sm">
+                            <li>Lớp A học đều, ai cũng được 6, 7, 8 điểm (Phương sai nhỏ).</li>
+                            <li>Lớp B phân hóa mạnh, người được 10, người bị 0 (Phương sai lớn).</li>
+                            <li>Nếu <strong>không có Levene's Test (Bước 1)</strong> để phát hiện ra sự khác biệt về "Phương sai", bạn sẽ vội vã kết luận sai lầm rằng hai lớp này giống hệt nhau về trình độ!</li>
+                            <li>Thuật toán NCSKIT bảo vệ bạn khỏi sai lầm này bằng cách ép buộc chạy và hiển thị Sig. Levene trước khi cho phép bạn đọc kết quả Sig. T-test/ANOVA.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- 4. Rules of Thumb -->
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">4</span> Tiêu chuẩn đọc kết quả (Rules of Thumb)</h3>
+                    <div class="bg-slate-900 text-slate-300 p-6 rounded-2xl shadow-xl">
+                        <ul class="space-y-4 text-sm">
+                            <li class="border-b border-slate-700 pb-2">
+                                <span class="text-emerald-400 font-bold block mb-1">Cách đọc Sig. Levene's Test (Bước 1):</span>
+                                <p>• Nếu Sig. Levene > 0.05: Phương sai bằng nhau -> Chọn đọc kết quả dòng "Equal variances assumed".</p>
+                                <p>• Nếu Sig. Levene < 0.05: Phương sai khác nhau -> Chọn đọc kết quả dòng "Equal variances not assumed" (Đối với T-test) hoặc chạy Welch Test (Đối với ANOVA).</p>
+                            </li>
+                            <li>
+                                <span class="text-emerald-400 font-bold block mb-1">Cách đọc Sig. T-test/ANOVA (Bước 2):</span>
+                                <p>• Nếu Sig. < 0.05: KHẲNG ĐỊNH CÓ sự khác biệt về trung bình giữa các nhóm.</p>
+                                <p>• Nếu Sig. > 0.05: KHÔNG CÓ sự khác biệt về trung bình giữa các nhóm.</p>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -176,28 +377,70 @@ const rawArticles = [
         icon_name: 'Target',
         title_vi: 'Kịch bản 6: Thẩm định Thang đo (Cronbach\'s Alpha & EFA)',
         title_en: 'Scenario 6: Scale Validation (Cronbach\'s Alpha & EFA)',
-        description_vi: 'Hướng dẫn chạy kiểm định độ tin cậy thang đo Cronbach Alpha và phân tích nhân tố khám phá EFA.',
+        description_vi: 'Khám phá quy trình thanh lọc biến. Tại sao luôn phải chạy Cronbach\'s Alpha trước, rồi mới chạy EFA?',
         content_vi: `
             <div class="space-y-10 text-slate-700 leading-relaxed">
+                <!-- 1. Tổng quan -->
                 <div class="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100">
-                    <h3 class="text-2xl font-black text-indigo-900 mb-4">1. Quy tắc đọc kết quả (Rules of Thumb)</h3>
-                    <p class="mb-4">Đánh giá mô hình đo lường là bước đi đầu tiên trong mọi luận văn định lượng.</p>
+                    <h3 class="text-2xl font-black text-indigo-900 mb-4 flex items-center gap-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> 1. Sàng lọc công cụ đo lường</h3>
+                    <p class="mb-4">Trước khi chạy hồi quy (Impact Analysis), bài luận văn của bạn bắt buộc phải trải qua bước <strong>Thẩm định Thang đo (Scale Validation)</strong>. Bước này nhằm mục đích thanh lọc các câu hỏi rác (biến quan sát) mà đáp viên đánh lụi, đảm bảo dữ liệu đưa vào mô hình là dữ liệu sạch nhất.</p>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                        <h4 class="font-bold text-slate-900 mb-4 border-b pb-2 text-lg">Cronbach's Alpha</h4>
-                        <ul class="space-y-3 text-sm">
-                            <li><strong>Hệ số tổng:</strong> > 0.70.</li>
-                            <li><strong>Tương quan biến - tổng:</strong> > 0.30 (Nếu < 0.30 phải loại bỏ biến).</li>
+
+                <!-- 2. Trình tự -->
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Trình tự Thuật toán (Thanh lọc 2 chặng)</h3>
+                    <p class="mb-4">Thuật toán NCSKIT tự động hóa quy trình sàng lọc này theo trình tự 2 chặng:</p>
+                    <div class="space-y-4">
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-orange-500">
+                            <h4 class="font-bold text-slate-900 text-lg">Chặng 1: Kiểm định Độ tin cậy (Cronbach's Alpha)</h4>
+                            <p class="text-sm mt-2 text-slate-600">Hệ thống quét từng nhóm nhân tố (Ví dụ: Nhóm Lương thưởng, Nhóm Môi trường làm việc). Kiểm tra xem các câu hỏi trong cùng một nhóm có đồng nhất với nhau hay không. Biến nào có Tương quan biến-tổng (Corrected Item-Total Correlation) thấp sẽ bị loại bỏ ngay tại chặng này.</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm border-l-4 border-l-emerald-500">
+                            <h4 class="font-bold text-slate-900 text-lg">Chặng 2: Phân tích Nhân tố Khám phá (EFA)</h4>
+                            <p class="text-sm mt-2 text-slate-600">Sau khi các biến rác bị loại ở Chặng 1, các biến còn lại được gom chung vào một mẻ để chạy EFA (Phương pháp trích Principal Component Analysis, xoay Varimax). Hệ thống quét ma trận xoay (Rotated Component Matrix) để xem các biến có thực sự hội tụ về đúng nhân tố lý thuyết của nó, và có phân biệt rạch ròi với nhân tố khác không.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Triết lý hệ thống -->
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">3</span> Tại sao Cronbach's Alpha phải chạy TRƯỚC EFA? (The Rationale)</h3>
+                    <div class="bg-amber-50 p-6 rounded-2xl border border-amber-100">
+                        <p class="mb-4 text-sm text-amber-900 font-bold">Đây là nguyên tắc kinh điển của Churchill (1979) về việc xây dựng thước đo tốt hơn (Better Measures):</p>
+                        <ul class="list-disc pl-5 space-y-2 text-amber-800 text-sm">
+                            <li>Cronbach's Alpha làm nhiệm vụ "rửa sạch" rác bên trong nội bộ từng nhân tố trước. Nó loại bỏ những câu hỏi mà chính đáp viên còn trả lời mâu thuẫn.</li>
+                            <li>Nếu bạn gom tất cả cả biến rác vào chạy EFA luôn (mà không chạy Cronbach trước), nhiễu loạn từ các biến rác này sẽ làm hỏng cấu trúc ma trận của các biến tốt. Biến nhảy lung tung, đa tải (cross-loading) khắp nơi.</li>
+                            <li>Thuật toán NCSKIT thiết kế Chặng 1 như một lớp màng lọc bảo vệ, đảm bảo thuật toán EFA ở Chặng 2 phân nhóm (Clustering) một cách chính xác, sắc nét và sạch sẽ nhất.</li>
                         </ul>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                        <h4 class="font-bold text-slate-900 mb-4 border-b pb-2 text-lg">EFA</h4>
-                        <ul class="space-y-3 text-sm">
-                            <li><strong>KMO:</strong> > 0.50.</li>
-                            <li><strong>Tổng phương sai trích:</strong> > 50%.</li>
-                            <li><strong>Hệ số tải nhân tố:</strong> > 0.50.</li>
-                        </ul>
+                </div>
+
+                <!-- 4. Rules of Thumb -->
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">4</span> Tiêu chuẩn đọc kết quả (Rules of Thumb)</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-slate-900 text-slate-300 p-6 rounded-2xl shadow-xl">
+                            <h4 class="font-bold text-emerald-400 mb-4 border-b border-slate-700 pb-2 text-lg">Chuẩn Cronbach's Alpha</h4>
+                            <ul class="space-y-3 text-sm">
+                                <li><span class="font-bold text-white">Hệ số tổng:</span> Phải ≥ 0.60 (Tuy nhiên chuẩn luận văn thường yêu cầu ≥ 0.70).</li>
+                                <li><span class="font-bold text-white">Tương quan biến - tổng (Corrected Item-Total Correlation):</span> Bắt buộc ≥ 0.30. Biến nào < 0.30 phải loại.</li>
+                                <li><span class="font-bold text-white">Cột "Cronbach's Alpha if Item Deleted":</span> Nếu loại một biến mà làm cho hệ số tổng tăng vọt, cần cân nhắc loại biến đó.</li>
+                            </ul>
+                        </div>
+                        <div class="bg-slate-900 text-slate-300 p-6 rounded-2xl shadow-xl">
+                            <h4 class="font-bold text-emerald-400 mb-4 border-b border-slate-700 pb-2 text-lg">Chuẩn EFA</h4>
+                            <ul class="space-y-3 text-sm">
+                                <li><span class="font-bold text-white">Hệ số KMO:</span> Nằm trong khoảng 0.50 đến 1.0 (Lý tưởng là > 0.70).</li>
+                                <li><span class="font-bold text-white">Sig. Barlett's Test:</span> Bắt buộc < 0.05.</li>
+                                <li><span class="font-bold text-white">Tổng phương sai trích (Cumulative %):</span> Phải ≥ 50%.</li>
+                                <li><span class="font-bold text-white">Hệ số tải nhân tố (Factor Loading):</span> ≥ 0.50 (Không được xuất hiện đa tải chênh lệch < 0.3).</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="mt-6 pt-6 border-t border-slate-200">
+                        <strong class="text-slate-800 text-base block mb-3">📚 Trích dẫn tham khảo chuẩn APA 7:</strong>
+                        <p class="text-xs text-slate-600">Churchill Jr, G. A. (1979). A paradigm for developing better measures of marketing constructs. <em>Journal of marketing research</em>, 16(1), 64-73.</p>
+                        <p class="text-xs text-slate-600 mt-2">Hair, J. F., Black, W. C., Babin, B. J., & Anderson, R. E. (2014). <em>Multivariate data analysis</em> (7th ed.). Pearson.</p>
                     </div>
                 </div>
             </div>`
