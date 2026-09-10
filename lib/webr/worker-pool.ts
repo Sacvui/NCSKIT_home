@@ -52,7 +52,7 @@ export class WebRPoolManager {
 
                 await worker.evalR(`
                     RNGkind("L'Ecuyer-CMRG")
-                    options(repos = c(LOCAL = "${localRepo}", SEMINR = "https://sem-in-r.r-universe.dev", CRAN = "https://repo.r-wasm.org/"))
+                    options(repos = c(SEMINR = "https://sem-in-r.r-universe.dev", CRAN = "https://repo.r-wasm.org/"))
                     options(pkgType = "binary")
                 `);
                 
