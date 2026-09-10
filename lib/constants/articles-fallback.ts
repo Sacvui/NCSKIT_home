@@ -1,7 +1,7 @@
 const rawArticles = [
     {
         slug: 'scenario-pls-sem',
-        category: ['Research Scenarios', 'Structural Modeling'],
+        category: ['Research Scenarios', 'Phân tích Nhân tố & Mô hình', 'PLS-SEM', 'Structural Modeling'],
         icon_name: 'Network',
         title_vi: 'Kịch bản 1: Mô hình Cấu trúc Tuyến tính PLS-SEM',
         title_en: 'Scenario 1: Partial Least Squares SEM',
@@ -78,7 +78,7 @@ const rawArticles = [
     },
     {
         slug: 'scenario-cb-sem',
-        category: ['Research Scenarios', 'Structural Modeling'],
+        category: ['Research Scenarios', 'Phân tích Nhân tố & Mô hình', 'CB-SEM', 'Structural Modeling'],
         icon_name: 'Layers',
         title_vi: 'Kịch bản 2: Mô hình Cấu trúc Hiệp phương sai CB-SEM',
         title_en: 'Scenario 2: Covariance-Based SEM',
@@ -154,7 +154,7 @@ const rawArticles = [
     },
     {
         slug: 'scenario-regression',
-        category: ['Research Scenarios', 'Impact Analysis'],
+        category: ['Research Scenarios', 'Phân tích Tác động & Hồi quy', 'Hồi quy tuyến tính', 'Impact Analysis'],
         icon_name: 'LineChart',
         title_vi: 'Kịch bản 3: Hồi quy Tuyến tính Đa biến (OLS)',
         title_en: 'Scenario 3: Multiple Linear Regression (OLS)',
@@ -233,7 +233,7 @@ const rawArticles = [
     },
     {
         slug: 'scenario-logistic',
-        category: ['Research Scenarios', 'Impact Analysis'],
+        category: ['Research Scenarios', 'Phân tích Tác động & Hồi quy', 'Hồi quy Logistic', 'Impact Analysis'],
         icon_name: 'Binary',
         title_vi: 'Kịch bản 4: Hồi quy Logistic Nhị phân',
         title_en: 'Scenario 4: Binary Logistic Regression',
@@ -303,7 +303,7 @@ const rawArticles = [
     },
     {
         slug: 'scenario-compare',
-        category: ['Research Scenarios', 'Comparative Analysis'],
+        category: ['Research Scenarios', 'Phân tích Khác biệt', 'T-test', 'ANOVA', 'Comparative Analysis'],
         icon_name: 'GitCompare',
         title_vi: 'Kịch bản 5: So sánh Khác biệt (T-test & ANOVA)',
         title_en: 'Scenario 5: Mean Differences (T-test & ANOVA)',
@@ -373,7 +373,7 @@ const rawArticles = [
     },
     {
         slug: 'scenario-scale',
-        category: ['Research Scenarios', 'Measurement Validation'],
+        category: ['Research Scenarios', 'Phân tích Nhân tố & Mô hình', 'Thẩm định Thang đo', 'Measurement Validation'],
         icon_name: 'Target',
         title_vi: 'Kịch bản 6: Thẩm định Thang đo (Cronbach\'s Alpha & EFA)',
         title_en: 'Scenario 6: Scale Validation (Cronbach\'s Alpha & EFA)',
