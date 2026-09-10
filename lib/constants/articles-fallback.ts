@@ -5,63 +5,45 @@ export const STATIC_ARTICLES = [
         icon_name: 'Network',
         title_vi: 'Kịch bản 1: Mô hình Cấu trúc Tuyến tính PLS-SEM',
         title_en: 'Scenario 1: Partial Least Squares SEM',
-        description_vi: 'Kịch bản phân tích mô hình cấu trúc với PLS-SEM, phù hợp cho mẫu nhỏ, không yêu cầu phân phối chuẩn và mô hình dự báo phức tạp.',
+        description_vi: 'Hướng dẫn phân tích PLS-SEM chuyên sâu. Giải pháp tối ưu cho cỡ mẫu nhỏ, dữ liệu không phân phối chuẩn và mô hình nghiên cứu phức tạp.',
         content_vi: `
-            <div class="space-y-8 text-slate-700 leading-relaxed">
-                <!-- Header Insight -->
-                <div class="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100">
-                    <h3 class="text-xl font-black text-indigo-900 mb-2">1. Cơ Sở Khoa Học (Theoretical Foundation)</h3>
-                    <p class="mb-3"><strong>PLS-SEM (Partial Least Squares Structural Equation Modeling)</strong> là kỹ thuật phân tích đa biến thế hệ thứ hai (Second-generation technique) dựa trên phương pháp tối đa hóa phương sai được giải thích (Variance-based) của các cấu trúc nội sinh (Hair et al., 2019).</p>
-                    <p>Không giống như CB-SEM, PLS-SEM không yêu cầu dữ liệu tuân theo phân phối chuẩn nhiều chiều (Multivariate Normal Distribution). Thuật toán này sử dụng kỹ thuật <strong>Bootstrapping phi tham số</strong> (lấy mẫu lặp lại ngẫu nhiên có hoàn lại) để tạo ra các phân phối thống kê thực nghiệm, từ đó tính toán sai số chuẩn (Standard Errors) và giá trị p-value nhằm kiểm định độ tin cậy của các giả thuyết.</p>
-                </div>
-
-                <!-- Application -->
-                <div>
-                    <h3 class="text-xl font-black text-slate-900 mb-4 flex items-center gap-2"><span class="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center text-sm">2</span> Kịch Bản Nghiên Cứu Ứng Dụng</h3>
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                        <h4 class="font-bold text-slate-900 mb-2">Bối Cảnh (Context):</h4>
-                        <p class="mb-4">Nghiên cứu tác động của "Trải nghiệm người dùng" (UX) và "Giá trị cảm nhận" (Perceived Value) đến "Sự hài lòng" (Satisfaction), từ đó dẫn đến "Lòng trung thành" (Loyalty) đối với một nền tảng SaaS khởi nghiệp.</p>
-                        <h4 class="font-bold text-slate-900 mb-2">Biện Luận Phương Pháp (Methodological Justification):</h4>
-                        <ul class="list-disc pl-5 space-y-2">
-                            <li><strong>Cỡ mẫu hạn chế (Small Sample Size):</strong> Nền tảng mới ra mắt, dữ liệu thu thập chỉ đạt n=120. PLS-SEM vẫn duy trì được sức mạnh thống kê (Statistical Power) trong điều kiện này.</li>
-                            <li><strong>Mục tiêu cốt lõi:</strong> Trọng tâm của nghiên cứu là <em>dự báo (prediction)</em> hành vi Lòng trung thành của người dùng thay vì kiểm định/khẳng định lại một lý thuyết đã phát triển mạnh (Theory Confirmation).</li>
+            <div class="space-y-10 text-slate-700 leading-relaxed">
+                <div class="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100">
+                    <h3 class="text-2xl font-black text-indigo-900 mb-4 flex items-center gap-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> 1. Tổng quan về phương pháp</h3>
+                    <p class="mb-4">Trong thực hành phân tích số liệu luận văn, <strong>PLS-SEM (Partial Least Squares Structural Equation Modeling)</strong> đang dần thay thế các phương pháp truyền thống nhờ khả năng giải quyết các mô hình cấu trúc phức tạp. Bản chất của thuật toán PLS-SEM là tối đa hóa phương sai được giải thích (R²) của các cấu trúc nội sinh.</p>
+                    <div class="bg-white p-4 rounded-xl border border-indigo-100 mt-4 text-sm">
+                        <h4 class="font-bold text-indigo-800 mb-2">Điều kiện áp dụng PLS-SEM:</h4>
+                        <ul class="list-disc pl-5 space-y-1">
+                            <li>Mục tiêu cốt lõi của nghiên cứu là <strong>dự báo</strong> hành vi hoặc xác định các nhân tố tác động trọng yếu (Key Drivers).</li>
+                            <li>Dữ liệu thu thập thực tế vi phạm giả định phân phối chuẩn (Non-normal data).</li>
+                            <li>Cỡ mẫu khảo sát nhỏ, không đủ đáp ứng quy tắc khắt khe của AMOS/CB-SEM.</li>
                         </ul>
                     </div>
                 </div>
-
-                <!-- Auto Pilot Workflow -->
                 <div>
-                    <h3 class="text-xl font-black text-slate-900 mb-4 flex items-center gap-2"><span class="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center text-sm">3</span> Quy Trình Thực Thi Liên Hoàn (Auto Pilot Workflow)</h3>
-                    <div class="space-y-4">
-                        <div class="flex gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                            <div class="shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-bold flex items-center justify-center">1</div>
-                            <div>
-                                <h4 class="font-bold text-slate-900">Đánh giá Mô hình Đo lường (Measurement Model Assessment)</h4>
-                                <p class="text-sm mt-1">Kiểm định giá trị hội tụ thông qua Hệ số tải ngoài (Outer Loadings > 0.708) và Phương sai trích trung bình (AVE > 0.50). Đánh giá độ tin cậy bằng Composite Reliability (CR) và rho_A.</p>
-                            </div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Hướng dẫn đọc kết quả SmartPLS</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                            <h4 class="font-bold text-slate-900 mb-4 border-b pb-2 text-lg">Đánh giá Mô hình Đo lường</h4>
+                            <ul class="space-y-3 text-sm">
+                                <li><span class="font-bold text-blue-600">Hệ số tải ngoài:</span> Cần đạt mức ≥ 0.708.</li>
+                                <li><span class="font-bold text-blue-600">Độ tin cậy cấu trúc:</span> Composite Reliability (CR) cần nằm trong khoảng <strong>0.70 - 0.90</strong>.</li>
+                                <li><span class="font-bold text-blue-600">Tính hội tụ:</span> Hệ số AVE phải ≥ 0.50.</li>
+                                <li><span class="font-bold text-blue-600">Tính phân biệt:</span> Tỷ số <strong>HTMT cần < 0.85</strong>.</li>
+                            </ul>
                         </div>
-                        <div class="flex gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                            <div class="shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-bold flex items-center justify-center">2</div>
-                            <div>
-                                <h4 class="font-bold text-slate-900">Tính Phân biệt (Discriminant Validity - HTMT)</h4>
-                                <p class="text-sm mt-1">Hệ thống áp dụng tỷ số Heterotrait-Monotrait Ratio (HTMT) thay vì Fornell-Larcker theo tiêu chuẩn mới nhất của Henseler et al. (2015). Yêu cầu HTMT &lt; 0.85 (hoặc 0.90 với khái niệm tương đồng).</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                            <div class="shrink-0 w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 font-bold flex items-center justify-center">3</div>
-                            <div>
-                                <h4 class="font-bold text-slate-900">Đánh giá Mô hình Cấu trúc (Structural Model - Bootstrapping)</h4>
-                                <p class="text-sm mt-1">Kích hoạt Bootstrapping (5,000 resamples) để đánh giá hệ số tác động (Path Coefficients) và p-value. Phân tích hệ số xác định R² và chỉ số dự báo ngoài mẫu Q² (Blindfolding).</p>
-                            </div>
+                        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                            <h4 class="font-bold text-slate-900 mb-4 border-b pb-2 text-lg">Đánh giá Mô hình Cấu trúc</h4>
+                            <ul class="space-y-3 text-sm">
+                                <li><span class="font-bold text-teal-600">Đa cộng tuyến (VIF):</span> Giá trị VIF nội bộ phải < 3.0.</li>
+                                <li><span class="font-bold text-teal-600">Kiểm định giả thuyết:</span> Chạy Bootstrapping. Giả thuyết được chấp nhận khi P-value < 0.05.</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
-
-                <!-- Reference -->
-                <div class="p-5 bg-slate-900 rounded-xl text-slate-300 text-sm mt-8 border-l-4 border-indigo-500">
-                    <strong class="text-white">📚 Trích Dẫn Khoa Học Chuẩn APA 7:</strong><br/>
-                    Hair, J. F., Risher, J. J., Sarstedt, M., & Ringle, C. M. (2019). When to use and how to report the results of PLS-SEM. <em>European Business Review</em>, 31(1), 2-24.<br/>
-                    Henseler, J., Ringle, C. M., & Sarstedt, M. (2015). A new criterion for assessing discriminant validity in variance-based structural equation modeling. <em>Journal of the Academy of Marketing Science</em>, 43(1), 115-135.
+                <div class="p-6 bg-slate-900 rounded-2xl text-slate-300 text-sm mt-10 border-l-4 border-indigo-500 shadow-xl">
+                    <strong class="text-white text-base block mb-3">📚 Trích dẫn tham khảo chuẩn APA 7:</strong>
+                    <p>Hair, J. F., Risher, J. J., Sarstedt, M., & Ringle, C. M. (2019). When to use and how to report the results of PLS-SEM. <em>European Business Review</em>, 31(1), 2-24.</p>
                 </div>
             </div>`
     },
@@ -69,460 +51,412 @@ export const STATIC_ARTICLES = [
         slug: 'scenario-cb-sem',
         category: ['Research Scenarios', 'Structural Modeling'],
         icon_name: 'Layers',
-        title_vi: 'Kịch bản 2: Mô hình Cấu trúc Tuyến tính CB-SEM',
+        title_vi: 'Kịch bản 2: Mô hình Cấu trúc Hiệp phương sai CB-SEM',
         title_en: 'Scenario 2: Covariance-Based SEM',
-        description_vi: 'Kịch bản kiểm định lý thuyết nền tảng chặt chẽ với mô hình cấu trúc CB-SEM, đòi hỏi cỡ mẫu lớn và phân phối chuẩn.',
+        description_vi: 'Hướng dẫn phân tích CFA và SEM bằng AMOS. Phương pháp luận chuẩn mực để kiểm định sự phù hợp của lý thuyết nghiên cứu.',
         content_vi: `
-            <div class="space-y-8 text-slate-700 leading-relaxed">
-                <!-- Header Insight -->
-                <div class="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100">
-                    <h3 class="text-xl font-black text-indigo-900 mb-2">1. Cơ Sở Khoa Học (Theoretical Foundation)</h3>
-                    <p class="mb-3"><strong>CB-SEM (Covariance-Based Structural Equation Modeling)</strong> là kỹ thuật mô hình hóa cấu trúc dựa trên ma trận hiệp phương sai. Trái ngược với mục tiêu tối đa hóa phương sai của PLS-SEM, CB-SEM tập trung vào việc ước lượng các thông số mô hình sao cho ma trận hiệp phương sai được ngụ ý (Implied Covariance Matrix) càng sát với ma trận hiệp phương sai của mẫu thực tế (Sample Covariance Matrix) càng tốt.</p>
-                    <p>Vì tính chất chặt chẽ này, CB-SEM là <em>Tiêu chuẩn Vàng (Gold Standard)</em> để <strong>Khẳng định và Kiểm định Lý thuyết (Theory Confirmation/Testing)</strong>. Nó đòi hỏi dữ liệu tuân thủ phân phối chuẩn nhiều chiều nghiêm ngặt và kích thước mẫu đủ lớn (thường N > 200).</p>
+            <div class="space-y-10 text-slate-700 leading-relaxed">
+                <div class="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100">
+                    <h3 class="text-2xl font-black text-indigo-900 mb-4 flex items-center gap-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> 1. Tổng quan về mô hình CB-SEM</h3>
+                    <p class="mb-4">Khác với mô hình PLS tập trung vào dự báo, <strong>CB-SEM</strong> được thiết kế chuyên biệt để <strong>Khẳng định lý thuyết (Theory Confirmation)</strong>. Khi sử dụng các dịch vụ chạy AMOS, thuật toán Maximum Likelihood (ML) sẽ tính toán khoảng cách chênh lệch giữa ma trận hiệp phương sai của dữ liệu thu thập thực tế và ma trận hiệp phương sai lý thuyết.</p>
                 </div>
-
-                <!-- Application -->
                 <div>
-                    <h3 class="text-xl font-black text-slate-900 mb-4 flex items-center gap-2"><span class="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center text-sm">2</span> Kịch Bản Nghiên Cứu Ứng Dụng</h3>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Quy trình thực hiện Phân tích CFA bằng AMOS</h3>
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-6">
+                        <h4 class="font-bold text-slate-900 mb-4 text-lg border-b pb-2">Bước 1: Phân Tích Nhân Tố Khẳng Định (CFA)</h4>
+                        <ul class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mt-4">
+                            <li class="bg-slate-50 p-3 rounded-lg border border-slate-100"><strong>CMIN/df:</strong> Phải < 3.0 (Tốt), có thể chấp nhận < 5.0.</li>
+                            <li class="bg-slate-50 p-3 rounded-lg border border-slate-100"><strong>CFI & TLI:</strong> Cần ≥ 0.90 (Ưu tiên > 0.95).</li>
+                            <li class="bg-slate-50 p-3 rounded-lg border border-slate-100"><strong>RMSEA:</strong> Yêu cầu < 0.08.</li>
+                        </ul>
+                    </div>
                     <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                        <h4 class="font-bold text-slate-900 mb-2">Bối Cảnh (Context):</h4>
-                        <p class="mb-4">Nghiên cứu kiểm định lại Mô hình Chấp nhận Công nghệ (TAM) kinh điển của Davis (1989) trong bối cảnh sinh viên đại học sử dụng Generative AI (ví dụ: ChatGPT) cho học tập (N=450).</p>
-                        <h4 class="font-bold text-slate-900 mb-2">Biện Luận Phương Pháp (Methodological Justification):</h4>
-                        <ul class="list-disc pl-5 space-y-2">
-                            <li><strong>Lý thuyết vững chắc (Strong Theory):</strong> TAM đã được kiểm chứng bằng hàng ngàn nghiên cứu trên thế giới. Bạn không khám phá lý thuyết mới, mà đang kiểm tra xem lý thuyết này có còn đúng (fit) trong bối cảnh AI giáo dục tại Việt Nam hay không.</li>
-                            <li><strong>Quy mô dữ liệu:</strong> Cỡ mẫu lớn (N=450) và thỏa mãn phân phối chuẩn, rất lý tưởng cho công cụ Maximum Likelihood (ML) của CB-SEM.</li>
+                        <h4 class="font-bold text-slate-900 mb-4 text-lg border-b pb-2">Bước 2: Phân Tích Mô Hình Cấu Trúc (SEM)</h4>
+                        <ul class="list-disc pl-5 space-y-2 text-sm">
+                            <li>Sử dụng <strong>Beta chuẩn hóa</strong> để xác định biến độc lập có tác động mạnh nhất.</li>
+                            <li>Đánh giá <strong>P-value</strong> (hiển thị là ***). Nếu P-value < 0.05, giả thuyết được chấp nhận.</li>
                         </ul>
                     </div>
                 </div>
-
-                <!-- Auto Pilot Workflow -->
-                <div>
-                    <h3 class="text-xl font-black text-slate-900 mb-4 flex items-center gap-2"><span class="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center text-sm">3</span> Quy Trình Thực Thi Liên Hoàn (Auto Pilot Workflow)</h3>
-                    <div class="space-y-4">
-                        <div class="flex gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                            <div class="shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-bold flex items-center justify-center">1</div>
-                            <div>
-                                <h4 class="font-bold text-slate-900">Phân Tích Nhân Tố Khẳng Định (Confirmatory Factor Analysis - CFA)</h4>
-                                <p class="text-sm mt-1">Đánh giá độ phù hợp của mô hình đo lường toàn cục. Hệ thống sẽ tự động quét và tính toán các chỉ số Model Fit quan trọng: Chi-square/df (&lt; 3), CFI (&gt; 0.90), TLI (&gt; 0.90), RMSEA (&lt; 0.08) và SRMR (&lt; 0.08).</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                            <div class="shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-bold flex items-center justify-center">2</div>
-                            <div>
-                                <h4 class="font-bold text-slate-900">Kiểm Định Độ Tin Cậy & Giá Trị (Reliability & Validity)</h4>
-                                <p class="text-sm mt-1">Trích xuất Factor Loadings để tính toán tự động Composite Reliability (CR) và Average Variance Extracted (AVE). Đảm bảo giá trị phân biệt qua kiểm định Fornell-Larcker.</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                            <div class="shrink-0 w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 font-bold flex items-center justify-center">3</div>
-                            <div>
-                                <h4 class="font-bold text-slate-900">Mô Hình Cấu Trúc (Structural Equation Modeling)</h4>
-                                <p class="text-sm mt-1">Kiểm định đồng thời toàn bộ mạng lưới cấu trúc nhân quả (Simultaneous Equation Solving). Đánh giá hệ số Beta chưa chuẩn hóa/chuẩn hóa và trị số p-value của các giả thuyết H1, H2, H3.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Reference -->
-                <div class="p-5 bg-slate-900 rounded-xl text-slate-300 text-sm mt-8 border-l-4 border-indigo-500">
-                    <strong class="text-white">📚 Trích Dẫn Khoa Học Chuẩn APA 7:</strong><br/>
-                    Kline, R. B. (2015). <em>Principles and practice of structural equation modeling</em> (4th ed.). Guilford publications.<br/>
-                    Hair, J. F., Black, W. C., Babin, B. J., & Anderson, R. E. (2018). <em>Multivariate data analysis</em> (8th ed.). Cengage Learning.
+                <div class="p-6 bg-slate-900 rounded-2xl text-slate-300 text-sm mt-10 border-l-4 border-indigo-500 shadow-xl">
+                    <strong class="text-white text-base block mb-3">📚 Trích dẫn tham khảo chuẩn APA 7:</strong>
+                    <p>Kline, R. B. (2015). <em>Principles and practice of structural equation modeling</em> (4th ed.). Guilford publications.</p>
                 </div>
             </div>`
     },
     {
         slug: 'scenario-regression',
         category: ['Research Scenarios', 'Impact Analysis'],
-        icon_name: 'TrendingUp',
-        title_vi: 'Kịch bản 3: Tương quan & Hồi quy Đa biến (Linear Regression)',
-        title_en: 'Scenario 3: Correlation & Multiple Regression',
-        description_vi: 'Kịch bản phân tích tác động truyền thống, đánh giá độ ảnh hưởng của nhiều nhân tố độc lập lên một nhân tố phụ thuộc.',
+        icon_name: 'LineChart',
+        title_vi: 'Kịch bản 3: Hồi quy Tuyến tính Đa biến (OLS)',
+        title_en: 'Scenario 3: Multiple Linear Regression (OLS)',
+        description_vi: 'Quy trình hồi quy đa biến trên SPSS. Hướng dẫn cách đọc hệ số Beta, R-square và cách khắc phục đa cộng tuyến hiệu quả.',
         content_vi: `
-            <div class="space-y-8 text-slate-700 leading-relaxed">
-                <!-- Header Insight -->
-                <div class="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100">
-                    <h3 class="text-xl font-black text-indigo-900 mb-2">1. Cơ Sở Khoa Học (Theoretical Foundation)</h3>
-                    <p class="mb-3"><strong>Hồi quy Tuyến tính Đa biến (Multiple Linear Regression - OLS)</strong> là phương pháp nền tảng mạnh mẽ dùng để mô hình hóa mối quan hệ tuyến tính giữa một biến phụ thuộc (Dependent Variable - Y) và nhiều biến độc lập (Independent Variables - X_i).</p>
-                    <p>Thuật toán Bình phương Tối thiểu Thông thường (OLS - Ordinary Least Squares) tìm cách tối thiểu hóa tổng bình phương phần dư (Sum of Squared Residuals) để tìm ra đường thẳng/siêu phẳng (Hyperplane) phù hợp nhất với dữ liệu. Yêu cầu của phương pháp này là không có hiện tượng <strong>Đa cộng tuyến (Multicollinearity)</strong> nghiêm trọng giữa các biến độc lập và phần dư phải có phân phối chuẩn đồng nhất (Homoscedasticity).</p>
+            <div class="space-y-10 text-slate-700 leading-relaxed">
+                <div class="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100">
+                    <h3 class="text-2xl font-black text-indigo-900 mb-4 flex items-center gap-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg> 1. Bản chất của mô hình Hồi quy Đa biến</h3>
+                    <p class="mb-3"><strong>Hồi quy Tuyến tính Đa biến (Multiple Regression)</strong> là phương pháp cốt lõi nhất khi thực hiện phân tích số liệu trên SPSS. Mục tiêu là đo lường mức độ tác động của các biến độc lập (X) lên một biến phụ thuộc (Y).</p>
                 </div>
-
-                <!-- Application -->
                 <div>
-                    <h3 class="text-xl font-black text-slate-900 mb-4 flex items-center gap-2"><span class="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center text-sm">2</span> Kịch Bản Nghiên Cứu Ứng Dụng</h3>
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                        <h4 class="font-bold text-slate-900 mb-2">Bối Cảnh (Context):</h4>
-                        <p class="mb-4">Khảo sát ảnh hưởng trực tiếp của 4 yếu tố: "Môi trường làm việc" (X1), "Lương thưởng" (X2), "Mối quan hệ đồng nghiệp" (X3), và "Chất lượng lãnh đạo" (X4) đến "Hiệu suất công việc" (Y) của nhân sự ngành IT.</p>
-                        <h4 class="font-bold text-slate-900 mb-2">Biện Luận Phương Pháp (Methodological Justification):</h4>
-                        <ul class="list-disc pl-5 space-y-2">
-                            <li><strong>Kiến trúc tác động đơn tầng (Single-level impact):</strong> Toàn bộ các biến độc lập tác động trực tiếp và song song lên một biến đích duy nhất, không có biến trung gian phức tạp. OLS là công cụ hoàn hảo, nhẹ và độ chính xác cao nhất cho kiến trúc này.</li>
-                            <li><strong>Phân tích tầm quan trọng (Importance Analysis):</strong> Hồi quy cung cấp Hệ số Beta chuẩn hóa (Standardized Beta Coefficients), giúp nhà quản lý xác định yếu tố nào (ví dụ: Lương hay Đồng nghiệp) có sức mạnh tác động lớn nhất để ưu tiên nguồn lực.</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Auto Pilot Workflow -->
-                <div>
-                    <h3 class="text-xl font-black text-slate-900 mb-4 flex items-center gap-2"><span class="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center text-sm">3</span> Quy Trình Thực Thi Liên Hoàn (Auto Pilot Workflow)</h3>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Các bước đọc kết quả phân tích hồi quy SPSS</h3>
                     <div class="space-y-4">
-                        <div class="flex gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                            <div class="shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-bold flex items-center justify-center">1</div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex gap-4 items-start">
+                            <div class="bg-blue-100 text-blue-600 font-bold px-3 py-1 rounded-lg shrink-0 mt-1">Bước 1</div>
                             <div>
-                                <h4 class="font-bold text-slate-900">Ma Trận Tương Quan Pearson (Correlation Matrix)</h4>
-                                <p class="text-sm mt-1">Đánh giá nhanh chiều hướng và sức mạnh tương quan tuyến tính (r) giữa các biến. Phát hiện sớm các cặp biến độc lập có hệ số tương quan r > 0.8 (nguy cơ đa cộng tuyến).</p>
+                                <h4 class="font-bold text-slate-900 text-lg">Đánh giá độ phù hợp của mô hình (ANOVA & R Square)</h4>
+                                <p class="text-sm mt-2"><strong>Sig. kiểm định F:</strong> Bắt buộc phải < 0.05. <br/><strong>R bình phương hiệu chỉnh:</strong> % sự biến thiên của biến phụ thuộc được giải thích bởi mô hình.</p>
                             </div>
                         </div>
-                        <div class="flex gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                            <div class="shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-bold flex items-center justify-center">2</div>
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex gap-4 items-start">
+                            <div class="bg-blue-100 text-blue-600 font-bold px-3 py-1 rounded-lg shrink-0 mt-1">Bước 2</div>
                             <div>
-                                <h4 class="font-bold text-slate-900">Kiểm định Sự phù hợp Toàn cục (ANOVA / F-test)</h4>
-                                <p class="text-sm mt-1">Hệ thống phân tích mô hình tổng quát (Model Summary) trả về Adjusted R-Square để đánh giá mô hình giải thích được bao nhiêu % sự biến thiên của Y. Nếu Sig. của kiểm định F &lt; 0.05, mô hình hồi quy hoàn toàn hợp lệ.</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                            <div class="shrink-0 w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 font-bold flex items-center justify-center">3</div>
-                            <div>
-                                <h4 class="font-bold text-slate-900">Trích xuất Hệ Số Beta & VIF (Coefficients Analysis)</h4>
-                                <p class="text-sm mt-1">Xuất bảng trọng số hồi quy để kiểm định t-test cho từng biến. Tự động kiểm soát hiện tượng Đa cộng tuyến thông qua Hệ số phóng đại phương sai (Variance Inflation Factor - VIF). Hệ thống sẽ cảnh báo đỏ nếu VIF > 5.0 (Field, 2013).</p>
+                                <h4 class="font-bold text-slate-900 text-lg">Diễn giải hệ số Beta và Đa cộng tuyến</h4>
+                                <p class="text-sm mt-2">Biến độc lập nào có <strong>Sig. < 0.05</strong> thì biến đó mới có tác động ý nghĩa thống kê. Khắc phục đa cộng tuyến: Giá trị <strong>VIF</strong> phải < 10 (tốt nhất là < 3).</p>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Reference -->
-                <div class="p-5 bg-slate-900 rounded-xl text-slate-300 text-sm mt-8 border-l-4 border-indigo-500">
-                    <strong class="text-white">📚 Trích Dẫn Khoa Học Chuẩn APA 7:</strong><br/>
-                    Field, A. (2013). <em>Discovering statistics using IBM SPSS statistics</em> (4th ed.). Sage publications.<br/>
-                    Wooldridge, J. M. (2015). <em>Introductory econometrics: A modern approach</em> (6th ed.). Cengage Learning.
+                <div class="p-6 bg-slate-900 rounded-2xl text-slate-300 text-sm mt-10 border-l-4 border-indigo-500 shadow-xl">
+                    <strong class="text-white text-base block mb-3">📚 Trích dẫn tham khảo chuẩn APA 7:</strong>
+                    <p>Field, A. (2013). <em>Discovering statistics using IBM SPSS statistics</em> (4th ed.). Sage publications.</p>
                 </div>
             </div>`
     },
     {
         slug: 'scenario-logistic',
         category: ['Research Scenarios', 'Impact Analysis'],
-        icon_name: 'Target',
-        title_vi: 'Kịch bản 4: Hồi quy Logistic (Phân loại Nhị phân)',
-        title_en: 'Scenario 4: Logistic Regression',
-        description_vi: 'Kịch bản phân tích đặc thù khi biến phụ thuộc là định danh nhị phân (Có/Không, Mua/Không Mua).',
+        icon_name: 'Binary',
+        title_vi: 'Kịch bản 4: Hồi quy Logistic Nhị phân',
+        title_en: 'Scenario 4: Binary Logistic Regression',
+        description_vi: 'Áp dụng hồi quy logistic nhị phân trên SPSS để dự báo xác suất và ra quyết định. Phân tích tác động thông qua hệ số Odds Ratio.',
         content_vi: `
-            <div class="space-y-8 text-slate-700 leading-relaxed">
-                <!-- Header Insight -->
-                <div class="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100">
-                    <h3 class="text-xl font-black text-indigo-900 mb-2">1. Cơ Sở Khoa Học (Theoretical Foundation)</h3>
-                    <p class="mb-3">Khi biến phụ thuộc (Dependent Variable) không phải là thang đo định lượng liên tục mà là một quyết định phân loại nhị phân (Ví dụ: Có/Không, Sống/Chết, Vỡ nợ/Không vỡ nợ), Hồi quy OLS tuyến tính sẽ thất bại và đưa ra các dự báo vô lý (ngoài khoảng 0-1).</p>
-                    <p><strong>Hồi quy Logistic Nhị phân (Binary Logistic Regression)</strong> là giải pháp chuẩn mực. Phương pháp này áp dụng hàm Sigmoid để chuyển đổi (transform) các giá trị dự báo vào khoảng 0 đến 1, biểu diễn xác suất xảy ra sự kiện. Nó tối đa hóa hàm Likelihood (Maximum Likelihood Estimation - MLE) thay vì tối thiểu hóa phần dư. Kết quả trung tâm là <strong>Odds Ratio (Tỷ số chênh lệch - Exp(B))</strong>.</p>
+            <div class="space-y-10 text-slate-700 leading-relaxed">
+                <div class="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100">
+                    <h3 class="text-2xl font-black text-indigo-900 mb-4">1. Đặc điểm của Hồi quy Logistic Nhị phân</h3>
+                    <p class="mb-4">Hồi quy Logistic không dự báo trực tiếp giá trị của biến phụ thuộc, mà dự báo <strong>Xác suất (Probability)</strong> xảy ra sự kiện đó (ví dụ: Mua hay Không mua).</p>
                 </div>
-
-                <!-- Application -->
                 <div>
-                    <h3 class="text-xl font-black text-slate-900 mb-4 flex items-center gap-2"><span class="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center text-sm">2</span> Kịch Bản Nghiên Cứu Ứng Dụng</h3>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Đọc hệ số Odds Ratio (Exp(B))</h3>
                     <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                        <h4 class="font-bold text-slate-900 mb-2">Bối Cảnh (Context):</h4>
-                        <p class="mb-4">Bộ phận Marketing của một ngân hàng cần dự đoán khả năng "Mở thẻ tín dụng" (1 = Mở, 0 = Không mở) dựa trên hồ sơ khách hàng: "Thu nhập hàng tháng" (X1 - liên tục), "Lịch sử nợ xấu" (X2 - phân loại), và "Số năm giao dịch" (X3).</p>
-                        <h4 class="font-bold text-slate-900 mb-2">Biện Luận Phương Pháp (Methodological Justification):</h4>
-                        <ul class="list-disc pl-5 space-y-2">
-                            <li><strong>Phân loại nhị phân (Binary Classification):</strong> Yêu cầu nghiên cứu không phải là đo lường cường độ, mà là dự báo chính xác một trong hai hành vi. Logistic Regression cho phép kết hợp hoàn hảo cả biến độc lập định lượng (Thu nhập) và định tính (Lịch sử nợ xấu) trong cùng một phương trình.</li>
-                            <li><strong>Ý nghĩa kinh doanh thực tiễn:</strong> Odds Ratio cung cấp góc nhìn cực kỳ thực tiễn: "Khách hàng thu nhập trên 30 triệu có xác suất (odds) mở thẻ cao gấp 4.5 lần nhóm dưới 15 triệu".</li>
+                        <ul class="space-y-3 text-sm">
+                            <li><span class="font-bold text-teal-600">Exp(B) > 1:</span> Tác động thuận chiều. Khả năng xảy ra sự kiện Y=1 sẽ tăng gấp Exp(B) lần khi X tăng.</li>
+                            <li><span class="font-bold text-teal-600">Exp(B) < 1:</span> Tác động ngược chiều.</li>
                         </ul>
                     </div>
-                </div>
-
-                <!-- Auto Pilot Workflow -->
-                <div>
-                    <h3 class="text-xl font-black text-slate-900 mb-4 flex items-center gap-2"><span class="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center text-sm">3</span> Quy Trình Thực Thi Liên Hoàn (Auto Pilot Workflow)</h3>
-                    <div class="space-y-4">
-                        <div class="flex gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                            <div class="shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-bold flex items-center justify-center">1</div>
-                            <div>
-                                <h4 class="font-bold text-slate-900">Mã hóa Dữ liệu Tự động (Dummy Encoding)</h4>
-                                <p class="text-sm mt-1">Hệ thống phân tích bản chất các biến, tự động thiết lập biến giả (Dummy variable) cho các biến định danh nhiều nhóm. Đảm bảo biến phụ thuộc được ánh xạ chặt chẽ thành 0 (Reference) và 1 (Target Event).</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                            <div class="shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-bold flex items-center justify-center">2</div>
-                            <div>
-                                <h4 class="font-bold text-slate-900">Ước lượng Mô Hình và Phù Hợp (Model Fit Analysis)</h4>
-                                <p class="text-sm mt-1">Chạy mô hình Block 0 (chưa có biến độc lập) và Block 1 (có biến độc lập) để so sánh chỉ số -2 Log Likelihood. Tính toán Cox & Snell R-square và Nagelkerke R-square để xác định độ mạnh của mô hình.</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                            <div class="shrink-0 w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 font-bold flex items-center justify-center">3</div>
-                            <div>
-                                <h4 class="font-bold text-slate-900">Phân tích Hệ Số Exp(B) và Confusion Matrix</h4>
-                                <p class="text-sm mt-1">Giải nghĩa chỉ số Odds Ratio (Exp B) để tìm ra những nhân tố có đòn bẩy dự báo mạnh nhất. Khởi tạo Ma trận Nhầm lẫn (Confusion Matrix) để đánh giá tỷ lệ dự báo đúng tổng thể (Overall Percentage Accuracy).</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Reference -->
-                <div class="p-5 bg-slate-900 rounded-xl text-slate-300 text-sm mt-8 border-l-4 border-indigo-500">
-                    <strong class="text-white">📚 Trích Dẫn Khoa Học Chuẩn APA 7:</strong><br/>
-                    Hosmer Jr, D. W., Lemeshow, S., & Sturdivant, R. X. (2013). <em>Applied logistic regression</em> (Vol. 398). John Wiley & Sons.
                 </div>
             </div>`
     },
     {
         slug: 'scenario-compare',
-        category: ['Research Scenarios', 'Comparison Analysis'],
-        icon_name: 'Activity',
-        title_vi: 'Kịch bản 5: So sánh Nhóm (T-Test & ANOVA)',
-        title_en: 'Scenario 5: Group Comparison (T-Test & ANOVA)',
-        description_vi: 'Kịch bản tự động phân luồng kiểm định sự khác biệt về giá trị trung bình giữa các nhóm nhân khẩu học.',
+        category: ['Research Scenarios', 'Comparative Analysis'],
+        icon_name: 'GitCompare',
+        title_vi: 'Kịch bản 5: So sánh Khác biệt (T-test & ANOVA)',
+        title_en: 'Scenario 5: Mean Differences (T-test & ANOVA)',
+        description_vi: 'Hướng dẫn kiểm định Independent T-test và One-way ANOVA trên SPSS. Phương pháp phân tích sự khác biệt trung bình.',
         content_vi: `
-            <div class="space-y-8 text-slate-700 leading-relaxed">
-                <!-- Header Insight -->
-                <div class="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100">
-                    <h3 class="text-xl font-black text-indigo-900 mb-2">1. Cơ Sở Khoa Học (Theoretical Foundation)</h3>
-                    <p class="mb-3">Kiểm định khác biệt giá trị trung bình (Mean Comparison) là xương sống của phương pháp thực nghiệm và khảo sát để phân tích ảnh hưởng của nhân khẩu học (Demographics) hoặc các can thiệp (Interventions).</p>
-                    <p>Hai công cụ thống kê vô hướng cơ bản nhất là <strong>Independent Samples T-Test</strong> (áp dụng khi biến độc lập phân nhóm chỉ có ĐÚNG 2 cấp độ như Nam/Nữ) và <strong>One-way ANOVA (Phân tích Phương sai một yếu tố)</strong> (áp dụng khi biến phân nhóm có TỪ 3 cấp độ trở lên). Cả hai phương pháp đều dựa trên kiểm định thống kê F hoặc t để so sánh phương sai giữa các nhóm (Between-group Variance) so với phương sai trong nội bộ nhóm (Within-group Variance).</p>
+            <div class="space-y-10 text-slate-700 leading-relaxed">
+                <div class="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100">
+                    <h3 class="text-2xl font-black text-indigo-900 mb-4">1. Phương pháp Kiểm định Khác biệt Nhóm</h3>
+                    <p class="mb-4">Sử dụng <strong>Independent T-Test</strong> cho 2 nhóm (Nam/Nữ) và <strong>ANOVA</strong> cho 3 nhóm trở lên (Độ tuổi).</p>
                 </div>
-
-                <!-- Application -->
                 <div>
-                    <h3 class="text-xl font-black text-slate-900 mb-4 flex items-center gap-2"><span class="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center text-sm">2</span> Kịch Bản Nghiên Cứu Ứng Dụng</h3>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Hướng dẫn đọc kết quả</h3>
                     <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                        <h4 class="font-bold text-slate-900 mb-2">Bối Cảnh (Context):</h4>
-                        <p class="mb-4">Trong một báo cáo nghiên cứu thị trường F&B (Fast Food), nhà quản lý muốn biết: <br/>1. Nam và Nữ có sự khác biệt về "Mức độ sẵn sàng chi trả" không? <br/>2. Các nhóm Thu nhập (&lt;10tr, 10-20tr, &gt;20tr) có sự khác biệt về "Sự trung thành với thương hiệu" không?</p>
-                        <h4 class="font-bold text-slate-900 mb-2">Biện Luận Phương Pháp (Methodological Justification):</h4>
-                        <ul class="list-disc pl-5 space-y-2">
-                            <li><strong>Phân luồng thông minh:</strong> Câu hỏi (1) rõ ràng yêu cầu T-test vì Giới tính chỉ có 2 nhóm định danh. Trong khi câu hỏi (2) có 3 cấp độ thu nhập, bắt buộc phải dùng ANOVA để tránh việc làm phình sai số loại I (Type I Error) nếu cứ cố tình chạy 3 cái T-test riêng biệt.</li>
+                        <ul class="space-y-3 text-sm">
+                            <li><strong>Levene's Test:</strong> Kiểm tra phương sai đồng nhất.</li>
+                            <li><strong>Sig. T-test / ANOVA:</strong> Nếu < 0.05, có sự khác biệt có ý nghĩa thống kê giữa các nhóm.</li>
                         </ul>
                     </div>
-                </div>
-
-                <!-- Auto Pilot Workflow -->
-                <div>
-                    <h3 class="text-xl font-black text-slate-900 mb-4 flex items-center gap-2"><span class="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center text-sm">3</span> Quy Trình Thực Thi Liên Hoàn (Auto Pilot Workflow)</h3>
-                    <p class="mb-4">Hệ thống <strong>NCSKit Engine</strong> trang bị cơ chế tự chẩn đoán (Auto-diagnostics) để hoàn toàn loại bỏ sai sót của người dùng:</p>
-                    <div class="space-y-4">
-                        <div class="flex gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                            <div class="shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-bold flex items-center justify-center">1</div>
-                            <div>
-                                <h4 class="font-bold text-slate-900">Quét & Nhận Diện Hình Thái Dữ Liệu</h4>
-                                <p class="text-sm mt-1">Đếm số lượng categories của biến phân loại. Tự động định tuyến (Routing): 2 nhóm -> Kích hoạt Pipeline T-test; ≥3 nhóm -> Kích hoạt Pipeline ANOVA.</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                            <div class="shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-bold flex items-center justify-center">2</div>
-                            <div>
-                                <h4 class="font-bold text-slate-900">Kiểm định Phương Sai Đồng Nhất (Levene's Test)</h4>
-                                <p class="text-sm mt-1">Luôn chạy Levene's Test trước. Nếu p > 0.05 (phương sai đồng nhất), hệ thống dùng ANOVA/T-test chuẩn. Nếu p &lt; 0.05, hệ thống tự động chuyển sang kiểm định kháng nhiễu (Welch's t-test hoặc Welch's ANOVA) cực kỳ chặt chẽ.</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                            <div class="shrink-0 w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 font-bold flex items-center justify-center">3</div>
-                            <div>
-                                <h4 class="font-bold text-slate-900">Kiểm Định Hậu Định (Post-Hoc Analysis)</h4>
-                                <p class="text-sm mt-1">Nếu có khác biệt ý nghĩa trong ANOVA (p &lt; 0.05), tự động kích hoạt kiểm định Tukey HSD để liệt kê chính xác cặp nhóm nào tạo ra sự khác biệt (Vd: Khác biệt chỉ xảy ra giữa nhóm &lt;10tr và &gt;20tr).</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Reference -->
-                <div class="p-5 bg-slate-900 rounded-xl text-slate-300 text-sm mt-8 border-l-4 border-indigo-500">
-                    <strong class="text-white">📚 Trích Dẫn Khoa Học Chuẩn APA 7:</strong><br/>
-                    Gastwirth, J. L., Gel, Y. R., & Miao, W. (2009). The impact of Levene's test of equality of variances on statistical theory and practice. <em>Statistical Science</em>, 24(3), 343-360.
                 </div>
             </div>`
     },
     {
         slug: 'scenario-scale',
-        category: ['Research Scenarios', 'Factor Analysis'],
-        icon_name: 'CheckCircle2',
-        title_vi: 'Kịch bản 6: Phát triển Thang đo (EFA & CFA)',
-        title_en: 'Scenario 6: Scale Development & Validation',
-        description_vi: 'Kịch bản thẩm định chất lượng bộ câu hỏi (thang đo) thông qua sự kết hợp của EFA và CFA để loại bỏ biến rác và khẳng định cấu trúc hội tụ/phân biệt.',
+        category: ['Research Scenarios', 'Measurement Validation'],
+        icon_name: 'Target',
+        title_vi: 'Kịch bản 6: Thẩm định Thang đo (Cronbach\'s Alpha & EFA)',
+        title_en: 'Scenario 6: Scale Validation (Cronbach\'s Alpha & EFA)',
+        description_vi: 'Hướng dẫn chạy kiểm định độ tin cậy thang đo Cronbach Alpha và phân tích nhân tố khám phá EFA.',
         content_vi: `
-            <div class="space-y-8 text-slate-700 leading-relaxed">
-                <!-- Header Insight -->
-                <div class="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100">
-                    <h3 class="text-xl font-black text-indigo-900 mb-2">1. Cơ Sở Khoa Học (Theoretical Foundation)</h3>
-                    <p class="mb-3">Phát triển và thẩm định thang đo (Scale Development & Validation) là quy trình sống còn để chứng minh chất lượng của dữ liệu định lượng, đảm bảo rằng các câu hỏi khảo sát thực sự đo lường đúng hiện tượng cần nghiên cứu.</p>
-                    <p>Khung phân tích tiêu chuẩn bao gồm hai bước lớn: Khám phá cấu trúc tiềm ẩn thông qua <strong>Phân tích nhân tố khám phá (Exploratory Factor Analysis - EFA)</strong> để nhóm các biến quan sát (items) có tương quan mạnh với nhau; tiếp theo là xác nhận độ tinh gọn và chặt chẽ của cấu trúc này bằng <strong>Phân tích nhân tố khẳng định (Confirmatory Factor Analysis - CFA)</strong> nhằm xác thực tính Hội tụ (Convergent Validity) và Phân biệt (Discriminant Validity).</p>
+            <div class="space-y-10 text-slate-700 leading-relaxed">
+                <div class="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100">
+                    <h3 class="text-2xl font-black text-indigo-900 mb-4">1. Quy tắc đọc kết quả (Rules of Thumb)</h3>
+                    <p class="mb-4">Đánh giá mô hình đo lường là bước đi đầu tiên trong mọi luận văn định lượng.</p>
                 </div>
-
-                <!-- Application -->
-                <div>
-                    <h3 class="text-xl font-black text-slate-900 mb-4 flex items-center gap-2"><span class="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center text-sm">2</span> Kịch Bản Nghiên Cứu Ứng Dụng</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-                        <h4 class="font-bold text-slate-900 mb-2">Bối Cảnh (Context):</h4>
-                        <p class="mb-4">Bạn biên dịch và hiệu chỉnh lại bộ thang đo "Áp lực học tập tâm lý" từ một bài báo Mỹ, bổ sung thêm 5 câu hỏi mới cho phù hợp bối cảnh văn hóa sinh viên Việt Nam, tổng cộng gồm 25 biến quan sát (items) thuộc 5 khía cạnh.</p>
-                        <h4 class="font-bold text-slate-900 mb-2">Biện Luận Phương Pháp (Methodological Justification):</h4>
-                        <ul class="list-disc pl-5 space-y-2">
-                            <li>Vì thang đo đã bị can thiệp (dịch thuật, sửa đổi, bổ sung items), bạn không thể áp dụng mù quáng lý thuyết gốc. Bạn phải chạy EFA để "lọc" các items gây nhiễu, sau đó chạy CFA để kiểm tra chỉ số độ phù hợp (Model fit) trước khi mang bộ số liệu này đi hồi quy hoặc bảo vệ luận văn.</li>
+                        <h4 class="font-bold text-slate-900 mb-4 border-b pb-2 text-lg">Cronbach's Alpha</h4>
+                        <ul class="space-y-3 text-sm">
+                            <li><strong>Hệ số tổng:</strong> > 0.70.</li>
+                            <li><strong>Tương quan biến - tổng:</strong> > 0.30 (Nếu < 0.30 phải loại bỏ biến).</li>
+                        </ul>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <h4 class="font-bold text-slate-900 mb-4 border-b pb-2 text-lg">EFA</h4>
+                        <ul class="space-y-3 text-sm">
+                            <li><strong>KMO:</strong> > 0.50.</li>
+                            <li><strong>Tổng phương sai trích:</strong> > 50%.</li>
+                            <li><strong>Hệ số tải nhân tố:</strong> > 0.50.</li>
                         </ul>
                     </div>
                 </div>
+            </div>`
+    },
 
-                <!-- Auto Pilot Workflow -->
+    // ==========================================
+    // THEORIES SECTION
+    // ==========================================
+    {
+        slug: 'technology-acceptance-model-tam',
+        category: ['Theories', 'Information Systems'],
+        icon_name: 'MonitorSmartphone',
+        title_vi: 'Mô hình Chấp nhận Công nghệ (TAM)',
+        title_en: 'Technology Acceptance Model (TAM)',
+        description_vi: 'Mô hình kinh điển trong nghiên cứu hành vi ứng dụng công nghệ thông tin. Lý thuyết cốt lõi để vẽ mô hình TAM trong luận văn thạc sĩ.',
+        content_vi: `
+            <div class="space-y-10 text-slate-700 leading-relaxed">
+                <div class="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100">
+                    <h3 class="text-2xl font-black text-indigo-900 mb-4">1. Nguồn gốc Lý thuyết TAM</h3>
+                    <p class="mb-4">Mô hình <strong>Chấp nhận Công nghệ (TAM - Technology Acceptance Model)</strong> do Fred Davis đề xuất vào năm 1989 là một trong những khung lý thuyết có tầm ảnh hưởng lớn nhất trên toàn cầu khi nghiên cứu về hành vi ứng dụng Công nghệ Thông tin (CNTT).</p>
+                    <p>Trong thời đại chuyển đổi số hiện nay, các sinh viên làm luận văn thạc sĩ thường xuyên sử dụng TAM để giải thích lý do tại sao người dùng (khách hàng, nhân viên) lại chấp nhận hoặc từ chối sử dụng một hệ thống phần mềm, ứng dụng di động, hoặc công nghệ AI mới.</p>
+                </div>
                 <div>
-                    <h3 class="text-xl font-black text-slate-900 mb-4 flex items-center gap-2"><span class="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center text-sm">3</span> Quy Trình Thực Thi Liên Hoàn (Auto Pilot Workflow)</h3>
-                    <div class="space-y-4">
-                        <div class="flex gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                            <div class="shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-bold flex items-center justify-center">1</div>
-                            <div>
-                                <h4 class="font-bold text-slate-900">Sàng Lọc Sơ Bộ bằng Cronbach's Alpha</h4>
-                                <p class="text-sm mt-1">Đánh giá tính nhất quán (Internal Consistency). Nhận diện các biến có hệ số Tương quan biến tổng (Corrected Item-Total Correlation) &lt; 0.3 để cảnh báo loại bỏ sớm.</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                            <div class="shrink-0 w-8 h-8 rounded-full bg-blue-100 text-blue-600 font-bold flex items-center justify-center">2</div>
-                            <div>
-                                <h4 class="font-bold text-slate-900">Trích xuất Cấu Trúc Khám Phá (EFA Matrix)</h4>
-                                <p class="text-sm mt-1">Áp dụng kiểm định KMO (&gt;0.5) và Bartlett's Test. Sử dụng phương pháp trích PCA hoặc PAF kết hợp phép xoay Promax/Varimax. Hệ thống tự động làm nổi bật (highlight) hiện tượng tải chéo (Cross-loadings) để người dùng dễ nhận diện các biến xấu.</p>
-                            </div>
-                        </div>
-                        <div class="flex gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
-                            <div class="shrink-0 w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 font-bold flex items-center justify-center">3</div>
-                            <div>
-                                <h4 class="font-bold text-slate-900">Khẳng Định Tuyệt Đối (Confirmatory Factor Analysis)</h4>
-                                <p class="text-sm mt-1">Xây dựng ma trận CFA dựa trên kết quả EFA. Đo lường chính xác các chỉ số như Chi-square/df, RMSEA, CFI. Cung cấp Modification Indices (MI) để gợi ý vẽ liên kết hiệp phương sai giữa các phần dư (Covariance of Errors) nhằm tối ưu độ phù hợp mô hình.</p>
-                            </div>
-                        </div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Cấu trúc Nhân tố cốt lõi của TAM</h3>
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-6">
+                        <ul class="space-y-4 text-sm">
+                            <li class="bg-slate-50 p-4 rounded-lg border border-slate-100"><strong>Nhận thức sự hữu ích (Perceived Usefulness - PU):</strong> Mức độ mà một cá nhân tin rằng việc sử dụng một hệ thống cụ thể sẽ nâng cao hiệu suất làm việc của họ. Đây là nhân tố dự báo mạnh mẽ nhất cho Ý định sử dụng.</li>
+                            <li class="bg-slate-50 p-4 rounded-lg border border-slate-100"><strong>Nhận thức tính dễ sử dụng (Perceived Ease of Use - PEOU):</strong> Mức độ mà cá nhân tin rằng việc sử dụng hệ thống sẽ không tốn nhiều nỗ lực học hỏi. PEOU có tác động trực tiếp đến PU.</li>
+                            <li class="bg-slate-50 p-4 rounded-lg border border-slate-100"><strong>Ý định hành vi (Behavioral Intention - BI):</strong> Quyết định chủ quan của người dùng về việc sẽ sử dụng công nghệ trong tương lai.</li>
+                        </ul>
                     </div>
                 </div>
-
-                <!-- Reference -->
-                <div class="p-5 bg-slate-900 rounded-xl text-slate-300 text-sm mt-8 border-l-4 border-indigo-500">
-                    <strong class="text-white">📚 Trích Dẫn Khoa Học Chuẩn APA 7:</strong><br/>
-                    DeVellis, R. F. (2016). <em>Scale development: Theory and applications</em> (4th ed.). Sage publications.<br/>
-                    Brown, T. A. (2015). <em>Confirmatory factor analysis for applied research</em> (2nd ed.). Guilford publications.
+                <div class="p-6 bg-slate-900 rounded-2xl text-slate-300 text-sm mt-10 border-l-4 border-indigo-500 shadow-xl">
+                    <strong class="text-white text-base block mb-3">📚 Trích dẫn tham khảo chuẩn APA 7:</strong>
+                    <p>Davis, F. D. (1989). Perceived usefulness, perceived ease of use, and user acceptance of information technology. <em>MIS quarterly</em>, 319-340.</p>
                 </div>
             </div>`
     },
     {
-        slug: 'cronbach-alpha',
-        category: ['Preliminary Analysis'],
-        icon_name: 'Brain',
-        title_vi: 'Cronbach\'s Alpha Masterclass: Từ Cơ bản đến Chuyên gia',
-        title_en: 'Cronbach\'s Alpha Masterclass: From Basics to Expert'
-    },
-    {
-        slug: 'technology-acceptance-model-tam',
-        category: ['Research Models'],
-        icon_name: 'TrendingUp',
-        title_vi: 'Mô hình Chấp nhận Công nghệ (TAM): Hướng dẫn Chuyên sâu',
-        title_en: 'Technology Acceptance Model (TAM): The Ultimate Guide'
-    },
-    {
         slug: 'theory-of-planned-behavior-tpb',
-        category: ['Behavioral Research'],
+        category: ['Theories', 'Psychology'],
         icon_name: 'Brain',
-        title_vi: 'Thuyết Hành vi Dự định (TPB): Chìa khóa giải mã Ý định',
-        title_en: 'Theory of Planned Behavior (TPB): Decoding Intentions'
+        title_vi: 'Thuyết Hành vi Dự định (TPB)',
+        title_en: 'Theory of Planned Behavior (TPB)',
+        description_vi: 'Thuyết Hành vi Dự định (TPB) giải thích ý định thực hiện hành vi thông qua 3 yếu tố: Thái độ, Chuẩn chủ quan và Nhận thức kiểm soát hành vi.',
+        content_vi: `
+            <div class="space-y-10 text-slate-700 leading-relaxed">
+                <div class="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100">
+                    <h3 class="text-2xl font-black text-indigo-900 mb-4">1. Khái quát về Mô hình nghiên cứu TPB</h3>
+                    <p class="mb-4"><strong>Thuyết Hành vi Dự định (Theory of Planned Behavior - TPB)</strong> được Icek Ajzen phát triển (1991) là bản nâng cấp từ Thuyết Hành động Hợp lý (TRA). TPB được giới nghiên cứu học thuật đánh giá cao vì nó đã bổ sung thêm nhân tố "Nhận thức kiểm soát hành vi" để khắc phục điểm yếu của TRA trong việc giải thích những hành vi mà con người không hoàn toàn có khả năng kiểm soát chủ động.</p>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Ba trụ cột của TPB</h3>
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <ul class="space-y-4 text-sm">
+                            <li class="p-3 border-b"><strong>Thái độ đối với hành vi (Attitude):</strong> Đánh giá tích cực hoặc tiêu cực của cá nhân đối với việc thực hiện hành vi.</li>
+                            <li class="p-3 border-b"><strong>Chuẩn chủ quan (Subjective Norm):</strong> Áp lực xã hội cảm nhận được từ những người quan trọng xung quanh (gia đình, bạn bè) về việc nên hay không nên thực hiện hành vi.</li>
+                            <li class="p-3 border-b"><strong>Nhận thức kiểm soát hành vi (Perceived Behavioral Control):</strong> Niềm tin của cá nhân về sự dễ dàng hay khó khăn khi thực hiện hành vi (phản ánh trải nghiệm trong quá khứ và các rào cản dự kiến).</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="p-6 bg-slate-900 rounded-2xl text-slate-300 text-sm mt-10 border-l-4 border-indigo-500 shadow-xl">
+                    <strong class="text-white text-base block mb-3">📚 Trích dẫn tham khảo chuẩn APA 7:</strong>
+                    <p>Ajzen, I. (1991). The theory of planned behavior. <em>Organizational behavior and human decision processes</em>, 50(2), 179-211.</p>
+                </div>
+            </div>`
     },
     {
         slug: 'servqual-service-quality-model',
-        category: ['Marketing Research'],
-        icon_name: 'Layers',
-        title_vi: 'Mô hình SERVQUAL: Đo lường Chất lượng Dịch vụ',
-        title_en: 'SERVQUAL: Measuring Service Quality'
+        category: ['Theories', 'Marketing'],
+        icon_name: 'Star',
+        title_vi: 'Mô hình Chất lượng Dịch vụ (SERVQUAL)',
+        title_en: 'Service Quality Model (SERVQUAL)',
+        description_vi: 'Tìm hiểu thang đo SERVQUAL với 5 thành phần cốt lõi: Tin cậy, Đáp ứng, Đảm bảo, Đồng cảm, và Hữu hình trong nghiên cứu sự hài lòng khách hàng.',
+        content_vi: `
+            <div class="space-y-10 text-slate-700 leading-relaxed">
+                <div class="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100">
+                    <h3 class="text-2xl font-black text-indigo-900 mb-4">1. Thang đo SERVQUAL là gì?</h3>
+                    <p class="mb-4">Mô hình <strong>SERVQUAL</strong> (kết hợp từ "Service" và "Quality") được Parasuraman, Zeithaml và Berry phát triển vào năm 1988. Đây là thang đo chuẩn mực nhất để đo lường khoảng cách giữa "Kỳ vọng" của khách hàng và "Cảm nhận thực tế" của họ sau khi trải nghiệm dịch vụ.</p>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> 5 Thành phần của Mô hình SERVQUAL</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-white p-4 rounded-xl border border-slate-200"><strong>1. Độ tin cậy (Reliability):</strong> Khả năng cung cấp dịch vụ chính xác, đúng hạn như đã hứa hẹn.</div>
+                        <div class="bg-white p-4 rounded-xl border border-slate-200"><strong>2. Độ đáp ứng (Responsiveness):</strong> Sự sẵn sàng giúp đỡ khách hàng và cung cấp dịch vụ kịp thời.</div>
+                        <div class="bg-white p-4 rounded-xl border border-slate-200"><strong>3. Năng lực phục vụ (Assurance):</strong> Kiến thức, kỹ năng và thái độ tạo sự tin tưởng của nhân viên.</div>
+                        <div class="bg-white p-4 rounded-xl border border-slate-200"><strong>4. Sự đồng cảm (Empathy):</strong> Mức độ quan tâm, chăm sóc cá nhân hóa dành cho khách hàng.</div>
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 md:col-span-2"><strong>5. Phương tiện hữu hình (Tangibles):</strong> Cơ sở vật chất, trang thiết bị, diện mạo nhân viên và tài liệu truyền thông.</div>
+                    </div>
+                </div>
+            </div>`
     },
     {
         slug: 'utaut-technology-adoption',
-        category: ['Research Models'],
-        icon_name: 'Zap',
-        title_vi: 'Thuyết Hợp nhất Chấp nhận Công nghệ (UTAUT)',
-        title_en: 'UTAUT: Unified Technology Acceptance'
+        category: ['Theories', 'Information Systems'],
+        icon_name: 'Cpu',
+        title_vi: 'Mô hình Chấp nhận và Sử dụng Công nghệ (UTAUT)',
+        title_en: 'Unified Theory of Acceptance and Use of Technology',
+        description_vi: 'Thuyết UTAUT hợp nhất 8 mô hình lý thuyết hành vi, lý giải ý định sử dụng công nghệ thông qua Kỳ vọng hiệu quả, Kỳ vọng nỗ lực và Ảnh hưởng xã hội.',
+        content_vi: `
+            <div class="space-y-10 text-slate-700 leading-relaxed">
+                <div class="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100">
+                    <h3 class="text-2xl font-black text-indigo-900 mb-4">1. Tính ưu việt của mô hình nghiên cứu UTAUT</h3>
+                    <p class="mb-4">Phát triển bởi Venkatesh et al. (2003), <strong>UTAUT</strong> là một nỗ lực nhằm tổng hợp và thống nhất 8 mô hình lý thuyết nổi bật (bao gồm TAM, TPB, TRA) về sự chấp nhận công nghệ. UTAUT có khả năng giải thích tới 70% phương sai của ý định hành vi, cao hơn rất nhiều so với TAM (chỉ khoảng 40%).</p>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Bốn biến định lượng chính trong UTAUT</h3>
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <ul class="space-y-4 text-sm">
+                            <li class="p-3 border-b"><strong>Kỳ vọng hiệu quả (Performance Expectancy):</strong> Sự tin tưởng rằng hệ thống sẽ giúp đạt được hiệu suất công việc cao hơn.</li>
+                            <li class="p-3 border-b"><strong>Kỳ vọng nỗ lực (Effort Expectancy):</strong> Mức độ dễ dàng khi sử dụng hệ thống.</li>
+                            <li class="p-3 border-b"><strong>Ảnh hưởng xã hội (Social Influence):</strong> Mức độ cá nhân nhận thức được rằng những người quan trọng khác tin rằng họ nên sử dụng hệ thống mới.</li>
+                            <li class="p-3 border-b"><strong>Điều kiện thuận lợi (Facilitating Conditions):</strong> Mức độ cá nhân tin rằng có sự hỗ trợ về mặt tổ chức và hạ tầng kỹ thuật để sử dụng hệ thống.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>`
     },
     {
         slug: 'porter-five-forces-analysis',
-        category: ['Market Strategy'],
-        icon_name: 'ShieldCheck',
-        title_vi: 'Mô hình 5 Áp lực Cạnh tranh (Michael Porter)',
-        title_en: 'Porter\'s Five Forces Analysis'
+        category: ['Theories', 'Strategy'],
+        icon_name: 'Shield',
+        title_vi: 'Mô hình 5 Áp lực Cạnh tranh của Porter',
+        title_en: 'Porter\'s Five Forces',
+        description_vi: 'Áp dụng Mô hình 5 áp lực cạnh tranh của Michael Porter trong phân tích môi trường vi mô và hoạch định chiến lược kinh doanh.',
+        content_vi: `
+            <div class="space-y-10 text-slate-700 leading-relaxed">
+                <div class="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100">
+                    <h3 class="text-2xl font-black text-indigo-900 mb-4">1. Khung phân tích chiến lược của Michael Porter</h3>
+                    <p class="mb-4">Ra đời năm 1979 tại Trường Kinh doanh Harvard, mô hình <strong>5 Áp lực cạnh tranh</strong> giúp nhà quản trị phân tích sức hấp dẫn (khả năng sinh lời) của một ngành công nghiệp. Không chỉ trong kinh doanh, đây là khung lý thuyết bắt buộc trong các luận văn thạc sĩ quản trị kinh doanh (MBA) khi đề xuất giải pháp chiến lược.</p>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Giải phẫu 5 Áp lực</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-white p-4 rounded-xl border border-slate-200"><strong>1. Đối thủ cạnh tranh hiện tại (Industry Rivalry):</strong> Mức độ khốc liệt của cuộc chiến giành thị phần giữa các doanh nghiệp đang có mặt trên thị trường.</div>
+                        <div class="bg-white p-4 rounded-xl border border-slate-200"><strong>2. Nguy cơ từ đối thủ tiềm ẩn (Threat of New Entrants):</strong> Rào cản gia nhập ngành cao hay thấp (vốn, bản quyền, quy mô).</div>
+                        <div class="bg-white p-4 rounded-xl border border-slate-200"><strong>3. Đe dọa từ sản phẩm thay thế (Threat of Substitutes):</strong> Các sản phẩm từ ngành khác nhưng có chung chức năng giải quyết nhu cầu của khách hàng.</div>
+                        <div class="bg-white p-4 rounded-xl border border-slate-200"><strong>4. Quyền lực thương lượng của Nhà cung cấp (Bargaining Power of Suppliers):</strong> Khả năng ép giá từ các nhà cung cấp nguyên vật liệu độc quyền.</div>
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 md:col-span-2"><strong>5. Quyền lực thương lượng của Khách hàng (Bargaining Power of Buyers):</strong> Quyền lực ép giá của khách hàng dựa trên khối lượng mua và độ nhạy cảm về giá.</div>
+                    </div>
+                </div>
+            </div>`
     },
     {
         slug: 'vrio-framework-strategy',
-        category: ['Market Strategy'],
-        icon_name: 'Layers',
-        title_vi: 'Khung VRIO: Đánh giá Nguồn lực nội tại',
-        title_en: 'VRIO Framework: Assessing Internal Resources'
+        category: ['Theories', 'Strategy'],
+        icon_name: 'Gem',
+        title_vi: 'Mô hình Lợi thế Cạnh tranh VRIO',
+        title_en: 'VRIO Framework',
+        description_vi: 'Phân tích tài nguyên nội bộ doanh nghiệp bằng khung VRIO: Value, Rarity, Inimitability, và Organization để tạo lợi thế cạnh tranh bền vững.',
+        content_vi: `
+            <div class="space-y-10 text-slate-700 leading-relaxed">
+                <div class="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100">
+                    <h3 class="text-2xl font-black text-indigo-900 mb-4">1. Năng lực cốt lõi theo góc nhìn VRIO</h3>
+                    <p class="mb-4">Được Jay B. Barney hoàn thiện vào năm 1991, khung <strong>VRIO</strong> là một công cụ chẩn đoán chiến lược xuất phát từ quan điểm Dựa trên nguồn lực (Resource-Based View). Nó đánh giá liệu các nguồn lực và năng lực bên trong của công ty có thể đem lại lợi thế cạnh tranh bền vững hay không.</p>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3"><span class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-lg shadow-md">2</span> Đánh giá qua lăng kính 4 câu hỏi</h3>
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <ul class="space-y-4 text-sm">
+                            <li class="p-3 border-b"><strong>Value (Có giá trị không?):</strong> Nguồn lực có giúp công ty khai thác cơ hội hoặc vô hiệu hóa các mối đe dọa không?</li>
+                            <li class="p-3 border-b"><strong>Rarity (Có hiếm không?):</strong> Có nhiều đối thủ sở hữu nguồn lực tương tự không? Nếu không hiếm, công ty chỉ đạt được bình đẳng cạnh tranh.</li>
+                            <li class="p-3 border-b"><strong>Inimitability (Có khó bắt chước không?):</strong> Chi phí bắt chước có quá đắt đỏ do lịch sử độc nhất, tính mập mờ nhân quả hoặc độ phức tạp xã hội không?</li>
+                            <li class="p-3 border-b"><strong>Organization (Có tổ chức để khai thác không?):</strong> Công ty có cấu trúc quản trị, hệ thống thưởng phạt phù hợp để vắt kiệt giá trị từ nguồn lực đó không?</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>`
     },
     {
         slug: 'expectation-confirmation-theory-ect',
-        category: ['Marketing Research'],
-        icon_name: 'BookOpen',
+        category: ['Theories', 'Marketing'],
+        icon_name: 'Repeat',
         title_vi: 'Thuyết Kỳ vọng - Xác nhận (ECT)',
-        title_en: 'Expectation-Confirmation Theory (ECT)'
+        title_en: 'Expectation Confirmation Theory',
+        description_vi: 'Nghiên cứu hành vi mua lại và tiếp tục sử dụng thông qua mô hình Expectation-Confirmation Theory của Oliver (1980).',
+        content_vi: `
+            <div class="space-y-10 text-slate-700 leading-relaxed">
+                <div class="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100">
+                    <h3 class="text-2xl font-black text-indigo-900 mb-4">1. Thuyết ECT giải thích sự hài lòng như thế nào?</h3>
+                    <p class="mb-4"><strong>Thuyết Kỳ vọng - Xác nhận (ECT)</strong> do Oliver (1980) tiên phong đề xuất, là cơ sở lý thuyết mạnh mẽ nhất giải thích sự hình thành lòng trung thành và ý định tiếp tục sử dụng (Continuance Intention) của khách hàng sau khi mua hàng.</p>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6">2. Cơ chế Xác nhận (Confirmation)</h3>
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <p class="text-sm">Trạng thái xác nhận xảy ra khi hiệu suất thực tế của sản phẩm (Perceived Performance) bằng hoặc vượt qua Kỳ vọng ban đầu (Expectation). Sự xác nhận tích cực này dẫn đến <strong>Sự hài lòng (Satisfaction)</strong>, từ đó thôi thúc hành vi mua lặp lại. ECT thường được giới luận văn sử dụng kết hợp với TAM để nghiên cứu hệ thống e-learning hoặc Mobile Banking.</p>
+                    </div>
+                </div>
+            </div>`
     },
     {
         slug: 'sor-model-marketing-behavior',
-        category: ['Behavioral Research'],
-        icon_name: 'Zap',
-        title_vi: 'Mô hình S-O-R: Kích thích - Cơ thể - Phản hồi',
-        title_en: 'S-O-R Model: Stimulus-Organism-Response'
+        category: ['Theories', 'Marketing'],
+        icon_name: 'Activity',
+        title_vi: 'Mô hình Kích thích - Cơ thể - Phản hồi (S-O-R)',
+        title_en: 'Stimulus-Organism-Response Model',
+        description_vi: 'Khung lý thuyết S-O-R trong phân tích hành vi người tiêu dùng, giải thích tác động của môi trường lên cảm xúc và phản ứng mua hàng.',
+        content_vi: `
+            <div class="space-y-10 text-slate-700 leading-relaxed">
+                <div class="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100">
+                    <h3 class="text-2xl font-black text-indigo-900 mb-4">1. Mô hình hành vi môi trường học S-O-R</h3>
+                    <p class="mb-4">Bắt nguồn từ Tâm lý học môi trường (Mehrabian & Russell, 1974), mô hình <strong>S-O-R</strong> khẳng định rằng môi trường vật lý ảnh hưởng đến cảm xúc của con người, và từ đó thúc đẩy hành vi của họ. Ngày nay, mô hình S-O-R là "xương sống" cho các nghiên cứu luận văn về Thương mại điện tử (E-commerce) và hành vi mua bốc đồng (Impulse Buying).</p>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6">2. Ba thành phần của S-O-R</h3>
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <ul class="space-y-4 text-sm">
+                            <li class="p-3 border-b"><strong>Stimulus (Kích thích - S):</strong> Các yếu tố môi trường bên ngoài (ví dụ: giao diện website, âm nhạc cửa hàng, khuyến mãi flash sale).</li>
+                            <li class="p-3 border-b"><strong>Organism (Cơ thể - O):</strong> Những thay đổi nội tâm, bao gồm cảm xúc (hưng phấn, thư giãn) và nhận thức (tin tưởng) do kích thích mang lại.</li>
+                            <li class="p-3 border-b"><strong>Response (Phản hồi - R):</strong> Hành vi tiếp cận (ở lại lâu hơn, mua hàng) hoặc né tránh (rời khỏi trang web).</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>`
     },
     {
         slug: 'perceived-value-marketing-strategy',
-        category: ['Marketing Research'],
-        icon_name: 'TrendingUp',
-        title_vi: 'Mô hình Giá trị Cảm nhận (Perceived Value)',
-        title_en: 'Perceived Value in Marketing Strategy'
+        category: ['Theories', 'Marketing'],
+        icon_name: 'BadgeDollarSign',
+        title_vi: 'Lý thuyết Giá trị Cảm nhận (Perceived Value)',
+        title_en: 'Perceived Value Theory',
+        description_vi: 'Khái niệm Giá trị cảm nhận của Zeithaml (1988) - Trọng tâm của mọi chiến lược định giá và định vị thương hiệu.',
+        content_vi: `
+            <div class="space-y-10 text-slate-700 leading-relaxed">
+                <div class="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100">
+                    <h3 class="text-2xl font-black text-indigo-900 mb-4">1. Định nghĩa chuẩn xác về Giá trị Cảm nhận</h3>
+                    <p class="mb-4">Theo Zeithaml (1988), <strong>Giá trị cảm nhận (Perceived Value)</strong> là sự đánh giá tổng thể của người tiêu dùng về tiện ích của một sản phẩm/dịch vụ dựa trên nhận thức về những gì họ nhận được (Get) so với những gì họ phải bỏ ra (Give).</p>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6">2. Sự đánh đổi (The Trade-off)</h3>
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <p class="text-sm">Yếu tố "Nhận được" không chỉ là tính năng lý tính (chất lượng sản phẩm), mà còn bao gồm giá trị cảm xúc và địa vị xã hội. Ngược lại, "Bỏ ra" không chỉ là tiền bạc, mà còn bao gồm thời gian chờ đợi, rủi ro và nỗ lực học hỏi. Khách hàng chỉ mua khi Giá trị cảm nhận > 0.</p>
+                    </div>
+                </div>
+            </div>`
     },
     {
         slug: 'tce-transaction-cost-economics-strategy',
-        category: ['Advanced Research'],
-        icon_name: 'Hash',
-        title_vi: 'Kinh tế học Chi phí Giao dịch (TCE)',
-        title_en: 'Transaction Cost Economics (TCE)'
-    },
-    {
-        slug: 'descriptive-statistics-interpretation',
-        category: ['Preliminary Analysis'],
-        icon_name: 'BarChart3',
-        title_vi: 'Thống kê mô tả: Nghệ thuật kể chuyện qua con số',
-        title_en: 'Descriptive Statistics: The Art of Storytelling'
-    },
-    {
-        slug: 'cfa-confirmatory-factor-analysis',
-        category: ['Advanced Statistics'],
-        icon_name: 'ShieldCheck',
-        title_vi: 'CFA: Chìa khóa vàng thẩm định thang đo',
-        title_en: 'CFA: The Gold Standard for Validation'
-    },
-    {
-        slug: 'efa-factor-analysis',
-        category: ['Factor Analysis'],
-        icon_name: 'Layers',
-        title_vi: 'Phân tích nhân tố khám phá (EFA): Khám phá cấu trúc ẩn',
-        title_en: 'Exploratory Factor Analysis (EFA): Discovering Inner Structures'
-    },
-    {
-        slug: 'regression-vif-multicollinearity',
-        category: ['Impact Analysis'],
-        icon_name: 'LineChart',
-        title_vi: 'Hồi quy đa biến và Đa cộng tuyến (VIF): Dự báo Tác động',
-        title_en: 'Multiple Regression & VIF: Predicting the Future'
-    },
-    {
-        slug: 'sem-cfa-structural-modeling',
-        category: ['Structural Modeling'],
-        icon_name: 'Layers',
-        title_vi: 'SEM & CFA: Đỉnh cao của Phân tích cấu trúc',
-        title_en: 'SEM & CFA: Structural Modeling Masterclass'
-    },
-    {
-        slug: 'independent-t-test-guide',
-        category: ['Comparison Analysis'],
-        icon_name: 'Activity',
-        title_vi: 'Independent T-test: So sánh các nhóm đối đầu',
-        title_en: 'Independent T-test: Comparing Opposite Groups'
-    },
-    {
-        slug: 'one-way-anova-post-hoc',
-        category: ['Comparison Analysis'],
-        icon_name: 'Layers',
-        title_vi: 'Phân tích ANOVA: So sánh Đa nhóm chuyên sâu',
-        title_en: 'One-way ANOVA: Deep Multi-group Analysis'
-    },
-    {
-        slug: 'pearson-correlation-analysis',
-        category: ['Relationship Analysis'],
-        icon_name: 'Hash',
-        title_vi: 'Tương quan Pearson: Bản đồ các mối liên kết',
-        title_en: 'Pearson Correlation: The Connection Map'
+        category: ['Theories', 'Strategy'],
+        icon_name: 'Handshake',
+        title_vi: 'Lý thuyết Chi phí Giao dịch (TCE)',
+        title_en: 'Transaction Cost Economics',
+        description_vi: 'Giải thích quyết định "Tự làm hay Mua ngoài" của doanh nghiệp thông qua lăng kính Lý thuyết Chi phí Giao dịch của Oliver Williamson.',
+        content_vi: `
+            <div class="space-y-10 text-slate-700 leading-relaxed">
+                <div class="bg-indigo-50/50 p-8 rounded-3xl border border-indigo-100">
+                    <h3 class="text-2xl font-black text-indigo-900 mb-4">1. Bản chất của Lý thuyết TCE</h3>
+                    <p class="mb-4">Phát triển bởi Oliver Williamson (Giải Nobel Kinh tế), <strong>Lý thuyết Chi phí Giao dịch (TCE)</strong> lập luận rằng các doanh nghiệp tồn tại để giảm thiểu chi phí giao dịch trên thị trường mở. Mọi quyết định Thuê ngoài (Outsourcing) hay Tự làm (In-house) đều dựa trên việc so sánh chi phí tổ chức nội bộ và chi phí giao dịch bên ngoài.</p>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 mb-6">2. Ba yếu tố tạo nên Chi phí giao dịch</h3>
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                        <ul class="space-y-4 text-sm">
+                            <li class="p-3 border-b"><strong>Tính đặc thù của tài sản (Asset Specificity):</strong> Khi một khoản đầu tư không thể chuyển đổi mục đích sử dụng, công ty có xu hướng muốn giữ nó trong nội bộ.</li>
+                            <li class="p-3 border-b"><strong>Tính không chắc chắn (Uncertainty):</strong> Môi trường càng biến động, hợp đồng bên ngoài càng rủi ro.</li>
+                            <li class="p-3 border-b"><strong>Tần suất giao dịch (Frequency):</strong> Giao dịch diễn ra liên tục thì nên tự tổ chức nội bộ để tối ưu chi phí.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>`
     }
 ];
