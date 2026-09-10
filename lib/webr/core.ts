@@ -248,7 +248,7 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 const fallbackRepo = "https://repo.r-wasm.org/";
                 const localRepo = (typeof window !== 'undefined' && window.location.origin) 
                     ? window.location.origin + "/" + REPO_VERSION 
-                    : "https://ncskit.org/" + REPO_VERSION;
+                    : "https://stat.ncskit.org/" + REPO_VERSION;
 
                 await runLocked(async () => {
                     await webR.evalR(`
@@ -343,7 +343,7 @@ export async function loadPackagesForMethod(method: string): Promise<void> {
     const officialRepo = "https://repo.r-wasm.org/";
     const localRepo = (typeof window !== 'undefined' && window.location.origin) 
         ? window.location.origin + "/" + REPO_VERSION 
-        : "https://ncskit.org/" + REPO_VERSION;
+        : "https://stat.ncskit.org/" + REPO_VERSION;
 
     for (const pkg of required) {
         if (isPackageLoaded(pkg)) continue;

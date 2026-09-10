@@ -163,11 +163,11 @@ const nextConfig = {
     async rewrites() {
         return [
             {
-                source: '/webr_repo_v5/:path*\\.rds',
+                source: '/webr_repo_v5/:path(.*\\.rds)',
                 destination: '/api/webr-not-found',
             },
             {
-                source: '/webr_repo_v5/:path*\\.gz',
+                source: '/webr_repo_v5/:path(.*\\.gz)',
                 destination: '/api/webr-not-found',
             }
         ];
