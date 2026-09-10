@@ -14,10 +14,10 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(url, { status: 301 })
     }
 
-    // 2. FORCE PRIMARY DOMAIN: Avoid PKCE/Cookie mismatch between stat.ncskit.org and ncsstat.ncskit.org
-    if (host.includes('stat.ncskit.org') && !host.includes('ncsstat.ncskit.org')) {
-        console.log(`[Middleware] Redirecting from ${host} to ncsstat.ncskit.org`)
-        url.hostname = 'ncsstat.ncskit.org'
+    // 2. FORCE PRIMARY DOMAIN: Avoid PKCE/Cookie mismatch
+    if (host.includes('stat.ncskit.org') || host.includes('ncsstat.ncskit.org')) {
+        console.log(`[Middleware] Redirecting from ${host} to ncskit.org`)
+        url.hostname = 'ncskit.org'
         url.protocol = 'https:'
         url.port = '' // Ensure port is stripped in production
         return NextResponse.redirect(url, { status: 301 })
@@ -48,6 +48,6 @@ export const config = {
          * - favicon.ico (favicon file)
          * - public files (files in public folder including images)
          */
-        '/((?!_next/static|_next/image|favicon.ico|webr_core_v3|.*\\.(?:svg|png|jpg|jpeg|gif|webp|wasm)$).*)',
+        '/((?!_next/static|_next/image|favicon.ico|webr_core_v3|webr_repo_v5|.*\\.(?:svg|png|jpg|jpeg|gif|webp|wasm|rds|gz)$).*)',
     ],
 }

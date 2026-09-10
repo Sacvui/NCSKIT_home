@@ -24,12 +24,12 @@ export function useAnalysisRunner({
     const runAnalysis = async (type: string) => {
         const webRStatus = getWebRStatus();
         if (!webRStatus.isReady) {
-            setToast({
-                message: webRStatus.isLoading 
+            setToast(
+                webRStatus.isLoading 
                     ? 'R Engine đang khởi động, vui lòng đợi vài giây rồi thử lại.' 
                     : 'R Engine chưa sẵn sàng. Vui lòng đợi và thử lại.', 
-                type: 'info'
-            });
+                'info'
+            );
             return;
         }
 
@@ -42,7 +42,7 @@ export function useAnalysisRunner({
             const numericColumns = getNumericColumns();
 
             if (numericColumns.length < 2) {
-                setToast({ message: 'Cần ít nhất 2 biến số để phân tích', type: 'error' });
+                setToast('Cần ít nhất 2 biến số để phân tích', 'error');
                 setIsAnalyzing(false);
                 return;
             }
@@ -95,7 +95,7 @@ export function useAnalysisRunner({
                     const description = type === 'correlation' ? 'Correlation Matrix' : 'Descriptive Statistics';
                     const { success, isExempt, newBalance, error: deductError } = await deductCreditsAtomic(user.id, analysisCost, description);
                     if (!success) {
-                        setToast({ message: deductError || 'Không đủ NCS để thực hiện phân tích', type: 'error' });
+                        setToast(deductError || 'Không đủ NCS để thực hiện phân tích', 'error');
                         setIsAnalyzing(false);
                         return;
                     }

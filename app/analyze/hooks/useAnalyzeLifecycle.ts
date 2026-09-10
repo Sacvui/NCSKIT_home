@@ -151,8 +151,8 @@ export function useAnalyzeLifecycle({
 
     // 8. Online/Offline events
     useEffect(() => {
-        const handleOnline = () => setToast({ message: t(locale as any, 'analyze.common.internet_restored'), type: 'success' });
-        const handleOffline = () => setToast({ message: t(locale as any, 'analyze.common.internet_lost'), type: 'error' });
+        const handleOnline = () => setToast(t(locale as any, 'analyze.common.internet_restored'), 'success');
+        const handleOffline = () => setToast(t(locale as any, 'analyze.common.internet_lost'), 'error');
         window.addEventListener('app:online', handleOnline);
         window.addEventListener('app:offline', handleOffline);
         return () => {
@@ -166,11 +166,11 @@ export function useAnalyzeLifecycle({
         const status = getWebRStatus();
         if (!status.isReady && !status.isLoading) {
             setProgressCallback((msg) => {
-                setToast({ message: msg.includes('Cleaning') ? t(locale as any, 'analyze.common.processing') : msg, type: 'info' });
+                setToast(msg.includes('Cleaning') ? t(locale as any, 'analyze.common.processing') : msg, 'info');
             });
             initWebR()
-                .then(() => setToast({ message: t(locale as any, 'analyze.common.engine_ready'), type: 'success' }))
-                .catch(() => setToast({ message: t(locale as any, 'analyze.common.engine_error'), type: 'error' }));
+                .then(() => setToast(t(locale as any, 'analyze.common.engine_ready'), 'success'))
+                .catch(() => setToast(t(locale as any, 'analyze.common.engine_error'), 'error'));
         }
     }, [locale, setToast]);
 
@@ -193,7 +193,7 @@ export function useAnalyzeLifecycle({
             setStep(saved.currentStep);
             setResults(saved.results);
             setAnalysisType(saved.analysisType);
-            setToast({ message: t(locale as any, 'analyze.common.restored_success') || 'Restored', type: 'success' });
+            setToast(t(locale as any, 'analyze.common.restored_success') || 'Restored', 'success');
             setShowRestoreBanner(false);
         }
     };
@@ -201,7 +201,7 @@ export function useAnalyzeLifecycle({
     const discardSaved = async () => {
         await clearWorkspace();
         setShowRestoreBanner(false);
-        setToast({ message: t(locale as any, 'analyze.common.data_cleared') || 'Cleared', type: 'info' });
+        setToast(t(locale as any, 'analyze.common.data_cleared') || 'Cleared', 'info');
     };
 
     return {
