@@ -24,21 +24,22 @@ export const EFAResults = React.memo(function EFAResults({ results, columns, onP
         setLocale(getStoredLocale());
     }, []);
 
-    const kmo = results.kmo || 0;
-    const bartlettP = results.bartlettP || 1;
+    const efaData = results.data || results;
+    const kmo = efaData.kmo || 0;
+    const bartlettP = efaData.bartlettP || efaData.bartlett_p || 1;
     const kmoAcceptable = kmo >= 0.6;
     const bartlettSignificant = bartlettP < 0.05;
 
     // Extract factor structure for workflow (memoized)
     const suggestedFactors = useMemo(() => {
-        if (!results.loadings || !Array.isArray(results.loadings[0])) return [];
+        if (!efaData.loadings || !Array.isArray(efaData.loadings[0])) return [];
 
         const factors = [];
-        const nFactors = results.nFactorsUsed || results.loadings[0].length;
+        const nFactors = efaData.nFactorsUsed || efaData.loadings[0].length;
 
         for (let f = 0; f < nFactors; f++) {
             const indicators = columns.filter((col, i) =>
-                results.loadings[i] && results.loadings[i][f] >= 0.5
+                efaData.loadings[i] && efaData.loadings[i][f] >= 0.5
             );
             if (indicators.length >= 3) {
                 factors.push({
@@ -48,7 +49,7 @@ export const EFAResults = React.memo(function EFAResults({ results, columns, onP
             }
         }
         return factors;
-    }, [results.loadings, columns, results.nFactorsUsed]);
+    }, [efaData.loadings, columns, efaData.nFactorsUsed]);
 
     const handleProceedToCFA = useCallback(() => {
         if (onProceedToCFA) {
@@ -87,7 +88,7 @@ export const EFAResults = React.memo(function EFAResults({ results, columns, onP
             </div>
 
             {/* Total Variance Explained Table */}
-            {results.eigenvalues && results.eigenvalues.length > 0 && (
+            {efaData.eigenvalues && efaData.eigenvalues.length > 0 && (
                 <div className="bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
                     <div className="px-6 py-4 border-b border-blue-50 bg-slate-50/50">
                         <h3 className="text-sm font-bold text-blue-900 uppercase">Total Variance Explained (Tổng phương sai trích)</h3>
@@ -104,12 +105,12 @@ export const EFAResults = React.memo(function EFAResults({ results, columns, onP
                             </thead>
                              <tbody className="divide-y divide-blue-50">
                                 {(() => {
-                                    const totalVar = results.eigenvalues.reduce((s:number,v:number)=>s+v, 0);
+                                    const totalVar = efaData.eigenvalues.reduce((s:number,v:number)=>s+v, 0);
                                     let cumVar = 0;
-                                    return results.eigenvalues.slice(0, 10).map((ev: number, i: number) => {
+                                    return efaData.eigenvalues.slice(0, 10).map((ev: number, i: number) => {
                                         const pct = (ev / totalVar) * 100;
                                         cumVar += pct;
-                                        const isExtracted = i < results.nFactorsUsed;
+                                        const isExtracted = i < efaData.nFactorsUsed;
                                         return (
                                              <tr key={i} className={`hover:bg-blue-50/20 transition-colors ${isExtracted ? 'bg-blue-50 border-l-4 border-blue-900' : ''}`}>
                                                 <td className={`py-4 px-6 text-center font-black ${isExtracted ? 'text-blue-900' : 'text-slate-400'}`}>{i + 1}</td>
@@ -127,15 +128,15 @@ export const EFAResults = React.memo(function EFAResults({ results, columns, onP
             )}
 
             {/* Rotated Matrix Card */}
-             {results.loadings && (
+             {efaData.loadings && (
                 <div className="bg-white rounded-xl border border-blue-100 shadow-sm overflow-hidden">
                      <div className="px-6 py-4 border-b border-blue-50 bg-slate-50/50 flex items-center justify-between">
                         <h3 className="text-sm font-bold text-blue-900 uppercase tracking-wider flex items-center gap-2">
                              <LayoutGrid className="w-4 h-4 text-blue-600" />
-                             {results.extractionMethod === 'pca' ? 'Component Matrix (Ma trận xoay PCA)' : 'Rotated Pattern Matrix (Ma trận xoay PAF)'}
+                             {efaData.extractionMethod === 'pca' ? 'Component Matrix (Ma trận xoay PCA)' : 'Rotated Pattern Matrix (Ma trận xoay PAF)'}
                         </h3>
                          <div className="flex gap-2">
-                            <span className="text-[9px] font-black bg-slate-200 text-slate-700 px-2 py-0.5 rounded uppercase tracking-tighter">Method: {results.extractionMethod?.toUpperCase() || 'MINRES'}</span>
+                            <span className="text-[9px] font-black bg-slate-200 text-slate-700 px-2 py-0.5 rounded uppercase tracking-tighter">Method: {efaData.extractionMethod?.toUpperCase() || 'MINRES'}</span>
                             <span className="text-[9px] font-black bg-blue-900 text-white px-2 py-0.5 rounded uppercase tracking-tighter shadow-sm">Loadings Threshold: 0.5</span>
                          </div>
                     </div>
@@ -144,7 +145,7 @@ export const EFAResults = React.memo(function EFAResults({ results, columns, onP
                              <thead className="bg-blue-50/50 border-y border-blue-100">
                                 <tr>
                                     <th className="py-4 px-6 text-[10px] font-black text-blue-900 uppercase">Variable Indicators</th>
-                                    {Array.isArray(results.loadings[0]) && results.loadings[0].map((_: any, idx: number) => (
+                                    {Array.isArray(efaData.loadings[0]) && efaData.loadings[0].map((_: any, idx: number) => (
                                         <th key={idx} className="py-4 px-4 text-[10px] font-black text-blue-900 uppercase text-right border-l border-blue-50">Factor {idx + 1}</th>
                                     ))}
                                 </tr>
@@ -153,7 +154,7 @@ export const EFAResults = React.memo(function EFAResults({ results, columns, onP
                                 {columns.map((col, rowIdx) => (
                                     <tr key={rowIdx} className="hover:bg-blue-50/30 transition-colors">
                                         <td className="py-4 px-6 font-bold text-blue-800 italic bg-slate-50/30 border-r border-blue-50">{col}</td>
-                                        {Array.isArray(results.loadings[rowIdx]) && results.loadings[rowIdx].map((val: number, colIdx: number) => {
+                                        {Array.isArray(efaData.loadings[rowIdx]) && efaData.loadings[rowIdx].map((val: number, colIdx: number) => {
                                             const isSuppressed = Math.abs(val) < 0.3;
                                             const isStrong = Math.abs(val) >= 0.5;
                                             return (
@@ -176,7 +177,7 @@ export const EFAResults = React.memo(function EFAResults({ results, columns, onP
             {/* Professional Template Interpretation */}
             <TemplateInterpretation 
                 analysisType="efa"
-                results={results}
+                results={efaData}
             />
 
             <ScientificNote 

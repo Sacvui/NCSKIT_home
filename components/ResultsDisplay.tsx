@@ -74,53 +74,57 @@ export function ResultsDisplay({
     const display = useMemo(() => {
         if (!results) return null;
 
+        // Automatically unwrap `data` if it was wrapped by setResults({ type, data, columns })
+        const analysisData = results.data || results;
+        const analysisColumns = results.columns || columns || [];
+
         switch (analysisType) {
             case 'ttest-indep':
-                return <TTestResults results={results} columns={results.columns || []} />;
+                return <TTestResults results={analysisData} columns={analysisColumns} />;
             case 'ttest-paired':
-                return <PairedTTestResults results={results} columns={results.columns || []} />;
+                return <PairedTTestResults results={analysisData} columns={analysisColumns} />;
             case 'anova':
-                return <ANOVAResults results={results} columns={results.columns || []} />;
+                return <ANOVAResults results={analysisData} columns={analysisColumns} />;
             case 'correlation':
-                return <CorrelationResults results={results} columns={results.columns || []} />;
+                return <CorrelationResults results={analysisData} columns={analysisColumns} />;
             case 'regression':
-                return <RegressionResults results={results} columns={results.columns || []} />;
+                return <RegressionResults results={analysisData} columns={analysisColumns} />;
             case 'cronbach':
             case 'omega':
-                return <CronbachResults results={results} columns={results.columns || []} onProceedToEFA={onProceedToEFA} scaleName={scaleName} analysisType={analysisType} />;
+                return <CronbachResults results={analysisData} columns={analysisColumns} onProceedToEFA={onProceedToEFA} scaleName={scaleName} analysisType={analysisType} />;
             case 'efa':
-                return <EFAResults results={results} columns={results.columns || []} onProceedToCFA={onProceedToCFA} />;
+                return <EFAResults results={analysisData} columns={analysisColumns} onProceedToCFA={onProceedToCFA} />;
             case 'cfa':
-                return <CFAResults results={results} onProceedToSEM={onProceedToSEM} />;
+                return <CFAResults results={analysisData} onProceedToSEM={onProceedToSEM} />;
             case 'sem':
-                return <SEMResults results={results} />;
+                return <SEMResults results={analysisData} />;
             case 'mann-whitney':
-                return <MannWhitneyResults results={results} columns={results.columns || []} />;
+                return <MannWhitneyResults results={analysisData} columns={analysisColumns} />;
             case 'kruskal-wallis':
-                return <KruskalWallisResults results={results} columns={results.columns || []} />;
+                return <KruskalWallisResults results={analysisData} columns={analysisColumns} />;
             case 'frequency':
-                return <FrequencyResults results={results} columns={columns || []} />;
+                return <FrequencyResults results={analysisData} columns={analysisColumns} />;
             case 'wilcoxon':
-                return <WilcoxonResults results={results} columns={results.columns || []} />;
+                return <WilcoxonResults results={analysisData} columns={analysisColumns} />;
             case 'chisquare':
-                return <ChiSquareResults results={results} columns={results.columns || []} />;
+                return <ChiSquareResults results={analysisData} columns={analysisColumns} />;
 
             case 'descriptive':
-                return <DescriptiveResults results={results} columns={columns || []} />;
+                return <DescriptiveResults results={analysisData} columns={analysisColumns} />;
             case 'moderation':
-                return <ModerationResults results={results} columns={results.columns || []} />;
+                return <ModerationResults results={analysisData} columns={analysisColumns} />;
             case 'mediation':
-                return <MediationResults results={results} columns={results.columns || []} />;
+                return <MediationResults results={analysisData} columns={analysisColumns} />;
             case 'logistic':
-                return <LogisticResults results={results} columns={results.columns || []} />;
+                return <LogisticResults results={analysisData} columns={analysisColumns} />;
             case 'twoway-anova':
-                return <TwoWayANOVAResults results={results} columns={results.columns || []} />;
+                return <TwoWayANOVAResults results={analysisData} columns={analysisColumns} />;
             case 'cluster':
-                return <ClusterResults results={results} columns={results.columns || []} />;
+                return <ClusterResults results={analysisData} columns={analysisColumns} />;
             case 'pls-sem':
-                return <PLSResults results={results} columns={results.columns || []} />;
+                return <PLSResults results={analysisData} columns={analysisColumns} />;
             case 'auto-pilot':
-                return <AutoPilotReport results={results} columns={columns || []} />;
+                return <AutoPilotReport results={analysisData} columns={analysisColumns} />;
             default:
                 return (
                     <Card>
@@ -129,7 +133,7 @@ export function ResultsDisplay({
                         </CardHeader>
                         <CardContent>
                             <pre className="text-xs bg-slate-100 p-2 rounded">
-                                {JSON.stringify(results, null, 2)}
+                                {JSON.stringify(analysisData, null, 2)}
                             </pre>
                         </CardContent>
                     </Card>

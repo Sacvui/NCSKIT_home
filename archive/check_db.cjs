@@ -12,12 +12,5 @@ async function checkSchema() {
   // Actually Postgrest doesn't expose information_schema by default.
   // I'll run a raw query if possible, or just create the tables.
 }
-    if (error) {
-      console.log(`Error reading ${table}:`, error.message);
-    } else {
-      console.log('Columns:', data && data.length > 0 ? Object.keys(data[0]) : 'Empty table');
-    }
-  }
-}
 
 checkSchema();

@@ -51,7 +51,7 @@ export const ReliabilityView: React.FC<ReliabilityViewProps> = ({
     locale
 }) => {
     const [localStep, setLocalStep] = useState<'select' | 'cronbach-select' | 'cronbach-batch-select' | 'omega-select' | 'efa-select' | 'cfa-select' | 'cbsem-select' | 'plssem-select' | string>(
-        ['cronbach-select', 'omega-select', 'efa-select', 'cfa-select', 'sem-select', 'pls-sem-select'].includes(initialStep) 
+        ['cronbach-select', 'omega-select', 'efa-select', 'cfa-select', 'cbsem-select', 'sem-select', 'pls-sem-select'].includes(initialStep) 
             ? initialStep as any 
             : 'select'
     );

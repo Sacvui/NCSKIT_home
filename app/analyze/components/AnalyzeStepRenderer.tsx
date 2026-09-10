@@ -114,7 +114,7 @@ export function AnalyzeStepRenderer(props: AnalyzeStepRendererProps) {
         return <MediationView {...props} columns={getNumericColumns()} allColumns={getAllColumns()} />;
     }
 
-    if (['cronbach-select', 'omega-select'].includes(step)) {
+    if (['cronbach-select', 'omega-select', 'efa-select', 'cfa-select', 'cbsem-select', 'sem-select', 'plssem-select'].includes(step)) {
         return (
             <ReliabilityView
                 {...(props as any)}
@@ -127,17 +127,9 @@ export function AnalyzeStepRenderer(props: AnalyzeStepRendererProps) {
         return <RegressionView {...(props as any)} />;
     }
 
-    if (['efa-select', 'cfa-select', 'cbsem-select'].includes(step)) {
-        return (
-            <AdvancedMethodView
-                {...(props as any)}
-            />
-        );
-    }
-
-    const plssemViews = ['plssem-select', 'bootstrap-select', 'htmt-select', 'vif-select', 'cmb-select', 'mga-select', 'ipma-select', 'blindfolding-select'];
+    const plssemViews = ['bootstrap-select', 'htmt-select', 'vif-select', 'cmb-select', 'mga-select', 'ipma-select', 'blindfolding-select'];
     if (plssemViews.includes(step)) {
-        return <PLSSEMView {...(props as any)} columns={getNumericColumns()} />;
+        return <PLSSEMView {...(props as any)} method={step.replace('-select', '') as any} columns={getNumericColumns()} />;
     }
 
     if (step === 'auto-pilot') {
