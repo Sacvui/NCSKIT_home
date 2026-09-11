@@ -144,15 +144,13 @@ export function AnalyzeStepRenderer(props: AnalyzeStepRendererProps) {
             multipleResultsLength: props.multipleResults?.length 
         });
         
-        if (props.results || (props.multipleResults && props.multipleResults.length > 0)) {
-            return (
-                <ResultsDisplay
-                    results={props.results}
-                    multipleResults={props.multipleResults}
-                    analysisType={props.analysisType}
-                />
-            );
-        }
+        return (
+            <ResultsDisplay
+                results={props.results}
+                multipleResults={props.multipleResults}
+                analysisType={props.analysisType}
+            />
+        );
     }
 
     return null;

@@ -110,7 +110,14 @@ export function ResultsDisplay({
         }
 
         console.log("DEBUG: hasMultiDisplay is false.", { results });
-        if (!results) return null;
+        if (!results) {
+            return (
+                <div className="text-center py-12">
+                    <div className="inline-block animate-spin rounded-full h-10 w-10 border-4 border-blue-500 border-t-transparent"></div>
+                    <p className="mt-4 text-gray-500 text-sm">Đang tải kết quả...</p>
+                </div>
+            );
+        }
 
         // Automatically unwrap `data` if it was wrapped by setResults({ type, data, columns })
         const analysisData = results.data || results;
