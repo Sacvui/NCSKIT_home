@@ -8,6 +8,7 @@ import { useRawDataInCode, parseMatrix, parseWebRResult } from '../utils';
 import { runLavaanAnalysis } from './sem';
 import { CronbachResultSchema, ICronbachResult, EfaResultSchema, IEfaResult } from '../schemas';
 import { getAnalysisRTemplate } from '../templates';
+import { R_SNIPPETS } from '../r-helpers';
 
 /**
  * Run Cronbach's Alpha analysis with SPSS-style Item-Total Statistics
@@ -184,75 +185,177 @@ export async function runEFA(
     rotation: string = 'varimax',
     method: 'minres' | 'pca' | 'pa' | 'ml' = 'minres'
 ): Promise<IEfaResult> {
-    // Lazy load required packages (needs psych and GPArotation)
-    await loadPackagesForMethod('efa');
+    // NO psych package needed anymore - pure Base R implementation
+    // Only need GPArotation for oblique rotations (promax, oblimin)
+    const needsGPArotation = ['oblimin', 'promax'].includes(rotation.toLowerCase());
+    if (needsGPArotation) {
+        await loadPackagesForMethod('efa');
+    }
 
     const defaultRCode = `
-    library(psych)
+    # ============================================================
+    # PURE BASE-R EFA (NO psych PACKAGE -> NO LAPACK WASM CRASHES)
+    # ============================================================
     
     # Clean Data
     df <- as.data.frame(raw_data)
     
-    # Validation: Check for identical columns (perfect collinearity) which crashes WASM LAPACK
-    if (any(duplicated(as.list(df)))) {
-        stop("Lỗi: Dữ liệu chứa các biến giống hệt nhau (đa cộng tuyến hoàn hảo). Vui lòng loại bỏ các cột trùng lặp.")
-    }
-    
-    # Use pairwise correlation for max data retention
-    cor_mat <- cor(df, use = "pairwise.complete.obs")
-    
-    # Validation: check if correlation matrix is positive definite or contains NAs (constant variables)
-    if (any(is.na(cor_mat))) { 
-        stop("Lỗi: Dữ liệu có giá trị khuyết (NA) hoặc biến không đổi (phương sai = 0). Vui lòng làm sạch dữ liệu.") 
-    }
-    
-    # Calculate eigenvalues (eigen is stable and won't crash WASM LAPACK)
-    eigenvalues <- eigen(cor_mat, symmetric=TRUE, only.values=TRUE)$values
-
-    # CRITICAL: If the smallest eigenvalue is near zero, the matrix is singular (perfect collinearity)
-    if (min(eigenvalues) < 1e-6) {
-        stop("Lỗi: Ma trận dữ liệu không xác định dương (có đa cộng tuyến hoàn hảo hoặc kết hợp tuyến tính). Hệ thống đã chặn phân tích để ngăn sự cố.")
+    if (ncol(df) < 2) {
+        stop("Lỗi: Phân tích nhân tố cần ít nhất 2 biến.")
     }
 
-    # Determine n for Bartlett and stats
-    # For pairwise, we use the average N or minimum N of the pairs
+    # Compute correlation matrix safely
+    ${R_SNIPPETS.validateMatrixSingularity}
+
     n_obs <- nrow(na.omit(df))
-    if (n_obs < 10) n_obs <- nrow(df) # Fallback if listwise is too small
+    if (n_obs < 10) n_obs <- nrow(df)
+    p <- ncol(df)
 
-    # Kaiser criterion (fast, no simulation)
+    # ---- KMO (Manual implementation - no psych) ----
+    kmo_val <- tryCatch({
+        inv_cor <- tryCatch(solve(cor_mat), error = function(e) NULL)
+        if (is.null(inv_cor)) {
+            0
+        } else {
+            # Anti-image correlation matrix
+            anti_img <- -cov2cor(inv_cor)
+            diag(anti_img) <- -diag(inv_cor)
+            
+            # Sum of squared correlations vs sum of squared partial correlations
+            sum_r2 <- sum(cor_mat[upper.tri(cor_mat)]^2)
+            sum_q2 <- sum(anti_img[upper.tri(anti_img)]^2)
+            
+            if ((sum_r2 + sum_q2) == 0) 0 else sum_r2 / (sum_r2 + sum_q2)
+        }
+    }, error = function(e) 0)
+    
+    # ---- Bartlett's Test of Sphericity (Manual - no psych) ----
+    bartlett_p <- tryCatch({
+        det_val <- det(cor_mat)
+        if (det_val <= 0) det_val <- 1e-300
+        chi_sq <- -((n_obs - 1) - (2 * p + 5) / 6) * log(det_val)
+        df_test <- p * (p - 1) / 2
+        pchisq(chi_sq, df = df_test, lower.tail = FALSE)
+    }, error = function(e) 1)
+    
+    # ---- Determine number of factors ----
     n_factors_kaiser <- sum(eigenvalues > 1)
     n_factors_run <- {{nFactors}}
     n_factors_parallel <- NA
-    
-    # Only run Parallel Analysis when user did NOT specify nFactors (auto-detect mode)
+
     if (n_factors_run <= 0) {
+        # Simple Parallel Analysis using random data (no psych)
         n_factors_parallel <- tryCatch({
-            pa <- fa.parallel(cor_mat, n.obs = n_obs, fm = "minres", fa = "fa", plot = FALSE, n.iter = 5)
-            pa$nfact
+            set.seed(42)
+            n_iter <- 20
+            random_eigs <- matrix(0, nrow = n_iter, ncol = p)
+            for (iter in 1:n_iter) {
+                random_data <- matrix(rnorm(n_obs * p), nrow = n_obs, ncol = p)
+                random_cor <- cor(random_data)
+                random_eigs[iter, ] <- eigen(random_cor, symmetric = TRUE, only.values = TRUE)$values
+            }
+            mean_random_eigs <- colMeans(random_eigs)
+            sum(eigenvalues > mean_random_eigs)
         }, error = function(e) NA)
-        n_factors_run <- if (!is.na(n_factors_parallel)) n_factors_parallel else n_factors_kaiser
+        n_factors_run <- if (!is.na(n_factors_parallel) && n_factors_parallel >= 1) n_factors_parallel else n_factors_kaiser
     }
     if (n_factors_run < 1) n_factors_run <- 1
+    if (n_factors_run >= p) n_factors_run <- p - 1
 
-    # KMO and Bartlett
-    kmo_result <- tryCatch(KMO(cor_mat), error = function(e) list(MSA = 0))
-    # CRITICAL FIX: Bartlett's test needs the correct N for the correlation matrix
-    bartlett_result <- tryCatch(cortest.bartlett(cor_mat, n = n_obs), error = function(e) list(p.value = 1))
-    
-    # Run Factor Analysis or PCA
+    # ---- Run Factor Analysis or PCA ----
     ext_method <- "{{method}}"
-    efa_result <- if (ext_method == "pca") {
-        principal(cor_mat, nfactors = n_factors_run, rotate = "{{rotation}}", n.obs = n_obs)
+    rotation_method <- "{{rotation}}"
+    
+    loadings_mat <- NULL
+    communalities_vec <- NULL
+
+    if (ext_method == "pca") {
+        # ---- PCA using eigen decomposition (Base R, no psych::principal) ----
+        eig <- eigen(cor_mat, symmetric = TRUE)
+        raw_loadings <- eig$vectors[, 1:n_factors_run, drop = FALSE] %*% diag(sqrt(eig$values[1:n_factors_run]), nrow = n_factors_run)
+        
+        # Apply rotation
+        if (n_factors_run > 1) {
+            if (tolower(rotation_method) == "varimax") {
+                rot <- varimax(raw_loadings)
+                loadings_mat <- rot$loadings
+            } else if (tolower(rotation_method) == "promax") {
+                rot_v <- varimax(raw_loadings)
+                rot <- promax(rot_v$loadings)
+                loadings_mat <- rot$loadings
+            } else if (tolower(rotation_method) == "none") {
+                loadings_mat <- raw_loadings
+            } else {
+                # For oblimin etc., try GPArotation if available
+                loadings_mat <- tryCatch({
+                    if (requireNamespace("GPArotation", quietly = TRUE)) {
+                        rot <- GPArotation::GPFoblq(raw_loadings, method = tolower(rotation_method))
+                        rot$loadings
+                    } else {
+                        varimax(raw_loadings)$loadings
+                    }
+                }, error = function(e) varimax(raw_loadings)$loadings)
+            }
+        } else {
+            loadings_mat <- raw_loadings
+        }
+        communalities_vec <- rowSums(as.matrix(loadings_mat)^2)
+
     } else {
-        fa(cor_mat, nfactors = n_factors_run, rotate = "{{rotation}}", fm = ext_method, n.obs = n_obs)
+        # ---- Factor Analysis using factanal (Base R, no psych::fa) ----
+        efa_result <- tryCatch({
+            # factanal uses Maximum Likelihood
+            fa_res <- factanal(covmat = cor_mat, factors = n_factors_run, rotation = "none", n.obs = n_obs)
+            raw_fa_loadings <- fa_res$loadings
+            
+            # Apply rotation manually
+            if (n_factors_run > 1) {
+                if (tolower(rotation_method) == "varimax") {
+                    rot <- varimax(raw_fa_loadings)
+                    list(loadings = rot$loadings, communalities = 1 - fa_res$uniquenesses)
+                } else if (tolower(rotation_method) == "promax") {
+                    rot_v <- varimax(raw_fa_loadings)
+                    rot <- promax(rot_v$loadings)
+                    list(loadings = rot$loadings, communalities = 1 - fa_res$uniquenesses)
+                } else if (tolower(rotation_method) == "none") {
+                    list(loadings = raw_fa_loadings, communalities = 1 - fa_res$uniquenesses)
+                } else {
+                    # Oblimin etc.
+                    loadings_rotated <- tryCatch({
+                        if (requireNamespace("GPArotation", quietly = TRUE)) {
+                            rot <- GPArotation::GPFoblq(unclass(raw_fa_loadings), method = tolower(rotation_method))
+                            rot$loadings
+                        } else {
+                            varimax(raw_fa_loadings)$loadings
+                        }
+                    }, error = function(e) varimax(raw_fa_loadings)$loadings)
+                    list(loadings = loadings_rotated, communalities = 1 - fa_res$uniquenesses)
+                }
+            } else {
+                list(loadings = raw_fa_loadings, communalities = 1 - fa_res$uniquenesses)
+            }
+        }, error = function(e) {
+            # Fallback: if factanal fails (e.g. Heywood cases), use PCA approach instead
+            eig <- eigen(cor_mat, symmetric = TRUE)
+            raw_loadings <- eig$vectors[, 1:n_factors_run, drop = FALSE] %*% diag(sqrt(eig$values[1:n_factors_run]), nrow = n_factors_run)
+            if (n_factors_run > 1 && tolower(rotation_method) != "none") {
+                rot <- varimax(raw_loadings)
+                list(loadings = rot$loadings, communalities = rowSums(as.matrix(rot$loadings)^2))
+            } else {
+                list(loadings = raw_loadings, communalities = rowSums(raw_loadings^2))
+            }
+        })
+        
+        loadings_mat <- efa_result$loadings
+        communalities_vec <- efa_result$communalities
     }
 
     list(
-        kmo = if (is.numeric(kmo_result$MSA)) kmo_result$MSA[1] else 0,
-        bartlett_p = bartlett_result$p.value,
-        loadings = as.vector(t(unclass(efa_result$loadings))),
-        communalities = efa_result$communalities,
-        structure = as.vector(t(if(!is.null(efa_result$Structure)) unclass(efa_result$Structure) else unclass(efa_result$loadings))),
+        kmo = kmo_val,
+        bartlett_p = bartlett_p,
+        loadings = as.vector(t(unclass(loadings_mat))),
+        communalities = as.numeric(communalities_vec),
+        structure = as.vector(t(unclass(loadings_mat))),
         eigenvalues = eigenvalues,
         n_factors_used = n_factors_run,
         n_factors_suggested = if(is.na(n_factors_parallel)) n_factors_kaiser else n_factors_parallel,

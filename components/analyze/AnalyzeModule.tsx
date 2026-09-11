@@ -20,6 +20,7 @@ import { AnalysisStep } from '@/types/analysis';
 import { useAnalyzeLifecycle } from '@/app/analyze/hooks/useAnalyzeLifecycle';
 import { useAnalysisRunner } from '@/app/analyze/hooks/useAnalysisRunner';
 import { AnalyzeStepRenderer } from '@/app/analyze/components/AnalyzeStepRenderer';
+import { usePageVisibility } from '@/hooks/usePageVisibility';
 
 interface AnalyzeModuleProps {
     isDemo?: boolean;
@@ -88,6 +89,14 @@ export function AnalyzeModule({ isDemo = false }: AnalyzeModuleProps) {
             showToast(`Lỗi: ${msg.substring(0, 100)}...`, 'error');
         }
     });
+
+    // 3. Tab Visibility Warning
+    const isVisible = usePageVisibility();
+    React.useEffect(() => {
+        if (!isVisible && isAnalyzing) {
+            showToast('Hệ thống R đang chạy. Việc chuyển Tab có thể làm trình duyệt đóng băng tiến trình. Vui lòng quay lại Tab này!', 'error');
+        }
+    }, [isVisible, isAnalyzing]);
 
     if (loading) {
         return (

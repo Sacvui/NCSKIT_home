@@ -30,15 +30,31 @@ export async function runCorrelation(
     await loadPackagesForMethod('correlation');
 
     const defaultRCode = `
-    library(psych);
+    # PURE BASE-R CORRELATION (NO psych::corr.test)
     data_mat <- raw_data;
     df <- as.data.frame(data_mat);
     colnames(df) <- paste0("V", 1:ncol(df));
     method_name <- "{{method}}";
-    ct <- corr.test(df, use = "pairwise", method = method_name, adjust = "none");
+    
+    # Compute correlation matrix
+    r_mat <- cor(df, use = "pairwise.complete.obs", method = method_name)
+    
+    # Compute p-values matrix manually
+    p_mat <- matrix(0, nrow = ncol(df), ncol = ncol(df))
+    for (i in 1:(ncol(df)-1)) {
+        for (j in (i+1):ncol(df)) {
+            test_result <- tryCatch(
+                cor.test(df[[i]], df[[j]], method = method_name),
+                error = function(e) list(p.value = NA)
+            )
+            p_mat[i, j] <- test_result$p.value
+            p_mat[j, i] <- test_result$p.value
+        }
+    }
+    
     list(
-        correlation = as.vector(ct$r),
-        p_values = as.vector(ct$p),
+        correlation = as.vector(r_mat),
+        p_values = as.vector(p_mat),
         n_cols = ncol(df),
         n_obs = nrow(df),
         method = method_name
@@ -352,7 +368,7 @@ export async function runMannWhitneyU(group1: number[], group2: number[]): Promi
     ]);
 
     const defaultRCode = `
-    library(psych);
+    # PURE BASE-R MANN-WHITNEY (NO psych::skew)
     g1 <- raw_data[!is.na(raw_data[,1]), 1];
     g2 <- raw_data[!is.na(raw_data[,2]), 2];
     tt <- wilcox.test(g1, g2, conf.int = TRUE);
@@ -362,7 +378,17 @@ export async function runMannWhitneyU(group1: number[], group2: number[]): Promi
     sigma_U <- sqrt(n1 * n2 * (n_total + 1) / 12);
     z_score <- (U - mu_U) / sigma_U;
     r <- min(abs(z_score) / sqrt(n_total), 1.0);
-    sk1 <- skew(g1); sk2 <- skew(g2);
+    
+    # Inline skewness (no psych needed)
+    calc_skew <- function(x) {
+        x <- x[!is.na(x)]
+        n <- length(x)
+        if (n < 3) return(0)
+        m <- mean(x); s <- sd(x)
+        if (s == 0) return(0)
+        (n / ((n-1)*(n-2))) * sum(((x - m) / s)^3)
+    }
+    sk1 <- calc_skew(g1); sk2 <- calc_skew(g2);
     sim <- (sign(sk1) == sign(sk2)) && (abs(sk1 - sk2) < 1.0);
     msg <- if(sim) "Trung vi" else "Mean Rank";
     list(stat = tt$statistic, p = tt$p.value, m1 = median(g1), m2 = median(g2), r = r, sk1 = sk1, sk2 = sk2, msg = msg);

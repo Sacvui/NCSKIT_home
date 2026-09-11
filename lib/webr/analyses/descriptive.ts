@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Descriptive Statistics & Validation - Template-Driven
  */
 import { WEBR_TIMEOUTS, getTimeoutForMethod } from '../constants';
@@ -40,20 +40,40 @@ export async function runDescriptiveStats(data: number[][]): Promise<{
 }> {
     await loadPackagesForMethod('descriptive');
     const defaultRCode = `
-    library(psych);
-    df <- as.data.frame({{data}});
+    # PURE BASE-R DESCRIPTIVE STATS (NO psych::describe)
+    df <- as.data.frame(raw_data);
     colnames(df) <- paste0("V", 1:ncol(df));
-    desc <- describe(df, fast=FALSE);
+    
+    calc_skew <- function(x) {
+        x <- x[!is.na(x)]
+        n <- length(x)
+        if (n < 3) return(NA)
+        m <- mean(x)
+        s <- sd(x)
+        if (s == 0) return(0)
+        (n / ((n-1)*(n-2))) * sum(((x - m) / s)^3)
+    }
+    
+    calc_kurtosis <- function(x) {
+        x <- x[!is.na(x)]
+        n <- length(x)
+        if (n < 4) return(NA)
+        m <- mean(x)
+        s <- sd(x)
+        if (s == 0) return(0)
+        ((n*(n+1)) / ((n-1)*(n-2)*(n-3))) * sum(((x - m) / s)^4) - (3*(n-1)^2) / ((n-2)*(n-3))
+    }
+    
     list(
-        mean = as.numeric(desc$mean),
-        sd = as.numeric(desc$sd),
-        min = as.numeric(desc$min),
-        max = as.numeric(desc$max),
-        median = as.numeric(desc$median),
-        n = as.numeric(desc$n),
-        skew = as.numeric(desc$skew),
-        kurtosis = as.numeric(desc$kurtosis),
-        se = as.numeric(desc$se)
+        mean = sapply(df, mean, na.rm = TRUE),
+        sd = sapply(df, sd, na.rm = TRUE),
+        min = sapply(df, min, na.rm = TRUE),
+        max = sapply(df, max, na.rm = TRUE),
+        median = sapply(df, median, na.rm = TRUE),
+        n = sapply(df, function(x) sum(!is.na(x))),
+        skew = sapply(df, calc_skew),
+        kurtosis = sapply(df, calc_kurtosis),
+        se = sapply(df, function(x) { x <- x[!is.na(x)]; sd(x) / sqrt(length(x)) })
     );
     `;
     const template = await getAnalysisRTemplate('descriptive', defaultRCode);

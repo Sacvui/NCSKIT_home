@@ -31,6 +31,14 @@ export function FileUpload({ onDataLoaded, locale, isDemo = false }: FileUploadP
                 setError(`Bản Demo giới hạn tối đa 300 dòng và 50 cột. File của bạn có ${rows} dòng, ${cols} cột. Vui lòng đăng nhập để phân tích không giới hạn.`);
                 return false;
             }
+        } else {
+            // Global hard limits to prevent WebAssembly OOM crashes
+            const rows = data.length;
+            const cols = Object.keys(data[0] || {}).length;
+            if (rows > 15000 || cols > 150) {
+                setError(`File vượt quá giới hạn an toàn cho trình duyệt (Tối đa 15,000 dòng và 150 cột). File của bạn có ${rows} dòng, ${cols} cột. Dữ liệu quá lớn sẽ làm treo trình duyệt.`);
+                return false;
+            }
         }
         
         onDataLoaded(data, filename);

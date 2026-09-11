@@ -1,0 +1,122 @@
+[
+  {
+    "analysisId": "Descriptive Statistics",
+    "status": "success"
+  },
+  {
+    "analysisId": "Frequency & Demographics",
+    "status": "success"
+  },
+  {
+    "analysisId": "Cronbach's Alpha",
+    "status": "success"
+  },
+  {
+    "analysisId": "McDonald's Omega",
+    "status": "success"
+  },
+  {
+    "analysisId": "Independent T-Test",
+    "status": "success"
+  },
+  {
+    "analysisId": "Paired T-Test",
+    "status": "success"
+  },
+  {
+    "analysisId": "ANOVA / Welch",
+    "status": "success"
+  },
+  {
+    "analysisId": "Two-Way ANOVA",
+    "status": "success"
+  },
+  {
+    "analysisId": "Mann-Whitney U",
+    "status": "success"
+  },
+  {
+    "analysisId": "Kruskal-Wallis H",
+    "status": "success"
+  },
+  {
+    "analysisId": "Wilcoxon Signed-Rank",
+    "status": "success"
+  },
+  {
+    "analysisId": "Correlation Matrix",
+    "status": "success"
+  },
+  {
+    "analysisId": "Linear Regression",
+    "status": "success"
+  },
+  {
+    "analysisId": "Logistic Regression",
+    "status": "success"
+  },
+  {
+    "analysisId": "Mediation Analysis",
+    "status": "success"
+  },
+  {
+    "analysisId": "Moderation Analysis",
+    "status": "success"
+  },
+  {
+    "analysisId": "EFA",
+    "status": "success"
+  },
+  {
+    "analysisId": "CFA",
+    "status": "success"
+  },
+  {
+    "analysisId": "CB-SEM (Lavaan)",
+    "status": "success"
+  },
+  {
+    "analysisId": "PLS-SEM Algorithm",
+    "status": "success"
+  },
+  {
+    "analysisId": "Bootstrapping",
+    "status": "success"
+  },
+  {
+    "analysisId": "Multi-Group Analysis (MGA)",
+    "status": "error"
+  },
+  {
+    "analysisId": "IPMA",
+    "status": "success"
+  },
+  {
+    "analysisId": "Blindfolding (Q²)",
+    "status": "success"
+  },
+  {
+    "analysisId": "HTMT",
+    "status": "success"
+  },
+  {
+    "analysisId": "Collinearity (VIF)",
+    "status": "success"
+  },
+  {
+    "analysisId": "Common Method Bias (CMB)",
+    "status": "success"
+  },
+  {
+    "analysisId": "Chi-Square Test",
+    "status": "success"
+  },
+  {
+    "analysisId": "Fisher Exact Test",
+    "status": "success"
+  },
+  {
+    "analysisId": "K-Means Clustering",
+    "status": "success"
+  }
+]

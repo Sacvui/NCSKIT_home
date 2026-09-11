@@ -19,7 +19,8 @@
     "check-env": "node scripts/check-env.js",
     "fix-auth": "node scripts/fix-supabase-config.js",
     "postinstall": "node scripts/copy-webr.js",
-    "prepare": "node -e \"try { require('fs').mkdirSync('.husky') } catch (e) {}\""
+    "prepare": "node -e \"try { require('fs').mkdirSync('.husky') } catch (e) {}\"",
+    "verify-math": "npx playwright test tests/e2e/webr-auto-test.spec.ts && cd ../NCSKIT_APP && python app.py --data data/sample.csv && cd ../ncskit_home && node scripts/compare_engines.cjs"
   },
   "dependencies": {
     "@sentry/nextjs": "^10.48.0",
