@@ -8,6 +8,7 @@ import { getStoredLocale, type Locale } from '@/lib/i18n';
 import { getAcademyResources } from '@/lib/services/academy';
 import { ArrowLeft, BookOpen, Layers, CheckCircle2, FileText, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import ReactMarkdown from 'react-markdown';
 
 export default function AcademyDetail(props: { params: Promise<{ slug: string }> }) {
     const params = React.use(props.params);
@@ -86,10 +87,34 @@ export default function AcademyDetail(props: { params: Promise<{ slug: string }>
                     </div>
 
                     {/* Content Section (for Theory / Methods) */}
-                    {(resource.content_vi || resource.content_en) && (
+                    {(resource.content_vi || resource.content_en || (resource.content_structure && resource.content_structure.length > 0)) && (
                         <div className="prose prose-lg prose-indigo max-w-none bg-white rounded-[3rem] p-8 md:p-12 shadow-sm border border-slate-100 mb-10">
-                            {/* In a real app, parse HTML/Markdown. Here we just render text or simple JSON structure if stored as string */}
-                            <div dangerouslySetInnerHTML={{ __html: isVi ? (resource.content_vi || '') : (resource.content_en || resource.content_vi || '') }} />
+                            {/* Legacy string content */}
+                            {(resource.content_vi || resource.content_en) && (
+                                <ReactMarkdown>
+                                    {isVi ? (resource.content_vi || '') : (resource.content_en || resource.content_vi || '')}
+                                </ReactMarkdown>
+                            )}
+
+                            {/* New content_structure array */}
+                            {resource.content_structure?.map((section: any, idx: number) => (
+                                <div key={idx} className="mb-8">
+                                    {section.h2_vi && (
+                                        <h2 className="text-2xl font-bold text-slate-800 mb-4">
+                                            {isVi ? section.h2_vi : (section.h2_en || section.h2_vi)}
+                                        </h2>
+                                    )}
+                                    <div className="text-slate-600 leading-relaxed">
+                                        {section.is_html ? (
+                                            <div dangerouslySetInnerHTML={{ __html: isVi ? (section.content_vi || '') : (section.content_en || section.content_vi || '') }} />
+                                        ) : (
+                                            <ReactMarkdown>
+                                                {isVi ? (section.content_vi || '') : (section.content_en || section.content_vi || '')}
+                                            </ReactMarkdown>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     )}
 
