@@ -74,9 +74,12 @@ export function ResultsDisplay({
     }, [isFullscreen]);
 
     const display = useMemo(() => {
+        console.log("DEBUG: ResultsDisplay useMemo triggered.", { multipleResults, results, analysisType });
+        
         const hasMultiDisplay = multipleResults && multipleResults.length > 0 && multipleResults.some(res => res.type === 'cronbach' || res.type === 'omega');
 
         if (hasMultiDisplay) {
+            console.log("DEBUG: hasMultiDisplay is true! Rendering multiple CronbachResults.");
             return (
                 <div className="space-y-8">
                     {multipleResults!.map((res, idx) => {
@@ -100,6 +103,7 @@ export function ResultsDisplay({
             );
         }
 
+        console.log("DEBUG: hasMultiDisplay is false.", { results });
         if (!results) return null;
 
         // Automatically unwrap `data` if it was wrapped by setResults({ type, data, columns })
