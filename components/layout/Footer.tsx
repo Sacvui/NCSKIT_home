@@ -32,6 +32,34 @@ export default function Footer({ locale = 'vi' }: FooterProps) {
                                 <Link href="/privacy" className="hover:text-indigo-600 transition-colors">{t(locale, 'footer.privacy')}</Link>
                                 <Link href="/sitemap.xml" className="hover:text-indigo-600 transition-colors uppercase text-[10px] font-black tracking-widest opacity-50">XML Sitemap</Link>
                                 <div className="h-px w-8 bg-slate-200 my-1"></div>
+                                <button 
+                                    onClick={() => {
+                                        if ('serviceWorker' in navigator) {
+                                            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                                                for(let registration of registrations) {
+                                                    registration.unregister();
+                                                }
+                                            });
+                                        }
+                                        localStorage.clear();
+                                        sessionStorage.clear();
+                                        try {
+                                            if (window.indexedDB && window.indexedDB.databases) {
+                                                window.indexedDB.databases().then(dbs => {
+                                                    for (let db of dbs) {
+                                                        if (db.name) window.indexedDB.deleteDatabase(db.name);
+                                                    }
+                                                }).catch(() => {});
+                                            }
+                                        } catch(e) {}
+                                        alert('Đã xóa bộ nhớ đệm (Cache & Service Worker) thành công! Hệ thống sẽ tải lại để áp dụng mã nguồn mới nhất.');
+                                        window.location.reload();
+                                    }}
+                                    className="hover:text-red-600 transition-colors text-left text-[10px] uppercase font-bold tracking-widest text-slate-400 mt-2"
+                                >
+                                    Khắc phục lỗi WebR (Xóa Cache)
+                                </button>
+                                <div className="h-px w-8 bg-slate-200 my-1"></div>
                                 <Link href="/terms" className="hover:text-orange-600 transition-colors font-medium text-orange-700/80 italic">{t(locale, 'footer.disclaimer')}</Link>
                             </div>
                         </div>
