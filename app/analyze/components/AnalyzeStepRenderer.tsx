@@ -46,7 +46,6 @@ interface AnalyzeStepRendererProps {
     setCurrentAnalysisCost: (cost: number) => void;
     setShowInsufficientCredits: (show: boolean) => void;
     setPreviousAnalysis: (data: any) => void;
-    setPreviousAnalysis: (data: any) => void;
     isDemo?: boolean;
 }
 
