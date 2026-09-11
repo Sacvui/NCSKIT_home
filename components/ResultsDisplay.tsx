@@ -167,7 +167,7 @@ export function ResultsDisplay({
                     </Card>
                 );
         }
-    }, [results, analysisType, onProceedToEFA, onProceedToCFA, onProceedToSEM, columns, scaleName]);
+    }, [results, multipleResults, analysisType, onProceedToEFA, onProceedToCFA, onProceedToSEM, columns, scaleName]);
 
     return (
         <div 
