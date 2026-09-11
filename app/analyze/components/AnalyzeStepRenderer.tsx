@@ -46,10 +46,12 @@ interface AnalyzeStepRendererProps {
     setCurrentAnalysisCost: (cost: number) => void;
     setShowInsufficientCredits: (show: boolean) => void;
     setPreviousAnalysis: (data: any) => void;
+    setPreviousAnalysis: (data: any) => void;
+    isDemo?: boolean;
 }
 
 export function AnalyzeStepRenderer(props: AnalyzeStepRendererProps) {
-    const { step, locale, profile, data, getNumericColumns, getAllColumns, user, setResults, setStep, setNcsBalance, showToast, setAnalysisType, setRequiredCredits, setCurrentAnalysisCost, setShowInsufficientCredits, isAnalyzing } = props;
+    const { step, locale, profile, data, getNumericColumns, getAllColumns, user, setResults, setStep, setNcsBalance, showToast, setAnalysisType, setRequiredCredits, setCurrentAnalysisCost, setShowInsufficientCredits, isAnalyzing, isDemo } = props;
 
     if (step === 'upload') {
         return (
@@ -58,7 +60,7 @@ export function AnalyzeStepRenderer(props: AnalyzeStepRendererProps) {
                     <h2 className="text-3xl font-bold text-gray-800 mb-2">{t(locale, 'analyze.upload.title')}</h2>
                     <p className="text-gray-600">{t(locale, 'analyze.upload.desc')}</p>
                 </div>
-                <FileUpload onDataLoaded={props.handleDataLoaded} locale={locale} />
+                <FileUpload onDataLoaded={props.handleDataLoaded} locale={locale} isDemo={isDemo} />
             </div>
         );
     }

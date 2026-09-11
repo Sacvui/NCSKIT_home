@@ -10,12 +10,32 @@ import { Locale, t } from '@/lib/i18n';
 interface FileUploadProps {
     onDataLoaded: (data: any[], filename: string) => void;
     locale: Locale;
+    isDemo?: boolean;
 }
 
-export function FileUpload({ onDataLoaded, locale }: FileUploadProps) {
+export function FileUpload({ onDataLoaded, locale, isDemo = false }: FileUploadProps) {
     const [isDragging, setIsDragging] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const validateData = (data: any[], filename: string) => {
+        if (!data || data.length === 0) {
+            setError(t(locale, 'analyze.upload.errorEmpty'));
+            return false;
+        }
+        
+        if (isDemo) {
+            const rows = data.length;
+            const cols = Object.keys(data[0] || {}).length;
+            if (rows > 300 || cols > 50) {
+                setError(`Bản Demo giới hạn tối đa 300 dòng và 50 cột. File của bạn có ${rows} dòng, ${cols} cột. Vui lòng đăng nhập để phân tích không giới hạn.`);
+                return false;
+            }
+        }
+        
+        onDataLoaded(data, filename);
+        return true;
+    };
 
     const handleFile = useCallback(async (file: File) => {
         setIsProcessing(true);
@@ -30,11 +50,7 @@ export function FileUpload({ onDataLoaded, locale }: FileUploadProps) {
                     skipEmptyLines: true,
                     worker: true,
                     complete: (results) => {
-                        if (results.data && results.data.length > 0) {
-                            onDataLoaded(results.data, file.name);
-                        } else {
-                            setError(t(locale, 'analyze.upload.errorEmpty'));
-                        }
+                        validateData(results.data, file.name);
                         setIsProcessing(false);
                     },
                     error: (error) => {
@@ -48,11 +64,7 @@ export function FileUpload({ onDataLoaded, locale }: FileUploadProps) {
                 const worksheet = workbook.Sheets[workbook.SheetNames[0]];
                 const data = XLSX.utils.sheet_to_json(worksheet);
 
-                if (data && data.length > 0) {
-                    onDataLoaded(data, file.name);
-                } else {
-                    setError(t(locale, 'analyze.upload.errorEmpty'));
-                }
+                validateData(data, file.name);
                 setIsProcessing(false);
             } else {
                 setError(t(locale, 'analyze.upload.errorFormat'));

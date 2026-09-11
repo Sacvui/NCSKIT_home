@@ -1,0 +1,310 @@
+'use client';
+
+import React, { useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+import { useAnalysisSession } from '@/hooks/useAnalysisSession';
+import { Toast } from '@/components/ui/Toast';
+import { Shield } from 'lucide-react';
+import Header from '@/components/layout/Header';
+import Footer from '@/components/layout/Footer';
+import AnalysisToolbar from '@/components/analyze/AnalysisToolbar';
+import SaveProjectModal from '@/components/analyze/SaveProjectModal';
+import { DemographicSurvey } from '@/components/feedback/DemographicSurvey';
+import { ApplicabilitySurvey } from '@/components/feedback/ApplicabilitySurvey';
+import { InsufficientCreditsModal } from '@/components/InsufficientCreditsModal';
+import { t } from '@/lib/i18n';
+import { AnalysisStep } from '@/types/analysis';
+
+// Extracted Hooks & Components
+import { useAnalyzeLifecycle } from '@/app/analyze/hooks/useAnalyzeLifecycle';
+import { useAnalysisRunner } from '@/app/analyze/hooks/useAnalysisRunner';
+import { AnalyzeStepRenderer } from '@/app/analyze/components/AnalyzeStepRenderer';
+
+interface AnalyzeModuleProps {
+    isDemo?: boolean;
+}
+
+export function AnalyzeModule({ isDemo = false }: AnalyzeModuleProps) {
+    const searchParams = useSearchParams();
+    const mode = searchParams.get('mode');
+    const { user } = useAuth();
+    
+    const effectiveUser = isDemo ? null : user;
+
+    // Session State Management (Global Context for Analysis)
+    const {
+        isPrivateMode, setIsPrivateMode,
+        clearSession,
+        step, setStep,
+        data, setData,
+        filename, setFilename,
+        profile, setProfile,
+        analysisType, setAnalysisType,
+        results, setResults,
+        multipleResults, setMultipleResults,
+    } = useAnalysisSession();
+
+    // Local Ephemeral UI State
+    const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+    const [showDemographics, setShowDemographics] = useState(false);
+    const [showApplicability, setShowApplicability] = useState(false);
+    const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+    const [previousAnalysis, setPreviousAnalysis] = useState<any | null>(null);
+
+    // NCS Credit State
+    const [ncsBalance, setNcsBalance] = useState<number>(0);
+    const [showInsufficientCredits, setShowInsufficientCredits] = useState(false);
+    const [requiredCredits, setRequiredCredits] = useState(0);
+    const [currentAnalysisCost, setCurrentAnalysisCost] = useState(0);
+
+    const showToast = (message: string, type: 'success' | 'error' | 'info') => {
+        setToast({ message, type });
+        setTimeout(() => setToast(null), 5000);
+    };
+
+    // 1. Lifecycle Hook (Handles CacheBuster, Auth, Locale, Auto-save, Event Listeners)
+    const {
+        loading,
+        showRestoreBanner,
+        handleRestore,
+        discardSaved,
+        locale,
+        getNumericColumns
+    } = useAnalyzeLifecycle({
+        data, step, setStep, profile, setProfile, filename, results, analysisType, isPrivateMode,
+        setNcsBalance, setToast: showToast, setShowDemographics, isDemo
+    });
+
+    const getAllColumns = () => profile ? Object.keys(profile.columnStats) : [];
+
+    // 2. Analysis Runner Hook (Handles WebR, Credit deduction, Error handling)
+    const { isAnalyzing, setIsAnalyzing, analysisProgress, runAnalysis } = useAnalysisRunner({
+        data, getNumericColumns, user: effectiveUser, setStep, setAnalysisType, setRequiredCredits, setCurrentAnalysisCost,
+        setShowInsufficientCredits, setNcsBalance, setResults, setToast: showToast,
+        handleAnalysisError: (err: any) => {
+            const msg = err.message || String(err);
+            console.error("Analysis Error:", err);
+            showToast(`Lỗi: ${msg.substring(0, 100)}...`, 'error');
+        }
+    });
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-50">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-900 mx-auto"></div>
+                    <p className="mt-4 text-slate-600 font-medium">{t(locale as any, 'analyze.common.loading')}...</p>
+                </div>
+            </div>
+        );
+    }
+
+    const steps = [
+        { id: 'upload', label: t(locale as any, 'analyze.steps.upload') },
+        { id: 'profile', label: t(locale as any, 'analyze.steps.profile') },
+        { id: 'analyze', label: t(locale as any, 'analyze.steps.analyze') },
+        { id: 'results', label: t(locale as any, 'analyze.steps.results') },
+    ];
+
+    return (
+        <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+            <Header />
+            
+            {isDemo && (
+                <div className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-center py-2 text-sm font-bold shadow-md relative z-50 flex items-center justify-center gap-2">
+                    <Shield className="w-4 h-4" />
+                    BẠN ĐANG TRẢI NGHIỆM PHIÊN BẢN DEMO (KHÔNG YÊU CẦU ĐĂNG NHẬP). GIỚI HẠN UPLOAD: TỐI ĐA 300 DÒNG, 50 CỘT.
+                </div>
+            )}
+
+            {/* Restore Workspace Banner */}
+            {showRestoreBanner && (
+                <div className="bg-amber-50 border-b border-amber-200 py-3 px-4 shadow-sm z-40">
+                    <div className="container mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                                <Shield className="w-4 h-4 text-amber-600" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-medium text-amber-900">
+                                    {t(locale as any, 'analyze.common.restore_found') || 'Tìm thấy dữ liệu đang làm việc'}
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={discardSaved}
+                                className="px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100 rounded-md transition-colors"
+                            >
+                                {t(locale as any, 'analyze.common.discard') || 'Bỏ qua'}
+                            </button>
+                            <button
+                                onClick={() => handleRestore(setData, setFilename, setStep, setResults, setAnalysisType)}
+                                className="px-4 py-1.5 text-xs font-bold bg-amber-600 text-white hover:bg-amber-700 rounded-md shadow-sm transition-colors"
+                            >
+                                {t(locale as any, 'analyze.common.restore') || 'Khôi phục'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <div className="flex-1">
+                <div className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200">
+                    <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+                        <div>
+                            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+                                {t(locale as any, 'analyze.common.workspace')}
+                            </h1>
+                            <p className="text-sm text-gray-500 mt-1">
+                                {filename ? `${t(locale as any, 'analyze.common.working_file')}: ${filename}` : t(locale as any, 'analyze.common.no_file')}
+                            </p>
+                        </div>
+                        <AnalysisToolbar
+                            isPrivateMode={isPrivateMode}
+                            setIsPrivateMode={setIsPrivateMode}
+                            clearSession={() => {
+                                clearSession();
+                                showToast(locale === 'vi' ? 'Đã dọn dẹp phiên làm việc' : 'Session cleared', 'info');
+                            }}
+                            filename={filename}
+                            onSave={() => setIsSaveModalOpen(true)}
+                            locale={locale as any}
+                        />
+                    </div>
+                </div>
+
+                <div className="bg-blue-50/50 border-b border-blue-100 py-1">
+                    <div className="container mx-auto px-6 flex items-center justify-center gap-2 text-[11px] text-blue-600/80">
+                        <Shield className="w-3 h-3" />
+                        <span className="font-semibold">{t(locale as any, 'analyze.common.security_label')}:</span>
+                        <span>{t(locale as any, 'analyze.common.security')}</span>
+                    </div>
+                </div>
+
+                {/* Progress Steps */}
+                <div className="container mx-auto px-2 md:px-6 py-4 md:py-8 overflow-x-auto no-scrollbar">
+                    <div className="flex items-center justify-center gap-2 md:gap-4 mb-2 md:mb-8 min-w-max px-4">
+                        {['upload', 'profile', 'analyze', 'results'].map((s, idx) => {
+                            const stepOrder = ['upload', 'profile', 'analyze', 'results'];
+                            const getMainStep = (current: string) => {
+                                if (stepOrder.includes(current)) return current;
+                                if (current.endsWith('-select')) return 'analyze';
+                                return current;
+                            };
+                            const effectiveStep = getMainStep(step);
+                            const currentIdx = stepOrder.indexOf(effectiveStep);
+                            const isCompleted = currentIdx > idx;
+                            const isCurrent = effectiveStep === s;
+                            const isClickable = isCompleted || isCurrent;
+
+                            return (
+                                <div key={s} className="flex items-center">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (isClickable) {
+                                                if (s === 'analyze' && step.endsWith('-select')) {
+                                                    setStep('analyze' as any);
+                                                } else {
+                                                    setStep(s as AnalysisStep);
+                                                }
+                                            }
+                                        }}
+                                        disabled={!isClickable}
+                                        className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-black text-[10px] md:text-xs transition-all shadow-sm
+                                            ${isCurrent ? 'bg-blue-900 text-white ring-4 ring-blue-100 scale-110' :
+                                                isCompleted ? 'bg-blue-600 text-white hover:bg-blue-700 hover:scale-110' :
+                                                    'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'}
+                                            ${isClickable ? 'cursor-pointer hover:shadow-xl' : ''}`}
+                                    >
+                                        {idx + 1}
+                                    </button>
+                                    {idx < 3 && (
+                                        <div className={`w-8 md:w-16 h-1 rounded-full transition-colors ${currentIdx > idx ? 'bg-blue-600' : 'bg-slate-200'}`} />
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* Step Content Rendered Here */}
+                    <div className="py-8">
+                        <AnalyzeStepRenderer
+                            step={step}
+                            data={data}
+                            profile={profile}
+                            locale={locale as any}
+                            user={effectiveUser}
+                            isAnalyzing={isAnalyzing}
+                            analysisProgress={analysisProgress}
+                            results={results}
+                            multipleResults={multipleResults}
+                            analysisType={analysisType}
+                            previousAnalysis={previousAnalysis}
+                            ncsBalance={ncsBalance}
+                            mode={mode}
+                            getNumericColumns={getNumericColumns}
+                            getAllColumns={getAllColumns}
+                            handleDataLoaded={(data: any[], filename: string) => {
+                                setData(data);
+                                setFilename(filename);
+                                setStep('profile');
+                                showToast(locale === 'vi' ? 'Đã tải dữ liệu thành công' : 'Data loaded successfully', 'success');
+                            }}
+                            setStep={setStep}
+                            runAnalysis={runAnalysis}
+                            setResults={setResults}
+                            setNcsBalance={setNcsBalance}
+                            showToast={showToast}
+                            setAnalysisType={setAnalysisType}
+                            setRequiredCredits={setRequiredCredits}
+                            setCurrentAnalysisCost={setCurrentAnalysisCost}
+                            setShowInsufficientCredits={setShowInsufficientCredits}
+                            setPreviousAnalysis={setPreviousAnalysis}
+                            isDemo={isDemo}
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <Footer />
+
+            {/* Modals & Overlays */}
+            {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+
+            <SaveProjectModal
+                isOpen={isSaveModalOpen}
+                onClose={() => setIsSaveModalOpen(false)}
+                userId={effectiveUser?.id}
+                sessionData={{ data, step, profile, filename, results, analysisType, previousAnalysis }}
+            />
+
+            <InsufficientCreditsModal
+                isOpen={showInsufficientCredits}
+                onClose={() => setShowInsufficientCredits(false)}
+                requiredCredits={requiredCredits}
+                currentCost={currentAnalysisCost}
+                currentBalance={ncsBalance}
+            />
+
+            {showDemographics && (
+                <DemographicSurvey
+                    isOpen={showDemographics}
+                    onClose={() => setShowDemographics(false)}
+                    userId={effectiveUser?.id}
+                />
+            )}
+            
+            {showApplicability && (
+                <ApplicabilitySurvey
+                    isOpen={showApplicability}
+                    onClose={() => setShowApplicability(false)}
+                    userId={effectiveUser?.id}
+                    analysisType={analysisType}
+                />
+            )}
+        </div>
+    );
+}

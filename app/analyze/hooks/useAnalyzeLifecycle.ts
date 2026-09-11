@@ -22,7 +22,8 @@ export function useAnalyzeLifecycle({
     isPrivateMode,
     setNcsBalance,
     setToast,
-    setShowDemographics
+    setShowDemographics,
+    isDemo = false
 }: any) {
     const router = useRouter();
     const { user, profile: userProfile, loading: authLoading } = useAuth();
@@ -61,7 +62,7 @@ export function useAnalyzeLifecycle({
 
     // 3. Auth Guard
     useEffect(() => {
-        if (process.env.NODE_ENV === 'development') {
+        if (process.env.NODE_ENV === 'development' || isDemo) {
             setLoading(false);
             return;
         }
@@ -71,13 +72,13 @@ export function useAnalyzeLifecycle({
 
         if (!authLoading) {
             const isSupabaseConfigured = process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-            if (user || !isSupabaseConfigured || (process.env.NODE_ENV as string) === 'development') {
+            if (user || !isSupabaseConfigured) {
                 setLoading(false);
             } else {
                 router.push('/login?next=/analyze');
             }
         }
-    }, [authLoading, user, router]);
+    }, [authLoading, user, router, isDemo]);
 
     // 4. Safety Timeout for Auth hangs
     useEffect(() => {
