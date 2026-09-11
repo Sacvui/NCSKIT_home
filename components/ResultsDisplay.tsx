@@ -9,6 +9,7 @@ import { Maximize2, Minimize2 } from 'lucide-react';
 
 // Shared components (eager load - small and frequently used)
 import { RSyntaxViewer } from './results/shared/RSyntaxViewer';
+import { MultiReliabilitySummary } from './results/reliability/MultiReliabilitySummary';
 
 // Lazy load all analysis components for code splitting
 const LoadingSkeleton = lazy(() => import('./results/LoadingSkeleton'));
@@ -82,12 +83,15 @@ export function ResultsDisplay({
     const display = useMemo(() => {
         console.log("DEBUG: ResultsDisplay useMemo triggered.", { multipleResults, results, analysisType });
         
-        const hasMultiDisplay = multipleResults && multipleResults.length > 0 && multipleResults.some(res => res.type === 'cronbach' || res.type === 'omega');
+        const hasMultiDisplay = multipleResults && multipleResults.length > 0 && 
+            (analysisType === 'cronbach-batch' || analysisType === 'omega-batch') &&
+            multipleResults.some(res => res.type === 'cronbach' || res.type === 'omega');
 
         if (hasMultiDisplay) {
             console.log("DEBUG: hasMultiDisplay is true! Rendering multiple CronbachResults.");
             return (
                 <div className="space-y-8">
+                    <MultiReliabilitySummary multipleResults={multipleResults!} />
                     {multipleResults!.map((res, idx) => {
                         if (res.type === 'cronbach' || res.type === 'omega') {
                             return (
