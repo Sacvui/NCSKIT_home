@@ -41,14 +41,11 @@ export const BASE_URL = typeof window !== 'undefined'
     : '/webr_core_v3/';
 
 export const getOptimalChannelType = (): 0 | 1 | 3 => {
-    if (typeof window === 'undefined') return 3;
-    
-    // Tối ưu nhất: SharedArrayBuffer cho phép tốc độ cao nhất (nếu có COOP/COEP headers)
-    if (typeof SharedArrayBuffer !== 'undefined' && window.crossOriginIsolated) return 0;
-    
-    // TRÁNH SỬ DỤNG SERVICE WORKER (Channel 1) trên Safari/iOS vì lỗi FileReaderSync!
-    // Safari có bug nội tại với đồng bộ XHR (Sync XHR) khi bị Service Worker chặn lại.
-    // Do đó, nếu không có SharedArrayBuffer, fallback an toàn nhất trên mọi trình duyệt là PostMessage (3).
+    // CRITICAL FIX: Always use PostMessage (channel 3).
+    // WebR 0.5.8 + SharedArrayBuffer (channel 0) crashes with "c is not a function"
+    // when the page uses COEP 'credentialless' (which sets crossOriginIsolated=true
+    // but doesn't provide full CORP compliance that WebR's SAB channel requires).
+    // PostMessage is ~10% slower but 100% stable on ALL browsers.
     return 3;
 };
 
