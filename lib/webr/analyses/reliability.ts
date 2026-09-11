@@ -58,22 +58,9 @@ export async function runCronbachAlpha(
     });
     
     # === McDonald's Omega (Robust) ===
-    # For a single scale/construct, we assume 1 factor. 
-    # (fa.parallel is computationally expensive and unnecessary here)
-    omega_result <- tryCatch({
-        if (ncol(data) >= 3) {
-            om <- suppressWarnings(suppressMessages(
-                omega(data, nfactors = 1, plot = FALSE, check.keys = TRUE)
-            ));
-            
-            list(
-                omega_total = if(is.numeric(om$omega.tot)) om$omega.tot else NA,
-                omega_h = if(is.numeric(om$omega.h)) om$omega.h else NA
-            )
-        } else {
-            list(omega_total = NA, omega_h = NA)
-        }
-    }, error = function(e) { list(omega_total = NA, omega_h = NA) });
+    # psych::omega often causes WASM aborts due to underlying LAPACK/Fortran calls in fa()
+    # To prevent 'c is not a function' TypeError in WebR, we temporarily disable it here.
+    omega_result <- list(omega_total = NA, omega_h = NA)
     
     # Extract item-total statistics
     item_stats <- result$item.stats;
