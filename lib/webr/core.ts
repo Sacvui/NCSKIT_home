@@ -598,6 +598,7 @@ export async function executeRWithRecovery(
             errorMsg.includes('FileReaderSync') ||
             errorMsg.includes('webr-worker') ||
             errorMsg.includes('Worker terminated') ||
+            errorMsg.includes('not a function') ||
             errorMsg.includes('PostMessage channel');
         
         if (isFatalWorkerError) {
