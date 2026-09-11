@@ -24,6 +24,14 @@ export const STATIC_SCALES = [
             { code: 'PEOU1', text_vi: 'Việc học cách sử dụng hệ thống đối với tôi rất dễ dàng.', text_en: 'Learning to operate the system would be easy for me.' },
             { code: 'PEOU2', text_vi: 'Tôi thấy hệ thống này rất dễ sử dụng.', text_en: 'I would find the system easy to use.' },
             { code: 'PEOU3', text_vi: 'Thao tác với hệ thống không đòi hỏi nhiều nỗ lực.', text_en: 'It is easy for me to become skillful at using the system.' }
+        ],
+        content_structure: [
+            {
+                h2_vi: 'Mô hình TAM là gì?',
+                h2_en: 'What is TAM?',
+                content_vi: 'Mô hình Chấp nhận Công nghệ (TAM - Technology Acceptance Model) được Davis giới thiệu năm 1989 là một trong những mô hình kinh điển và phổ biến nhất trong lĩnh vực Hệ thống Thông tin. Mô hình này giải thích lý do tại sao người dùng chấp nhận hoặc từ chối một công nghệ mới thông qua hai yếu tố chính: **Sự hữu ích cảm nhận (Perceived Usefulness)** và **Sự dễ sử dụng cảm nhận (Perceived Ease of Use)**.',
+                content_en: 'The Technology Acceptance Model (TAM) introduced by Davis in 1989 is one of the most classic models in MIS. It explains why users accept or reject a new technology through two main factors: **Perceived Usefulness** and **Perceived Ease of Use**.'
+            }
         ]
     },
     {
@@ -43,6 +51,14 @@ export const STATIC_SCALES = [
             { code: 'HM2', text_vi: 'Tôi thấy vui khi sử dụng công nghệ này.', text_en: 'Using this technology is fun.' },
             { code: 'PV1', text_vi: 'Công nghệ này có giá trị tốt so với chi phí.', text_en: 'This technology is reasonably priced.' },
             { code: 'HT1', text_vi: 'Sử dụng công nghệ này đã trở thành thói quen của tôi.', text_en: 'The use of this technology has become a habit for me.' }
+        ],
+        content_structure: [
+            {
+                h2_vi: 'UTAUT2 mở rộng điều gì?',
+                h2_en: 'What does UTAUT2 extend?',
+                content_vi: 'Khác với UTAUT ban đầu tập trung vào môi trường doanh nghiệp (nơi nhân viên bị bắt buộc sử dụng hệ thống), UTAUT2 do Venkatesh và cộng sự phát triển năm 2012 tập trung vào **Người tiêu dùng cuối (Consumers)**.\n\nBa biến số cực kỳ quan trọng được bổ sung vào UTAUT2 là:\n- **Động lực hưởng thụ (Hedonic Motivation):** Cảm giác thích thú khi sử dụng công nghệ.\n- **Giá trị cảm nhận (Price Value):** Sự đánh đổi giữa lợi ích công nghệ mang lại so với chi phí bỏ ra.\n- **Thói quen (Habit):** Mức độ người dùng thực hiện hành vi một cách tự động vì đã quá quen thuộc.',
+                content_en: 'Unlike the original UTAUT which focused on organizational contexts, UTAUT2 (Venkatesh et al., 2012) focuses on **Consumers**.\n\nThree critical variables were added:\n- **Hedonic Motivation:** The fun or pleasure derived from using a technology.\n- **Price Value:** The cognitive tradeoff between perceived benefits and cost.\n- **Habit:** The extent to which people tend to perform behaviors automatically.'
+            }
         ]
     },
     {

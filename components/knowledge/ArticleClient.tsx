@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { getSupabase } from '@/utils/supabase/client';
 import { evaluateContent } from '@/lib/seo-evaluator';
 import ContentSEOEvaluationCard from '@/components/knowledge/ContentSEOEvaluationCard';
+import ReactMarkdown from 'react-markdown';
 
 
 const supabase = getSupabase();
@@ -312,10 +313,9 @@ export default function ArticleClient({ initialArticle, fallbackArticles, slug }
                                                     />
                                                 ) : (
                                                     <div className={`text-xl md:text-2xl leading-[1.85] text-slate-600 font-normal space-y-8 ${idx === 0 && !section.is_html ? 'first-letter:text-7xl first-letter:font-black first-letter:mr-3 first-letter:float-left first-letter:text-indigo-600 first-letter:mt-2' : ''}`}>
-                                                        {/* Split content by newlines to create natural paragraphs */}
-                                                        {(isVi ? section.content_vi : section.content_en).split('\n').map((para, pIdx) => (
-                                                            para.trim() && <p key={pIdx} className="mb-6">{para.trim()}</p>
-                                                        ))}
+                                                        <ReactMarkdown>
+                                                            {isVi ? section.content_vi : section.content_en}
+                                                        </ReactMarkdown>
                                                     </div>
                                                 )}
                                                 
