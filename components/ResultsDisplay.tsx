@@ -45,6 +45,7 @@ interface ResultsDisplayProps {
     columns?: string[];
     userProfile?: any;
     scaleName?: string;
+    multipleResults?: any[];
 }
 
 export function ResultsDisplay({
@@ -55,7 +56,8 @@ export function ResultsDisplay({
     onProceedToSEM,
     userProfile,
     columns,
-    scaleName
+    scaleName,
+    multipleResults
 }: ResultsDisplayProps) {
     const [isFullscreen, setIsFullscreen] = useState(false);
 
@@ -72,6 +74,30 @@ export function ResultsDisplay({
     }, [isFullscreen]);
 
     const display = useMemo(() => {
+        if (multipleResults && multipleResults.length > 0) {
+            return (
+                <div className="space-y-8">
+                    {multipleResults.map((res, idx) => {
+                        if (res.type === 'cronbach' || res.type === 'omega') {
+                            return (
+                                <div key={idx} className="relative">
+                                    <div className="absolute -left-4 top-0 bottom-0 w-1 bg-blue-100 rounded-full" />
+                                    <CronbachResults 
+                                        results={res.data || res} 
+                                        columns={res.columns} 
+                                        scaleName={res.scaleName} 
+                                        analysisType={res.type} 
+                                        onProceedToEFA={onProceedToEFA} 
+                                    />
+                                </div>
+                            );
+                        }
+                        return null;
+                    })}
+                </div>
+            );
+        }
+
         if (!results) return null;
 
         // Automatically unwrap `data` if it was wrapped by setResults({ type, data, columns })
