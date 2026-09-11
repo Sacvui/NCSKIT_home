@@ -29,6 +29,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     return {
         title,
         description,
+        authors: [{ name: 'Le Phuc Hai' }],
         alternates: {
             canonical: `/knowledge/${slug}`,
         },
@@ -37,6 +38,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
             description,
             type: 'article',
             url: `https://ncskit.org/knowledge/${slug}`,
+            authors: ['Le Phuc Hai']
         }
     };
 }
@@ -82,8 +84,8 @@ export default async function KnowledgeArticlePage({ params }: { params: Promise
         "headline": titleVi,
         "description": `Hướng dẫn chi tiết về ${titleVi} - Phân tích thống kê NCSKIT.org`,
         "author": {
-            "@type": "Organization",
-            "name": "NCSKIT Academy"
+            "@type": "Person",
+            "name": "Le Phuc Hai"
         },
         "publisher": {
             "@type": "Organization",
