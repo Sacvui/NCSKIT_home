@@ -263,7 +263,7 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         ropensci_repo <- "https://ropensci.r-universe.dev"
                         fallback_repo <- "https://repo.r-wasm.org/"
                         
-                        options(repos = c(LAVAAN = lavaan_repo, SEMINR = seminr_repo, ROPEN = ropensci_repo, CRAN = fallback_repo))
+                        options(repos = c(LOCAL = local_repo, LAVAAN = lavaan_repo, SEMINR = seminr_repo, ROPEN = ropensci_repo, CRAN = fallback_repo))
                         options(pkgType = "binary")
                         options(webr.repo_quiet = FALSE) # Set to FALSE to see errors in console
                         options(timeout = 60)
