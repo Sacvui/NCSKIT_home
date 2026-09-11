@@ -206,7 +206,13 @@ export async function runEFA(
         stop("Lỗi: Dữ liệu có giá trị khuyết (NA) hoặc biến không đổi (phương sai = 0). Vui lòng làm sạch dữ liệu.") 
     }
     
-    eigenvalues <- eigen(cor_mat)$values
+    # Calculate eigenvalues (eigen is stable and won't crash WASM LAPACK)
+    eigenvalues <- eigen(cor_mat, symmetric=TRUE, only.values=TRUE)$values
+
+    # CRITICAL: If the smallest eigenvalue is near zero, the matrix is singular (perfect collinearity)
+    if (min(eigenvalues) < 1e-6) {
+        stop("Lỗi: Ma trận dữ liệu không xác định dương (có đa cộng tuyến hoàn hảo hoặc kết hợp tuyến tính). Hệ thống đã chặn phân tích để ngăn sự cố.")
+    }
 
     # Determine n for Bartlett and stats
     # For pairwise, we use the average N or minimum N of the pairs
