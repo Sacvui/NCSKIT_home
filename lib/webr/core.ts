@@ -545,10 +545,24 @@ export async function executeRWithRecovery(
                 })
             `;
 
+            console.log("[WebR Debug] Executing wrappedCode");
             await webR.evalR(wrappedCode);
+            console.log("[WebR Debug] wrappedCode executed");
 
+            console.log("[WebR Debug] Reading output.json");
             const resultProxy = await webR.evalR(`readLines("/home/web_user/output.json")`);
-            const resultLines = await resultProxy.toJs() as any;
+            console.log("[WebR Debug] output.json read, proxy created", resultProxy);
+            
+            let resultLines;
+            try {
+                console.log("[WebR Debug] Calling toJs() on resultProxy");
+                resultLines = await resultProxy.toJs() as any;
+                console.log("[WebR Debug] toJs() successful", resultLines);
+            } catch (err) {
+                console.error("[WebR Debug] toJs() failed!", err);
+                throw err;
+            }
+
             const finalStr = Array.isArray(resultLines?.values)
                 ? resultLines.values.join('\n')
                 : String(resultLines?.values ?? '');
@@ -558,7 +572,9 @@ export async function executeRWithRecovery(
             }
 
             // Clear memory after successful execution
+            console.log("[WebR Debug] Running gc()");
             await webR.evalR('gc()');
+            console.log("[WebR Debug] gc() finished");
 
             try {
                 return JSON.parse(finalStr);

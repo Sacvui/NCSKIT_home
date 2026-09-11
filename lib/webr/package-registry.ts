@@ -8,7 +8,7 @@ export const PACKAGE_REGISTRY = {
     'descriptive': ['psych'],
 
     // Reliability Analysis
-    'cronbach': ['psych'],
+    'cronbach': [], // Now calculated manually, no psych needed
     'efa': ['psych', 'GPArotation'],
     'cfa': ['lavaan'],
 

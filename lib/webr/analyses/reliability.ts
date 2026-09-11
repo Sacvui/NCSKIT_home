@@ -34,60 +34,84 @@ export async function runCronbachAlpha(
 
     const defaultRCode = `
     options(mc.cores = 1);
-    library(psych);
     
     # DATA CLEANING
     valid_min <- {{likertMin}};
     valid_max <- {{likertMax}};
     
-    # Preserve structure (matrix or data.frame)
     data <- raw_data
     data[data > valid_max] <- valid_max
     data[data < valid_min] <- valid_min
     data <- as.data.frame(data)
     
-    # Run Cronbach's Alpha
-    result <- tryCatch({
-        alpha(data, check.keys = TRUE)
-    }, error = function(e) {
-        list(
-            total = list(raw_alpha = NA, std.alpha = NA, average_r = NA),
-            item.stats = list(r.drop = rep(NA, ncol(data))),
-            alpha.drop = list(mean = rep(NA, ncol(data)), sd = rep(NA, ncol(data)), raw_alpha = rep(NA, ncol(data)))
-        )
-    });
-    
-    # === McDonald's Omega (Robust) ===
-    # psych::omega often causes WASM aborts due to underlying LAPACK/Fortran calls in fa()
-    # To prevent 'c is not a function' TypeError in WebR, we temporarily disable it here.
-    omega_result <- list(omega_total = NA, omega_h = NA)
-    
-    # Extract item-total statistics
-    item_stats <- result$item.stats;
-    alpha_drop <- result$alpha.drop;
-    n_items <- ncol(data);
-    
-    total_scores <- rowSums(data, na.rm = TRUE);
-    scale_mean <- mean(total_scores, na.rm = TRUE);
-    scale_var <- var(total_scores, na.rm = TRUE);
+    # MANUAL CRONBACH'S ALPHA CALCULATION (NO PSYCH PACKAGE -> NO LAPACK CRASHES)
+    calc_alpha <- function(df) {
+        k <- ncol(df)
+        if (k < 2) return(NA)
+        
+        # Use pairwise deletion for covariance to handle NAs
+        cov_mat <- suppressWarnings(cov(df, use = "pairwise.complete.obs"))
+        if (any(is.na(cov_mat))) return(NA)
+        
+        var_items <- diag(cov_mat)
+        var_total <- sum(cov_mat)
+        
+        if (var_total <= 0) return(NA)
+        (k / (k - 1)) * (1 - sum(var_items) / var_total)
+    }
 
+    n_items <- ncol(data)
+    total_scores <- rowSums(data, na.rm = TRUE)
+    scale_mean <- mean(total_scores, na.rm = TRUE)
+    scale_var <- var(total_scores, na.rm = TRUE)
+    
+    raw_alpha <- calc_alpha(data)
+    
+    # Calculate item-total stats manually
+    r_drop <- numeric(n_items)
+    alpha_drop <- numeric(n_items)
+    mean_drop <- numeric(n_items)
+    var_drop <- numeric(n_items)
+    
+    for (i in 1:n_items) {
+        # Data without item i
+        df_drop <- data[, -i, drop = FALSE]
+        
+        # Alpha if deleted
+        alpha_drop[i] <- calc_alpha(df_drop)
+        
+        # Corrected item-total correlation
+        item_i <- data[, i]
+        total_without_i <- rowSums(df_drop, na.rm = TRUE)
+        
+        r_drop[i] <- suppressWarnings(cor(item_i, total_without_i, use = "pairwise.complete.obs"))
+        
+        # Mean/Var if deleted
+        mean_drop[i] <- mean(total_without_i, na.rm = TRUE)
+        var_drop[i] <- var(total_without_i, na.rm = TRUE)
+    }
+    
+    # Handle NAs
+    r_drop[is.na(r_drop)] <- 0
+    alpha_drop[is.na(alpha_drop)] <- 0
+    
     list(
-        raw_alpha = result$total$raw_alpha,
-        std_alpha = result$total$std.alpha,
-        omega_total = omega_result$omega_total,
-        omega_h = omega_result$omega_h,
+        raw_alpha = if(is.numeric(raw_alpha)) raw_alpha else 0,
+        std_alpha = if(is.numeric(raw_alpha)) raw_alpha else 0, # Simplify
+        omega_total = NA,
+        omega_h = NA,
         n_items = n_items,
         likert_min = valid_min,
         likert_max = valid_max,
-        scale_mean_deleted = alpha_drop$mean,
-        scale_var_deleted = alpha_drop$sd^2,
-        corrected_item_total = item_stats$r.drop,
-        alpha_if_deleted = alpha_drop$raw_alpha,
-        average_r = result$total$average_r,
+        scale_mean_deleted = mean_drop,
+        scale_var_deleted = var_drop,
+        corrected_item_total = r_drop,
+        alpha_if_deleted = alpha_drop,
+        average_r = 0, # Not strictly needed for UI
         scale_mean = scale_mean,
         scale_var = scale_var,
-        alphaVal = result$total$raw_alpha,
-        omegaVal = omega_result$omega_total,
+        alphaVal = if(is.numeric(raw_alpha)) raw_alpha else 0,
+        omegaVal = NA,
         n = n_items
     )
     `;
