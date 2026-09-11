@@ -74,10 +74,12 @@ export function ResultsDisplay({
     }, [isFullscreen]);
 
     const display = useMemo(() => {
-        if (multipleResults && multipleResults.length > 0) {
+        const hasMultiDisplay = multipleResults && multipleResults.length > 0 && multipleResults.some(res => res.type === 'cronbach' || res.type === 'omega');
+
+        if (hasMultiDisplay) {
             return (
                 <div className="space-y-8">
-                    {multipleResults.map((res, idx) => {
+                    {multipleResults!.map((res, idx) => {
                         if (res.type === 'cronbach' || res.type === 'omega') {
                             return (
                                 <div key={idx} className="relative">
