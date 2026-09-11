@@ -102,7 +102,7 @@ export async function preloadPLSSEMPackages(): Promise<void> {
     console.log('🚀 Pre-loading PLS-SEM packages...');
 
     const requiredPackages = [
-        'psych',      // Already loaded in core, but check anyway
+        // psych REMOVED - all analysis uses Base R now
         'car',        // For VIF
         'boot',       // For bootstrapping
         // 'seminr',  // Not yet available in WebR

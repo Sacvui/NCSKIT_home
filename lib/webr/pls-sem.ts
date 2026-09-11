@@ -17,21 +17,27 @@ import { SemResultSchema, ISemResult } from './schemas';
  */
 export async function runMcDonaldOmega(data: number[][], itemNames?: string[]): Promise<any> {
   const rCode = `
-    library(psych)
+    # Pure Base R Omega approximation (no psych::omega to avoid WASM crash)
     df <- as.data.frame(raw_data)
     
-    # Run Omega with automatic factor detection
-    omega_result <- tryCatch({
-        omega(df, nfactors=1, plot=FALSE, check.keys=TRUE)
-    }, error = function(e) {
-        # Fallback to alpha if omega fails
-        list(omega.tot = alpha(df)$total$raw_alpha, alpha = alpha(df)$total$raw_alpha)
-    })
+    # Calculate Cronbach's Alpha as Base R fallback for Omega
+    calc_alpha <- function(d) {
+        k <- ncol(d)
+        if (k < 2) return(NA)
+        cov_mat <- suppressWarnings(cov(d, use = "pairwise.complete.obs"))
+        if (any(is.na(cov_mat))) return(NA)
+        var_items <- diag(cov_mat)
+        var_total <- sum(cov_mat)
+        if (var_total <= 0) return(NA)
+        (k / (k - 1)) * (1 - sum(var_items) / var_total)
+    }
+    
+    alpha_val <- calc_alpha(df)
     
     list(
-      omega_total = if(!is.null(omega_result$omega.tot)) omega_result$omega.tot else 0,
-      alpha = if(!is.null(omega_result$alpha)) omega_result$alpha else 0,
-      interpretation = "McDonald's Omega is the modern standard for reliability"
+      omega_total = if(!is.na(alpha_val)) alpha_val else 0,
+      alpha = if(!is.na(alpha_val)) alpha_val else 0,
+      interpretation = "Hệ số Alpha (Base R). McDonald's Omega cần chạy trên R Desktop."
     )
   `;
 
@@ -641,7 +647,7 @@ export async function runMediationModeration(
   moderatorIndex?: number
 ): Promise<any> {
   const rCode = `
-    library(psych)
+    # Pure Base R mediation/moderation (no psych needed)
     
     df <- as.data.frame(raw_data)
     colnames(df) <- paste0("V", 1:ncol(df))

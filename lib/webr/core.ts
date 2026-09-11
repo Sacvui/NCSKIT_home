@@ -278,13 +278,10 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         }
                         
                         # Ensure essential packages are available
-                        # NOTE: Only preload packages that are guaranteed available in the local/CDN repos.
-                        # quadprog + lavaan are loaded on-demand when CFA/SEM is triggered.
+                        # NOTE: psych and GPArotation have been REMOVED.
+                        # All analysis code now uses pure Base R (factanal, eigen, varimax, cor, etc.)
+                        # This eliminates WASM LAPACK crashes and saves 20-30s download time.
                         install_if_missing("jsonlite")
-                        install_if_missing("psych")
-                        tryCatch(install_if_missing("GPArotation"), error = function(e) {
-                            message("[WebR] GPArotation optional, will load on-demand: ", e$message)
-                        })
                         
                         r_version_info <- paste0(R.version$major, ".", R.version$minor, " (", R.version$platform, ")")
                     `);

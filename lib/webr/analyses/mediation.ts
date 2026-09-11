@@ -1,6 +1,6 @@
-﻿/**
+/**
  * Mediation and Moderation Analysis Modules
- * Uses 'psych' package for robust mediation/moderation modeling.
+ * Uses pure Base R (lm, bootstrap) for mediation/moderation modeling.
  */
 import { WEBR_TIMEOUTS, getTimeoutForMethod } from '../constants';
 import { executeRWithRecovery, loadPackagesForMethod } from '../core';
@@ -45,7 +45,7 @@ export async function runMediationAnalysis(
 
     const colNamesR = columns.map(c => `"${c}"`).join(',');
     const rCode = `
-    library(psych)
+    # Pure Base R mediation (no psych needed)
     
     data_mat <- raw_data
     df <- as.data.frame(data_mat)
@@ -181,7 +181,7 @@ export async function runModerationAnalysis(
 
     const colNamesR = columns.map(c => `"${c}"`).join(',');
     const rCode = `
-    library(psych)
+    # Pure Base R moderation (no psych needed)
     
     data_mat <- raw_data
     df <- as.data.frame(data_mat)

@@ -4,25 +4,25 @@
  */
 
 export const PACKAGE_REGISTRY = {
-    // Descriptive Statistics
-    'descriptive': ['psych'],
+    // Descriptive Statistics — now uses pure Base R (sapply, mean, sd, etc.)
+    'descriptive': [],
 
     // Reliability Analysis
-    'cronbach': [], // Now calculated manually, no psych needed
-    'efa': ['psych', 'GPArotation'],
+    'cronbach': [], // Calculated manually with Base R
+    'efa': [],      // Uses factanal() + eigen() + varimax() from Base R. GPArotation loaded on-demand only for oblimin.
     'cfa': ['lavaan'],
 
     // Hypothesis Testing (most use built-in stats)
-    'ttest': [],           // Uses built-in stats package
+    'ttest': [],
     'paired-ttest': [],
     'anova': [],
-    'mann-whitney': ['psych'], // Uses psych::skew for distribution shape check
+    'mann-whitney': [],  // skewness calculated inline with Base R
     'wilcoxon': [],
     'kruskal': [],
     'chi-square': [],
 
-    // Correlation — corrplot not used in code, removed to avoid install timeout
-    'correlation': ['psych'],
+    // Correlation — now uses Base R cor() + cor.test()
+    'correlation': [],
 
     // Regression — VIF calculated manually, car package not needed
     'linear-regression': [],
@@ -33,7 +33,7 @@ export const PACKAGE_REGISTRY = {
     'cbsem': ['lavaan'],
     'cbsem-select': ['lavaan'],
     'cfa-select': ['lavaan'],
-    'omega-select': ['psych'],
+    'omega-select': [],  // Omega not currently active; will use Base R when implemented
     'pls-sem': ['seminr'],
 
     // Multivariate
@@ -41,10 +41,9 @@ export const PACKAGE_REGISTRY = {
     'two-way-anova': [],
     'anova2way': [],
 
-    // Mediation & Moderation — bootstrap implemented manually, boot package not needed
-    // car package not used in moderation code
-    'mediation': ['psych'],
-    'moderation': ['psych'],
+    // Mediation & Moderation — uses Base R lm() + manual bootstrap
+    'mediation': [],
+    'moderation': [],
 } as const;
 
 export type AnalysisMethod = keyof typeof PACKAGE_REGISTRY;
