@@ -193,12 +193,17 @@ export async function runEFA(
     # Clean Data
     df <- as.data.frame(raw_data)
     
+    # Validation: Check for identical columns (perfect collinearity) which crashes WASM LAPACK
+    if (any(duplicated(as.list(df)))) {
+        stop("Lỗi: Dữ liệu chứa các biến giống hệt nhau (đa cộng tuyến hoàn hảo). Vui lòng loại bỏ các cột trùng lặp.")
+    }
+    
     # Use pairwise correlation for max data retention
     cor_mat <- cor(df, use = "pairwise.complete.obs")
     
-    # Validation: check if correlation matrix is positive definite
+    # Validation: check if correlation matrix is positive definite or contains NAs (constant variables)
     if (any(is.na(cor_mat))) { 
-        stop("Lỗi: Dữ liệu có giá trị khuyết (NA) hoặc biến không đổi, dẫn đến ma trận tương quan không hợp lệ.") 
+        stop("Lỗi: Dữ liệu có giá trị khuyết (NA) hoặc biến không đổi (phương sai = 0). Vui lòng làm sạch dữ liệu.") 
     }
     
     eigenvalues <- eigen(cor_mat)$values
