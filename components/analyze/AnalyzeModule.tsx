@@ -250,6 +250,7 @@ export function AnalyzeModule({ isDemo = false }: AnalyzeModuleProps) {
                             analysisProgress={analysisProgress}
                             results={results}
                             multipleResults={multipleResults}
+                            setMultipleResults={setMultipleResults}
                             analysisType={analysisType}
                             previousAnalysis={previousAnalysis}
                             ncsBalance={ncsBalance}

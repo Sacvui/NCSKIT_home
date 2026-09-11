@@ -29,6 +29,7 @@ interface AnalyzeStepRendererProps {
     analysisProgress: number;
     results: any;
     multipleResults: any[];
+    setMultipleResults: (results: any[]) => void;
     analysisType: string;
     previousAnalysis: any;
     ncsBalance: number;
@@ -50,7 +51,7 @@ interface AnalyzeStepRendererProps {
 }
 
 export function AnalyzeStepRenderer(props: AnalyzeStepRendererProps) {
-    const { step, locale, profile, data, getNumericColumns, getAllColumns, user, setResults, setStep, setNcsBalance, showToast, setAnalysisType, setRequiredCredits, setCurrentAnalysisCost, setShowInsufficientCredits, isAnalyzing, isDemo } = props;
+    const { step, locale, profile, data, getNumericColumns, getAllColumns, user, setResults, setStep, setNcsBalance, showToast, setAnalysisType, setRequiredCredits, setCurrentAnalysisCost, setShowInsufficientCredits, isAnalyzing, isDemo, setMultipleResults } = props;
 
     if (step === 'upload') {
         return (
