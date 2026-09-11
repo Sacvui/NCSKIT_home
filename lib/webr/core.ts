@@ -278,10 +278,10 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                         }
                         
                         # Ensure essential packages are available
-                        # NOTE: psych and GPArotation have been REMOVED.
+                        # NOTE: psych, GPArotation, and jsonlite have been REMOVED.
                         # All analysis code now uses pure Base R (factanal, eigen, varimax, cor, etc.)
+                        # We return results using WebR's native toJs() instead of jsonlite::toJSON.
                         # This eliminates WASM LAPACK crashes and saves 20-30s download time.
-                        install_if_missing("jsonlite")
                         
                         r_version_info <- paste0(R.version$major, ".", R.version$minor, " (", R.version$platform, ")")
                     `);
@@ -533,39 +533,37 @@ export async function executeRWithRecovery(
                         attributes(.res)$call <- NULL
                         attributes(.res)$model <- NULL
                     }
-                    .json <- jsonlite::toJSON(.res, auto_unbox = TRUE, force = TRUE, digits = 8)
-                    writeLines(as.character(.json), "/home/web_user/output.json")
-                    TRUE
+                    .res
                 }, error = function(e) {
-                    writeLines(paste("ERROR:", e$message), "/home/web_user/output.json")
-                    FALSE
+                    list(WEBR_ERROR = paste("ERROR:", e$message))
                 })
             `;
 
             console.log("[WebR Debug] Executing wrappedCode");
-            await webR.evalR(wrappedCode);
+            const resultProxy = await webR.evalR(wrappedCode);
             console.log("[WebR Debug] wrappedCode executed");
 
-            console.log("[WebR Debug] Reading output.json");
-            const resultProxy = await webR.evalR(`readLines("/home/web_user/output.json")`);
-            console.log("[WebR Debug] output.json read, proxy created", resultProxy);
-            
-            let resultLines;
+            let jsResult;
             try {
                 console.log("[WebR Debug] Calling toJs() on resultProxy");
-                resultLines = await resultProxy.toJs() as any;
-                console.log("[WebR Debug] toJs() successful", resultLines);
+                jsResult = await resultProxy.toJs() as any;
+                console.log("[WebR Debug] toJs() successful");
             } catch (err) {
                 console.error("[WebR Debug] toJs() failed!", err);
                 throw err;
             }
 
-            const finalStr = Array.isArray(resultLines?.values)
-                ? resultLines.values.join('\n')
-                : String(resultLines?.values ?? '');
-
-            if (finalStr.startsWith("ERROR:")) {
-                throw new Error(finalStr.replace("ERROR:", "").trim());
+            // Check if R threw an error (we caught it and returned a list with WEBR_ERROR)
+            if (jsResult && jsResult.names && jsResult.values) {
+                const errIdx = jsResult.names.indexOf("WEBR_ERROR");
+                if (errIdx !== -1) {
+                    let errMsg = "Unknown R error";
+                    const errVal = jsResult.values[errIdx];
+                    if (errVal && errVal.values && errVal.values.length > 0) {
+                        errMsg = errVal.values[0];
+                    }
+                    throw new Error(errMsg.replace("ERROR:", "").trim());
+                }
             }
 
             // Clear memory after successful execution
@@ -573,11 +571,7 @@ export async function executeRWithRecovery(
             await webR.evalR('gc()');
             console.log("[WebR Debug] gc() finished");
 
-            try {
-                return JSON.parse(finalStr);
-            } catch {
-                return finalStr;
-            }
+            return jsResult;
         });
 
         const timeoutPromise = new Promise((_, reject) =>
