@@ -73,6 +73,12 @@ export function ResultsDisplay({
         };
     }, [isFullscreen]);
 
+    console.log("DEBUG: ResultsDisplay rendered.", {
+        multipleResultsLength: multipleResults?.length,
+        hasResultsProp: !!results,
+        analysisType
+    });
+
     const display = useMemo(() => {
         console.log("DEBUG: ResultsDisplay useMemo triggered.", { multipleResults, results, analysisType });
         

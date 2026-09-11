@@ -138,13 +138,21 @@ export function AnalyzeStepRenderer(props: AnalyzeStepRendererProps) {
         return <AutoPilotView {...props} columns={getNumericColumns()} allColumns={getAllColumns()} />;
     }
 
-    if (step === 'results' && props.results) {
-        return (
-            <ResultsDisplay
-                results={props.results}
-                analysisType={props.analysisType}
-            />
-        );
+    if (step === 'results') {
+        console.log("DEBUG: AnalyzeStepRenderer step is results.", { 
+            hasResultsProp: !!props.results, 
+            multipleResultsLength: props.multipleResults?.length 
+        });
+        
+        if (props.results || (props.multipleResults && props.multipleResults.length > 0)) {
+            return (
+                <ResultsDisplay
+                    results={props.results}
+                    multipleResults={props.multipleResults}
+                    analysisType={props.analysisType}
+                />
+            );
+        }
     }
 
     return null;

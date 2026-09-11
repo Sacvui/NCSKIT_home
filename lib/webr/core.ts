@@ -164,6 +164,7 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
 
         const performInit = (async (): Promise<WebR> => {
             try {
+                console.log('[DEBUG-INIT] Step 1: Creating WebR instance with baseUrl:', BASE_URL, 'channelType:', getOptimalChannelType());
                 logger.info('[WebR] Initializing WebR instance...');
                 updateProgress('🚀 Đang kết nối máy chủ R...');
                 
@@ -171,6 +172,7 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     baseUrl: BASE_URL,
                     channelType: getOptimalChannelType(),
                 });
+                console.log('[DEBUG-INIT] Step 2: WebR constructor succeeded');
 
                 // Aggressively clean up ServiceWorker before init to prevent deadlocks
                 // from persisting across page reloads.
@@ -186,6 +188,7 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     } catch (e) {}
                 }
 
+                console.log('[DEBUG-INIT] Step 3: Calling webR.init()...');
                 logger.debug('[WebR] Created instance, waiting for worker...');
                 
                 // CRITICAL: Safety timeout for webR.init()
@@ -194,6 +197,7 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     new Promise((_, reject) => setTimeout(() => reject(new Error('WebR worker init timeout (Next.js server is likely compiling or lagging)')), 120000))
                 ]);
                 
+                console.log('[DEBUG-INIT] Step 4: webR.init() resolved OK');
                 logger.info('[WebR] Worker online.');
                 const persistentLib = '/home/web_user/library';
 
@@ -247,6 +251,7 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     ? window.location.origin + "/" + REPO_VERSION 
                     : "https://ncskit.org/" + REPO_VERSION;
 
+                console.log('[DEBUG-INIT] Step 5: Configuring R environment...');
                 await runLocked(async () => {
                     await webR.evalR(`
                         if (dir.exists("${persistentLib}")) {
@@ -284,10 +289,13 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                     `);
                 });
 
+                console.log('[DEBUG-INIT] Step 6: R config done, getting version...');
                 const rVersionFull = unpackWebRObject(await (await runLocked(() => webR.evalR('r_version_info'))).toJs());
+                console.log('[DEBUG-INIT] Step 7: R version:', rVersionFull);
                 logger.info(`[WebR] R Engine Online: ${rVersionFull}`);
 
                 const elapsed = ((performance.now() - startTime) / 1000).toFixed(1);
+                console.log(`[DEBUG-INIT] Step 8: INIT COMPLETE in ${elapsed}s`);
                 logger.debug(`[WebR] Ready in ${elapsed}s`);
                 updateProgress('✅ R-Engine sẵn sàng');
                 
@@ -303,6 +311,7 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
                 return webRInstance;
 
             } catch (error: any) {
+                console.error('[DEBUG-INIT] INIT FAILED:', error?.message, error?.stack);
                 logger.error('[WebR] Init Failure:', error);
                 
                 // Track crash count

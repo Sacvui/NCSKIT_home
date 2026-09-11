@@ -33,9 +33,21 @@ export function useAnalyzeLifecycle({
     const [showRestoreBanner, setShowRestoreBanner] = useState(false);
     const { saveWorkspace, loadWorkspace, hasSavedData, clearWorkspace } = useAnalysisPersistence();
 
+    // 0. Global unhandled rejection catcher for debugging
+    useEffect(() => {
+        const handler = (event: PromiseRejectionEvent) => {
+            console.error('[DEBUG-GLOBAL] Unhandled Promise Rejection caught!');
+            console.error('[DEBUG-GLOBAL] Reason:', event.reason?.message || event.reason);
+            console.error('[DEBUG-GLOBAL] Stack:', event.reason?.stack || 'No stack');
+            console.error('[DEBUG-GLOBAL] Full event:', event);
+        };
+        window.addEventListener('unhandledrejection', handler);
+        return () => window.removeEventListener('unhandledrejection', handler);
+    }, []);
+
     // 1. Cache Buster
     useEffect(() => {
-        const CURRENT_DEPLOY_VERSION = "20260425_1557"; 
+        const CURRENT_DEPLOY_VERSION = "20260911_1548"; 
         const savedVersion = localStorage.getItem('ncs_deploy_version');
         
         if (savedVersion && savedVersion !== CURRENT_DEPLOY_VERSION) {
@@ -165,13 +177,22 @@ export function useAnalyzeLifecycle({
     // 9. WebR Eager Loading
     useEffect(() => {
         const status = getWebRStatus();
+        console.log('[DEBUG-LIFECYCLE] WebR status:', JSON.stringify(status));
         if (!status.isReady && !status.isLoading) {
             setProgressCallback((msg) => {
+                console.log('[DEBUG-LIFECYCLE] WebR progress:', msg);
                 setToast(msg.includes('Cleaning') ? t(locale as any, 'analyze.common.processing') : msg, 'info');
             });
+            console.log('[DEBUG-LIFECYCLE] Calling initWebR()...');
             initWebR()
-                .then(() => setToast(t(locale as any, 'analyze.common.engine_ready'), 'success'))
-                .catch(() => setToast(t(locale as any, 'analyze.common.engine_error'), 'error'));
+                .then(() => {
+                    console.log('[DEBUG-LIFECYCLE] initWebR() resolved successfully');
+                    setToast(t(locale as any, 'analyze.common.engine_ready'), 'success');
+                })
+                .catch((err) => {
+                    console.error('[DEBUG-LIFECYCLE] initWebR() REJECTED with error:', err?.message || err, err?.stack);
+                    setToast(t(locale as any, 'analyze.common.engine_error'), 'error');
+                });
         }
     }, [locale, setToast]);
 
