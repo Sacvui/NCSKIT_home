@@ -277,8 +277,11 @@ export function AnalyzeModule({ isDemo = false }: AnalyzeModuleProps) {
             <SaveProjectModal
                 isOpen={isSaveModalOpen}
                 onClose={() => setIsSaveModalOpen(false)}
-                userId={effectiveUser?.id}
-                sessionData={{ data, step, profile, filename, results, analysisType, previousAnalysis }}
+                data={data}
+                results={results}
+                analysisType={analysisType}
+                step={step}
+                locale={locale as any}
             />
 
             <InsufficientCreditsModal
