@@ -287,25 +287,23 @@ export function AnalyzeModule({ isDemo = false }: AnalyzeModuleProps) {
             <InsufficientCreditsModal
                 isOpen={showInsufficientCredits}
                 onClose={() => setShowInsufficientCredits(false)}
-                requiredCredits={requiredCredits}
-                currentCost={currentAnalysisCost}
-                currentBalance={ncsBalance}
+                required={requiredCredits}
+                available={ncsBalance}
+                analysisType={analysisType}
             />
 
             {showDemographics && (
                 <DemographicSurvey
                     isOpen={showDemographics}
-                    onClose={() => setShowDemographics(false)}
-                    userId={effectiveUser?.id}
+                    onComplete={() => setShowDemographics(false)}
                 />
             )}
             
             {showApplicability && (
                 <ApplicabilitySurvey
                     isOpen={showApplicability}
-                    onClose={() => setShowApplicability(false)}
-                    userId={effectiveUser?.id}
-                    analysisType={analysisType}
+                    onComplete={() => setShowApplicability(false)}
+                    onCancel={() => setShowApplicability(false)}
                 />
             )}
         </div>
