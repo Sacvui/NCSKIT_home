@@ -220,7 +220,7 @@ const generateNewFile = () => {
         
         output += `    {
         slug: '${a.slug}',
-        category: '${a.category}',
+        category: ${JSON.stringify(a.category)},
         icon_name: '${a.icon_name}',
         title_vi: '${a.title_vi.replace(/'/g, "\\'")}',
         title_en: '${a.title_en.replace(/'/g, "\\'")}',

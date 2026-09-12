@@ -1,7 +1,7 @@
 export const STATIC_ARTICLES = [
     {
         slug: 'scenario-pls-sem',
-        category: 'Research Scenarios,Phân tích Nhân tố & Mô hình,PLS-SEM,Structural Modeling',
+        category: ["Research Scenarios","Phân tích Nhân tố & Mô hình","PLS-SEM","Structural Modeling"],
         icon_name: 'Network',
         title_vi: 'Kịch bản 1: Mô hình Cấu trúc Tuyến tính PLS-SEM',
         title_en: 'Scenario 1: Partial Least Squares SEM',
@@ -100,7 +100,7 @@ export const STATIC_ARTICLES = [
     },
     {
         slug: 'scenario-cb-sem',
-        category: 'Research Scenarios,Phân tích Nhân tố & Mô hình,CB-SEM,Structural Modeling',
+        category: ["Research Scenarios","Phân tích Nhân tố & Mô hình","CB-SEM","Structural Modeling"],
         icon_name: 'Layers',
         title_vi: 'Kịch bản 2: Mô hình Cấu trúc Hiệp phương sai CB-SEM',
         title_en: 'Scenario 2: Covariance-Based SEM',
@@ -199,7 +199,7 @@ export const STATIC_ARTICLES = [
     },
     {
         slug: 'scenario-regression',
-        category: 'Research Scenarios,Phân tích Tác động & Hồi quy,Hồi quy tuyến tính,Impact Analysis',
+        category: ["Research Scenarios","Phân tích Tác động & Hồi quy","Hồi quy tuyến tính","Impact Analysis"],
         icon_name: 'LineChart',
         title_vi: 'Kịch bản 3: Hồi quy Tuyến tính Đa biến (OLS)',
         title_en: 'Scenario 3: Multiple Linear Regression (OLS)',
@@ -298,7 +298,7 @@ export const STATIC_ARTICLES = [
     },
     {
         slug: 'scenario-logistic',
-        category: 'Research Scenarios,Phân tích Tác động & Hồi quy,Hồi quy Logistic,Impact Analysis',
+        category: ["Research Scenarios","Phân tích Tác động & Hồi quy","Hồi quy Logistic","Impact Analysis"],
         icon_name: 'Binary',
         title_vi: 'Kịch bản 4: Hồi quy Logistic Nhị phân',
         title_en: 'Scenario 4: Binary Logistic Regression',
@@ -397,7 +397,7 @@ export const STATIC_ARTICLES = [
     },
     {
         slug: 'scenario-compare',
-        category: 'Research Scenarios,Phân tích Khác biệt,T-test,ANOVA,Comparative Analysis',
+        category: ["Research Scenarios","Phân tích Khác biệt","T-test","ANOVA","Comparative Analysis"],
         icon_name: 'GitCompare',
         title_vi: 'Kịch bản 5: So sánh Khác biệt (T-test & ANOVA)',
         title_en: 'Scenario 5: Mean Differences (T-test & ANOVA)',
@@ -496,7 +496,7 @@ export const STATIC_ARTICLES = [
     },
     {
         slug: 'scenario-scale',
-        category: 'Research Scenarios,Phân tích Nhân tố & Mô hình,Thẩm định Thang đo,Measurement Validation',
+        category: ["Research Scenarios","Phân tích Nhân tố & Mô hình","Thẩm định Thang đo","Measurement Validation"],
         icon_name: 'Target',
         title_vi: 'Kịch bản 6: Thẩm định Thang đo (Cronbach\'s Alpha & EFA)',
         title_en: 'Scenario 6: Scale Validation (Cronbach\'s Alpha & EFA)',
@@ -595,7 +595,7 @@ export const STATIC_ARTICLES = [
     },
     {
         slug: 'technology-acceptance-model-tam',
-        category: 'Theories,Information Systems',
+        category: ["Theories","Information Systems"],
         icon_name: 'MonitorSmartphone',
         title_vi: 'Mô hình Chấp nhận Công nghệ (TAM)',
         title_en: 'Technology Acceptance Model (TAM)',
@@ -694,7 +694,7 @@ export const STATIC_ARTICLES = [
     },
     {
         slug: 'theory-of-planned-behavior-tpb',
-        category: 'Theories,Psychology',
+        category: ["Theories","Psychology"],
         icon_name: 'Brain',
         title_vi: 'Thuyết Hành vi Dự định (TPB)',
         title_en: 'Theory of Planned Behavior (TPB)',
@@ -793,7 +793,7 @@ export const STATIC_ARTICLES = [
     },
     {
         slug: 'servqual-service-quality-model',
-        category: 'Theories,Marketing',
+        category: ["Theories","Marketing"],
         icon_name: 'Star',
         title_vi: 'Mô hình Chất lượng Dịch vụ (SERVQUAL)',
         title_en: 'Service Quality Model (SERVQUAL)',
@@ -892,7 +892,7 @@ export const STATIC_ARTICLES = [
     },
     {
         slug: 'utaut-technology-adoption',
-        category: 'Theories,Information Systems',
+        category: ["Theories","Information Systems"],
         icon_name: 'Cpu',
         title_vi: 'Mô hình Chấp nhận và Sử dụng Công nghệ (UTAUT)',
         title_en: 'Unified Theory of Acceptance and Use of Technology',
@@ -991,7 +991,7 @@ export const STATIC_ARTICLES = [
     },
     {
         slug: 'porter-five-forces-analysis',
-        category: 'Theories,Strategy',
+        category: ["Theories","Strategy"],
         icon_name: 'Shield',
         title_vi: 'Mô hình 5 Áp lực Cạnh tranh của Porter',
         title_en: 'Porter\'s Five Forces',
@@ -1090,7 +1090,7 @@ export const STATIC_ARTICLES = [
     },
     {
         slug: 'vrio-framework-strategy',
-        category: 'Theories,Strategy',
+        category: ["Theories","Strategy"],
         icon_name: 'Gem',
         title_vi: 'Mô hình Lợi thế Cạnh tranh VRIO',
         title_en: 'VRIO Framework',
@@ -1189,7 +1189,7 @@ export const STATIC_ARTICLES = [
     },
     {
         slug: 'expectation-confirmation-theory-ect',
-        category: 'Theories,Marketing',
+        category: ["Theories","Marketing"],
         icon_name: 'Repeat',
         title_vi: 'Thuyết Kỳ vọng - Xác nhận (ECT)',
         title_en: 'Expectation Confirmation Theory',
@@ -1288,7 +1288,7 @@ export const STATIC_ARTICLES = [
     },
     {
         slug: 'sor-model-marketing-behavior',
-        category: 'Theories,Marketing',
+        category: ["Theories","Marketing"],
         icon_name: 'Activity',
         title_vi: 'Mô hình Kích thích - Cơ thể - Phản hồi (S-O-R)',
         title_en: 'Stimulus-Organism-Response Model',
@@ -1387,7 +1387,7 @@ export const STATIC_ARTICLES = [
     },
     {
         slug: 'perceived-value-marketing-strategy',
-        category: 'Theories,Marketing',
+        category: ["Theories","Marketing"],
         icon_name: 'BadgeDollarSign',
         title_vi: 'Lý thuyết Giá trị Cảm nhận (Perceived Value)',
         title_en: 'Perceived Value Theory',
@@ -1486,7 +1486,7 @@ export const STATIC_ARTICLES = [
     },
     {
         slug: 'tce-transaction-cost-economics-strategy',
-        category: 'Theories,Strategy',
+        category: ["Theories","Strategy"],
         icon_name: 'Handshake',
         title_vi: 'Lý thuyết Chi phí Giao dịch (TCE)',
         title_en: 'Transaction Cost Economics',
