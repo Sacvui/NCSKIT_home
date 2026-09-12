@@ -247,6 +247,7 @@ const iconMap: Record<string, any> = {
 export default function KnowledgeBase() {
   const [locale, setLocale] = useState<Locale>('vi');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
   const [articles, setArticles] = useState<any[]>(STATIC_ARTICLES); // Init with fallback
   const [loading, setLoading] = useState(true);
 
@@ -284,8 +285,11 @@ export default function KnowledgeBase() {
   const filteredArticles = articles.filter(article => {
     const title = locale === 'vi' ? (article.title_vi || '') : (article.title_en || '');
     const category = article.category || '';
-    return title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-           category.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          category.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === 'All' || category === selectedCategory;
+    
+    return matchesSearch && matchesCategory;
   });
 
   const isVi = locale === 'vi';
@@ -373,10 +377,15 @@ export default function KnowledgeBase() {
         {/* Category Pills - Professional Filter */}
         <div className="container mx-auto px-6 max-w-7xl mb-12">
             <div className="flex overflow-x-auto no-scrollbar gap-3 pb-4">
-                {['All', 'Preliminary Analysis', 'Advanced Statistics', 'Research Models', 'Academic Writing'].map((cat) => (
+                {['All', 'Preliminary Analysis', 'Factor Analysis', 'Structural Modeling', 'Comparison Analysis', 'Relationship Analysis', 'Advanced Statistics', 'Research Models', 'Market Strategy', 'Behavioral Research', 'Marketing Research', 'Impact Analysis', 'Academic Writing', 'Research Design', 'Qualitative Research'].map((cat) => (
                     <button 
                         key={cat}
-                        className="whitespace-nowrap px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest border border-slate-200 bg-white text-slate-500 hover:border-indigo-600 hover:text-indigo-600 transition-all"
+                        onClick={() => setSelectedCategory(cat)}
+                        className={`whitespace-nowrap px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest border transition-all ${
+                            selectedCategory === cat 
+                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-200' 
+                            : 'border-slate-200 bg-white text-slate-500 hover:border-indigo-600 hover:text-indigo-600'
+                        }`}
                     >
                         {cat}
                     </button>
