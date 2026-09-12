@@ -20,6 +20,10 @@ const REPO_VERSION = 'webr_repo_v6';
 // Error recovery state
 let lastError: Error | null = null;
 
+// Crash loop breaker - prevent infinite fatal error restart cycles
+let fatalCrashCount = 0;
+const MAX_FATAL_CRASHES = 2;
+
 let evaluationLock: Promise<void> = Promise.resolve();
 
 async function runLocked<T>(task: () => Promise<T>): Promise<T> {
@@ -84,6 +88,7 @@ export function resetWebR(): void {
     lastError = null;
     initAttempts = 0;
     evaluationLock = Promise.resolve();
+    // NOTE: fatalCrashCount intentionally NOT reset here to track across resets
     resetLoadedPackages();
     updateProgress('WebR reset - ready for reinitialization');
 }
@@ -207,7 +212,10 @@ export async function initWebR(maxRetries: number = 3): Promise<WebR> {
 
                 // CRITICAL: IDBFS is NOT supported with SharedArrayBuffer (Channel 0)
                 // It only works with PostMessage (Channel 3) or ServiceWorker (Channel 1)
-                if (channelType !== 0) {
+                // DISABLED: IDBFS mount causes FileReaderSync crash on PostMessage channel
+                // when VFS grows large (60+ packages like seminr). RAM-only mode is stable.
+                // Packages will be re-downloaded on page reload (~10-15s with CDN cache).
+                if (false && channelType !== 0) {
                     try {
                         try { await webR.FS.mkdir('/home/web_user'); } catch (e) {}
                         try { await webR.FS.mkdir(persistentLib); } catch (e) {}
@@ -422,16 +430,19 @@ export async function loadPackagesForMethod(method: string): Promise<void> {
                 logger.info('[WebR] lavaan patched for WASM compatibility');
             }
             
-            // CRITICAL: Sync filesystem after installation to ensure persistence across F5/Reloads
-            const channelType = getOptimalChannelType();
-            if (channelType !== 0) {
-                try {
-                    logger.info(`[WebR] Persisting ${pkg} to storage...`);
-                    await webR.FS.syncfs(false); 
-                } catch (e) {
-                    logger.warn(`[WebR] Failed to persist ${pkg}:`, e);
-                }
-            }
+            // DISABLED: syncfs() crashes WebR worker with FileReaderSync error
+            // when VFS is large (60+ packages). PostMessage channel cannot handle
+            // the serialized VFS data. Packages will be re-downloaded on reload.
+            // const channelType = getOptimalChannelType();
+            // if (channelType !== 0) {
+            //     try {
+            //         logger.info(`[WebR] Persisting ${pkg} to storage...`);
+            //         await webR.FS.syncfs(false); 
+            //     } catch (e) {
+            //         logger.warn(`[WebR] Failed to persist ${pkg}:`, e);
+            //     }
+            // }
+            logger.info(`[WebR] Package ${pkg} loaded (RAM-only, no syncfs)`);
             
             markPackageLoaded(pkg);
         } catch (error) {
@@ -599,8 +610,12 @@ export async function executeRWithRecovery(
             errorMsg.includes('PostMessage channel');
         
         if (isFatalWorkerError) {
-            logger.error('[WebR] Fatal worker state. Resetting engine...');
+            fatalCrashCount++;
+            logger.error(`[WebR] Fatal worker state (crash #${fatalCrashCount}/${MAX_FATAL_CRASHES}). Resetting engine...`);
             resetWebR();
+            if (fatalCrashCount > MAX_FATAL_CRASHES) {
+                throw new Error("Phân tích không khả dụng do lỗi hệ thống R lặp lại. Vui lòng tải lại trang (F5).");
+            }
             throw new Error("Hệ thống R đang bận. Tôi đã tự động khởi động lại, vui lòng thực hiện lại phân tích sau vài giây.");
         }
 

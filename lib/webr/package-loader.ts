@@ -37,8 +37,8 @@ export async function loadPackageIfNeeded(packageName: string): Promise<boolean>
             await webR.installPackages([packageName], {
                 repos: 'https://repo.r-wasm.org/'
             });
-            // CRITICAL: Flush to IndexedDB so workers can access it!
-            try { await webR.FS.syncfs(false); } catch (e) {}
+            // syncfs REMOVED: causes FileReaderSync crash on PostMessage channel
+            // when VFS grows large (60+ packages). RAM-only mode.
         }
 
         // Load the library

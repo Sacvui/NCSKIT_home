@@ -107,6 +107,14 @@ export async function runHTMTMatrix(data: number[][], factorStructure: { name: s
             htmt_mat[j, i] <- mean_hetero / sqrt(mean_mono_i * mean_mono_j)
         }
     }
+    
+    # Return structured result
+    list(
+      htmt_values = as.vector(htmt_mat),
+      construct_names = names(construct_list),
+      n_constructs = n,
+      htmt_matrix = htmt_mat
+    )
   `;
 
   const result = await executeRWithRecovery(rCode, undefined, 0, 2, 300000, data);
