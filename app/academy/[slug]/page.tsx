@@ -87,7 +87,7 @@ export default function AcademyDetail(props: { params: Promise<{ slug: string }>
                     </div>
 
                     {/* Content Section (for Theory / Methods) */}
-                    {(resource.content_vi || resource.content_en || (resource.content_structure && resource.content_structure.length > 0)) && (
+                    {(resource.content_vi || resource.content_en || (resource.content_structure && resource.content_structure.length > 0) || (resource.meta_data?.content_structure && resource.meta_data?.content_structure.length > 0)) && (
                         <div className="prose prose-lg prose-indigo max-w-none bg-white rounded-[3rem] p-8 md:p-12 shadow-sm border border-slate-100 mb-10">
                             {/* Legacy string content */}
                             {(resource.content_vi || resource.content_en) && (
