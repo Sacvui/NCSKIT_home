@@ -2,6 +2,7 @@ import { AnalysisType, InterpretationResult, formatNum, formatCoef } from './sha
 import { interpretCronbachAlpha, interpretEFA, interpretCFA } from './factor';
 import { interpretCorrelation, interpretTTestIndependent, interpretANOVA, interpretTTestPaired, interpretMannWhitney, interpretKruskalWallis, interpretWilcoxonSigned, interpretTwoWayANOVA, interpretChiSquare, interpretDescriptive } from './basic';
 import { interpretLinearRegression, interpretLogisticRegression, interpretMediation, interpretModeration, interpretClusterAnalysis } from './regression';
+import { interpretPLSSEM } from './pls-sem';
 
 // ===== MAIN GENERATOR =====
 
@@ -44,6 +45,8 @@ export function generateInterpretation(
             return interpretModeration(results as any);
         case 'cluster':
             return interpretClusterAnalysis(results as any);
+        case 'pls-sem':
+            return interpretPLSSEM(results as any);
         default:
             return {
                 summary: 'Chưa có template cho phân tích này.',
@@ -53,6 +56,7 @@ export function generateInterpretation(
             };
     }
 }
+
 export function interpretVIF(params: {
     vifValues: number[];
     variableNames?: string[];
@@ -155,4 +159,3 @@ export function interpretHTMT(params: {
 
     return { summary, details, warnings, citations };
 }
-

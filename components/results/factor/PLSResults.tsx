@@ -4,6 +4,7 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Activity, ShieldCheck, Zap, BarChart3, Network, Target } from 'lucide-react';
 import { ScientificNote } from '../shared/ScientificNote';
+import { TemplateInterpretation } from '@/components/TemplateInterpretation';
 
 interface PLSResultsProps {
     results: any;
@@ -50,6 +51,12 @@ export const PLSResults: React.FC<PLSResultsProps> = ({ results }) => {
 
     return (
         <div className="space-y-8 animate-in fade-in duration-700">
+            {/* ASIG Auto-Insight */}
+            <TemplateInterpretation 
+                analysisType="pls-sem" 
+                results={{ fornell_larcker, htmt, r_squared }} 
+            />
+
             {/* 1. Construct Reliability & Validity */}
             <Card className="border-blue-100 shadow-sm overflow-hidden">
                 <CardHeader className="bg-slate-50/50 border-b border-blue-50">

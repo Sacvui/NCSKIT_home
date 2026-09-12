@@ -62,7 +62,8 @@ export type AnalysisType =
     | 'descriptive'
     | 'vif'
     | 'outlier'
-    | 'htmt';
+    | 'htmt'
+    | 'pls-sem';
 
 export interface InterpretationResult {
     summary: string;        // Main interpretation
