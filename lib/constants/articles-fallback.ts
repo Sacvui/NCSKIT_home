@@ -74,7 +74,9 @@ const rawArticles = [
                         </div>
                     </div>
                 </div>
-            </div>`
+            </div>
+
+*Bài viết được nghiên cứu và tổng hợp bởi **Lê Phúc Hải** (By Le Phuc Hai).*`
     },
     {
         slug: 'scenario-cb-sem',
@@ -150,7 +152,9 @@ const rawArticles = [
                         </div>
                     </div>
                 </div>
-            </div>`
+            </div>
+
+*Bài viết được nghiên cứu và tổng hợp bởi **Lê Phúc Hải** (By Le Phuc Hai).*`
     },
     {
         slug: 'scenario-regression',
@@ -229,7 +233,9 @@ const rawArticles = [
                         </div>
                     </div>
                 </div>
-            </div>`
+            </div>
+
+*Bài viết được nghiên cứu và tổng hợp bởi **Lê Phúc Hải** (By Le Phuc Hai).*`
     },
     {
         slug: 'scenario-logistic',
@@ -299,7 +305,9 @@ const rawArticles = [
                         </div>
                     </div>
                 </div>
-            </div>`
+            </div>
+
+*Bài viết được nghiên cứu và tổng hợp bởi **Lê Phúc Hải** (By Le Phuc Hai).*`
     },
     {
         slug: 'scenario-compare',
@@ -369,7 +377,9 @@ const rawArticles = [
                         </ul>
                     </div>
                 </div>
-            </div>`
+            </div>
+
+*Bài viết được nghiên cứu và tổng hợp bởi **Lê Phúc Hải** (By Le Phuc Hai).*`
     },
     {
         slug: 'scenario-scale',
@@ -443,7 +453,9 @@ const rawArticles = [
                         <p class="text-xs text-slate-600 mt-2">Hair, J. F., Black, W. C., Babin, B. J., & Anderson, R. E. (2014). <em>Multivariate data analysis</em> (7th ed.). Pearson.</p>
                     </div>
                 </div>
-            </div>`
+            </div>
+
+*Bài viết được nghiên cứu và tổng hợp bởi **Lê Phúc Hải** (By Le Phuc Hai).*`
     },
 
     // ==========================================
@@ -543,7 +555,9 @@ const rawArticles = [
                         </div>
                     </div>
                 </div>
-            </div>`
+            </div>
+
+*Bài viết được nghiên cứu và tổng hợp bởi **Lê Phúc Hải** (By Le Phuc Hai).*`
     },
     {
         slug: 'theory-of-planned-behavior-tpb',
@@ -620,7 +634,9 @@ const rawArticles = [
                         </div>
                     </div>
                 </div>
-            </div>`
+            </div>
+
+*Bài viết được nghiên cứu và tổng hợp bởi **Lê Phúc Hải** (By Le Phuc Hai).*`
     },
     {
         slug: 'servqual-service-quality-model',
@@ -697,7 +713,9 @@ const rawArticles = [
                         </div>
                     </div>
                 </div>
-            </div>`
+            </div>
+
+*Bài viết được nghiên cứu và tổng hợp bởi **Lê Phúc Hải** (By Le Phuc Hai).*`
     },
     {
         slug: 'utaut-technology-adoption',
@@ -768,7 +786,9 @@ const rawArticles = [
                         </div>
                     </div>
                 </div>
-            </div>`
+            </div>
+
+*Bài viết được nghiên cứu và tổng hợp bởi **Lê Phúc Hải** (By Le Phuc Hai).*`
     },
     {
         slug: 'porter-five-forces-analysis',
@@ -821,7 +841,9 @@ const rawArticles = [
                         <p class="text-sm text-slate-700">Hãy kết hợp 5 áp lực này với phân tích SWOT và PESTEL để đề xuất một trong 3 Chiến lược Cạnh tranh Tổng quát của Porter: Dẫn đầu chi phí (Cost Leadership), Khác biệt hóa (Differentiation) hoặc Tập trung (Focus).</p>
                     </div>
                 </div>
-            </div>`
+            </div>
+
+*Bài viết được nghiên cứu và tổng hợp bởi **Lê Phúc Hải** (By Le Phuc Hai).*`
     },
     {
         slug: 'vrio-framework-strategy',
@@ -847,7 +869,9 @@ const rawArticles = [
                         </ul>
                     </div>
                 </div>
-            </div>`
+            </div>
+
+*Bài viết được nghiên cứu và tổng hợp bởi **Lê Phúc Hải** (By Le Phuc Hai).*`
     },
     {
         slug: 'expectation-confirmation-theory-ect',
@@ -868,7 +892,9 @@ const rawArticles = [
                         <p class="text-sm">Trạng thái xác nhận xảy ra khi hiệu suất thực tế của sản phẩm (Perceived Performance) bằng hoặc vượt qua Kỳ vọng ban đầu (Expectation). Sự xác nhận tích cực này dẫn đến <strong>Sự hài lòng (Satisfaction)</strong>, từ đó thôi thúc hành vi mua lặp lại. ECT thường được giới luận văn sử dụng kết hợp với TAM để nghiên cứu hệ thống e-learning hoặc Mobile Banking.</p>
                     </div>
                 </div>
-            </div>`
+            </div>
+
+*Bài viết được nghiên cứu và tổng hợp bởi **Lê Phúc Hải** (By Le Phuc Hai).*`
     },
     {
         slug: 'sor-model-marketing-behavior',
@@ -893,7 +919,9 @@ const rawArticles = [
                         </ul>
                     </div>
                 </div>
-            </div>`
+            </div>
+
+*Bài viết được nghiên cứu và tổng hợp bởi **Lê Phúc Hải** (By Le Phuc Hai).*`
     },
     {
         slug: 'perceived-value-marketing-strategy',
@@ -914,7 +942,9 @@ const rawArticles = [
                         <p class="text-sm">Yếu tố "Nhận được" không chỉ là tính năng lý tính (chất lượng sản phẩm), mà còn bao gồm giá trị cảm xúc và địa vị xã hội. Ngược lại, "Bỏ ra" không chỉ là tiền bạc, mà còn bao gồm thời gian chờ đợi, rủi ro và nỗ lực học hỏi. Khách hàng chỉ mua khi Giá trị cảm nhận > 0.</p>
                     </div>
                 </div>
-            </div>`
+            </div>
+
+*Bài viết được nghiên cứu và tổng hợp bởi **Lê Phúc Hải** (By Le Phuc Hai).*`
     },
     {
         slug: 'tce-transaction-cost-economics-strategy',
@@ -939,7 +969,9 @@ const rawArticles = [
                         </ul>
                     </div>
                 </div>
-            </div>`
+            </div>
+
+*Bài viết được nghiên cứu và tổng hợp bởi **Lê Phúc Hải** (By Le Phuc Hai).*`
     }
 ];
 

@@ -91,13 +91,17 @@ export default function AcademyDetail(props: { params: Promise<{ slug: string }>
                         <div className="prose prose-lg prose-indigo max-w-none bg-white rounded-[3rem] p-8 md:p-12 shadow-sm border border-slate-100 mb-10">
                             {/* Legacy string content */}
                             {(resource.content_vi || resource.content_en) && (
-                                <ReactMarkdown>
-                                    {isVi ? (resource.content_vi || '') : (resource.content_en || resource.content_vi || '')}
-                                </ReactMarkdown>
+                                (resource.content_vi?.includes('<div') || resource.content_vi?.includes('<h3') || resource.content_vi?.includes('<p>')) ? (
+                                    <div dangerouslySetInnerHTML={{ __html: isVi ? (resource.content_vi || '') : (resource.content_en || resource.content_vi || '') }} />
+                                ) : (
+                                    <ReactMarkdown>
+                                        {isVi ? (resource.content_vi || '') : (resource.content_en || resource.content_vi || '')}
+                                    </ReactMarkdown>
+                                )
                             )}
 
                             {/* New content_structure array */}
-                            {resource.content_structure?.map((section: any, idx: number) => (
+                            {(resource.content_structure || resource.meta_data?.content_structure)?.map((section: any, idx: number) => (
                                 <div key={idx} className="mb-8">
                                     {section.h2_vi && (
                                         <h2 className="text-2xl font-bold text-slate-800 mb-4">

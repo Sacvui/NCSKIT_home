@@ -27,10 +27,26 @@ export const STATIC_SCALES = [
         ],
         content_structure: [
             {
-                h2_vi: 'Mô hình TAM là gì?',
-                h2_en: 'What is TAM?',
-                content_vi: 'Mô hình Chấp nhận Công nghệ (TAM - Technology Acceptance Model) được Davis giới thiệu năm 1989 là một trong những mô hình kinh điển và phổ biến nhất trong lĩnh vực Hệ thống Thông tin. Mô hình này giải thích lý do tại sao người dùng chấp nhận hoặc từ chối một công nghệ mới thông qua hai yếu tố chính: **Sự hữu ích cảm nhận (Perceived Usefulness)** và **Sự dễ sử dụng cảm nhận (Perceived Ease of Use)**.',
-                content_en: 'The Technology Acceptance Model (TAM) introduced by Davis in 1989 is one of the most classic models in MIS. It explains why users accept or reject a new technology through two main factors: **Perceived Usefulness** and **Perceived Ease of Use**.'
+                h2_vi: '1. Sức sống mãnh liệt của TAM (Davis, 1989)', 
+                h2_en: '1. The Enduring Power of TAM',
+                content_vi: `Ra đời từ năm 1989 bởi Fred Davis, Mô hình Chấp nhận Công nghệ (TAM) đến nay vẫn là "vị vua không ngai" trong lĩnh vực nghiên cứu hành vi hệ thống thông tin. Sức mạnh của TAM nằm ở sự tinh gọn tối đa: thay vì nhồi nhét hàng tá biến số phức tạp, TAM chỉ dùng đúng 2 biến cốt lõi để dự đoán xem con người có dùng công nghệ hay không:
+- **Hữu ích cảm nhận (Perceived Usefulness - PU):** "Cái này có giúp tôi làm việc nhanh hơn, tốt hơn không?"
+- **Dễ sử dụng cảm nhận (Perceived Ease of Use - PEOU):** "Cái này có bắt tôi phải suy nghĩ mệt óc hay tốn thời gian học cách dùng không?"
+
+Triết lý sâu xa của TAM là: Con người về bản chất là thực dụng và lười biếng. Chúng ta chỉ dùng một công nghệ mới khi nó mang lại lợi ích rõ rệt (PU) và không đòi hỏi sự nỗ lực làm quen quá lớn (PEOU).`,
+                content_en: `Introduced by Fred Davis in 1989, the Technology Acceptance Model (TAM) remains the "uncrowned king" of information systems research.`
+            },
+            {
+                h2_vi: '2. Phân tích Case Study: Chatbot AI trong Y tế', 
+                h2_en: '2. Case Study Analysis: AI Chatbot in Healthcare',
+                content_vi: `**Đề tài:** "Nghiên cứu các yếu tố ảnh hưởng đến ý định sử dụng hệ thống tư vấn sức khỏe bằng AI Chatbot của người cao tuổi".
+
+**Cách xử lý khéo léo với TAM:**
+- Khác với giới trẻ, người cao tuổi rất sợ công nghệ. Do đó, biến **PEOU** (Dễ sử dụng) phải được thiết kế câu hỏi xoay quanh: "Giao diện chữ to", "Hỗ trợ điều khiển bằng giọng nói tiếng Việt". Mối quan hệ từ PEOU tác động lên PU trong bối cảnh này thường mạnh hơn so với tập mẫu trẻ tuổi.
+- **Biến mở rộng bắt buộc phải có:** Nếu bạn nộp bài TAM nguyên thủy cho các tạp chí uy tín hiện nay, 90% sẽ bị từ chối vì "thiếu tính mới". Hãy tích hợp thêm các biến từ lý thuyết khác. Trong lĩnh vực y tế, hãy ghép thêm biến **Perceived Risk (Rủi ro cảm nhận)** hoặc **Trust (Niềm tin)**. Lý do: Dù app có dễ dùng đến mấy, nếu AI chẩn đoán sai bệnh, họ sẽ không bao giờ dùng.
+
+*Bài viết được nghiên cứu và tổng hợp bởi **Lê Phúc Hải** (By Le Phuc Hai).*`,
+                content_en: `*Researched and compiled by **Le Phuc Hai**.*`
             }
         ]
     },
@@ -54,10 +70,25 @@ export const STATIC_SCALES = [
         ],
         content_structure: [
             {
-                h2_vi: 'UTAUT2 mở rộng điều gì?',
-                h2_en: 'What does UTAUT2 extend?',
-                content_vi: 'Khác với UTAUT ban đầu tập trung vào môi trường doanh nghiệp (nơi nhân viên bị bắt buộc sử dụng hệ thống), UTAUT2 do Venkatesh và cộng sự phát triển năm 2012 tập trung vào **Người tiêu dùng cuối (Consumers)**.\n\nBa biến số cực kỳ quan trọng được bổ sung vào UTAUT2 là:\n- **Động lực hưởng thụ (Hedonic Motivation):** Cảm giác thích thú khi sử dụng công nghệ.\n- **Giá trị cảm nhận (Price Value):** Sự đánh đổi giữa lợi ích công nghệ mang lại so với chi phí bỏ ra.\n- **Thói quen (Habit):** Mức độ người dùng thực hiện hành vi một cách tự động vì đã quá quen thuộc.',
-                content_en: 'Unlike the original UTAUT which focused on organizational contexts, UTAUT2 (Venkatesh et al., 2012) focuses on **Consumers**.\n\nThree critical variables were added:\n- **Hedonic Motivation:** The fun or pleasure derived from using a technology.\n- **Price Value:** The cognitive tradeoff between perceived benefits and cost.\n- **Habit:** The extent to which people tend to perform behaviors automatically.'
+                h2_vi: '1. Tại sao lại cần tới UTAUT2?', 
+                h2_en: '1. Why UTAUT2?',
+                content_vi: `Khi công nghệ dịch chuyển từ môi trường công sở (nơi nhân viên bị ÉP phải dùng phần mềm công ty) sang môi trường tiêu dùng cá nhân (nơi khách hàng TỰ DO lựa chọn tải app), các mô hình cũ như TAM hay UTAUT1 bắt đầu bộc lộ lỗ hổng.
+
+Venkatesh (2012) đã tạo ra một "vụ nổ" trong giới học thuật khi công bố UTAUT2 bằng cách bổ sung 3 "vũ khí hạng nặng" để giải thích hành vi người tiêu dùng cá nhân:
+- **Động lực hưởng thụ (Hedonic Motivation):** Khách hàng dùng app không chỉ vì nó hữu ích, mà vì nó... VUI. (Ví dụ: Lướt TikTok, chơi game).
+- **Giá trị giá cả (Price Value):** Khách hàng tự bỏ tiền túi ra mua app, nên họ phải cân nhắc xem lợi ích có xứng đáng với số tiền bỏ ra không.
+- **Thói quen (Habit):** Khi một hành vi được lặp đi lặp lại đủ nhiều, nó trở thành vô thức. Bạn mở Facebook mỗi sáng không phải vì bạn nghĩ nó hữu ích, mà vì đó là thói quen.`,
+                content_en: `When technology shifted from the workplace to the consumer context, older models like TAM showed gaps. Venkatesh (2012) introduced UTAUT2 with 3 new variables: Hedonic Motivation, Price Value, and Habit.`
+            },
+            {
+                h2_vi: '2. Bí kíp áp dụng UTAUT2 "bất bại"', 
+                h2_en: '2. Foolproof UTAUT2 Application',
+                content_vi: `UTAUT2 là một mô hình rất "nặng" (có tới 7 biến độc lập). Lời khuyên thực chiến cho các bạn làm luận văn:
+- **Không nhất thiết phải lấy trọn bộ 7 biến:** Tùy vào bối cảnh, bạn có quyền cắt bỏ. Ví dụ, nếu bạn nghiên cứu app khai báo y tế (miễn phí), hãy mạnh dạn XÓA biến Price Value (Giá cả). 
+- **Cẩn thận với biến Thói quen (Habit):** Nếu bạn nghiên cứu một công nghệ hoàn toàn MỚI mà người dùng chưa từng tiếp xúc (như Metaverse), thì không thể có "Thói quen" được. Việc cố tình nhét biến này vào sẽ khiến hội đồng phản biện đánh giá bạn không hiểu bản chất mô hình.
+
+*Bài viết được nghiên cứu và tổng hợp bởi **Lê Phúc Hải** (By Le Phuc Hai).*`,
+                content_en: `*Researched and compiled by **Le Phuc Hai**.*`
             }
         ]
     },
@@ -77,6 +108,26 @@ export const STATIC_SCALES = [
             { code: 'PS1', text_vi: 'Nếu tôi mắc sai lầm trong nhóm này, nó thường được đem ra để chống lại tôi (R).', text_en: 'If you make a mistake on this team, it is often held against you (R).' },
             { code: 'PS2', text_vi: 'Các thành viên trong nhóm này có thể trao đổi về các vấn đề và khó khăn.', text_en: 'Members of this team are able to bring up problems and tough issues.' },
             { code: 'PS3', text_vi: 'Mọi người trong nhóm này đôi khi cố tình từ chối người khác vì sự khác biệt (R).', text_en: 'People on this team sometimes reject others for being different (R).' }
+        ],
+        content_structure: [
+            {
+                h2_vi: '1. An toàn Tâm lý (Psychological Safety) là gì?', 
+                h2_en: '1. What is Psychological Safety?',
+                content_vi: `Thuật ngữ "An toàn Tâm lý" được Amy Edmondson (1999) định nghĩa là một niềm tin được chia sẻ trong tập thể rằng: "Nhóm của chúng ta là một môi trường an toàn để dám chấp nhận rủi ro trong quan hệ giữa các cá nhân".
+
+Nói một cách dân dã: Đó là khi bạn dám giơ tay trong cuộc họp và nói "Tôi đã làm sai", hoặc "Ý tưởng của sếp có vẻ không khả thi", mà KHÔNG SỢ bị trừng phạt, bêu hiếu hay đánh giá thấp. Nó là nền tảng tối thượng của đổi mới sáng tạo (Innovation) và học tập tổ chức (Organizational Learning).`,
+                content_en: `Psychological Safety, defined by Amy Edmondson (1999), is a shared belief that the team is safe for interpersonal risk-taking.`
+            },
+            {
+                h2_vi: '2. Case Study: Project Aristotle của Google', 
+                h2_en: "2. Case Study: Google's Project Aristotle",
+                content_vi: `Năm 2012, Google khởi động Dự án Aristotle với ngân sách khổng lồ để tìm ra: "Điều gì tạo nên một đội nhóm hoàn hảo?". Họ đã phân tích IQ, kỹ năng code, bằng cấp, tính cách của hàng trăm nhóm. Kết quả? Không có bất kỳ mối tương quan nào!
+
+Yếu tố DUY NHẤT phân biệt các nhóm xuất sắc nhất với phần còn lại chính là: **An toàn Tâm lý**. Ở những nhóm này, mọi thành viên đều được lên tiếng với thời lượng như nhau (Equality in distribution of conversational turn-taking) và họ có khả năng thấu cảm cao với cảm xúc của đồng nghiệp (High average social sensitivity).
+
+*Bài viết được nghiên cứu và tổng hợp bởi **Lê Phúc Hải** (By Le Phuc Hai).*`,
+                content_en: `*Researched and compiled by **Le Phuc Hai**.*`
+            }
         ]
     },
     {
@@ -95,6 +146,30 @@ export const STATIC_SCALES = [
             { code: 'SP1', text_vi: 'Nhân viên ở đây luôn sẵn lòng giúp đỡ khách hàng.', text_en: 'Employees are always willing to help customers.' },
             { code: 'SP2', text_vi: 'Dịch vụ được thực hiện đúng ngay từ lần đầu tiên.', text_en: 'Service is performed right the first time.' },
             { code: 'SP3', text_vi: 'Cơ sở vật chất của đơn vị rất thu hút.', text_en: 'The facilities are visually appealing.' }
+        ],
+        content_structure: [
+            {
+                h2_vi: '1. Cuộc lật đổ SERVQUAL vĩ đại', 
+                h2_en: '1. The Great Overthrow of SERVQUAL',
+                content_vi: `Suốt những năm 1980, SERVQUAL của Parasuraman thống trị tuyệt đối lĩnh vực dịch vụ bằng công thức: Chất lượng = Cảm nhận thực tế - Kỳ vọng (P - E). Nhưng đến năm 1992, Cronin và Taylor đã ném một "quả bom" vào giới hàn lâm khi tuyên bố: **"Đo lường Kỳ vọng là một sự phí phạm và sai lầm!"**
+
+Họ lập luận rằng: Khi khách hàng đã bước ra khỏi cửa hàng, bộ não của họ tự động điều chỉnh lại kỳ vọng để khớp với những gì họ vừa trải nghiệm. Do đó, việc bắt họ điền vào bảng hỏi "Kỳ vọng của bạn TRƯỚC KHI sử dụng dịch vụ là gì?" là không chính xác và thừa thãi.
+Họ đề xuất mô hình **SERVPERF (Service Performance)**: Chỉ cần đo lường **Cảm nhận thực tế (Performance)** là đủ! (Chất lượng = P).`,
+                content_en: `Cronin and Taylor (1992) challenged SERVQUAL's (P-E) formula, arguing that measuring expectations is both redundant and flawed.`
+            },
+            {
+                h2_vi: '2. Tại sao sinh viên lại cực kỳ "yêu thích" SERVPERF?', 
+                h2_en: '2. Why students absolutely "love" SERVPERF?',
+                content_vi: `Nếu làm luận văn bằng SERVQUAL, bạn sẽ phải ép khách hàng trả lời một bảng hỏi dài 44 câu (22 câu Kỳ vọng + 22 câu Cảm nhận). Khách hàng sẽ chán nản, đánh lụi, và kết quả chạy SPSS của bạn sẽ nát bét (Cronbach's Alpha thấp, EFA rớt biến lả tả).
+
+Với SERVPERF, bạn **CẮT ĐÔI** số lượng câu hỏi, chỉ còn đúng 22 câu hỏi về Cảm nhận thực tế.
+- Khách hàng điền nhanh hơn.
+- Dữ liệu thu về "sạch" hơn, ít thiên kiến (bias).
+- Kết quả chạy SPSS đẹp như tranh vẽ.
+
+*Bài viết được nghiên cứu và tổng hợp bởi **Lê Phúc Hải** (By Le Phuc Hai).*`,
+                content_en: `*Researched and compiled by **Le Phuc Hai**.*`
+            }
         ]
     }
 ];

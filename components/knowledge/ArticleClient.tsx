@@ -66,7 +66,7 @@ export default function ArticleClient({ initialArticle, fallbackArticles, slug }
                 if (found) {
                     setArticle(found);
                     setEditedArticle(found);
-                    return; // Successfully loaded from local
+                    // Continue to fetch from DB for stale-while-revalidate
                 }
             }
 

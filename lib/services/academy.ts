@@ -45,7 +45,8 @@ export async function getAcademyResources(type?: 'scale' | 'theory' | 'method') 
                 citation: s.citation,
                 meta_data: {
                     items: s.scale_items,
-                    research_model: s.research_model
+                    research_model: s.research_model,
+                    content_structure: s.content_structure
                 }
             });
         });
