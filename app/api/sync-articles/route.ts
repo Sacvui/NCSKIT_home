@@ -10,7 +10,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 export async function GET() {
     try {
         const articles = Object.values(FALLBACK_ARTICLES);
-        const results = [];
+        const results: any[] = [];
         for (const a of articles) {
             const { error } = await supabase.from('knowledge_articles').upsert({
                 slug: a.slug,

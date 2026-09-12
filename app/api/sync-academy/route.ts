@@ -8,7 +8,7 @@ export async function GET() {
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhmZnR4ZWhlanRteGNvZnRra21vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2ODk3MTY2OCwiZXhwIjoyMDg0NTQ3NjY4fQ.C8nIHqDdaZGfz4mX7eYK5Or_0gyVydXXX4jum8E_ITU"; 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const fallbackData = [];
+    const fallbackData: any[] = [];
     
     // 1. Process Scales
     STATIC_SCALES.forEach(s => {
