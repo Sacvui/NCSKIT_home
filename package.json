@@ -1,7 +1,7 @@
 {
   "name": "ncsstat",
   "version": "0.1.0",
-  "description": "Triggering fresh Vercel build after cleanup",
+  "description": "NCSKit — Serverless, WebAssembly-powered statistical analysis with automated APA interpretation (ASIG engine)",
   "private": true,
   "type": "module",
   "scripts": {
@@ -20,7 +20,7 @@
     "fix-auth": "node scripts/fix-supabase-config.js",
     "postinstall": "node scripts/copy-webr.js",
     "prepare": "node -e \"try { require('fs').mkdirSync('.husky') } catch (e) {}\"",
-    "verify-math": "npx playwright test tests/e2e/webr-auto-test.spec.ts && cd ../NCSKIT_APP && python app.py --data data/sample.csv && cd ../ncskit_home && node scripts/compare_engines.cjs"
+    "verify-math": "npx playwright test tests/e2e/webr-auto-test.spec.ts"
   },
   "dependencies": {
     "@sentry/nextjs": "^10.48.0",

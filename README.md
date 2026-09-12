@@ -1,105 +1,270 @@
-# ncsStat: A Web-Based Framework for Privacy-Preserving Decentralized Statistical Computing
+# NCSKit
+
+**A Serverless, WebAssembly-Powered Statistical Analysis Platform with Automated APA Interpretation**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![JOSS](https://joss.theoj.org/papers/unknown/status.svg)](https://joss.theoj.org/papers/unknown)
-
-**ncsStat** is an open-source, decentralized statistical analysis platform that runs a full R engine (WebR) entirely within the browser. It is designed to provide high-performance, privacy-centric research tools without the need for server-side computation or data transmission.
-
-🔗 **Live Application:** [https://ncskit.org](https://ncskit.org)
-
----
-
-## 🚀 Key Features
-
-- **Absolute Privacy:** 100% client-side data processing. No sensitive data is ever uploaded to a server.
-- **Offline-Ready:** Once loaded, ncsStat can perform full statistical analyses without an internet connection, ideal for field research.
-- **Methodological Guardrails:** Acts as a "virtual mentor" by automatically checking assumptions and suggesting corrective statistical paths.
-- **R Script Export:** Seamlessly export analysis logic to R scripts for reproducibility in RStudio.
-- **Comprehensive Analysis:** Supports 18+ methods including SEM, CFA, EFA, Logistic Regression, and Mediation Analysis.
-- **ASIG Expert System:** Automatically generates APA-compliant textual interpretations of results.
-- **Zero Installation:** Works in any modern browser across Windows, macOS, Linux, and tablets.
-- **High Performance:** Powered by WebAssembly (WASM), leveraging a full R 4.5 runtime.
+[![JOSS](https://joss.theoj.org/papers/pending/status.svg)](https://joss.theoj.org)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.pending.svg)](https://zenodo.org)
+[![WebR](https://img.shields.io/badge/WebR-0.5.8-blue)](https://docs.r-wasm.org/webr/latest/)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black)](https://nextjs.org/)
 
 ---
 
-## 🛠️ Technology Stack
+## Summary
 
-| Layer | Stack |
-|-------|-------|
-| **Core** | Next.js 16, React 19, TypeScript |
-| **Statistical Engine** | WebR 0.5 (WebAssembly R) |
-| **Key R Packages** | `psych`, `lavaan`, `GPArotation`, `cluster` |
-| **Backend/Auth** | Supabase (PostgreSQL, OAuth) |
-| **AI Integration** | Google Gemini 2.0 Flash (for optional advanced insights) |
+`NCSKit` is an open-source web application that runs a complete R statistical
+environment — including `lavaan`, `seminr`, and `psych` — entirely within the
+user's browser via [WebR](https://docs.r-wasm.org/webr/latest/) and
+WebAssembly. No server performs any computation. No data leaves the client
+machine. A lecturer can deploy NCSKit to an entire classroom via a single URL
+at zero marginal infrastructure cost.
 
----
+NCSKit also introduces the **Automated Statistical Insight Generation (ASIG)**
+engine: a deterministic, rule-based system that translates raw R output into
+publication-ready, APA 7th Edition narrative interpretations across 22 analysis
+types. Unlike LLM-based tools, ASIG output is fully reproducible — identical
+numeric input always produces identical prose.
 
-## 🧪 JOSS Reviewer Guide
-
-ncsStat is designed to be **Zero-Config** for peer review. You can run the full analytical engine locally without setting up a database or authentication.
-
-### 1. Quick Start (Zero-Config Mode)
-1.  **Clone & Install**:
-    ```bash
-    git clone https://github.com/Sacvui/NCSKIT_home.git
-    cd NCSKIT_home
-    npm install
-    ```
-2.  **Start Development Server**:
-    ```bash
-    npm run dev
-    ```
-    *Note: ncsStat automatically detects the absence of environment variables and enables **Guest Mode**, allowing full access to the analytical engine without login.*
-
-3.  **Access the Application**:
-    Open [http://localhost:3000/analyze](http://localhost:3000/analyze) to start your evaluation.
-
-### 2. Functional Verification
--   **Mathematical Accuracy**: We provide a validation suite comparing `ncsStat` (WebR) outputs against native R results. See `__tests__/validation/`.
--   **Expert System Logic**: The deterministic rules for the ASIG interpretation system are documented in [ASIG_LOGIC.md](./ASIG_LOGIC.md).
--   **Numerical Parity**: Check [BENCHMARK.md](./BENCHMARK.md) for head-to-head comparisons on complex SEM models.
-
-### 3. Project Structure
--   `app/analyze/`: Core analysis page and workflow orchestration.
--   `lib/webr/`: WebR engine initialization, memory management, and recovery logic.
--   `lib/webr/analyses/`: R computation templates for each statistical method.
--   `lib/interpretation-templates.ts`: The ASIG expert-rule engine.
--   `public/webr_core_v3/`: Self-hosted WebR binaries and R package repository (Version-locked).
+**Live deployment:** [https://ncskit.org](https://ncskit.org)
+**Demo (no login required):** [https://ncskit.org/demo](https://ncskit.org/demo)
 
 ---
 
+## Statement of Need
+
+| Problem | NCSKit's Solution |
+|:--------|:-----------------|
+| **Shiny Scaling Problem** — Shiny servers saturate under concurrent classroom load | All computation runs on the user's CPU via WASM; concurrent users never compete for shared resources |
+| **Data privacy** — IRB/GDPR prohibit uploading sensitive data to cloud servers | Datasets are loaded into browser RAM only; after WebR caches locally they never traverse the network |
+| **Interpretation gap** — Raw R output (p-values, loadings, fit indices) is routinely misread | ASIG deterministically maps every metric to APA-formatted prose grounded in peer-reviewed thresholds |
+
 ---
 
-## 📦 Installation & Deployment
+## Features
 
-### Production Build
+- **22 statistical analysis types** including CFA, EFA, PLS-SEM, CB-SEM, linear
+  and logistic regression, mediation/moderation, ANOVA, t-tests, non-parametric
+  tests, chi-square, cluster analysis, and descriptive statistics
+- **ASIG engine** — deterministic APA 7 interpretation of every analysis,
+  with inline citations (Hu & Bentler, 1999; Hair et al., 2017; Nunnally, 1978)
+- **Methodological guardrails** — automatic Levene's Test before group comparisons,
+  Welch correction on heteroscedasticity, VIF multicollinearity detection,
+  Shapiro-Wilk normality warnings, Fornell-Larcker + HTMT discriminant validity
+- **AutoPilot workflow** — chained analysis sequences (Reliability → EFA → CFA →
+  SEM bootstrapping) triggered by a single click
+- **Zero-install** — works in any modern browser (Chrome, Firefox, Edge, Safari)
+- **PDF export** — APA-formatted reports with tables and narrative
+- **R script export** — every analysis outputs the underlying R code for
+  reproducibility in native R/RStudio
+- **Offline capable** — after first load, all R packages are cached via IndexedDB
+  (IDBFS); subsequent sessions require no internet connection
+
+---
+
+## Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────┐
+│                    Browser (Client)                  │
+│                                                      │
+│  ┌──────────────────┐    PostMessage (Channel 3)    │
+│  │  Next.js 16 UI   │ ◄──────────────────────────► │
+│  │  (React 19)      │                               │
+│  └────────┬─────────┘    ┌────────────────────────┐ │
+│           │               │  WebR Web Worker       │ │
+│           │ JSON payload  │  (R 4.5 / WASM)        │ │
+│           ▼               │                        │ │
+│  ┌──────────────────┐    │  lavaan, seminr, psych  │ │
+│  │  ASIG Engine     │    │  (self-hosted WASM pkgs)│ │
+│  │  lib/asig/       │    └────────────────────────┘ │
+│  │  22 interpreters │                               │
+│  └──────────────────┘          No network I/O       │
+└─────────────────────────────────────────────────────┘
+```
+
+**Key architectural decisions:**
+
+- **PostMessage channel (Type 3)** rather than SharedArrayBuffer (Type 0): ensures
+  100% cross-browser stability at ~10% computational overhead. See `lib/webr/core.ts`.
+- **Self-hosted R packages** in `public/webr_repo_v6/`: eliminates runtime CDN
+  dependency and satisfies Vercel's Content Security Policy.
+- **Deterministic ASIG** rather than LLM: guarantees reproducibility, prevents
+  hallucinated citations, and makes every interpretation auditable.
+
+---
+
+## JOSS Reviewer Guide
+
+NCSKit is designed for zero-configuration peer review.
+
+### 1. Quick Start (no database required)
+
+```bash
+git clone https://github.com/hailp1/demo_Publish_NCSKIT.git
+cd demo_Publish_NCSKIT
+npm install        # ~3–5 min first time (downloads WebR WASM binaries)
+npm run dev
+```
+
+Open **http://localhost:3000/demo** — full analysis engine, no login required.
+
+> The `/demo` route loads `AnalyzeModule` with `isDemo={true}`, bypassing all
+> authentication. Supabase credentials are optional; the app operates entirely
+> without them in demo mode.
+
+### 2. Verify numerical accuracy
+
+```bash
+# Compare NCSKit (WebR) output against native R on the lavaan Political Democracy dataset
+# Results documented in BENCHMARK.md
+npm run verify-math
+```
+
+Expected: all fit indices and path coefficients match native R to ≥ 5 decimal places.
+
+### 3. Verify ASIG logic
+
+The full decision-tree logic for all 22 analysis types is documented in
+[`ASIG_LOGIC.md`](./ASIG_LOGIC.md) with explicit threshold values and citations.
+Source code: `lib/asig/` (TypeScript, ~1,000 lines, no external AI dependencies).
+
+### 4. Project structure
+
+```
+lib/
+  asig/              # ASIG engine — 22 deterministic interpreters
+    shared.ts        # APA formatting utilities + shared types
+    basic.ts         # Correlation, t-tests, ANOVA, non-parametric, chi-square
+    factor.ts        # Cronbach's Alpha / McDonald's Omega, EFA, CFA
+    regression.ts    # Linear, logistic, mediation, moderation, cluster
+    pls-sem.ts       # PLS-SEM: outer loadings, AVE, CR, HTMT, R²
+    generator.ts     # Central dispatch router (switch over AnalysisType)
+  webr/              # WebR engine wrapper, memory management, package loading
+    core.ts          # WebR initialisation, crash recovery, gc lifecycle
+    analyses/        # R script templates per analysis method
+app/
+  demo/page.tsx      # Zero-auth demo entry point (isDemo=true)
+  analyze/           # Authenticated analysis workflow
+  api/               # Next.js API routes (AI explain, auth, admin)
+public/
+  webr_repo_v6/      # Self-hosted WASM-compiled R packages (runtime)
+  webr_core_v3/      # WebR core binaries (generated by postinstall)
+tests/
+  e2e/               # Playwright end-to-end tests including WebR accuracy
+BENCHMARK.md         # Numerical parity: NCSKit vs native R
+ASIG_LOGIC.md        # All 22 interpretation thresholds with citations
+```
+
+---
+
+## Installation
+
+### Prerequisites
+
+- Node.js ≥ 18
+- npm ≥ 9
+
+### Local development
+
+```bash
+git clone https://github.com/hailp1/demo_Publish_NCSKIT.git
+cd demo_Publish_NCSKIT
+npm install
+npm run dev
+# → http://localhost:3000/demo
+```
+
+`npm install` runs a `postinstall` script (`scripts/copy-webr.js`) that copies
+the WebR WASM binaries from `node_modules/webr/dist` to `public/webr_core_v3/`.
+This is required for the application to serve the WASM runtime correctly.
+
+### Production (Vercel)
+
 ```bash
 npm run build
 npm start
 ```
 
-### Deployment (Vercel)
-The project is optimized for Vercel. Ensure the following Environment Variables are set:
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+Optional environment variables (copy `.env.example` to `.env.local`):
+
+| Variable | Purpose | Required |
+|:---------|:--------|:---------|
+| `NEXT_PUBLIC_SUPABASE_URL` | User auth and profiles | No — app runs without it |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase client | No |
+| `GEMINI_API_KEY` | Server-side AI interpretation (optional feature) | No |
 
 ---
 
-## 📚 Citation
+## Supported Analyses
 
-If you use ncsStat in your research, please cite it as follows:
-
-**CFF File:** [CITATION.cff](./CITATION.cff)
-
-**APA Format:**
-> Le, P. H. (2026). *ncsStat: A Web-Based Statistical Analysis Platform for Privacy-Preserving Decentralized Computing*. https://ncskit.org
+| Category | Methods |
+|:---------|:--------|
+| Descriptive | Descriptive statistics with normality assessment |
+| Correlation | Pearson, Spearman, Kendall |
+| Group comparison | Independent t-test (+ Welch), paired t-test, one-way ANOVA (+ Welch), two-way ANOVA |
+| Non-parametric | Mann-Whitney U, Kruskal-Wallis H, Wilcoxon Signed-Rank |
+| Association | Chi-square test of independence (+ Fisher's Exact) |
+| Reliability | Cronbach's Alpha, McDonald's Omega |
+| Factor analysis | EFA (Parallel Analysis / Kaiser), CFA (lavaan) |
+| Regression | Linear, logistic, mediation (Baron-Kenny + Bootstrap), moderation (simple slopes) |
+| SEM | CB-SEM (lavaan), PLS-SEM (seminr) with bootstrapping |
+| Diagnostics | VIF multicollinearity, Mahalanobis outlier detection, HTMT discriminant validity |
 
 ---
 
-## 📝 License
+## Numerical Accuracy
 
-This project is licensed under the **MIT License**. See the [LICENSE](./LICENSE) file for details.
+NCSKit achieves perfect numerical parity with native R on validated datasets.
+See [`BENCHMARK.md`](./BENCHMARK.md) for a full comparison on the `lavaan`
+Political Democracy dataset:
 
-## 🙏 Acknowledgments
+- CFI, TLI, RMSEA, SRMR: identical to 3 decimal places
+- All factor loadings: difference Δ < 0.00001
 
-Special thanks to the **WebR project** team at Posit and the authors of the `lavaan` and `psych` R packages.
+---
+
+## Contributing
+
+We welcome contributions. See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for:
+
+- How to add a new analysis method (R template + ASIG interpreter)
+- How to extend or modify ASIG decision thresholds
+- Code style and testing requirements
+
+---
+
+## Citation
+
+If you use NCSKit in your research, please cite:
+
+```bibtex
+@article{le2026ncskit,
+  author  = {Le, Phuc Hai},
+  title   = {{NCSKit}: A Serverless, {WebAssembly}-Powered Statistical Analysis
+             Platform with Automated {APA} Interpretation},
+  journal = {Journal of Open Source Software},
+  year    = {2026},
+  note    = {Under review},
+  url     = {https://github.com/hailp1/demo_Publish_NCSKIT}
+}
+```
+
+A machine-readable citation is available in [`CITATION.cff`](./CITATION.cff).
+
+---
+
+## License
+
+MIT © 2026 Le Phuc Hai. See [`LICENSE`](./LICENSE).
+
+---
+
+## Acknowledgements
+
+Special thanks to George Stagg and the [WebR project team](https://docs.r-wasm.org)
+at Posit PBC, and to the authors of
+[`lavaan`](https://lavaan.ugent.be/) (Rosseel, 2012),
+[`seminr`](https://github.com/sem-in-r/seminr) (Hair et al., 2021), and
+[`psych`](https://cran.r-project.org/package=psych) (Revelle, 2023),
+without whose foundational work serverless R statistical computing would not
+be possible.

@@ -1,100 +1,197 @@
-import { InterpretationResult, formatCoef } from './shared';
-
 /**
- * Interpret PLS-SEM Results (Discriminant Validity: Fornell-Larcker and HTMT)
+ * ASIG — pls-sem.ts
+ * Interpreter: PLS-SEM (Partial Least Squares Structural Equation Modeling)
+ * Covers: Outer loadings, AVE, Composite Reliability, Fornell-Larcker,
+ *         HTMT, R-squared, path coefficients, bootstrapping results.
+ * All prose conforms to APA 7th Edition reporting standards.
+ * Primary reference: Hair et al. (2017, 2022).
  */
-export function interpretPLSSEM(params: {
-    fornell_larcker?: Record<string, Record<string, number>>;
-    htmt?: Record<string, Record<string, number>>;
-    r_squared?: Record<string, number>;
-}): InterpretationResult {
-    const { fornell_larcker, htmt, r_squared } = params;
 
-    let summary = '';
-    const details: string[] = [];
-    const warnings: string[] = [];
-    const citations = [
-        'Hair, J. F., Hult, G. T. M., Ringle, C. M., & Sarstedt, M. (2017). A primer on partial least squares structural equation modeling (PLS-SEM).'
+import { InterpretationResult, formatCoef, formatNum, formatPValue } from './shared';
+
+
+export function interpretPLSSEM(params: {
+    fornell_larcker?:   Record<string, Record<string, number>>;
+    htmt?:              Record<string, Record<string, number>>;
+    r_squared?:         Record<string, number>;
+    ave?:               Record<string, number>;
+    compositeReliability?: Record<string, number>;
+    outerLoadings?:     Record<string, Record<string, number>>;
+    pathCoefficients?:  { from: string; to: string; beta: number; tValue?: number; pValue?: number; ci95Lower?: number; ci95Upper?: number }[];
+}): InterpretationResult {
+    const {
+        fornell_larcker, htmt, r_squared,
+        ave, compositeReliability,
+        outerLoadings, pathCoefficients
+    } = params;
+
+    const details:   string[] = [];
+    const warnings:  string[] = [];
+    const citations: string[] = [
+        'Hair, J. F., Hult, G. T. M., Ringle, C. M., & Sarstedt, M. (2017). A primer on partial least squares structural equation modeling (PLS-SEM) (2nd ed.). SAGE Publications.',
+        'Henseler, J., Ringle, C. M., & Sarstedt, M. (2015). A new criterion for assessing discriminant validity in variance-based structural equation modeling. Journal of the Academy of Marketing Science, 43(1), 115–135.',
+        'Fornell, C., & Larcker, D. F. (1981). Evaluating structural equation models with unobservable variables and measurement error. Journal of Marketing Research, 18(1), 39–50.',
     ];
 
     let hasViolations = false;
 
-    // 1. Evaluate Fornell-Larcker
-    if (fornell_larcker) {
-        const constructs = Object.keys(fornell_larcker);
-        const fornellViolations: string[] = [];
-
-        // Check each construct's AVE square root (diagonal) against correlations
-        constructs.forEach(c1 => {
-            const diagVal = fornell_larcker[c1]?.[c1];
-            if (diagVal !== undefined && diagVal !== null) {
-                constructs.forEach(c2 => {
-                    if (c1 !== c2) {
-                        const corr = fornell_larcker[c1]?.[c2] ?? fornell_larcker[c2]?.[c1];
-                        if (corr !== undefined && corr !== null && corr >= diagVal) {
-                            fornellViolations.push(`${c1} vs ${c2} (Corr: ${formatCoef(corr)} >= AVE_sqrt: ${formatCoef(diagVal)})`);
-                        }
-                    }
-                });
-            }
+    // ── SECTION 1: Outer Loadings ─────────────────────────────────────────────
+    if (outerLoadings) {
+        details.push('— Outer Loadings (Indicator Reliability) —');
+        Object.entries(outerLoadings).forEach(([construct, items]) => {
+            Object.entries(items).forEach(([item, loading]) => {
+                if (loading < 0.40) {
+                    warnings.push(`Outer loading for "${item}" (${construct}) = ${formatCoef(loading)} < .40: the item contributes negligible variance to the construct and should be considered for removal.`);
+                } else if (loading < 0.70) {
+                    details.push(`"${item}" (${construct}): outer loading = ${formatCoef(loading)} — acceptable but below the preferred threshold of .70.`);
+                } else {
+                    details.push(`"${item}" (${construct}): outer loading = ${formatCoef(loading)} ✓`);
+                }
+            });
         });
-
-        if (fornellViolations.length === 0) {
-            details.push('Tiêu chuẩn Fornell-Larcker ĐẠT: Căn bậc hai của AVE đối với mỗi biến tiềm ẩn đều lớn hơn tất cả các tương quan của nó với các biến tiềm ẩn khác.');
-        } else {
-            hasViolations = true;
-            warnings.push(`Vi phạm tiêu chuẩn Fornell-Larcker: ${fornellViolations[0]}${fornellViolations.length > 1 ? ` và ${fornellViolations.length - 1} cặp khác` : ''}. Các biến này chưa đạt giá trị phân biệt hợp lệ.`);
-        }
     }
 
-    // 2. Evaluate HTMT
-    if (htmt) {
-        const constructs = Object.keys(htmt);
-        const htmtViolations: string[] = [];
+    // ── SECTION 2: AVE & Convergent Validity ─────────────────────────────────
+    if (ave) {
+        details.push('— Average Variance Extracted (Convergent Validity) —');
+        Object.entries(ave).forEach(([construct, aveVal]) => {
+            if (aveVal < 0.50) {
+                warnings.push(`AVE for "${construct}" = ${formatCoef(aveVal)} < .50: the construct does not capture more variance from its indicators than from measurement error (Fornell & Larcker, 1981). Consider removing low-loading items.`);
+                hasViolations = true;
+            } else {
+                details.push(`"${construct}": AVE = ${formatCoef(aveVal)} ≥ .50 ✓ (convergent validity established).`);
+            }
+        });
+    }
+
+    // ── SECTION 3: Composite Reliability ─────────────────────────────────────
+    if (compositeReliability) {
+        details.push('— Composite Reliability (Internal Consistency) —');
+        Object.entries(compositeReliability).forEach(([construct, cr]) => {
+            if (cr < 0.70) {
+                warnings.push(`Composite Reliability for "${construct}" = ${formatCoef(cr)} < .70, indicating insufficient internal consistency (Hair et al., 2017).`);
+                hasViolations = true;
+            } else if (cr > 0.95) {
+                warnings.push(`Composite Reliability for "${construct}" = ${formatCoef(cr)} > .95, suggesting potential indicator redundancy. Consider revising the item set.`);
+            } else {
+                details.push(`"${construct}": CR = ${formatCoef(cr)} ✓`);
+            }
+        });
+    }
+
+    // ── SECTION 4: Fornell-Larcker Criterion ─────────────────────────────────
+    if (fornell_larcker) {
+        details.push('— Discriminant Validity: Fornell-Larcker Criterion —');
+        const constructs         = Object.keys(fornell_larcker);
+        const fornellViolations: string[] = [];
 
         constructs.forEach(c1 => {
+            const diagVal = fornell_larcker[c1]?.[c1];
+            if (diagVal == null) return;
+
             constructs.forEach(c2 => {
-                if (c1 !== c2) {
-                    const val = htmt[c1]?.[c2];
-                    // Strict threshold is 0.85, liberal is 0.90
-                    if (val !== undefined && val !== null && val >= 0.90) {
-                        // avoid duplicate pairs
-                        const pair = [c1, c2].sort().join(' - ');
-                        if (!htmtViolations.includes(pair)) {
-                            htmtViolations.push(pair);
-                        }
-                    }
+                if (c1 === c2) return;
+                const corr = fornell_larcker[c1]?.[c2] ?? fornell_larcker[c2]?.[c1];
+                if (corr != null && corr >= diagVal) {
+                    fornellViolations.push(`${c1} vs. ${c2} (√AVE = ${formatCoef(diagVal)}, r = ${formatCoef(corr)})`);
                 }
             });
         });
 
-        if (htmtViolations.length === 0) {
-            details.push('Tiêu chuẩn HTMT ĐẠT: Tất cả các giá trị HTMT đều dưới ngưỡng 0.90, khẳng định giá trị phân biệt (Discriminant Validity) giữa các biến.');
-            citations.push('Henseler, J., Ringle, C. M., & Sarstedt, M. (2015). A new criterion for assessing discriminant validity in variance-based structural equation modeling.');
+        if (fornellViolations.length === 0) {
+            details.push('Fornell-Larcker criterion satisfied: the square root of each construct\'s AVE exceeds all inter-construct correlations, establishing discriminant validity.');
         } else {
             hasViolations = true;
-            warnings.push(`Vi phạm HTMT: Các cặp biến [${htmtViolations.join(', ')}] có giá trị HTMT ≥ 0.90, cho thấy chúng không có sự phân biệt rõ ràng về mặt khái niệm.`);
+            warnings.push(`Fornell-Larcker criterion violated for the following construct pair(s): ${fornellViolations.join('; ')}. These constructs are not sufficiently distinct. Inspect cross-loadings and consider item reassignment or construct merging.`);
         }
     }
 
-    // 3. Evaluate R-Squared
-    if (r_squared) {
-        const weakR2 = Object.entries(r_squared).filter(([_, r2]) => r2 < 0.25);
-        const modR2 = Object.entries(r_squared).filter(([_, r2]) => r2 >= 0.25 && r2 < 0.5);
-        const strongR2 = Object.entries(r_squared).filter(([_, r2]) => r2 >= 0.5 && r2 < 0.75);
-        const subR2 = Object.entries(r_squared).filter(([_, r2]) => r2 >= 0.75);
+    // ── SECTION 5: HTMT ───────────────────────────────────────────────────────
+    if (htmt) {
+        details.push('— Discriminant Validity: HTMT Criterion (Henseler et al., 2015) —');
+        const constructs       = Object.keys(htmt);
+        const htmtViolations09: string[] = [];
+        const htmtWarnings85:   string[] = [];
+        const seenPairs = new Set<string>();
 
-        if (weakR2.length > 0) warnings.push(`Các biến nội sinh [${weakR2.map(v => v[0]).join(', ')}] có R² yếu (< 0.25).`);
-        if (subR2.length > 0) details.push(`Các biến nội sinh [${subR2.map(v => v[0]).join(', ')}] có mức độ giải thích (R²) rất cao (≥ 0.75).`);
+        constructs.forEach(c1 => {
+            constructs.forEach(c2 => {
+                if (c1 >= c2) return;                    // avoid duplicates
+                const key = `${c1}|${c2}`;
+                if (seenPairs.has(key)) return;
+                seenPairs.add(key);
+
+                const val = htmt[c1]?.[c2] ?? htmt[c2]?.[c1];
+                if (val == null) return;
+
+                if (val >= 0.90) {
+                    htmtViolations09.push(`${c1} & ${c2} (HTMT = ${formatCoef(val)})`);
+                    hasViolations = true;
+                } else if (val >= 0.85) {
+                    htmtWarnings85.push(`${c1} & ${c2} (HTMT = ${formatCoef(val)})`);
+                } else {
+                    details.push(`${c1} & ${c2}: HTMT = ${formatCoef(val)} < .85 ✓`);
+                }
+            });
+        });
+
+        if (htmtViolations09.length > 0) {
+            warnings.push(`HTMT ≥ .90 (discriminant validity violated) for: ${htmtViolations09.join('; ')}. These constructs lack conceptual distinctiveness and should be revised.`);
+        }
+        if (htmtWarnings85.length > 0) {
+            warnings.push(`HTMT between .85 and .90 (borderline) for: ${htmtWarnings85.join('; ')}. Discriminant validity is questionable; bootstrap HTMT confidence intervals are recommended.`);
+        }
+        if (htmtViolations09.length === 0 && htmtWarnings85.length === 0) {
+            details.push('HTMT criterion satisfied: all HTMT values < .85, confirming discriminant validity across all construct pairs (Henseler et al., 2015).');
+        }
     }
 
-    // Overall summary
-    if (!fornell_larcker && !htmt) {
-        summary = 'Không tìm thấy dữ liệu ma trận HTMT hoặc Fornell-Larcker để đánh giá Giá trị phân biệt (Discriminant Validity).';
+    // ── SECTION 6: R-Squared ─────────────────────────────────────────────────
+    if (r_squared) {
+        details.push('— Structural Model: Explanatory Power (R²) —');
+        Object.entries(r_squared).forEach(([construct, r2]) => {
+            let level = '';
+            if      (r2 >= 0.75) level = 'substantial';
+            else if (r2 >= 0.50) level = 'moderate';
+            else if (r2 >= 0.25) level = 'weak';
+            else                  level = 'very weak';
+
+            details.push(`"${construct}": R² = ${formatCoef(r2)} (${level}; Hair et al., 2017 benchmarks: weak ≥ .25, moderate ≥ .50, substantial ≥ .75).`);
+
+            if (r2 < 0.10) {
+                warnings.push(`"${construct}": R² = ${formatCoef(r2)} < .10 — the structural model has very limited predictive power for this endogenous variable.`);
+            }
+        });
+    }
+
+    // ── SECTION 7: Path Coefficients (Bootstrapping) ─────────────────────────
+    if (pathCoefficients && pathCoefficients.length > 0) {
+        details.push('— Structural Model: Path Coefficients (Bootstrap Results) —');
+        for (const path of pathCoefficients) {
+            const ciStr = (path.ci95Lower != null && path.ci95Upper != null)
+                ? ` [95% CI: ${formatCoef(path.ci95Lower)}, ${formatCoef(path.ci95Upper)}]`
+                : '';
+            const tStr  = path.tValue != null ? `, t = ${formatNum(path.tValue)}` : '';
+            const pStr  = path.pValue != null ? `, ${formatPValue(path.pValue)}` : '';
+            const sig   = path.pValue != null ? (path.pValue < 0.05 ? ' ✓ significant' : ' ✗ not significant') : '';
+
+            details.push(`${path.from} → ${path.to}: β = ${formatCoef(path.beta)}${tStr}${pStr}${ciStr}${sig}.`);
+
+            if (path.pValue != null && path.pValue < 0.05 && Math.abs(path.beta) < 0.10) {
+                warnings.push(`Path ${path.from} → ${path.to} is statistically significant but the effect size is very small (|β| = ${formatCoef(Math.abs(path.beta))}). Practical significance should be carefully evaluated.`);
+            }
+        }
+    }
+
+    // ── OVERALL SUMMARY ───────────────────────────────────────────────────────
+    let summary = '';
+
+    if (!fornell_larcker && !htmt && !r_squared && !ave && !compositeReliability && !pathCoefficients) {
+        summary = 'No PLS-SEM matrix data were provided. Please supply at least one of: fornell_larcker, htmt, r_squared, ave, compositeReliability, or pathCoefficients.';
     } else if (hasViolations) {
-        summary = 'Kết quả đánh giá mô hình đo lường (Outer Model) cho thấy có SỰ VI PHẠM về Giá trị phân biệt (Discriminant Validity). Người nghiên cứu cần kiểm tra lại Cross-loadings và cân nhắc gộp hoặc loại bỏ các biến quan sát bị chồng chéo.';
+        summary = 'PLS-SEM measurement model assessment identified one or more violations of recommended thresholds (Hair et al., 2017). Researchers should address the flagged issues — particularly discriminant validity violations — before proceeding to structural model interpretation. Specific concerns are detailed in the warnings below.';
     } else {
-        summary = 'Mô hình đo lường (Outer Model) đạt tiêu chuẩn về Giá trị phân biệt (Discriminant Validity). Các biến tiềm ẩn độc lập thống kê với nhau và mô hình sẵn sàng cho bước kiểm định Bootstrap tiếp theo (Inner Model).';
+        summary = 'PLS-SEM measurement model assessment indicates that all evaluated criteria meet the recommended thresholds (Hair et al., 2017). Convergent validity (AVE ≥ .50), internal consistency (CR ≥ .70), and discriminant validity (Fornell-Larcker and/or HTMT criteria) are all satisfied. The measurement model provides an adequate foundation for structural model evaluation.';
     }
 
     return { summary, details, warnings, citations };

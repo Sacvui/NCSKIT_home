@@ -51,3 +51,15 @@ supabase/.temp/
 # and cannot be downloaded from external CDNs due to CSP restrictions on Vercel.
 
 scripts/qwen-consultant.mjs
+
+# IDE / AI assistant artifacts
+.agents/
+.kiro/
+.aider.chat.history.md
+.aider.input.history
+.aider.tags.cache.v4/
+.antigravityignore
+skills-lock.json
+
+# Local dev convenience scripts
+startLocal.bat

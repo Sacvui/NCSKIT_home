@@ -2,12 +2,21 @@ import { NextResponse } from 'next/server';
 import { FALLBACK_ARTICLES } from '@/lib/constants/knowledge-fallbacks';
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = "https://xfftxehejtmxcoftkkmo.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhmZnR4ZWhlanRteGNvZnRra21vIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2ODk3MTY2OCwiZXhwIjoyMDg0NTQ3NjY4fQ.C8nIHqDdaZGfz4mX7eYK5Or_0gyVydXXX4jum8E_ITU";
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+if (!supabaseUrl || !supabaseKey) {
+    console.warn('[sync-articles] Missing Supabase env vars — route will be disabled.');
+}
+
+const supabase = supabaseUrl && supabaseKey
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
 
 export async function GET() {
+    if (!supabase) {
+        return NextResponse.json({ success: false, error: 'Supabase not configured' }, { status: 503 });
+    }
     try {
         const articles = Object.values(FALLBACK_ARTICLES);
         const results: any[] = [];

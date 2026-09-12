@@ -1,512 +1,517 @@
-import { formatPValue, formatCoef, formatNum, InterpretationResult, AnalysisType } from './shared';
+/**
+ * ASIG — basic.ts
+ * Interpreters: Descriptive Statistics, Correlation, Independent/Paired t-test,
+ *               One-Way ANOVA, Two-Way ANOVA, Mann-Whitney U, Kruskal-Wallis,
+ *               Wilcoxon Signed Rank, Chi-Square
+ * All prose conforms to APA 7th Edition reporting standards.
+ */
 
-// ===== CORRELATION =====
+import { formatPValue, formatCoef, formatNum, formatPct, InterpretationResult } from './shared';
 
-export function interpretCorrelation(params: {
-    var1: string;
-    var2: string;
-    r: number;
-    pValue: number;
-    method?: 'pearson' | 'spearman' | 'kendall';
+
+// ─── DESCRIPTIVE STATISTICS ───────────────────────────────────────────────────
+
+export function interpretDescriptive(params: {
+    columnNames: string[];
+    means:       number[];
+    sds:         number[];
+    skews:       number[];
+    kurtoses:    number[];
+    N:           number[];
 }): InterpretationResult {
-    const { var1, var2, r, pValue, method = 'pearson' } = params;
-    const rStr = formatCoef(r);
-    const pStr = formatPValue(pValue);
+    const { columnNames, means, sds, skews, kurtoses, N } = params;
+
+    const details:   string[] = [];
+    const warnings:  string[] = [];
+    const citations: string[] = [
+        'George, D., & Mallery, P. (2010). SPSS for Windows step by step: A simple guide and reference (10th ed.). Pearson.',
+        'Hair, J. F., Black, W. C., Babin, B. J., & Anderson, R. E. (2010). Multivariate data analysis (7th ed.). Pearson.',
+    ];
+
+    const nonNormal: string[] = [];
+
+    columnNames.forEach((name, i) => {
+        const skew = skews[i];
+        const kurt = kurtoses[i];
+        const skewOk = Math.abs(skew) <= 2;
+        const kurtOk = Math.abs(kurt) <= 2;
+
+        let note = `"${name}": M = ${formatNum(means[i])}, SD = ${formatNum(sds[i])}`;
+        if (N[i] != null) note += `, N = ${N[i]}`;
+        note += `; Skewness = ${formatNum(skew)}, Kurtosis = ${formatNum(kurt)}.`;
+
+        if (!skewOk || !kurtOk) {
+            nonNormal.push(name);
+            const issues: string[] = [];
+            if (!skewOk) issues.push(`skewness (${formatNum(skew)}) outside [−2, 2]`);
+            if (!kurtOk) issues.push(`kurtosis (${formatNum(kurt)}) outside [−2, 2]`);
+            warnings.push(`"${name}" violates normality: ${issues.join('; ')}.`);
+        }
+
+        details.push(note);
+    });
 
     let summary = '';
-    const details: string[] = [];
-    const warnings: string[] = [];
-    const citations = ['Cohen, J. (1988). Statistical power analysis for behavioral sciences (2nd ed.). Lawrence Erlbaum.'];
-
-    const methodName = method === 'pearson' ? 'Pearson' : method === 'spearman' ? 'Spearman' : 'Kendall';
-
-    if (pValue > 0.05) {
-        summary = `Kết quả kiểm định ${methodName} cho thấy không tồn tại mối liên hệ có ý nghĩa thống kê giữa "${var1}" và "${var2}" ở mức ý nghĩa 5% (r = ${rStr}, ${pStr}).`;
+    if (nonNormal.length === 0) {
+        summary = `Descriptive statistics were computed for ${columnNames.length} variable${columnNames.length > 1 ? 's' : ''} (N = ${N[0]}). All variables exhibited skewness and kurtosis values within the acceptable range of ±2 (George & Mallery, 2010), indicating approximate normality suitable for parametric analyses.`;
     } else {
-        const direction = r > 0 ? 'thuận' : 'nghịch';
-        const trend = r > 0 ? 'tăng' : 'giảm';
-
-        let strength = '';
-        const absR = Math.abs(r);
-        if (absR < 0.3) strength = 'yếu';
-        else if (absR < 0.7) strength = 'trung bình';
-        else strength = 'mạnh';
-
-        summary = `Phân tích tương quan cho thấy tồn tại mối liên hệ ${direction} ở mức độ ${strength} giữa "${var1}" và "${var2}" có ý nghĩa thống kê (r = ${rStr}, ${pStr}). Điều này hàm ý rằng sự biến thiên của "${var1}" đi kèm với xu hướng ${trend} của "${var2}".`;
-
-        details.push(`Hệ số xác định r² = ${formatCoef(r * r)} chỉ ra rằng biến độc lập giải thích được khoảng ${formatNum(r * r * 100, 1)}% sự biến thiên của biến phụ thuộc trong mối quan hệ này.`);
+        summary = `Descriptive statistics were computed for ${columnNames.length} variable${columnNames.length > 1 ? 's' : ''} (N = ${N[0]}). ${nonNormal.length} of ${columnNames.length} variable${columnNames.length > 1 ? 's' : ''} (${nonNormal.join(', ')}) displayed skewness or kurtosis values outside the ±2 threshold (George & Mallery, 2010), suggesting departure from normality. Non-parametric alternatives should be considered for these variables.`;
     }
 
     return { summary, details, warnings, citations };
 }
 
 
-// ===== INDEPENDENT T-TEST =====
+// ─── PEARSON / SPEARMAN / KENDALL CORRELATION ─────────────────────────────────
+
+export function interpretCorrelation(params: {
+    var1:    string;
+    var2:    string;
+    r:       number;
+    pValue:  number;
+    n?:      number;
+    method?: 'pearson' | 'spearman' | 'kendall';
+}): InterpretationResult {
+    const { var1, var2, r, pValue, n, method = 'pearson' } = params;
+
+    const details:   string[] = [];
+    const warnings:  string[] = [];
+    const citations: string[] = [
+        'Cohen, J. (1988). Statistical power analysis for the behavioral sciences (2nd ed.). Lawrence Erlbaum Associates.',
+    ];
+
+    const methodLabel = method === 'pearson'
+        ? 'Pearson product-moment correlation'
+        : method === 'spearman'
+            ? 'Spearman rank-order correlation'
+            : 'Kendall rank correlation';
+
+    const statSymbol = method === 'pearson' ? 'r' : method === 'spearman' ? 'r_s' : 'τ';
+    const nStr = n != null ? `, N = ${n}` : '';
+
+    let summary = '';
+
+    if (pValue > 0.05) {
+        summary = `A ${methodLabel} was conducted to examine the relationship between "${var1}" and "${var2}." The analysis revealed no statistically significant association (${statSymbol} = ${formatCoef(r)}${nStr}, ${formatPValue(pValue)}).`;
+    } else {
+        const direction = r > 0 ? 'positive' : 'negative';
+        const absR = Math.abs(r);
+        const strength = absR < 0.30 ? 'weak' : absR < 0.70 ? 'moderate' : 'strong';
+
+        summary = `A ${methodLabel} was conducted to examine the relationship between "${var1}" and "${var2}." The results indicated a statistically significant ${strength} ${direction} correlation (${statSymbol} = ${formatCoef(r)}${nStr}, ${formatPValue(pValue)}). This suggests that higher values of "${var1}" are associated with ${r > 0 ? 'higher' : 'lower'} values of "${var2}."`;
+
+        details.push(`Coefficient of determination: r² = ${formatCoef(r * r)}, indicating that "${var1}" accounts for approximately ${formatPct(r * r)} of the variance in "${var2}."`);
+        details.push(`Effect size benchmark (Cohen, 1988): small r = .10, medium r = .30, large r = .50.`);
+    }
+
+    return { summary, details, warnings, citations };
+}
+
+
+// ─── INDEPENDENT-SAMPLES T-TEST ───────────────────────────────────────────────
 
 export function interpretTTestIndependent(params: {
-    groupVar: string;
-    targetVar: string;
+    groupVar:   string;
+    targetVar:  string;
     group1Name: string;
     group2Name: string;
-    mean1: number;
-    sd1: number;
-    mean2: number;
-    sd2: number;
-    t: number;
-    df: number;
-    pValue: number;
-    cohensD?: number;
-    leveneP?: number;
+    mean1:      number;
+    sd1:        number;
+    mean2:      number;
+    sd2:        number;
+    t:          number;
+    df:         number;
+    pValue:     number;
+    cohensD?:   number;
+    leveneP?:   number;
     shapiroP1?: number;
     shapiroP2?: number;
 }): InterpretationResult {
-    const { groupVar, targetVar, group1Name, group2Name, mean1, sd1, mean2, sd2, t, df, pValue, cohensD, leveneP, shapiroP1, shapiroP2 } = params;
+    const {
+        groupVar, targetVar, group1Name, group2Name,
+        mean1, sd1, mean2, sd2, t, df, pValue,
+        cohensD, leveneP, shapiroP1, shapiroP2
+    } = params;
 
-    const pStr = formatPValue(pValue);
-    const isWelch = leveneP !== undefined && leveneP < 0.05;
-    const testName = isWelch ? "Welch's t-test" : "Independent t-test";
+    const isWelch   = leveneP != null && leveneP < 0.05;
+    const testLabel = isWelch ? "Welch's t-test" : 'an independent-samples t-test';
+
+    const details:   string[] = [];
+    const warnings:  string[] = [];
+    const citations: string[] = [
+        'Cohen, J. (1988). Statistical power analysis for the behavioral sciences (2nd ed.). Lawrence Erlbaum Associates.',
+    ];
 
     let summary = '';
-    const details: string[] = [];
-    const warnings: string[] = [];
-    const citations = ['Cohen, J. (1988). Statistical power analysis for behavioral sciences.'];
 
     if (pValue > 0.05) {
-        summary = `Kiểm định ${testName} cho thấy không tìm thấy sự khác biệt có ý nghĩa thống kê về giá trị trung bình của "${targetVar}" giữa nhóm ${group1Name} (M = ${formatNum(mean1)}, SD = ${formatNum(sd1)}) và nhóm ${group2Name} (M = ${formatNum(mean2)}, SD = ${formatNum(sd2)}) với t(${formatNum(df, 0)}) = ${formatNum(t)}, ${pStr}.`;
+        summary = `An independent-samples t-test (${isWelch ? "Welch's correction applied" : "equal variances assumed"}) was conducted to compare "${targetVar}" between the ${group1Name} group (M = ${formatNum(mean1)}, SD = ${formatNum(sd1)}) and the ${group2Name} group (M = ${formatNum(mean2)}, SD = ${formatNum(sd2)}). The difference was not statistically significant, t(${formatNum(df, 0)}) = ${formatNum(t)}, ${formatPValue(pValue)}.`;
     } else {
         const higherGroup = mean1 > mean2 ? group1Name : group2Name;
-        const lowerGroup = mean1 > mean2 ? group2Name : group1Name;
-        const mHigh = mean1 > mean2 ? mean1 : mean2;
-        const mLow = mean1 > mean2 ? mean2 : mean1;
+        const lowerGroup  = mean1 > mean2 ? group2Name : group1Name;
+        const mHigh = Math.max(mean1, mean2);
+        const mLow  = Math.min(mean1, mean2);
         const sdHigh = mean1 > mean2 ? sd1 : sd2;
-        const sdLow = mean1 > mean2 ? sd2 : sd1;
+        const sdLow  = mean1 > mean2 ? sd2 : sd1;
 
-        summary = `Kết quả kiểm định ${testName} xác nhận có sự khác biệt có ý nghĩa thống kê về "${targetVar}" giữa hai nhóm đối tượng nghiên cứu (t(${formatNum(df, 0)}) = ${formatNum(t)}, ${pStr}). Cụ thể, giá trị trung bình của nhóm ${higherGroup} (M = ${formatNum(mHigh)}, SD = ${formatNum(sdHigh)}) cao hơn có ý nghĩa so với nhóm ${lowerGroup} (M = ${formatNum(mLow)}, SD = ${formatNum(sdLow)}).`;
+        summary = `${isWelch ? "A Welch's t-test" : 'An independent-samples t-test'} revealed a statistically significant difference in "${targetVar}" between the ${group1Name} group (M = ${formatNum(mHigh)}, SD = ${formatNum(sdHigh)}) and the ${group2Name} group (M = ${formatNum(mLow)}, SD = ${formatNum(sdLow)}), t(${formatNum(df, 0)}) = ${formatNum(t)}, ${formatPValue(pValue)}. The ${higherGroup} group scored significantly higher than the ${lowerGroup} group.`;
     }
 
     // Effect size
-    if (cohensD !== undefined) {
+    if (cohensD != null) {
         const d = Math.abs(cohensD);
-        let effectLabel = '';
-        if (d < 0.2) effectLabel = 'rất nhỏ';
-        else if (d < 0.5) effectLabel = 'nhỏ';
-        else if (d < 0.8) effectLabel = 'trung bình';
-        else effectLabel = 'lớn';
-
-        details.push(`Độ lớn ảnh hưởng Cohen's d = ${formatNum(cohensD)} (${effectLabel}).`);
+        const label = d < 0.20 ? 'negligible' : d < 0.50 ? 'small' : d < 0.80 ? 'medium' : 'large';
+        details.push(`Cohen's d = ${formatNum(cohensD)} (${label} effect; benchmarks: small = 0.20, medium = 0.50, large = 0.80; Cohen, 1988).`);
     }
 
-    // Assumption warnings
-    if (leveneP !== undefined && leveneP < 0.05) {
-        warnings.push(`Phương sai không đồng nhất (Levene's test: p = ${formatPValue(leveneP)}). Đã sử dụng Welch's t-test.`);
+    // Assumption checks
+    if (leveneP != null && leveneP < 0.05) {
+        warnings.push(`Levene's Test for Equality of Variances was significant (${formatPValue(leveneP)}), indicating heteroscedasticity. Welch's t-test (which does not assume equal variances) was therefore applied.`);
     }
-
-    if (shapiroP1 !== undefined && shapiroP1 < 0.05) {
-        warnings.push(`Nhóm ${group1Name} vi phạm giả định phân phối chuẩn (Shapiro-Wilk: p = ${formatPValue(shapiroP1)}).`);
+    if (shapiroP1 != null && shapiroP1 < 0.05) {
+        warnings.push(`The ${group1Name} group violated the normality assumption (Shapiro-Wilk, ${formatPValue(shapiroP1)}). Consider the Mann-Whitney U test as a non-parametric alternative.`);
     }
-
-    if (shapiroP2 !== undefined && shapiroP2 < 0.05) {
-        warnings.push(`Nhóm ${group2Name} vi phạm giả định phân phối chuẩn (Shapiro-Wilk: p = ${formatPValue(shapiroP2)}).`);
+    if (shapiroP2 != null && shapiroP2 < 0.05) {
+        warnings.push(`The ${group2Name} group violated the normality assumption (Shapiro-Wilk, ${formatPValue(shapiroP2)}). Consider the Mann-Whitney U test as a non-parametric alternative.`);
     }
 
     return { summary, details, warnings, citations };
 }
 
 
-// ===== ONE-WAY ANOVA =====
+// ─── PAIRED-SAMPLES T-TEST ────────────────────────────────────────────────────
 
-export function interpretANOVA(params: {
-    factorVar: string;
-    targetVar: string;
-    F: number;
-    dfBetween: number;
-    dfWithin: number;
-    pValue: number;
-    etaSquared?: number;
-    methodUsed?: string;
-    leveneP?: number;
-    normalityResidP?: number;
-    postHoc?: { comparison: string; diff: number; pAdj: number }[];
+export function interpretTTestPaired(params: {
+    targetVar:      string;
+    meanBefore:     number;
+    sdBefore:       number;
+    meanAfter:      number;
+    sdAfter:        number;
+    meanDiff:       number;
+    t:              number;
+    df:             number;
+    pValue:         number;
+    cohensD?:       number;
+    normalityDiffP?: number;
 }): InterpretationResult {
-    const { factorVar, targetVar, F, dfBetween, dfWithin, pValue, etaSquared, methodUsed, leveneP, normalityResidP, postHoc } = params;
+    const {
+        targetVar, meanBefore, sdBefore, meanAfter, sdAfter,
+        meanDiff, t, df, pValue, cohensD, normalityDiffP
+    } = params;
 
-    const pStr = formatPValue(pValue);
-    const testName = methodUsed === 'Welch ANOVA' ? 'Welch ANOVA' : 'One-way ANOVA';
+    const details:   string[] = [];
+    const warnings:  string[] = [];
+    const citations: string[] = [
+        'Cohen, J. (1988). Statistical power analysis for the behavioral sciences (2nd ed.). Lawrence Erlbaum Associates.',
+    ];
 
     let summary = '';
-    const details: string[] = [];
-    const warnings: string[] = [];
-    const citations = ['Richardson, J. T. E. (2011). Eta squared and partial eta squared as measures of effect size.'];
 
     if (pValue > 0.05) {
-        summary = `Kết quả phân tích phương sai một yếu tố (${testName}) cho thấy sự khác biệt về giá trị trung bình của "${targetVar}" giữa các nhóm "${factorVar}" là không có ý nghĩa thống kê (F(${formatNum(dfBetween, 0)}, ${formatNum(dfWithin, 0)}) = ${formatNum(F)}, ${pStr}).`;
+        summary = `A paired-samples t-test was conducted to evaluate the change in "${targetVar}" across two measurement occasions. The pre-measurement (M = ${formatNum(meanBefore)}, SD = ${formatNum(sdBefore)}) and post-measurement (M = ${formatNum(meanAfter)}, SD = ${formatNum(sdAfter)}) did not differ significantly, t(${formatNum(df, 0)}) = ${formatNum(t)}, ${formatPValue(pValue)}.`;
     } else {
-        summary = `Kết quả kiểm định ${testName} xác nhận có sự khác biệt có ý nghĩa thống kê về giá trị trung bình của "${targetVar}" giữa các phân lớp thuộc biến "${factorVar}" (F(${formatNum(dfBetween, 0)}, ${formatNum(dfWithin, 0)}) = ${formatNum(F)}, ${pStr}).`;
+        const direction = meanDiff > 0 ? 'decreased' : 'increased';
+        const from = formatNum(meanBefore);
+        const to   = formatNum(meanAfter);
+        summary = `A paired-samples t-test indicated a statistically significant change in "${targetVar}" between the two measurement occasions, t(${formatNum(df, 0)}) = ${formatNum(t)}, ${formatPValue(pValue)}. Scores ${direction} from pre-test (M = ${from}, SD = ${formatNum(sdBefore)}) to post-test (M = ${to}, SD = ${formatNum(sdAfter)}), with a mean difference of ${formatNum(Math.abs(meanDiff))}.`;
+    }
 
-        // Post-hoc
-        if (postHoc && postHoc.length > 0) {
+    if (cohensD != null) {
+        const d = Math.abs(cohensD);
+        const label = d < 0.20 ? 'negligible' : d < 0.50 ? 'small' : d < 0.80 ? 'medium' : 'large';
+        details.push(`Cohen's d = ${formatNum(cohensD)} (${label} effect).`);
+    }
+
+    if (normalityDiffP != null && normalityDiffP > 0 && normalityDiffP < 0.05) {
+        warnings.push(`The distribution of difference scores violated normality (Shapiro-Wilk, ${formatPValue(normalityDiffP)}). The Wilcoxon Signed-Rank Test is recommended as a non-parametric alternative.`);
+    }
+
+    return { summary, details, warnings, citations };
+}
+
+
+// ─── ONE-WAY ANOVA ────────────────────────────────────────────────────────────
+
+export function interpretANOVA(params: {
+    factorVar:        string;
+    targetVar:        string;
+    F:                number;
+    dfBetween:        number;
+    dfWithin:         number;
+    pValue:           number;
+    etaSquared?:      number;
+    methodUsed?:      string;
+    leveneP?:         number;
+    normalityResidP?: number;
+    postHoc?:         { comparison: string; diff: number; pAdj: number }[];
+}): InterpretationResult {
+    const {
+        factorVar, targetVar, F, dfBetween, dfWithin, pValue,
+        etaSquared, methodUsed, leveneP, normalityResidP, postHoc
+    } = params;
+
+    const isWelch   = methodUsed === 'Welch ANOVA';
+    const testLabel = isWelch ? 'a Welch one-way ANOVA' : 'a one-way ANOVA';
+
+    const details:   string[] = [];
+    const warnings:  string[] = [];
+    const citations: string[] = [
+        'Richardson, J. T. E. (2011). Eta squared and partial eta squared as measures of effect size in educational research. Educational Research Review, 6(2), 135–147.',
+        'Cohen, J. (1988). Statistical power analysis for the behavioral sciences (2nd ed.). Lawrence Erlbaum Associates.',
+    ];
+
+    let summary = '';
+
+    if (pValue > 0.05) {
+        summary = `${isWelch ? 'A Welch one-way ANOVA' : 'A one-way ANOVA'} was conducted to examine differences in "${targetVar}" across levels of "${factorVar}." The omnibus test was not statistically significant, F(${formatNum(dfBetween, 0)}, ${formatNum(dfWithin, 0)}) = ${formatNum(F)}, ${formatPValue(pValue)}, indicating that group means did not differ significantly.`;
+    } else {
+        summary = `${isWelch ? 'A Welch one-way ANOVA' : 'A one-way ANOVA'} revealed a statistically significant effect of "${factorVar}" on "${targetVar}", F(${formatNum(dfBetween, 0)}, ${formatNum(dfWithin, 0)}) = ${formatNum(F)}, ${formatPValue(pValue)}.`;
+
+        if (postHoc) {
             const sigPairs = postHoc.filter(p => p.pAdj < 0.05);
             if (sigPairs.length > 0) {
-                const pairStr = sigPairs.map(p => p.comparison).join(', ');
-                details.push(`Phân tích so sánh cặp (Post-hoc) chỉ ra các cặp nhóm có sự khác biệt thực sự là: ${pairStr}.`);
+                details.push(`Post-hoc pairwise comparisons identified the following significantly different group pairs: ${sigPairs.map(p => p.comparison).join('; ')}.`);
             }
         }
     }
 
-    // Effect size
-    if (etaSquared !== undefined) {
-        let effectLabel = '';
-        if (etaSquared < 0.01) effectLabel = 'rất nhỏ';
-        else if (etaSquared < 0.06) effectLabel = 'nhỏ';
-        else if (etaSquared < 0.14) effectLabel = 'trung bình';
-        else effectLabel = 'lớn';
-
-        details.push(`Độ lớn ảnh hưởng η² = ${formatCoef(etaSquared)} (${effectLabel}), cho thấy ${formatNum(etaSquared * 100, 1)}% phương sai được giải thích bởi biến phân nhóm.`);
+    if (etaSquared != null) {
+        const label = etaSquared < 0.01 ? 'negligible' : etaSquared < 0.06 ? 'small' : etaSquared < 0.14 ? 'medium' : 'large';
+        details.push(`Effect size: η² = ${formatCoef(etaSquared)}, indicating that ${formatPct(etaSquared)} of the variance in "${targetVar}" is attributable to group membership (${label} effect; Cohen, 1988).`);
     }
 
-    // Warnings
-    if (leveneP !== undefined && leveneP < 0.05) {
-        warnings.push(`Phương sai không đồng nhất (Levene's: p = ${formatPValue(leveneP)}). Đã sử dụng Welch ANOVA.`);
+    if (leveneP != null && leveneP < 0.05) {
+        warnings.push(`Levene's Test for Equality of Variances was significant (${formatPValue(leveneP)}). Welch's ANOVA was applied to correct for heteroscedasticity.`);
     }
-
-    if (normalityResidP !== undefined && normalityResidP > 0 && normalityResidP < 0.05) {
-        warnings.push(`Phần dư vi phạm giả định phân phối chuẩn (Shapiro-Wilk: p = ${formatPValue(normalityResidP)}).`);
+    if (normalityResidP != null && normalityResidP > 0 && normalityResidP < 0.05) {
+        warnings.push(`Residuals violated the normality assumption (Shapiro-Wilk, ${formatPValue(normalityResidP)}). The Kruskal-Wallis H test is recommended as a robust non-parametric alternative.`);
     }
 
     return { summary, details, warnings, citations };
 }
 
 
-// ===== PAIRED T-TEST =====
+// ─── TWO-WAY ANOVA ────────────────────────────────────────────────────────────
 
-export function interpretTTestPaired(params: {
-    targetVar: string;
-    meanBefore: number;
-    sdBefore: number;
-    meanAfter: number;
-    sdAfter: number;
-    meanDiff: number;
-    t: number;
-    df: number;
-    pValue: number;
-    cohensD?: number;
-    normalityDiffP?: number;
+export function interpretTwoWayANOVA(params: {
+    factor1:       string;
+    factor2:       string;
+    targetVar:     string;
+    mainEffect1F:  number;
+    mainEffect1P:  number;
+    mainEffect2F:  number;
+    mainEffect2P:  number;
+    interactionF:  number;
+    interactionP:  number;
+    df1:           number;
+    df2:           number;
+    dfError:       number;
 }): InterpretationResult {
-    const { targetVar, meanBefore, sdBefore, meanAfter, sdAfter, meanDiff, t, df, pValue, cohensD, normalityDiffP } = params;
+    const {
+        factor1, factor2, targetVar,
+        mainEffect1F, mainEffect1P,
+        mainEffect2F, mainEffect2P,
+        interactionF, interactionP,
+        df1, df2, dfError
+    } = params;
 
-    const pStr = formatPValue(pValue);
+    const details:   string[] = [];
+    const warnings:  string[] = [];
+    const citations: string[] = [
+        'Field, A. (2013). Discovering statistics using IBM SPSS statistics (4th ed.). SAGE Publications.',
+    ];
+
+    const hasInteraction = interactionP < 0.05;
+    const hasMain1       = mainEffect1P < 0.05;
+    const hasMain2       = mainEffect2P < 0.05;
+
     let summary = '';
-    const details: string[] = [];
-    const warnings: string[] = [];
-    const citations = ['Cohen, J. (1988). Statistical power analysis for behavioral sciences.'];
 
-    if (pValue > 0.05) {
-        summary = `Kiểm định Paired t-test cho thấy không có sự khác biệt có ý nghĩa thống kê về "${targetVar}" giữa hai thời điểm đo (t(${formatNum(df, 0)}) = ${formatNum(t)}, ${pStr}). Giá trị trung bình trước (M = ${formatNum(meanBefore)}, SD = ${formatNum(sdBefore)}) và sau (M = ${formatNum(meanAfter)}, SD = ${formatNum(sdAfter)}) không khác biệt đáng kể.`;
+    if (hasInteraction) {
+        summary = `A two-way ANOVA revealed a statistically significant interaction effect between "${factor1}" and "${factor2}" on "${targetVar}", F(${formatNum(df1, 0)}, ${formatNum(dfError, 0)}) = ${formatNum(interactionF)}, ${formatPValue(interactionP)}. This indicates that the effect of "${factor1}" on "${targetVar}" depends on the level of "${factor2}" (and vice versa). Simple effects analysis is recommended to interpret this interaction.`;
+        warnings.push('When a significant interaction is present, main effects should not be interpreted in isolation. Conduct simple effects (simple main effects) analysis to fully decompose the interaction.');
     } else {
-        const direction = meanDiff > 0 ? 'giảm' : 'tăng';
-        const fromTo = meanDiff > 0 ? `từ ${formatNum(meanBefore)} xuống ${formatNum(meanAfter)}` : `từ ${formatNum(meanBefore)} lên ${formatNum(meanAfter)}`;
+        const mainEffects: string[] = [];
+        if (hasMain1) mainEffects.push(`"${factor1}" (F(${formatNum(df1, 0)}, ${formatNum(dfError, 0)}) = ${formatNum(mainEffect1F)}, ${formatPValue(mainEffect1P)})`);
+        if (hasMain2) mainEffects.push(`"${factor2}" (F(${formatNum(df2, 0)}, ${formatNum(dfError, 0)}) = ${formatNum(mainEffect2F)}, ${formatPValue(mainEffect2P)})`);
 
-        summary = `Có sự thay đổi có ý nghĩa thống kê về "${targetVar}" giữa hai thời điểm đo (t(${formatNum(df, 0)}) = ${formatNum(t)}, ${pStr}). Giá trị trung bình ${direction} ${fromTo}, với độ chênh lệch trung bình là ${formatNum(Math.abs(meanDiff))}.`;
+        if (mainEffects.length > 0) {
+            summary = `A two-way ANOVA indicated no significant interaction between "${factor1}" and "${factor2}" on "${targetVar}" (F(${formatNum(df1, 0)}, ${formatNum(dfError, 0)}) = ${formatNum(interactionF)}, ${formatPValue(interactionP)}). However, statistically significant main effect${mainEffects.length > 1 ? 's' : ''} were observed for ${mainEffects.join(' and ')}.`;
+        } else {
+            summary = `A two-way ANOVA indicated neither a significant interaction effect (F(${formatNum(df1, 0)}, ${formatNum(dfError, 0)}) = ${formatNum(interactionF)}, ${formatPValue(interactionP)}) nor significant main effects for "${factor1}" or "${factor2}" on "${targetVar}."`;
+        }
     }
 
-    // Effect size
-    if (cohensD !== undefined) {
-        const d = Math.abs(cohensD);
-        let effectLabel = '';
-        if (d < 0.2) effectLabel = 'rất nhỏ';
-        else if (d < 0.5) effectLabel = 'nhỏ';
-        else if (d < 0.8) effectLabel = 'trung bình';
-        else effectLabel = 'lớn';
-
-        details.push(`Độ lớn ảnh hưởng Cohen's d = ${formatNum(cohensD)} (${effectLabel}).`);
-    }
-
-    // Normality check
-    if (normalityDiffP !== undefined && normalityDiffP > 0 && normalityDiffP < 0.05) {
-        warnings.push(`Hiệu số vi phạm giả định phân phối chuẩn (Shapiro-Wilk: p = ${formatPValue(normalityDiffP)}). Nên xem xét sử dụng Wilcoxon Signed Rank Test.`);
-    }
+    details.push(`Main effect of "${factor1}": F(${formatNum(df1, 0)}, ${formatNum(dfError, 0)}) = ${formatNum(mainEffect1F)}, ${formatPValue(mainEffect1P)}.`);
+    details.push(`Main effect of "${factor2}": F(${formatNum(df2, 0)}, ${formatNum(dfError, 0)}) = ${formatNum(mainEffect2F)}, ${formatPValue(mainEffect2P)}.`);
+    details.push(`Interaction effect (${factor1} × ${factor2}): F(${formatNum(df1, 0)}, ${formatNum(dfError, 0)}) = ${formatNum(interactionF)}, ${formatPValue(interactionP)}.`);
 
     return { summary, details, warnings, citations };
 }
 
 
-// ===== MANN-WHITNEY U TEST =====
+// ─── MANN-WHITNEY U TEST ─────────────────────────────────────────────────────
 
 export function interpretMannWhitney(params: {
-    group1Name: string;
-    group2Name: string;
-    targetVar: string;
-    statistic: number;
-    pValue: number;
-    median1: number;
-    median2: number;
-    effectSize?: number;
-    distShapeRun?: string;
+    group1Name:     string;
+    group2Name:     string;
+    targetVar:      string;
+    statistic:      number;
+    pValue:         number;
+    median1:        number;
+    median2:        number;
+    effectSize?:    number;
+    distShapeRun?:  string;
 }): InterpretationResult {
     const { group1Name, group2Name, targetVar, statistic, pValue, median1, median2, effectSize, distShapeRun } = params;
 
-    const pStr = formatPValue(pValue);
+    const details:   string[] = [];
+    const warnings:  string[] = [];
+    const citations: string[] = [
+        'Mann, H. B., & Whitney, D. R. (1947). On a test of whether one of two random variables is stochastically larger than the other. Annals of Mathematical Statistics, 18(1), 50–60.',
+    ];
+
     let summary = '';
-    const details: string[] = [];
-    const warnings: string[] = [];
-    const citations = ['Mann, H. B., & Whitney, D. R. (1947). On a test of whether one of two random variables is stochastically larger than the other.'];
 
     if (pValue > 0.05) {
-        summary = `Kiểm định Mann-Whitney U cho thấy không có sự khác biệt có ý nghĩa thống kê về "${targetVar}" giữa nhóm ${group1Name} (Median = ${formatNum(median1)}) và nhóm ${group2Name} (Median = ${formatNum(median2)}) với U = ${formatNum(statistic)}, ${pStr}.`;
+        summary = `A Mann-Whitney U test was conducted to compare "${targetVar}" between the ${group1Name} group (Mdn = ${formatNum(median1)}) and the ${group2Name} group (Mdn = ${formatNum(median2)}). The test indicated no statistically significant difference between the groups, U = ${formatNum(statistic)}, ${formatPValue(pValue)}.`;
     } else {
         const higherGroup = median1 > median2 ? group1Name : group2Name;
-        const lowerGroup = median1 > median2 ? group2Name : group1Name;
-        const medHigh = Math.max(median1, median2);
-        const medLow = Math.min(median1, median2);
-
-        summary = `Có sự khác biệt có ý nghĩa thống kê về "${targetVar}" giữa hai nhóm (U = ${formatNum(statistic)}, ${pStr}). Giá trị trung vị của nhóm ${higherGroup} (Median = ${formatNum(medHigh)}) cao hơn đáng kể so với nhóm ${lowerGroup} (Median = ${formatNum(medLow)}).`;
+        const lowerGroup  = median1 > median2 ? group2Name : group1Name;
+        summary = `A Mann-Whitney U test indicated that "${targetVar}" differed significantly between groups, U = ${formatNum(statistic)}, ${formatPValue(pValue)}. The ${higherGroup} group (Mdn = ${formatNum(Math.max(median1, median2))}) scored significantly higher than the ${lowerGroup} group (Mdn = ${formatNum(Math.min(median1, median2))}).`;
     }
 
-    // Effect size
-    if (effectSize !== undefined) {
-        let effectLabel = '';
+    if (effectSize != null) {
         const r = Math.abs(effectSize);
-        if (r < 0.1) effectLabel = 'rất nhỏ';
-        else if (r < 0.3) effectLabel = 'nhỏ';
-        else if (r < 0.5) effectLabel = 'trung bình';
-        else effectLabel = 'lớn';
-
-        details.push(`Độ lớn ảnh hưởng r = ${formatCoef(effectSize)} (${effectLabel}).`);
+        const label = r < 0.10 ? 'negligible' : r < 0.30 ? 'small' : r < 0.50 ? 'medium' : 'large';
+        details.push(`Effect size: r = ${formatCoef(effectSize)} (${label}; benchmarks: small = .10, medium = .30, large = .50).`);
     }
 
-    // Distribution shape note
     if (distShapeRun) {
         details.push(distShapeRun);
     }
 
+    warnings.push('The Mann-Whitney U test compares rank distributions, not necessarily medians, unless distributional shapes are identical. Report medians for descriptive purposes alongside the U statistic.');
+
     return { summary, details, warnings, citations };
 }
 
 
-// ===== KRUSKAL-WALLIS TEST =====
+// ─── KRUSKAL-WALLIS H TEST ────────────────────────────────────────────────────
 
 export function interpretKruskalWallis(params: {
-    factorVar: string;
-    targetVar: string;
-    statistic: number;
-    df: number;
-    pValue: number;
-    medians: number[];
+    factorVar:  string;
+    targetVar:  string;
+    statistic:  number;
+    df:         number;
+    pValue:     number;
+    medians:    number[];
+    groupNames?: string[];
 }): InterpretationResult {
-    const { factorVar, targetVar, statistic, df, pValue, medians } = params;
+    const { factorVar, targetVar, statistic, df, pValue, medians, groupNames } = params;
 
-    const pStr = formatPValue(pValue);
+    const details:   string[] = [];
+    const warnings:  string[] = [];
+    const citations: string[] = [
+        'Kruskal, W. H., & Wallis, W. A. (1952). Use of ranks in one-criterion variance analysis. Journal of the American Statistical Association, 47(260), 583–621.',
+    ];
+
     let summary = '';
-    const details: string[] = [];
-    const warnings: string[] = [];
-    const citations = ['Kruskal, W. H., & Wallis, W. A. (1952). Use of ranks in one-criterion variance analysis.'];
 
     if (pValue > 0.05) {
-        summary = `Kiểm định Kruskal-Wallis cho thấy không có sự khác biệt có ý nghĩa thống kê về "${targetVar}" giữa các nhóm "${factorVar}" khác nhau (H(${df}) = ${formatNum(statistic)}, ${pStr}).`;
+        summary = `A Kruskal-Wallis H test was conducted to examine differences in "${targetVar}" across groups of "${factorVar}." The test did not reach statistical significance, H(${df}) = ${formatNum(statistic)}, ${formatPValue(pValue)}, indicating no significant difference in the rank distributions across groups.`;
     } else {
-        summary = `Kết quả kiểm định Kruskal-Wallis cho thấy có sự khác biệt có ý nghĩa thống kê về "${targetVar}" giữa các nhóm "${factorVar}" (H(${df}) = ${formatNum(statistic)}, ${pStr}).`;
+        summary = `A Kruskal-Wallis H test revealed a statistically significant difference in "${targetVar}" across groups of "${factorVar}", H(${df}) = ${formatNum(statistic)}, ${formatPValue(pValue)}. Post-hoc pairwise comparisons (e.g., Dunn's test with Bonferroni correction) are recommended to identify which groups differ.`;
 
-        if (medians && medians.length > 0) {
-            const medianStr = medians.map((m, i) => `Nhóm ${i + 1}: ${formatNum(m)}`).join(', ');
-            details.push(`Giá trị trung vị theo nhóm: ${medianStr}.`);
-        }
-
-        details.push('Nên tiến hành kiểm định hậu kiểm (post-hoc) để xác định cặp nhóm nào khác biệt.');
+        const medStr = medians
+            .map((m, i) => `${groupNames?.[i] ?? `Group ${i + 1}`}: Mdn = ${formatNum(m)}`)
+            .join(', ');
+        details.push(`Group medians — ${medStr}.`);
+        details.push('Follow-up: Dunn\'s test with Bonferroni or Holm correction is recommended for post-hoc pairwise comparisons.');
     }
 
     return { summary, details, warnings, citations };
 }
 
 
-// ===== WILCOXON SIGNED RANK TEST =====
+// ─── WILCOXON SIGNED-RANK TEST ────────────────────────────────────────────────
 
 export function interpretWilcoxonSigned(params: {
-    targetVar: string;
-    statistic: number;
-    pValue: number;
+    targetVar:  string;
+    statistic:  number;
+    pValue:     number;
     medianDiff: number;
+    effectSize?: number;
 }): InterpretationResult {
-    const { targetVar, statistic, pValue, medianDiff } = params;
+    const { targetVar, statistic, pValue, medianDiff, effectSize } = params;
 
-    const pStr = formatPValue(pValue);
+    const details:   string[] = [];
+    const warnings:  string[] = [];
+    const citations: string[] = [
+        'Wilcoxon, F. (1945). Individual comparisons by ranking methods. Biometrics Bulletin, 1(6), 80–83.',
+    ];
+
     let summary = '';
-    const details: string[] = [];
-    const warnings: string[] = [];
-    const citations = ['Wilcoxon, F. (1945). Individual comparisons by ranking methods. Biometrics Bulletin.'];
 
     if (pValue > 0.05) {
-        summary = `Kiểm định Wilcoxon Signed Rank cho thấy không có sự thay đổi có ý nghĩa thống kê về "${targetVar}" giữa hai thời điểm đo (W = ${formatNum(statistic)}, ${pStr}).`;
+        summary = `A Wilcoxon Signed-Rank Test was conducted to assess change in "${targetVar}" between two related measurement occasions. The test indicated no statistically significant difference, W = ${formatNum(statistic)}, ${formatPValue(pValue)}.`;
     } else {
-        const direction = medianDiff > 0 ? 'giảm' : 'tăng';
-        summary = `Có sự thay đổi có ý nghĩa thống kê về "${targetVar}" giữa hai thời điểm đo (W = ${formatNum(statistic)}, ${pStr}). Giá trị trung vị có xu hướng ${direction} với độ chênh lệch trung vị là ${formatNum(Math.abs(medianDiff))}.`;
+        const direction = medianDiff > 0 ? 'decreased' : 'increased';
+        summary = `A Wilcoxon Signed-Rank Test indicated a statistically significant change in "${targetVar}" between the two measurement occasions, W = ${formatNum(statistic)}, ${formatPValue(pValue)}. Scores ${direction} significantly, with a median difference of ${formatNum(Math.abs(medianDiff))}.`;
     }
 
-    details.push('Kiểm định này phù hợp khi dữ liệu vi phạm giả định phân phối chuẩn của Paired t-test.');
+    if (effectSize != null) {
+        const r = Math.abs(effectSize);
+        const label = r < 0.10 ? 'negligible' : r < 0.30 ? 'small' : r < 0.50 ? 'medium' : 'large';
+        details.push(`Effect size: r = ${formatCoef(effectSize)} (${label}).`);
+    }
+
+    details.push('This test is the non-parametric equivalent of the paired-samples t-test and is appropriate when the distribution of difference scores is non-normal.');
 
     return { summary, details, warnings, citations };
 }
 
 
-// ===== TWO-WAY ANOVA =====
-
-export function interpretTwoWayANOVA(params: {
-    factor1: string;
-    factor2: string;
-    targetVar: string;
-    mainEffect1F: number;
-    mainEffect1P: number;
-    mainEffect2F: number;
-    mainEffect2P: number;
-    interactionF: number;
-    interactionP: number;
-    df1: number;
-    df2: number;
-    dfError: number;
-}): InterpretationResult {
-    const { factor1, factor2, targetVar, mainEffect1F, mainEffect1P, mainEffect2F, mainEffect2P, interactionF, interactionP, df1, df2, dfError } = params;
-
-    let summary = '';
-    const details: string[] = [];
-    const warnings: string[] = [];
-    const citations = ['Field, A. (2013). Discovering statistics using IBM SPSS statistics (4th ed.).'];
-
-    // Interaction effect (most important)
-    const hasInteraction = interactionP < 0.05;
-    const hasMain1 = mainEffect1P < 0.05;
-    const hasMain2 = mainEffect2P < 0.05;
-
-    if (hasInteraction) {
-        summary = `Kết quả phân tích phương sai hai yếu tố (Two-Way ANOVA) cho thấy có HIỆU ỨNG TƯƠNG TÁC có ý nghĩa thống kê giữa "${factor1}" và "${factor2}" lên "${targetVar}" (F(${df1}, ${dfError}) = ${formatNum(interactionF)}, ${formatPValue(interactionP)}). Điều này có nghĩa là tác động của một yếu tố phụ thuộc vào mức độ của yếu tố kia.`;
-
-        details.push('Khi có hiệu ứng tương tác, cần tập trung phân tích Simple Effects thay vì Main Effects.');
-    } else {
-        summary = `Kết quả phân tích Two-Way ANOVA cho thấy KHÔNG có hiệu ứng tương tác giữa "${factor1}" và "${factor2}" (${formatPValue(interactionP)}). `;
-
-        // Main effects
-        const mainEffects = [];
-        if (hasMain1) mainEffects.push(`"${factor1}" (F(${df1}, ${dfError}) = ${formatNum(mainEffect1F)}, ${formatPValue(mainEffect1P)})`);
-        if (hasMain2) mainEffects.push(`"${factor2}" (F(${df2}, ${dfError}) = ${formatNum(mainEffect2F)}, ${formatPValue(mainEffect2P)})`);
-
-        if (mainEffects.length > 0) {
-            summary += `Tuy nhiên, có hiệu ứng chính (main effect) có ý nghĩa từ: ${mainEffects.join(' và ')}.`;
-        } else {
-            summary += `Cả hai yếu tố đều không có hiệu ứng chính có ý nghĩa thống kê.`;
-        }
-    }
-
-    // Details for all effects
-    details.push(`Main Effect "${factor1}": F(${df1}, ${dfError}) = ${formatNum(mainEffect1F)}, ${formatPValue(mainEffect1P)}`);
-    details.push(`Main Effect "${factor2}": F(${df2}, ${dfError}) = ${formatNum(mainEffect2F)}, ${formatPValue(mainEffect2P)}`);
-    details.push(`Interaction Effect: F(${df1}, ${dfError}) = ${formatNum(interactionF)}, ${formatPValue(interactionP)}`);
-
-    return { summary, details, warnings, citations };
-}
-
-
-// ===== CHI-SQUARE =====
+// ─── CHI-SQUARE TEST OF INDEPENDENCE ─────────────────────────────────────────
 
 export function interpretChiSquare(params: {
-    var1: string;
-    var2: string;
-    statistic: number;
-    df: number;
-    pValue: number;
-    cramersV: number;
+    var1:          string;
+    var2:          string;
+    statistic:     number;
+    df:            number;
+    pValue:        number;
+    cramersV:      number;
     fisherPValue?: number | null;
-    warning?: string;
+    warning?:      string;
+    n?:            number;
 }): InterpretationResult {
-    const { var1, var2, statistic, df, pValue, cramersV, fisherPValue, warning } = params;
+    const { var1, var2, statistic, df, pValue, cramersV, fisherPValue, warning, n } = params;
 
-    const details: string[] = [];
-    const warnings: string[] = [];
-    const citations = ['Cramér, H. (1946). Mathematical methods of statistics. Princeton University Press.'];
+    const details:   string[] = [];
+    const warnings:  string[] = [];
+    const citations: string[] = [
+        'Cramér, H. (1946). Mathematical methods of statistics. Princeton University Press.',
+        'Cohen, J. (1988). Statistical power analysis for the behavioral sciences (2nd ed.). Lawrence Erlbaum Associates.',
+    ];
 
+    const nStr = n != null ? `, N = ${n}` : '';
     let summary = '';
 
     if (pValue > 0.05) {
-        summary = `Kiểm định Chi-Square cho thấy không có mối quan hệ có ý nghĩa thống kê giữa "${var1}" và "${var2}" (χ²(${df}) = ${formatNum(statistic)}, ${formatPValue(pValue)}).`;
+        summary = `A chi-square test of independence was performed to examine the relationship between "${var1}" and "${var2}." The association was not statistically significant, χ²(${df}${nStr}) = ${formatNum(statistic)}, ${formatPValue(pValue)}. This suggests that the two variables are independent.`;
     } else {
-        let strengthLabel = '';
-        if (cramersV < 0.1) strengthLabel = 'rất yếu';
-        else if (cramersV < 0.3) strengthLabel = 'yếu';
-        else if (cramersV < 0.5) strengthLabel = 'trung bình';
-        else strengthLabel = 'mạnh';
-
-        summary = `Kết quả kiểm định Chi-Square cho thấy có mối quan hệ có ý nghĩa thống kê giữa "${var1}" và "${var2}" (χ²(${df}) = ${formatNum(statistic)}, ${formatPValue(pValue)}). Độ mạnh của mối quan hệ ở mức ${strengthLabel} (Cramér's V = ${formatCoef(cramersV)}).`;
+        const label = cramersV < 0.10 ? 'negligible' : cramersV < 0.30 ? 'weak' : cramersV < 0.50 ? 'moderate' : 'strong';
+        summary = `A chi-square test of independence indicated a statistically significant association between "${var1}" and "${var2}", χ²(${df}${nStr}) = ${formatNum(statistic)}, ${formatPValue(pValue)}. The strength of association was ${label} (Cramér's V = ${formatCoef(cramersV)}).`;
+        details.push(`Effect size benchmarks for Cramér's V: negligible < .10, weak = .10–.29, moderate = .30–.49, strong ≥ .50 (Cohen, 1988).`);
     }
 
-    // Fisher's Exact
-    if (fisherPValue !== null && fisherPValue !== undefined) {
-        details.push(`Fisher's Exact test (cho bảng 2×2): ${formatPValue(fisherPValue)}`);
+    if (fisherPValue != null) {
+        details.push(`Fisher's Exact Test (applied for 2×2 tables or sparse cells): ${formatPValue(fisherPValue)}.`);
     }
 
-    // Warning
     if (warning) {
         warnings.push(warning);
     }
 
     return { summary, details, warnings, citations };
 }
-
-export function interpretDescriptive(params: {
-    columnNames: string[];
-    means: number[];
-    sds: number[];
-    skews: number[];
-    kurtoses: number[];
-    N: number[];
-}): InterpretationResult {
-    const { columnNames, means, sds, skews, kurtoses, N } = params;
-
-    const details: string[] = [];
-    const warnings: string[] = [];
-    const citations = [
-        'Hair, J. F., et al. (2010). Multivariate data analysis (7th ed.). Pearson.',
-        'Kim, H. Y. (2013). Statistical notes for clinical researchers: assessing normal distribution.'
-    ];
-
-    // Check normality per variable
-    let allNormal = true;
-    const nonNormalVars: string[] = [];
-    
-    columnNames.forEach((name, i) => {
-        const mean = means[i];
-        const sd = sds[i];
-        const skew = skews[i];
-        const kurt = kurtoses[i];
-        
-        // Strict thresholds: Skewness & Kurtosis within [-2, 2] (George & Mallery, 2010)
-        const isSkewNormal = Math.abs(skew) <= 2;
-        const isKurtNormal = Math.abs(kurt) <= 2;
-
-        let varNote = `Biến "${name}": M = ${formatNum(mean)}, SD = ${formatNum(sd)}. `;
-        
-        if (isSkewNormal && isKurtNormal) {
-            varNote += `Chỉ số Skewness (${formatNum(skew)}) và Kurtosis (${formatNum(kurt)}) nằm trong ngưỡng lý tưởng ([-2, 2]).`;
-        } else {
-            allNormal = false;
-            nonNormalVars.push(name);
-            let violation = [];
-            if (!isSkewNormal) violation.push(`Skewness = ${formatNum(skew)}`);
-            if (!isKurtNormal) violation.push(`Kurtosis = ${formatNum(kurt)}`);
-            varNote += `Phát hiện dấu hiệu lệch chuẩn (${violation.join(', ')}).`;
-            warnings.push(`Biến "${name}" không đạt tiêu chuẩn phân phối chuẩn (ngưỡng +/- 2).`);
-        }
-        
-        details.push(varNote);
-    });
-
-    // Dynamic summary based on results
-    let summary = '';
-    if (allNormal) {
-        summary = `Phân tích thống kê mô tả cho ${columnNames.length} biến (N = ${N[0]}) cho thấy dữ liệu có phân phối chuẩn tốt, đảm bảo tính đại diện cho các phân tích tham số (Parametric) tiếp theo.`;
-        details.push('Dựa trên các chỉ số mô tả, toàn bộ các biến đều có xu hướng phân phối chuẩn hoặc tiệm cận chuẩn, đáp ứng tốt các giả định nghiên cứu.');
-    } else {
-        summary = `Phát hiện ${nonNormalVars.length}/${columnNames.length} biến quan sát vi phạm giả định phân phối chuẩn (Skewness hoặc Kurtosis nằm ngoài khoảng [-2, 2]). Cần thận trọng khi thực hiện các phép kiểm định tham số.`;
-        details.push(`Các biến [${nonNormalVars.slice(0, 3).join(', ')}${nonNormalVars.length > 3 ? '...' : ''}] có độ lệch hoặc độ nhọn vượt ngưỡng cho phép. Tùy thuộc vào tổng cỡ mẫu, Researcher có thể cân nhắc chuyển sang các phép kiểm định phi tham số (Non-parametric tests).`);
-    }
-
-    return { summary, details, warnings, citations };
-}
-
-

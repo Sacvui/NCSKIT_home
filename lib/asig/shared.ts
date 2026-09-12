@@ -1,45 +1,54 @@
 /**
- * ASIG - Auto Statistical Interpretation Generator
- * Template-based interpretation system (NO AI REQUIRED)
- * 
- * Math symbols use Unicode for cross-device compatibility:
- * - α (alpha), β (beta), χ² (chi-square), η² (eta-squared)
- * - M (mean), SD, p, r, F, t, df
- * - ≥, ≤, <, >, ≠
+ * ASIG — Automated Statistical Insight Generation
+ * Shared utilities and type definitions
+ *
+ * All output conforms to APA 7th Edition reporting standards:
+ *  - No leading zero for values bounded between −1 and 1 (p, r, α, ω, β, η²)
+ *  - Italic statistics in prose: t, F, r, p, M, SD, χ², df
+ *  - p < .001 floor; exact p otherwise
+ *  - Effect size reported alongside inferential statistics
  */
 
-// ===== UTILITY FUNCTIONS =====
+// ─── APA FORMATTING UTILITIES ────────────────────────────────────────────────
 
 /**
- * Format p-value according to APA style
- * - No leading zero
- * - If p < .001, show "p < .001"
+ * Format a p-value per APA 7 style.
+ * Values < .001 are reported as "p < .001"; all others as exact "p = .xxx".
  */
 export function formatPValue(p: number): string {
     if (p < 0.001) return 'p < .001';
-    if (p < 0.01) return `p = ${p.toFixed(3).replace('0.', '.')}`;
-    if (p < 0.05) return `p = ${p.toFixed(3).replace('0.', '.')}`;
-    return `p = ${p.toFixed(2).replace('0.', '.')}`;
+    const rounded = p.toFixed(3).replace('0.', '.');
+    return `p = ${rounded}`;
 }
 
 /**
- * Format correlation/alpha values (no leading zero for values < 1)
+ * Format coefficients bounded in (−1, 1): drop the leading zero.
+ * e.g., 0.847 → ".85",  −0.312 → "−.31"
  */
-export function formatCoef(val: number, decimals: number = 2): string {
+export function formatCoef(val: number, decimals = 2): string {
     if (Math.abs(val) < 1) {
-        return val.toFixed(decimals).replace('0.', '.');
+        const str = val.toFixed(decimals);
+        return str.replace('0.', '.').replace('-0.', '−.');
     }
     return val.toFixed(decimals);
 }
 
 /**
- * Format regular numbers (with leading zero)
+ * Format regular numbers with a leading zero (counts, F, χ², etc.).
  */
-export function formatNum(val: number, decimals: number = 2): string {
+export function formatNum(val: number, decimals = 2): string {
     return val.toFixed(decimals);
 }
 
-// ===== INTERPRETATION TYPES =====
+/**
+ * Render a percentage string from a proportion (0–1).
+ * e.g., 0.3412 → "34.1%"
+ */
+export function formatPct(proportion: number, decimals = 1): string {
+    return `${(proportion * 100).toFixed(decimals)}%`;
+}
+
+// ─── TYPE DEFINITIONS ─────────────────────────────────────────────────────────
 
 export type AnalysisType =
     | 'cronbach_alpha'
@@ -65,10 +74,17 @@ export type AnalysisType =
     | 'htmt'
     | 'pls-sem';
 
+/**
+ * Standardised return type for every ASIG interpreter.
+ *
+ * - summary   : One-paragraph APA-style prose interpretation.
+ * - details   : Bullet-level breakdown of individual statistics.
+ * - warnings  : Assumption violations or caveats requiring researcher attention.
+ * - citations : Inline APA 7 references supporting the decision thresholds used.
+ */
 export interface InterpretationResult {
-    summary: string;        // Main interpretation
-    details: string[];      // Additional points
-    warnings: string[];     // Assumption violations
-    citations: string[];    // Academic references
+    summary:   string;
+    details:   string[];
+    warnings:  string[];
+    citations: string[];
 }
-
