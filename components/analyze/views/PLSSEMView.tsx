@@ -40,6 +40,7 @@ interface PLSSEMViewProps {
     columns: string[];
     user: any;
     setResults: (results: any) => void;
+    setStep: (step: any) => void;
     setNcsBalance: React.Dispatch<React.SetStateAction<number>>;
     showToast: (message: string, type: 'success' | 'error' | 'info') => void;
     onBack: () => void;
@@ -56,6 +57,7 @@ export const PLSSEMView: React.FC<PLSSEMViewProps> = ({
     columns,
     user,
     setResults,
+    setStep,
     setNcsBalance,
     showToast,
     onBack,
@@ -113,6 +115,7 @@ export const PLSSEMView: React.FC<PLSSEMViewProps> = ({
                 columns: cols,
                 scaleName: name
             });
+            setStep('results');
 
             showToast('Phân tích McDonald\'s Omega hoàn thành!', 'success');
         } catch (error) {
@@ -167,6 +170,7 @@ export const PLSSEMView: React.FC<PLSSEMViewProps> = ({
                 data: result,
                 columns: columns
             });
+            setStep('results');
 
             showToast(`Phát hiện ${result.n_outliers} outliers!`, 'success');
         } catch (error) {
@@ -217,6 +221,7 @@ export const PLSSEMView: React.FC<PLSSEMViewProps> = ({
                 data: result,
                 factorStructure: factorStructure
             });
+            setStep('results');
 
             showToast('HTMT Matrix hoàn thành!', 'success');
         } catch (error) {
@@ -271,6 +276,7 @@ export const PLSSEMView: React.FC<PLSSEMViewProps> = ({
                 data: result,
                 columns: columns
             });
+            setStep('results');
 
             showToast('VIF Check hoàn thành!', 'success');
         } catch (error) {
@@ -326,6 +332,7 @@ export const PLSSEMView: React.FC<PLSSEMViewProps> = ({
                 columns: columns,
                 nBootstrap: nBootstrap
             });
+            setStep('results');
 
             showToast(`Bootstrapping với ${nBootstrap} samples hoàn thành!`, 'success');
         } catch (error) {
